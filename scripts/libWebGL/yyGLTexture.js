@@ -1,3 +1,15 @@
+// **********************************************************************************************************************
+//
+// Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
+//
+// File:            yyGLTexture.js
+// Created:         16/02/2011
+// Author:          Mike
+// Project:         HTML5
+// Description:
+//
+// **********************************************************************************************************************
+
 /** @constructor */
 function yyGLTexture(_glTexture, _width, _height, _pow2, _image, _numMips, _flags) {
 

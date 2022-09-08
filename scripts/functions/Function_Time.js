@@ -1,3 +1,15 @@
+// **********************************************************************************************************************
+//
+// Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
+//
+// File:            Function_Time.js
+// Created:         16/02/2011
+// Author:          Mike
+// Project:         HTML5
+// Description:
+//
+// **********************************************************************************************************************
+
 ﻿function NonExistentError(_id)
 {
 	console.error("Error: Index %d does not correspond to an existing time source\n", _id);

@@ -1,3 +1,15 @@
+// **********************************************************************************************************************
+//
+// Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
+//
+// File:            yyTime.js
+// Created:         16/02/2011
+// Author:          Mike
+// Project:         HTML5
+// Description:
+//
+// **********************************************************************************************************************
+
 ﻿/* Built-in time source IDs */
 var eTimeSource_Global = 0,
     eTimeSource_Game = 1,

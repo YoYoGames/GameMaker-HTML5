@@ -1,3 +1,15 @@
+// **********************************************************************************************************************
+//
+// Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
+//
+// File:            yyVertexManager.js
+// Created:         16/02/2011
+// Author:          Mike
+// Project:         HTML5
+// Description:
+//
+// **********************************************************************************************************************
+
 function vertex_format_begin()                              { ErrorFunction("vertex_format_begin"); }
 function vertex_format_end()                                { ErrorFunction("vertex_format_end"); }
 function vertex_format_delete(format_id)                    { ErrorFunction("vertex_format_delete"); }

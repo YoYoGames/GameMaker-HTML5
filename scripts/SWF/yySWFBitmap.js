@@ -1,3 +1,15 @@
+// **********************************************************************************************************************
+//
+// Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
+//
+// File:            yySWFBitmap.js
+// Created:         16/02/2011
+// Author:          Mike
+// Project:         HTML5
+// Description:
+//
+// **********************************************************************************************************************
+
 var eBitmapType_JPEGNoHeader = 0,
 	eBitmapType_JPEG = 1,
 	eBitmapType_JPEGWithAlpha = 2,

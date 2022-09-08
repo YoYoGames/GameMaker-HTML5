@@ -1,3 +1,15 @@
+// **********************************************************************************************************************
+//
+// Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
+//
+// File:            yySkeletonSprite.js
+// Created:         16/02/2011
+// Author:          Mike
+// Project:         HTML5
+// Description:
+//
+// **********************************************************************************************************************
+
 // This is an exceptionally nasty way to keep a Sprite agnostic about which instance triggered its draw
 var g_skeletonDrawInstance = null;
 

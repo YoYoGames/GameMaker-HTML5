@@ -1,3 +1,15 @@
+// **********************************************************************************************************************
+//
+// Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
+//
+// File:            Function_Shaders.js
+// Created:         16/02/2011
+// Author:          Mike
+// Project:         HTML5
+// Description:
+//
+// **********************************************************************************************************************
+
 // WebGL.js redefines these to useful functions
 var fn_texture_get_texel_width = function() { ErrorFunction("yy_texture_get_texel_width()"); };
 var fn_texture_get_texel_height = function() { ErrorFunction("yy_texture_get_texel_height()"); };
