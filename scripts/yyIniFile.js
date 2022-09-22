@@ -722,7 +722,7 @@ function RawFileExists(_url) {
 
 // #############################################################################################
 /// Function:<summary>
-///             Read/Write a file from a server
+///             Read/Write a BINARY file from a server
 ///          </summary>
 ///
 /// In:		 <param name="U">file or URL to access</param>
@@ -739,6 +739,30 @@ function RawServerReadWrite(U, V)
 		// RK :: This is using a trick to download the file as text and then avoid the encoding changing the data see
 		// https://web.archive.org/web/20071103070418/http://mgran.blogspot.com/2006/08/downloading-binary-streams-with.html
         X.overrideMimeType('text\/plain; charset=x-user-defined');
+        X.send(V ? V : '');
+        g_LastErrorStatus = X.status;
+        return X.responseText;
+    }catch(e){
+        return null;
+    }
+}
+
+// #############################################################################################
+/// Function:<summary>
+///             Read/Write a TEXT file from a server
+///          </summary>
+///
+/// In:		 <param name="U">file or URL to access</param>
+///			 <param name="V">false for GET, true for POST</param>
+/// Out:	 <returns>
+///				the file, or null if an error occured.
+///			 </returns>
+// #############################################################################################
+function TextServerReadWrite(U, V)
+{
+    try{
+        var X = !window.XMLHttpRequest ? new ActiveXObject('Microsoft.XMLHTTP') : new XMLHttpRequest();
+        X.open(V ? 'PUT' : 'GET', U, false );
         X.send(V ? V : '');
         g_LastErrorStatus = X.status;
         return X.responseText;
@@ -815,7 +839,28 @@ function SaveTextFile_Block(_filename, _pFile)
 ///			 </returns>
 // #############################################################################################
 function LoadTextFile_Block( _FileName, _fLocal )
-{   
+{
+	return LoadXXXFile_Block( _FileName, _fLocal, TextServerReadWrite );
+}
+
+// #############################################################################################
+/// Function:<summary>
+///             Load a BINARY file from local, OR remote (blocking)
+///          </summary>
+///
+/// In:		 <param name="_FileName"></param>
+///			 <param name="_fLocal"></param>
+/// Out:	 <returns>
+///				
+///			 </returns>
+// #############################################################################################
+function LoadBinaryFile_Block( _FileName, _fLocal )
+{
+	return LoadXXXFile_Block( _FileName, _fLocal, RawServerReadWrite );
+}
+
+function LoadXXXFile_Block( _FileName, _fLocal, _ServerReadWriteFunc )
+{
 	var pFile = null;
 
 	if (_FileName.substring(0, 5) == "file:") return null;
@@ -846,13 +891,12 @@ function LoadTextFile_Block( _FileName, _fLocal )
 		_FileName = CheckWorkingDirectory(_FileName);
 
 
-		pFile = RawServerReadWrite(_FileName, false);
+		pFile = _ServerReadWriteFunc(_FileName, false);
 		if( ( pFile ==null ) || (pFile==undefined ) ) return null;
 		if (g_LastErrorStatus == 404) return null;
 	}
 	return pFile;
 }
-
 
 // #############################################################################################
 /// Function:<summary>
