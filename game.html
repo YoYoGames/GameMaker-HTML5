@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset=utf-8 />
+        <title>Game Maker HTML 5</title>
+        <style>
+            body {
+              background: #222;
+            }
+            canvas {
+              position: absolute;
+              top: 0;
+              left: 0;
+            }
+            div.centered
+            {
+              position: fixed;
+              top: 50%;
+              left: 50%;
+              margin-top: -200px;
+              margin-left: -370px;
+            }
+            #canvas {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              margin-left: -245px;
+              margin-top: -157px;
+              image-rendering: optimizeSpeed;
+              -webkit-interpolation-mode: nearest-neighbor;
+		    }
+        </style>
+<!--image-rendering: optimizeSpeed;
+			-webkit-interpolation-mode: nearest-neighbor;-->
+        <!--
+        <embed src="game/Button press.wav" border=0 autostart=false width=0 height=0 id="Button Press.wav" enablejavascript="true">
+        <embed src="game/Buzzer_01.wav" autostart=false width=0 height=0 id="Buzzer_01.wav" enablejavascript="true">
+        <embed src="game/Chips3.wav" autostart=false width=0 height=0 id="Chips3.wav" enablejavascript="true">
+        <embed src="game/Deal52s.wav" autostart=false width=0 height=0 id="Deal52.wav" enablejavascript="true">
+        <embed src="game/DealOne.wav" autostart=false width=0 height=0 id="DealOne.wav" enablejavascript="true">
+        <embed src="game/DropMultiple.wav" autostart=false width=0 height=0 id="DropMultiple.wav" enablejavascript="true">
+        <embed src="game/DropOne.wav" autostart=false width=0 height=0 id="DropOne.wav" enablejavascript="true">
+        <embed src="game/Lose_03_short.wav" autostart=false width=0 height=0 id="Lose_03_short.wav" enablejavascript="true">
+        <embed src="game/New Deck.wav" autostart=false width=0 height=0 id="New Deck.wav" enablejavascript="true">
+        <embed src="game/PickupMultiple.wav" autostart=false width=0 height=0 id="PickupMultiple.wav" enablejavascript="true">
+        <embed src="game/PickupOne.wav" autostart=false width=0 height=0 id="PickupOne.wav" enablejavascript="true">
+        <embed src="game/Positive Ding.wav" autostart=false width=0 height=0 id="Positive Ding.wav" enablejavascript="true">
+        <embed src="game/SendToTop.wav" autostart=false width=0 height=0 id="SendToTop.wav" enablejavascript="true">
+        <embed src="game/Win.wav" autostart=false width=0 height=0 id="Win.wav" enablejavascript="true">
+        <embed src="game/UI_01.wav" autostart=false width=0 height=0 id="UI_01.wav" enablejavascript="true">
+        -->
+
+        <!-- Include the game -->
+	    <!--script type="text/javascript" src="game/scroller_test.js"></script-->
+	    <!-- script type="text/javascript" src="game/KeyboardTest.js"></script -->	    
+	    <!--script type="text/javascript" src="game2/poker_squares.js"></script -->
+	    <!--script type="text/javascript" src="game/Klondike-1_ipad.js"></script-->
+	    <script type="text/javascript" src="game/tntbf_i_10_iphone.js"></script>
+	    <!--script type="text/javascript" src="game/collision_test.js"></script-->
+	    <!--script type="text/javascript" src="game/karoshi_iphone.js"></script-->
+	    
+	    
+        <!-- Include the runner -->
+	    <script type="text/javascript" src="scripts/runner.js"></script>
+
+    </head>
+    <body oncontextmenu="return false">
+        <div class="centered">
+            <img src="images/iphone_frame.png" class="centered"/>
+        <canvas id="canvas" width="480" height="320" >
+                <p>Your browser doesn't support canvas.</p>
+            </canvas>
+        </div>
+
+
+    </body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset=utf-8 />
+        <title>Game Maker HTML 5</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=9" >
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name ="viewport" content = "width = 1024, height=768, initial-scale = 1.0, user-scalable = no">
+        <meta name="apple-mobile-web-app-status-bar-style" content="defalt" />
+        <style>
+            body {
+              background: #222;
+            }
+            canvas {
+              position: absolute;
+              top: 0;
+              left: 0;
+            }
+            div.centered
+            {
+              position: fixed;
+              top: 50%;
+              left: 50%;
+              margin-top: -200px;
+              margin-left: -370px;
+            }
+            #canvas {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              margin-left: -245px;
+              margin-top: -320px;
+              image-rendering: optimizeSpeed;
+              -webkit-interpolation-mode: nearest-neighbor;
+		    }
+        </style>
+<!--image-rendering: optimizeSpeed;
+			-webkit-interpolation-mode: nearest-neighbor;-->
+	    
+	    <!--script type="text/javascript" src="game/TNTBF_i_10_iphone.js"></script-->
+	    <script type="text/javascript" src="game/tntbf_i_10_iphone.js"></script>
+	    
+        <!-- Include the runner -->
+	    <script type="text/javascript" src="scripts/runner.js"></script>
+
+    </head>
+    <body oncontextmenu="return false">
+        <div class="centered">
+            <img src="images/iphone_frame.png" class="centered"/>
+        <canvas id="canvas" width="480" height="320" >
+                <p>Your browser doesn't support canvas.</p>
+            </canvas>
+        </div>
+
+
+    </body>
+</html>
