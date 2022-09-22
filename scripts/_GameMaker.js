@@ -1552,7 +1552,7 @@ function UpdateActiveLists() {
 	if( g_RunRoom.m_Active.unsorted>=0 ) g_RunRoom.m_Active.Sort();
     //if (g_RunRoom.m_DepthSorting.length > 0) g_RunRoom.ProcessDepthList();
 	//if (g_RunRoom.m_NewInstances.length > 0) g_RunRoom.ProcessNewInstanceList();
-	if (g_RunRoom.m_ParticleChanges.length > 0) g_RunRoom.ProcessParticleDepthChange();
+	if (g_ParticleChanges.length > 0) g_RunRoom.ProcessParticleDepthChange();
 	
 	//TEST-verify list sorted correctly; +ve depth at end of list
 	/*var iDepth = 0;

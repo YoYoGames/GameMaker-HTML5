@@ -1775,7 +1775,7 @@ function ParticleSystem_Depth(_ps, _depth)
 
 	pPartSys.id = _ps;
 	pPartSys.depth = yyGetReal(_depth);
-	g_RunRoom.m_ParticleChanges.push({ part_sys: pPartSys, type: 0 } );
+	g_ParticleChanges.push({ part_sys: pPartSys, type: 0 } );
     
     /*
     // This must be defered till the end of the event - like instance depth change

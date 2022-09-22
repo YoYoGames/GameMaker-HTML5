@@ -29,7 +29,6 @@ function    yyRoom()
  
   };
 
-
 // #############################################################################################
 /// Function:<summary>
 ///             
@@ -67,8 +66,8 @@ yyRoom.prototype.Init = function () {
 	this.m_Deactive = new yyList(); 		    // the DEACTIVE instance list
 	this.m_Deactive.packing = true;
 	this.m_DepthSorting = []; 				    // When the depth is changed, we need to remember it so we can "change" it at a safe point. 
-	//this.m_NewInstances = []; 				    // When a new instance is added, its added to the layers at the end of the event
-	this.m_ParticleChanges = []; 			    // When a particle system changes depth
+	//this.m_NewInstances = []; 				// When a new instance is added, its added to the layers at the end of the event
+	//this.m_ParticleChanges = []; 			    // When a particle system changes depth (this needs to be global because it can be called before there is a room)
 
 	this.m_NumTiles = 0;
 	this.m_Tiles = [];
@@ -4572,9 +4571,9 @@ yyRoom.prototype.ProcessNewInstanceList = function () {
 yyRoom.prototype.ProcessParticleDepthChange = function () {
     // Particle systems changing depth
 	if (g_isZeus) {
-	    var len = this.m_ParticleChanges.length;
+	    var len = g_ParticleChanges.length;
 	    for (var i = 0; i < len; i++) {
-	        var pPartChange = this.m_ParticleChanges[i];
+	        var pPartChange = g_ParticleChanges[i];
 	        var pPartSys = pPartChange.part_sys;
 	        var type = pPartChange.type;
 	        var id = pPartSys.id;
@@ -4590,7 +4589,7 @@ yyRoom.prototype.ProcessParticleDepthChange = function () {
 	        }
         }
 	}
-	if( this.m_ParticleChanges.length!=0 ) this.m_ParticleChanges = [];// wipe array
+	if( g_ParticleChanges.length!=0 ) g_ParticleChanges = []; // wipe array
 };
 
 

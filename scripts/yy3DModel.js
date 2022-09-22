@@ -726,7 +726,7 @@ yy3DModel.prototype.Floor = function (x1,y1,z1,x2,y2,z2,hrepeat,vrepeat) {
 // #############################################################################################
 /// Function:<summary>
 ///             If the primtype changes or they're using a triangle fan, we need a new vbuffer.
-///             This routine lets us create a new one consistently
+///             This routine lets us create a new one consistently.
 ///          </summary>
 // #############################################################################################
 yy3DModel.prototype.CreateNewVBuffer = function () {

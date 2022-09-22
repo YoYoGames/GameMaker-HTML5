@@ -477,16 +477,17 @@ function push_set_application_badge_number()        { ErrorFunction("push_set_ap
 function surface_set_target_ext()               { ErrorFunction("surface_set_target_ext()"); return 0; }
 function surface_get_target_ext(_)              { ErrorFunction("surface_set_target_ext()"); return -1; }
 
-function audio_destroy_sync_group() { ErrorFunction("audio_destroy_sync_group()"); return -1; }
-function audio_create_sync_group()                  { ErrorFunction("audio_create_sync_group()"); return -1; }
-function audio_play_in_sync_group()                 { ErrorFunction("audio_play_in_sync_group()"); }
-function audio_start_sync_group()                  { ErrorFunction("audio_start_sync_group()"); }
-function audio_pause_sync_group()                  { ErrorFunction("audio_pause_sync_group()"); }
-function audio_resume_sync_group()                  { ErrorFunction("audio_resume_sync_group()"); }
-function audio_stop_sync_group()                  { ErrorFunction("audio_stop_sync_group()"); }
-function audio_sync_group_get_track_pos()                  { ErrorFunction("audio_sync_group_get_track_pos()"); return -1; }
+function audio_destroy_sync_group() 					{ ErrorFunction("audio_destroy_sync_group()"); return -1; }
+function audio_create_sync_group()                  	{ ErrorFunction("audio_create_sync_group()"); return -1; }
+function audio_play_in_sync_group()                 	{ ErrorFunction("audio_play_in_sync_group()"); }
+function audio_start_sync_group()                  		{ ErrorFunction("audio_start_sync_group()"); }
+function audio_pause_sync_group()                  		{ ErrorFunction("audio_pause_sync_group()"); }
+function audio_resume_sync_group()                  	{ ErrorFunction("audio_resume_sync_group()"); }
+function audio_stop_sync_group()                  		{ ErrorFunction("audio_stop_sync_group()"); }
+function audio_sync_group_get_track_pos()               { ErrorFunction("audio_sync_group_get_track_pos()"); return -1; }
 function audio_sync_group_is_playing()                  { ErrorFunction("audio_sync_group_is_playing()"); return -1; }
-function audio_sync_group_debug()                   { ErrorFunction("audio_sync_group_debug()"); }
+function audio_sync_group_is_paused()                  	{ ErrorFunction("audio_sync_group_is_paused()"); return -1; }
+function audio_sync_group_debug()                   	{ ErrorFunction("audio_sync_group_debug()"); }
 
 
 function gpio_set()                                     { ErrorFunction("GPIO is not supported"); }

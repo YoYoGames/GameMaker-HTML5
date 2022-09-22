@@ -418,7 +418,29 @@ function ds_grid_add(_id, _x, _y, _val) {
 		yyError("Error: grid out of bounds(ds_grid_add): " + _id + " (" + _x + "," + _y + ")");
 		return;
 	}
-	pGrid.m_pGrid[_x + (_y * pGrid.m_Width)] += _val;
+	
+	var index = _x + (_y * pGrid.m_Width);	
+	var destVal = pGrid.m_pGrid[index];
+	var destType = typeof(destVal);
+	var incomingType = typeof(_val);
+
+	// They are same type and either a number/string (ADD)
+	if (destType == incomingType && (destType == "number" || destType == "string")) 
+	{
+		pGrid.m_pGrid[index] += _val;
+	}
+	// Either is an object (SET)
+	else if (destType != "object" || incomingType != "object")
+	{
+		pGrid.m_pGrid[index] = _val;
+	}
+	// Neither is a string cast them (ADD)
+	else if (destType != "string" && incomingType != "string")
+	{
+		pGrid.m_pGrid[index] = yyGetReal(destVal) + yyGetReal(_val);
+	}
+	// Else replace the current value (SET)
+	else pGrid.m_pGrid[index] = _val;
 }
 
 
@@ -453,7 +475,16 @@ function    ds_grid_multiply(_id,_x,_y,_val) {
 		yyError("Error: grid out of bounds(ds_grid_multiply): " + _id + " (" + _x + "," + _y + ")");
 		return;
 	}
-	pGrid.m_pGrid[_x + (_y * pGrid.m_Width)] *= _val;
+	
+	var index = _x + (_y * pGrid.m_Width);
+	var destVal = pGrid.m_pGrid[index];
+	var destType = typeof(destVal);
+
+	// If either are a string (IGNORE)
+	if (typeof(_val) == "string" || destType == "string") return; 
+	
+	// Cast both elements to real and multiply
+	pGrid.m_pGrid[index] = yyGetReal(destVal) * yyGetReal(_val);
 }
 
 // #############################################################################################
@@ -571,7 +602,28 @@ function ds_grid_add_region(_id, _x1, _y1, _x2, _y2, _val) {
 		var index = (y * pGrid.m_Width) + _x1;
 		for (var x = _x1; x <= _x2; x++)
 		{
-			pGrid.m_pGrid[index] += _val;
+			var destVal = pGrid.m_pGrid[index];
+			var destType = typeof(destVal);
+			var incomingType = typeof(_val);
+
+			// They are same type and either a number/string (ADD)
+			if (destType == incomingType && (destType == "number" || destType == "string")) 
+			{
+				pGrid.m_pGrid[index] += _val;
+			}
+			// Either is an object (SET)
+			else if (destType != "object" || incomingType != "object")
+			{
+				pGrid.m_pGrid[index] = _val;
+			}
+			// Neither is a string cast them (ADD)
+			else if (destType != "string" && incomingType != "string")
+			{
+				pGrid.m_pGrid[index] = yyGetReal(destVal) + yyGetReal(_val);
+			}
+			// Else replace the current value (SET)
+			else pGrid.m_pGrid[index] = _val;
+
 			index++;
 		}
 	}
@@ -632,8 +684,16 @@ function ds_grid_multiply_region(_id, _x1, _y1, _x2, _y2, _val) {
 	{
 		var index = (y * pGrid.m_Width) + _x1;
 		for (var x = _x1; x <= _x2; x++)
-		{
-			pGrid.m_pGrid[index] *= _val;
+		{	
+			var destVal = pGrid.m_pGrid[index];
+			var destType = typeof(destVal);
+
+			// If either are a string (IGNORE)
+			if (typeof(_val) == "string" || destType == "string") continue; 
+			
+			// Cast both elements to real and multiply
+			pGrid.m_pGrid[index] = yyGetReal(destVal) * yyGetReal(_val);
+
 			index++;
 		}
 	}
@@ -752,7 +812,28 @@ function ds_grid_add_disk(_id,_x,_y,_r,_val)
 			{
 				if (i >= 0 && i < pGrid.m_Width && j >= 0 && j < pGrid.m_Height)
 				{
-					pGrid.m_pGrid[i + (j * w)] += _val;
+					var index = i + (j * w);		
+					var destVal = pGrid.m_pGrid[index];
+					var destType = typeof(destVal);
+					var incomingType = typeof(_val);
+
+					// They are same type and either a number/string (ADD)
+					if (destType == incomingType && (destType == "number" || destType == "string")) 
+					{
+						pGrid.m_pGrid[index] += _val;
+					}
+					// Either is an object (SET)
+					else if (destType != "object" || incomingType != "object")
+					{
+						pGrid.m_pGrid[index] = _val;
+					}
+					// Neither is a string cast them (ADD)
+					else if (destType != "string" && incomingType != "string")
+					{
+						pGrid.m_pGrid[index] = yyGetReal(destVal) + yyGetReal(_val);
+					}
+					// Else replace the current value (SET)
+					else pGrid.m_pGrid[index] = _val;
 				}				
 			}
 		}
@@ -812,7 +893,15 @@ function ds_grid_multiply_disk(_id,_x,_y,_r,_val)
 			{
 				if (i >= 0 && i < pGrid.m_Width && j >= 0 && j < pGrid.m_Height)
 				{
-					pGrid.m_pGrid[i + (j * w)] *= _val;
+					var index = i + (j * w);		
+					var destVal = pGrid.m_pGrid[index];
+					var destType = typeof(destVal);
+		
+					// If either are a string (IGNORE)
+					if (typeof(_val) == "string" || destType == "string") continue; 
+					
+					// Cast both elements to real and multiply
+					pGrid.m_pGrid[index] = yyGetReal(destVal) * yyGetReal(_val);
 				}				
 			}
 		}
@@ -941,8 +1030,6 @@ function ds_grid_set_grid_region(_id, _source, _x1, _y1, _x2, _y2, _xpos, _ypos)
 	);
 }
 
-
-
 // #############################################################################################
 /// Function:<summary>
 ///          	SCopies the contents of the cells in the region in grid source to grid id. 
@@ -967,7 +1054,29 @@ function ds_grid_add_grid_region(_id, _source, _x1, _y1, _x2, _y2, _xpos, _ypos 
 {
 	ds_grid_set_grid_region_Common(_id, _source, _x1, _y1, _x2, _y2, _xpos, _ypos,
 		function myfunction(_pDestGrid, _destindex, _pGrid, _index) {
-			_pDestGrid.m_pGrid[_destindex] += _pGrid.m_pGrid[_index];
+
+			var destVal = _pDestGrid.m_pGrid[_destindex];
+			var destType = typeof(destVal);
+			var incomingValue = _pGrid.m_pGrid[_index];
+			var incomingType = typeof(incomingValue);
+
+			// They are same type and either a number/string (ADD)
+			if (destType == incomingType && (destType == "number" || destType == "string")) 
+			{
+				_pDestGrid.m_pGrid[_destindex] += incomingValue;
+			}
+			// Either is an object (SET)
+			else if (destType != "object" || incomingType != "object")
+			{
+				_pDestGrid.m_pGrid[_destindex] = incomingValue;
+			}
+			// Neither is a string cast them (ADD)
+			else if (destType != "string" && incomingType != "string")
+			{
+				_pDestGrid.m_pGrid[_destindex] = yyGetReal(destVal) + yyGetReal(incomingValue);
+			}
+			// Else replace the current value (SET)
+			else _pDestGrid.m_pGrid[_destindex] = incomingValue;
 		});
 }
 
@@ -994,9 +1103,16 @@ function ds_grid_add_grid_region(_id, _source, _x1, _y1, _x2, _y2, _xpos, _ypos 
 function ds_grid_multiply_grid_region(_id, _source, _x1, _y1, _x2, _y2, _xpos, _ypos, _val) {
 	ds_grid_set_grid_region_Common(_id, _source, _x1, _y1, _x2, _y2, _xpos, _ypos,
 		function myfunction(_pDestGrid, _destindex, _pGrid, _index) {
-			_pDestGrid.m_pGrid[_destindex] *= _pGrid.m_pGrid[_index];
-		}
-		);
+
+			var destVal = _pDestGrid.m_pGrid[_destindex];
+			var incomingValue = _pGrid.m_pGrid[_index];
+
+			// They are same type and strings ignore
+			if (typeof(destVal) == "string" || typeof(incomingValue) == "string") return;
+
+			// Cast both to reals and perform multiplication
+			_pDestGrid.m_pGrid[_destindex] = yyGetReal(destVal) * yyGetReal(incomingValue);
+		});
 }
 
 // #############################################################################################

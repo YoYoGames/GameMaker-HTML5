@@ -1808,15 +1808,15 @@ yyFontManager.prototype.GR_Text_Draw = function (_str, x, y, linesep, linewidth,
 
 	var fontSize = thefont ? thefont.TextHeight('M') : 20;
 	if (this.valign == 1)
-		y = y - fontSize*yscale / 2.0;
+		y = y - fontSize / 2.0;
 
 	if (this.valign == 2)
-		y = y - fontSize*yscale;
+		y = y - fontSize;
 	
 	if (linesep <= 0)
 		linesep = fontSize;
 	
-	var xsep = ss * xscale * linesep;
+	var xsep = ss * yscale * linesep;
 	var ysep = cc * yscale * linesep;
 	
 	// if (linesep > 0)

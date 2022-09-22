@@ -2594,7 +2594,6 @@ function WebGL_DrawPart_RELEASE(_pTPE, _left, _top, _width, _height, _x, _y, _xs
 
     if (!_pTPE) return;
     if (!_pTPE.texture) return;
-    if (!_pTPE.texture.complete) return;
 
     _color &= 0xffffff;
     _color |= (_alpha * 255) << 24;

@@ -1126,6 +1126,7 @@ function    InitAboyneGlobals() {
     g_DefaultViewArray = [];
     g_DefaultViewArray[0] = g_DefaultView;
 
+	g_ParticleChanges = []; // When a particle system changes depth
     g_ParticleTextures = [];
     g_ParticleTypes = [];
     g_ParticleSystems = [];

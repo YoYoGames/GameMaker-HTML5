@@ -10,6 +10,7 @@ function yySkeletonInstance(_skeletonSprite) {
 	this.m_lastFrame = 0;
 	this.m_lastFrameDir = 0;
     this.m_drawCollisionData = false;
+	this.m_angle = 0;
         
 	this.m_skeleton = null;
 	this.m_skeletonBounds = null;
@@ -89,13 +90,6 @@ yySkeletonInstance.prototype.SetupSkeletonData = function (_skeletonData) {
 
 	// Create a collision primitive for the skeleton
 	this.m_skeletonBounds = new spine.SkeletonBounds();	
-	
-	// Store off the loading scaling of the skeleton
-	var root = this.m_skeleton.getRootBone();
-	this.m_skeletonScale = [
-	    root.scaleX, 
-	    root.scaleY * -1.0
-	];
 };
 
 // #############################################################################################
@@ -480,26 +474,30 @@ yySkeletonInstance.prototype.GetSlotAlpha = function (_slotName, _gmCol)
 ///				Find the attachment if it exists
 ///          </summary>
 // #############################################################################################
-yySkeletonInstance.prototype.FindAttachment = function( _slotName, _attachmentName)
+yySkeletonInstance.prototype.FindAttachment = function( _slotName, _attachmentName, _customOnly = false)
 {
 	var ret = undefined;
-	//var slotIndex = this.m_skeleton.findSlotIndex (_slotName);		
-	var slotIndex = -1;
-	var slot = this.m_skeleton.findSlot(_slotName);
-	if ((slot !== null) && (slot !== undefined) && (slot.data !== null) && (slot.data !== undefined))
+
+	if(!_customOnly)
 	{
-		slotIndex = slot.data.index;
+		//var slotIndex = this.m_skeleton.findSlotIndex (_slotName);		
+		var slotIndex = -1;
+		var slot = this.m_skeleton.findSlot(_slotName);
+		if ((slot !== null) && (slot !== undefined) && (slot.data !== null) && (slot.data !== undefined))
+		{
+			slotIndex = slot.data.index;
+		}
+		for (var skinIndex = 0; skinIndex < this.m_skeletonData.skins.length; skinIndex++) {
+			var skin = this.m_skeletonData.skins[skinIndex];			
+			var attachment = skin.getAttachment(slotIndex, _attachmentName);			
+			if (attachment) {
+				ret = _attachmentName;
+				break;
+			} // end if
+		} // end for
 	}
-	for (var skinIndex = 0; skinIndex < this.m_skeletonData.skins.length; skinIndex++) {
-		var skin = this.m_skeletonData.skins[skinIndex];			
-		var attachment = skin.getAttachment(slotIndex, _attachmentName);			
-		if (attachment) {
-			ret = _attachmentName;
-			break;
-		} // end if
-	} // end for
-	
-	if (ret !== undefined ) {
+
+	if (ret === undefined ) {
 		for (var attachIndex = 0; attachIndex < this.m_attachments.length; attachIndex++) {
 		    var attachment = this.m_attachments[attachIndex].attachment;
 		    if (attachment.name === _attachmentName) {
@@ -517,11 +515,27 @@ yySkeletonInstance.prototype.FindAttachment = function( _slotName, _attachmentNa
 ///          	Create a new attachment for the instance's skeleton based on an existing sprite
 ///          </summary>
 // #############################################################################################
-yySkeletonInstance.prototype.CreateAttachment = function (_attachmentName, _pSpr, _ind, _xo, _yo, _xs, _ys, _rot, _spineCol, _gmCol, _gmAlpha) {
+yySkeletonInstance.prototype.CreateAttachment = function (_attachmentName, _pSpr, _ind, _xo, _yo, _xs, _ys, _rot, _spineCol, _gmCol, _gmAlpha, _replaceExisting) {
     
     var pTPE = _pSpr.ppTPE[_ind % _pSpr.GetCount()];
 	var pTexture = g_Textures[pTPE.tp];
-	
+
+	var replaceAttachmentIdx;
+	for (replaceAttachmentIdx = 0; replaceAttachmentIdx < this.m_attachments.length; replaceAttachmentIdx++)
+	{
+		var attachment = this.m_attachments[replaceAttachmentIdx].attachment;
+		if (attachment.name === _attachmentName)
+		{
+			if(_replaceExisting)
+			{
+				break;
+			}
+			else{
+				yyError("Custom attachment with name '" + _attachmentName + "' already exists");
+			}
+		}
+	}
+
 	// Hmmm.. if this sprite has been added using sprite_add() then the texture might not have been loaded yet
 	// There's not a particularly great way of handling that case at this point, so just show an error and bail
 	// The user should be able to handle it themselves by waiting on the async completion event before creating the attachment
@@ -603,8 +617,48 @@ yySkeletonInstance.prototype.CreateAttachment = function (_attachmentName, _pSpr
 	
 	pAttachment.updateOffset(pAttachment);	
 
-	// Store details created for use with this attachment
-    this.m_attachments.push({ attachment: pAttachment, atlas: atlas });
+	if(replaceAttachmentIdx < this.m_attachments.length)
+	{
+		// Replace the existing attachment+atlas with new one.
+
+		this.ReplaceSlotAttachments(this.m_attachments[replaceAttachmentIdx].attachment, pAttachment);
+
+		this.m_attachments[replaceAttachmentIdx] = { attachment: pAttachment, atlas: atlas };
+	}
+	else{
+		// Store details created for use with this attachment
+		this.m_attachments.push({ attachment: pAttachment, atlas: atlas });
+	}
+};
+
+yySkeletonInstance.prototype.DestroyAttachment = function (_attachmentName)
+{
+	for (var i = 0; i < this.m_attachments.length; i++)
+	{
+		var attachment = this.m_attachments[i].attachment;
+		if (attachment.name === _attachmentName)
+		{
+			this.ReplaceSlotAttachments(attachment, null);
+			this.m_attachments.splice(i, 1);
+
+			return true;
+		}
+	}
+
+	return false;
+};
+
+yySkeletonInstance.prototype.ReplaceSlotAttachments = function (_oldAttachment, _newAttachment)
+{
+	for(var i = 0; i < this.m_skeleton.slots.length; ++i)
+	{
+		var slot = this.m_skeleton.slots[i];
+
+		if(slot && slot.getAttachment() === _oldAttachment)
+		{
+			slot.setAttachment(_newAttachment);
+		}
+	}
 };
 
 // #############################################################################################
@@ -631,25 +685,16 @@ yySkeletonInstance.prototype.SetAnimationTransform = function (_ind, _x, _y, _sc
 	var lastFrame = this.m_lastFrame;
 	var forceUpdate = this.m_forceUpdate;
 
-	//var negangle = -_angle;
+	_scaley *= -1.0; /* Y scale seems to be inverted somewhere... */
 
     var    updateWorldTransform = (_eventInstance !== undefined);
-        
-    // Because we need to preserve the loaded scaling of the skeleton...
-    var overallScaleX = _scalex * this.m_skeletonScale[0];
-    var overallScaleY = _scaley * this.m_skeletonScale[1];
-    var flipX = (overallScaleX < 0) ? -1.0 : 1.0;
-    var flipY = (overallScaleY < 0) ? -1.0 : 1.0;
-    var scalex = Math.abs(overallScaleX);
-    var scaley = Math.abs(overallScaleY);
     
     // Try and avoid unnecessary repetition of effort
     if ((forceUpdate == true) ||
     	(lastFrame !== _ind) ||
         (skeleton.x !== _x) || (skeleton.y !== _y) ||
-		(root.scaleX !== scalex) || (root.scaleY !== scaley) ||
-        (skeleton.scaleX != flipX) || (skeleton.scaleY != flipY) ||
-		(root.rotation !== _angle))
+        (skeleton.scaleX != _scalex) || (skeleton.scaleY != _scaley) ||
+		(this.m_angle !== _angle))
     {
         var _spr = _sprite;
         if (((_sprite == undefined) || (_sprite == null)) && (_eventInstance != undefined) && (_eventInstance != null))
@@ -705,14 +750,9 @@ yySkeletonInstance.prototype.SetAnimationTransform = function (_ind, _x, _y, _sc
 
 	    skeleton.x = _x;
 	    skeleton.y = _y;
-	    //skeleton.flipX = ((_scalex * this.m_skeletonScale[0]) < 0) ? 1 : 0;
-        //skeleton.flipY = ((_scaley * this.m_skeletonScale[1]) < 0) ? 1 : 0;
-	    skeleton.scaleX = flipX;
-	    skeleton.scaleY = flipY;
-	    
-	    root.scaleX = scalex;
-	    root.scaleY = scaley;
-	    root.rotation = _angle;
+	    skeleton.scaleX = _scalex;
+	    skeleton.scaleY = _scaley;
+	    this.m_angle = _angle;
 	    
 	    updateWorldTransform = true;
 
@@ -727,8 +767,13 @@ yySkeletonInstance.prototype.SetAnimationTransform = function (_ind, _x, _y, _sc
 	        _eventInstance.PerformEvent(EVENT_OTHER_ANIMATIONUPDATE, 0, _eventInstance, null);
 	    }
 
-	    skeleton.updateWorldTransform();	    
-	    this.m_skeletonBounds.update(this.m_skeleton, 1);	
+	    var savedRotation = root.rotation;
+	    root.rotation += _angle;
+
+	    skeleton.updateWorldTransform();
+	    this.m_skeletonBounds.update(this.m_skeleton, 1);
+        
+	    root.rotation = savedRotation;
 	}
 };
 

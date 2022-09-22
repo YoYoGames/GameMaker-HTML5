@@ -1891,7 +1891,7 @@ function skeleton_attachment_set(_inst, _slot, _attachment) {
 	        {
 	            var pSpr = g_pSpriteManager.Get(_attachment);
 	            if (skeletonAnim.FindAttachment( _slot, pSpr.pName) === undefined) {
-		        	skeletonAnim.CreateAttachment(pSpr.pName, pSpr, 0, pSpr.xOrigin, pSpr.yOrigin, 1, 1, 0, undefined, 0xffffffff, 1.0);
+		        	skeletonAnim.CreateAttachment(pSpr.pName, pSpr, 0, pSpr.xOrigin, pSpr.yOrigin, 1, 1, 0, undefined, 0xffffffff, 1.0, false);
 		        } // end if
 				skeletonAnim.SetAttachment(_slot, pSpr.pName);
 		    }
@@ -1938,7 +1938,7 @@ function skeleton_attachment_create(_inst, _name, _sprite, _ind, _xo, _yo, _xs, 
 	            console.log("ERROR: Sprite '" + pSpr.pName + "' is not valid for use as an attachment (must be a bitmap)\n");
 	            return -1.0;
 	        }
-	        skeletonAnim.CreateAttachment(yyGetString(_name), pSpr, _ind, yyGetReal(_xo), yyGetReal(_yo), yyGetReal(_xs), yyGetReal(_ys), yyGetReal(_rot));
+	        skeletonAnim.CreateAttachment(yyGetString(_name), pSpr, _ind, yyGetReal(_xo), yyGetReal(_yo), yyGetReal(_xs), yyGetReal(_ys), yyGetReal(_rot), undefined, undefined, undefined, false);
 
 	        return 1.0;
 	    }
@@ -1962,7 +1962,7 @@ function skeleton_attachment_create_colour(_inst, _name, _sprite, _ind, _xo, _yo
                 console.log("ERROR: Sprite '" + pSpr.pName + "' is not valid for use as an attachment (must be a bitmap)\n");
                 return -1.0;
             }
-            skeletonAnim.CreateAttachment(yyGetString(_name), pSpr, _ind, yyGetReal(_xo), yyGetReal(_yo), yyGetReal(_xs), yyGetReal(_ys), yyGetReal(_rot), undefined, yyGetInt32(_col), yyGetReal(_alpha));
+            skeletonAnim.CreateAttachment(yyGetString(_name), pSpr, _ind, yyGetReal(_xo), yyGetReal(_yo), yyGetReal(_xs), yyGetReal(_ys), yyGetReal(_rot), undefined, yyGetInt32(_col), yyGetReal(_alpha), false);
 
             return 1.0;
         }
@@ -1974,6 +1974,86 @@ function skeleton_attachment_create_colour(_inst, _name, _sprite, _ind, _xo, _yo
 function skeleton_attachment_create_color(_inst, _name, _sprite, _ind, _xo, _yo, _xs, _ys, _rot, _col, _alpha)
 {
     skeleton_attachment_create_colour(_inst, _name, _sprite, _ind, _xo, _yo, _xs, _ys, _rot, _col, _alpha);
+}
+
+function skeleton_attachment_replace(_inst, _name, _sprite, _ind, _xo, _yo, _xs, _ys, _rot) {
+    
+    var skeletonAnim = _inst.SkeletonAnimation();
+    if (skeletonAnim)
+    {
+        _ind = yyGetInt32(_ind);
+
+	    if (sprite_exists(_sprite) && (_ind >= 0))
+        {
+	        var pSpr = g_pSpriteManager.Get(_sprite);
+	        if ((pSpr.SWFDictionaryItems != undefined) || (pSpr.m_skeletonSprite != undefined))
+	        {
+	            console.log("ERROR: Sprite '" + pSpr.pName + "' is not valid for use as an attachment (must be a bitmap)\n");
+	            return -1.0;
+	        }
+	        skeletonAnim.CreateAttachment(yyGetString(_name), pSpr, _ind, yyGetReal(_xo), yyGetReal(_yo), yyGetReal(_xs), yyGetReal(_ys), yyGetReal(_rot), undefined, undefined, undefined, true);
+
+	        return 1.0;
+	    }
+    }
+
+    return -1.0;
+}
+
+function skeleton_attachment_replace_colour(_inst, _name, _sprite, _ind, _xo, _yo, _xs, _ys, _rot, _col, _alpha)
+{
+    var skeletonAnim = _inst.SkeletonAnimation();
+    if (skeletonAnim)
+    {
+        _ind = yyGetInt32(_ind);
+
+        if (sprite_exists(_sprite) && (_ind >= 0))
+        {
+            var pSpr = g_pSpriteManager.Get(_sprite);
+            if ((pSpr.SWFDictionaryItems != undefined) || (pSpr.m_skeletonSprite != undefined))
+            {
+                console.log("ERROR: Sprite '" + pSpr.pName + "' is not valid for use as an attachment (must be a bitmap)\n");
+                return -1.0;
+            }
+            skeletonAnim.CreateAttachment(yyGetString(_name), pSpr, _ind, yyGetReal(_xo), yyGetReal(_yo), yyGetReal(_xs), yyGetReal(_ys), yyGetReal(_rot), undefined, yyGetInt32(_col), yyGetReal(_alpha), true);
+
+            return 1.0;
+        }
+    }
+
+    return -1.0;
+}
+
+function skeleton_attachment_destroy(_inst, _name)
+{
+	var name = yyGetString(_name);
+
+	var skeletonAnim = _inst.SkeletonAnimation();
+	if (skeletonAnim)
+	{
+		var foundAttachment = skeletonAnim.DestroyAttachment(name);
+		if(!foundAttachment)
+		{
+			console.log("skeleton_attachment_destroy: Attempted to destroy non-existant attachment '" + name + "'");
+		}
+	}
+}
+
+function skeleton_attachment_exists(_inst, _name)
+{
+	var name = yyGetString(_name);
+
+	var skeletonAnim = _inst.SkeletonAnimation();
+	if (skeletonAnim)
+	{
+		var foundAttachment = (skeletonAnim.FindAttachment(null, name, true) !== undefined);
+		return foundAttachment;
+	}
+}
+
+function skeleton_attachment_replace_color(_inst, _name, _sprite, _ind, _xo, _yo, _xs, _ys, _rot, _col, _alpha)
+{
+    skeleton_attachment_replace_colour(_inst, _name, _sprite, _ind, _xo, _yo, _xs, _ys, _rot, _col, _alpha);
 }
 
 function skeleton_slot_colour_set(_inst, _slot, _col, _alpha)

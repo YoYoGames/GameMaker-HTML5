@@ -296,26 +296,6 @@ function texturegroup_get_tilesets(_groupname)
     return ret;
 }
 
-function texturegroup_load(_groupname, _prefetch)
-{
-    // Do nothing on HTML5
-}
-
-function texturegroup_unload(_groupname)
-{
-    // Do nothing on HTML5
-}
-
-function texturegroup_status(_groupname)
-{    
-    return 3;       // equivalent to eTGI_Status_Fetched on the C++ runner
-}
-
-function texturegroup_mode(_explicit, _debug, _default_sprite)
-{
-    // Do nothing on HTML5
-}
-
 var g_TextureDebugMessages = 0;
 
 function texture_debug_messages(_enable)
