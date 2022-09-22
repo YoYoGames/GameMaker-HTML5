@@ -1615,16 +1615,17 @@ function audio_sound_get_pitch(_soundid)
 
             if (voice != null && voice.bActive)
             {
-                return voice.pitch
+                return voice.pitch;
             }
         }
         else
         {
-        	var sample = audio_sampledata[_soundid];
+        	const sound_asset = Audio_GetSound(_soundid);
 
-            if (sample != undefined)
+            // Queued sounds not currently supported
+            if (sound_asset != null && IsSoundQueued(_soundid) == false)
 		    {
-                return sample.pitch;
+                return sound_asset.pitch;
             }
         }
     }
@@ -1667,8 +1668,14 @@ function audio_sound_pitch(_soundid, pitch)
     }
     else
     {
+        const sound_asset = Audio_GetSound(_soundid);
+
+        // Queued sounds not currently supported
+        if (sound_asset == null || IsSoundQueued(_soundid))
+            return;
+
         // Update the asset-level pitch
-        audio_sampledata[_soundid].pitch = pitch;
+        sound_asset.pitch = pitch;
 
         // Update any playing sounds
         for (let i = 0; i < g_audioSoundCount; ++i)
@@ -3495,7 +3502,6 @@ function endian_swap_u16(swapme)
     return swapme;
 }
 
-// soundId = audio_create_buffer_sound(bufferId, buffer_u8, rate, 0, 44100, audio_mono);
 function audio_create_buffer_sound(_bufferId, _bufferFormat, _sampleRate, _offset, _length, _channels)
 {
     var newSound = allocateBufferSound( );
@@ -3518,7 +3524,7 @@ function audio_create_buffer_sound(_bufferId, _bufferFormat, _sampleRate, _offse
         return -1;
     }
 
-    var bitsPerSample = 8;
+    let bitsPerSample = 8;
 
     if (_bufferFormat == eBuffer_S16)
         bitsPerSample = 16;
@@ -3528,30 +3534,59 @@ function audio_create_buffer_sound(_bufferId, _bufferFormat, _sampleRate, _offse
         return -1;
     }
 
+    _sampleRate = Math.min(Math.max(_sampleRate, 8000), 48000);
+
     buffer_seek( _bufferId, eBuffer_Start, 0 );
     var bufferSize = _length;
 
-    var wavBuffer = buffer_create(44 + bufferSize, eBuffer_Format_Fixed, 1);
-    buffer_write( wavBuffer, eBuffer_U32, endian_swap_u32(0x46464952) ); // 'RIFF'
-    buffer_write( wavBuffer, eBuffer_U32, endian_swap_u32(36 + bufferSize) );
-    buffer_write( wavBuffer, eBuffer_U32, endian_swap_u32(0x45564157) ); // 'WAVE' 57415645
+    /* Here we prevent the Web Audio context from cleanly resampling the buffer
+       to the rate of the audio context by aligning the audio buffer rate with
+       that of the audio context and then crudely resampling the signal ourselves.
+       This is done to emulate the resampling that happens on other platforms
+       and maintain consistency of the perceived sound. */
 
-    buffer_write( wavBuffer, eBuffer_U32, endian_swap_u32(0x20746d66) ); // 'fmt ' 666d7420
-    buffer_write( wavBuffer, eBuffer_U32, endian_swap_u32(16)); // MAGIC - 16 == PCM
-    buffer_write( wavBuffer, eBuffer_U16, endian_swap_u16(1) ); // MAGIC - 1 = PCM
-    buffer_write( wavBuffer, eBuffer_U16, endian_swap_u16(numChannels)  );
-    buffer_write( wavBuffer, eBuffer_U32, endian_swap_u32(_sampleRate) );
-    buffer_write( wavBuffer, eBuffer_U32, endian_swap_u32(_sampleRate * numChannels * bitsPerSample / 8)); // ByteRate
-    buffer_write( wavBuffer, eBuffer_U16, endian_swap_u16(numChannels * bitsPerSample / 8)); // BlockAlign
-    buffer_write( wavBuffer, eBuffer_U16, endian_swap_u16(bitsPerSample)); // BlockAlign
+    // Find the new/old sample rate ratio
+    const sr_ratio = g_WebAudioContext.sampleRate / _sampleRate;
 
-    buffer_write( wavBuffer, eBuffer_U32, endian_swap_u32(0x61746164) ); // 'data'  64617461
-    buffer_write( wavBuffer, eBuffer_U32, endian_swap_u32( bufferSize ) );
+    // And its inverse
+    const increment = 1.0 / sr_ratio;
 
-    buffer_copy( _bufferId, _offset, bufferSize, wavBuffer, 44 );
+    // Calculate the divisor needed to convert from u8/s16 to f32
+    const divisor = Math.pow(2, bitsPerSample - 1);
 
-    var pBuff = buffer_get_address(wavBuffer);
-    var index = newSound.handle - BASE_BUFFER_SOUND_INDEX;
+    // Create the audio buffer
+    const bufferOptions = {
+        length: _length / (numChannels * bitsPerSample / 8) * sr_ratio,
+        numberOfChannels: numChannels,
+        sampleRate: g_WebAudioContext.sampleRate
+    };
+
+    const audioBuffer = new AudioBuffer(bufferOptions);
+
+    // Used for counting samples using the inverse of sr_ratio
+    let frac_pos = 0.0;
+
+    for (let f = 0; f < audioBuffer.length; ++f)
+    {
+        for (let ch = 0; ch < audioBuffer.numberOfChannels; ++ch)
+        {
+            const channelData = audioBuffer.getChannelData(ch);
+
+            if (frac_pos - 1.0 >= 0.0)
+            {
+                // Take a new sample from the signal
+                channelData[f] = (buffer_read(_bufferId, _bufferFormat) / divisor) - 1.0;
+                frac_pos -= 1.0;
+            }
+            else
+            {
+                // Copy the previous sample
+                channelData[f] = channelData[f - 1];
+            }
+
+            frac_pos += increment;
+        }  
+    }
 
     var sampleData = new audioSampleData();
     sampleData.gain = 1.0;
@@ -3560,32 +3595,11 @@ function audio_create_buffer_sound(_bufferId, _bufferFormat, _sampleRate, _offse
     sampleData.kind = 0;
     sampleData.duration = bufferSize / ( _sampleRate * numChannels * bitsPerSample / 8 );
     sampleData.groupId = 0;
-    sampleData.state = AudioSampleState.DECODING;
     sampleData.commands = [];
+    sampleData.state = AudioSampleState.READY;
+    sampleData.buffer = audioBuffer;
 
-    buffer_sampledata[index] = sampleData;
-	try
-	{
-        g_WebAudioContext.decodeAudioData(pBuff,
-            function ( buffer )
-            {
-                buffer_delete(wavBuffer);
-                buffer_sampledata[index].state = AudioSampleState.READY;
-                buffer_sampledata[index].buffer = buffer;
-                buffer_sampledata[index].ProcessCommands();
-            },
-            function(err)
-            {
-                buffer_sampledata[index].state = AudioSampleState.LOADED;
-                debug("error decoding audio data:" + err);
-                buffer_delete(wavBuffer);
-            }
-        );
-	}
-	catch ( ex )
-	{
-        debug("audio_create_buffer_sound - error decoding audio data: " + ex + " -- " + ex.message );
-    }
+    buffer_sampledata[newSound.handle - BASE_BUFFER_SOUND_INDEX] = sampleData;
 
     return newSound.handle;
 }
