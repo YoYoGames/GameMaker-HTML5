@@ -1,4 +1,4 @@
-﻿// **********************************************************************************************************************
+// **********************************************************************************************************************
 // 
 // Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
 // 
@@ -652,10 +652,8 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
 				} // end if
 			} // end if
 			pPrev = pGlyph;
-		    var xs = pGlyph.x,
-                ys = pGlyph.y,
-                ws = pGlyph.w + 1,
-                hs = pGlyph.h + 1;
+			var ws = pGlyph.w + 2,
+			    hs = pGlyph.h + 2;
 
 		    var x = _x + (pGlyph.offset * _xscale);
 		    pCoords[v0 + 0] = pCoords[v4 + 0] = pCoords[v5 + 0] = x - s_growth;
@@ -663,6 +661,9 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
 		    pCoords[v1 + 0] = pCoords[v2 + 0] = pCoords[v3 + 0] = x + s_growth + (ws * scaleX);
 		    pCoords[v2 + 1] = pCoords[v3 + 1] = pCoords[v4 + 1] = _y + s_growth + (hs * scaleY);
 		    pCoords[v0 + 2] = pCoords[v1 + 2] = pCoords[v2 + 2] = pCoords[v3 + 2] = pCoords[v4 + 2] = pCoords[v5 + 2] = GR_Depth;
+
+		    var xs = pGlyph.x - 1,
+		        ys = pGlyph.y - 1;
 
 		    pUVs[v0 + 0] = pUVs[v4 + 0] = pUVs[v5 + 0] = (TP.x + xs - s_growth) * invWidth;
 		    pUVs[v0 + 1] = pUVs[v1 + 1] = pUVs[v5 + 1] = (TP.y + ys - s_growth) * invHeight;
