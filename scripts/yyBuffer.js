@@ -2393,7 +2393,7 @@ function buffer_load_async(_buffer, _fname, _offset, _size) {
     if (!pBuff) return -1;
     
     // Try and load from local storage first
-    var pTextFile = LoadTextFile_Block(_fname, true);
+    var pTextFile = LoadBinaryFile_Block(_fname, true);
     if (pTextFile)
     {
         if (_size >= 0 && pTextFile.length > _size)
@@ -2447,10 +2447,10 @@ function buffer_load(_fname) {
     _fname = yyGetString(_fname);
     var shouldDecode = true;
 
-    var pTextFile = LoadTextFile_Block(_fname, true);
+    var pTextFile = LoadBinaryFile_Block(_fname, true);
     if (pTextFile == null)
     {
-        pTextFile = LoadTextFile_Block(_fname, false);
+        pTextFile = LoadBinaryFile_Block(_fname, false);
         shouldDecode = false;
     }
     if (pTextFile == null) return -1;
@@ -2528,10 +2528,10 @@ function buffer_load_partial(buffer, filename, src_offset, len, dst_offset) {
 
     var shouldDecode = true;
 
-    var pTextFile = LoadTextFile_Block(filename, true);
+    var pTextFile = LoadBinaryFile_Block(filename, true);
     if (pTextFile == null)
     {
-        pTextFile = LoadTextFile_Block(filename, false);
+        pTextFile = LoadBinaryFile_Block(filename, false);
         shouldDecode = false;
     }
     if (pTextFile == null) return -1;
