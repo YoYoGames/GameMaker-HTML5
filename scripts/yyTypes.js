@@ -286,7 +286,7 @@ function yyGetString(_v) {
             --g_incQuotesSTRING_RValue;
             return retString;
         } // end if
-        else if (_v.__yyIsGMLObject) {
+        else /* if (_v.__yyIsGMLObject) */ {
             var retString = "";
 
             if (_v[ "gmltoString" ] != undefined ) {
