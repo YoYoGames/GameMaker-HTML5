@@ -490,7 +490,6 @@ function audio_sync_group_is_paused()                  	{ ErrorFunction("audio_s
 function audio_sync_group_debug()                   	{ ErrorFunction("audio_sync_group_debug()"); }
 
 function audio_bus_create()                   			{ ErrorFunction("audio_bus_create()"); }
-function audio_bus_destroy()                   			{ ErrorFunction("audio_bus_destroy()"); }
 function audio_effect_create() 							{ ErrorFunction("audio_effect_create()"); }
 function audio_emitter_bus()							{ ErrorFunction("audio_emitter_bus()"); }
 function audio_emitter_get_bus()						{ ErrorFunction("audio_emitter_get_bus()"); }
