@@ -311,7 +311,7 @@ function texturegroup_get_status(_groupname)
     return 3;       // equivalent to eTGI_Status_Fetched on the C++ runner
 }
 
-function texturegroup_mode(_explicit, _debug, _default_sprite)
+function texturegroup_set_mode(_explicit, _debug, _default_sprite)
 {
     // Do nothing on HTML5
 }
