@@ -1574,6 +1574,10 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
     {
         ret = _val1 == _val2 ? 0 : 1;
     } // end if
+    else if (typeof _val1 == "object" && typeof _val2 == "object") 
+    {
+        ret = _val1 == _val2 ? 0 : 1;
+    } // end if
     else if (typeof _val1 == "function" && typeof _val2 == "function") {
         ret = _val1 == _val2 ? 0 : 1;
     }

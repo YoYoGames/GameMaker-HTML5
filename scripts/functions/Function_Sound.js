@@ -321,7 +321,7 @@ audioSound.prototype.Init = function(_props)
 	this.pemitter = _props.emitter;
     this.paused = false;
     this.soundid = _props.asset_index;
-    this.loops = _props.loop;
+    this.loop = _props.loop;
     this.systempaused = false;
     this.priority = _props.priority;
 	this.bStreamed = false;
@@ -1184,7 +1184,7 @@ function Audio_ResumeUnstreamed( _audioSound )
 
         _audioSound.pbuffersource.buffer = sampleData.buffer;
 
-        //if(_audioSound.loops>0)
+        //if(_audioSound.loop>0)
         //{
         //   _audioSound.pbuffersource.loop = true;
         //   
@@ -1194,7 +1194,7 @@ function Audio_ResumeUnstreamed( _audioSound )
         //else
 
         //oddly enough, this seems to work for looped sounds also...suspicious (see original above )
-        if(_audioSound.loops>0)
+        if(_audioSound.loop>0)
             _audioSound.pbuffersource.loop = true;
 
         {
