@@ -792,6 +792,8 @@ class AudioMixer
 	constructor()
 	{
 		this.mainBus = new AudioBus();
-		g_pBuiltIn.audio_bus_main = this.mainBus;
+
+		if (IsFeatureEnabled("audio-fx"))
+			g_pBuiltIn.audio_bus_main = this.mainBus;
 	}
 }
