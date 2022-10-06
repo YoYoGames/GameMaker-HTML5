@@ -489,6 +489,10 @@ function audio_sync_group_is_playing()                  { ErrorFunction("audio_s
 function audio_sync_group_is_paused()                  	{ ErrorFunction("audio_sync_group_is_paused()"); return -1; }
 function audio_sync_group_debug()                   	{ ErrorFunction("audio_sync_group_debug()"); }
 
+function audio_bus_create()                   			{ ErrorFunction("audio_bus_create()"); }
+function audio_effect_create() 							{ ErrorFunction("audio_effect_create()"); }
+function audio_emitter_bus()							{ ErrorFunction("audio_emitter_bus()"); }
+function audio_emitter_get_bus()						{ ErrorFunction("audio_emitter_get_bus()"); }
 
 function gpio_set()                                     { ErrorFunction("GPIO is not supported"); }
 function gpio_clear()                                   { ErrorFunction("GPIO is not supported"); }
