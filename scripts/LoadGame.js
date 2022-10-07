@@ -63,7 +63,6 @@ function InitAboyne()
     g_pLayerManager = new LayerManager();
 	g_pEffectsManager = new yyEffectsManager();
     g_pCameraManager = new CameraManager();
-	g_pAudioMixer = new AudioMixer();
     InitAboyneGlobals();
 
 	if (g_isZeus)

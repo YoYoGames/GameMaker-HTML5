@@ -144,6 +144,8 @@ document.write('<script type="text/javascript" src="scripts/jsBox2D/jsliquidfun.
 document.write('<script type="text/javascript" src="scripts/zlib/inflate.min.js"></script>');
 document.write('<script type="text/javascript" src="scripts/zlib/deflate.min.js"></script>');
 document.write('<script type="text/javascript" src="scripts/fingerprintjs/fingerprint.js"></script>');
+document.write('<script type="text/javascript" src="scripts/sound/AudioBus.js"></script>');
+document.write('<script type="text/javascript" src="scripts/sound/AudioEffect.js"></script>');
 //document.write('<script type="text/javascript" src="scripts/spine/spine.js"></script>');
 document.write('<script type="text/javascript" src="scripts/spine/spine-core.js"></script>');
 
