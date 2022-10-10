@@ -886,19 +886,20 @@ function date_compare_datetime(_date1,_date2)
 // #############################################################################################
 function date_compare_date(_date1, _date2) 
 {
-    _date1 = yyGetInt32(_date1);
-    _date2 = yyGetInt32(_date2);
-
-    if (_date1 < _date2)
-	{
-        return -1;
-    }
-    else if (_date1 > _date2)
-	{
-        return 1;
-	}
-
-    return 0;
+	var d1 = new Date();
+	d1.setTime(FromGMDateTime(yyGetReal(_date1)));
+	
+	var d2 = new Date();
+	d2.setTime(FromGMDateTime(yyGetReal(_date2)));
+	
+	/* Calculate the date as (more than) the number of days since 1900.
+	 * The year and month are both multiplied by the longest possible of each to ensure a long
+	 * month or year can't prematurely overflow into the next one.
+	*/
+	var date1 = (d1.getFullYear() * 366) + (d1.getMonth() * 31) + d1.getDate();
+	var date2 = (d2.getFullYear() * 366) + (d2.getMonth() * 31) + d2.getDate();
+	
+	return (date1 == date2) ? 0.0 : ((date1 > date2) ? 1.0 : -1.0 );
 }
 
 // #############################################################################################
@@ -913,15 +914,19 @@ function date_compare_date(_date1, _date2)
 ///             smaller, equal, or larger than the second value. 
 ///			</returns>
 // #############################################################################################
-function date_compare_time(_date1,_date2) {
-	var diff = yyGetReal(_date1) - yyGetReal(_date2);
-    if(diff<0) {
-        return -1;
-    }
-    else if (diff>0) {
-        return 1;
-    }
-    return 0;
+function date_compare_time(_date1, _date2)
+{
+	var d1 = new Date();
+	d1.setTime(FromGMDateTime(yyGetReal(_date1)));
+	
+	var d2 = new Date();
+	d2.setTime(FromGMDateTime(yyGetReal(_date2)));
+	
+	/* Calculate the time as the number of seconds since the start of the day. */
+	var time1 = (d1.getHours() * 3600) + (d1.getMinutes() * 60) + d1.getSeconds();
+	var time2 = (d2.getHours() * 3600) + (d2.getMinutes() * 60) + d2.getSeconds();
+	
+	return (time1 == time2) ? 0.0 : ((time1 > time2) ? 1.0 : -1.0 );
 }
 
 // #############################################################################################
