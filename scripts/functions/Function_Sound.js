@@ -323,7 +323,7 @@ audioSound.prototype.Init = function(_props)
 	this.pemitter = _props.emitter;
     this.paused = false;
     this.soundid = _props.asset_index;
-    this.loops = _props.loop;
+    this.loop = _props.loop;
     this.systempaused = false;
     this.priority = _props.priority;
 	this.bStreamed = false;
@@ -705,34 +705,42 @@ class AudioPropsCalc
 
         if (asset != null)
         {
-            return {
+            const props = {
                 gain: asset.gain,
                 offset: asset.trackPos,
                 pitch: asset.pitch
             };
+
+            return props;
         }
     
-        return {
+        const props = {
             gain: AudioPropsCalc.default_gain,
             offset: AudioPropsCalc.default_offset,
             pitch: AudioPropsCalc.default_pitch
         };
+
+        return props;
     }
 
     static GetEmitterProps(_emitter)
     {
         if (_emitter != null)
         {
-            return{
+            const props = {
                 gain: _emitter.gainnode.gain.value,
                 pitch: _emitter.pitch
             };
+
+            return props;
         }
     
-        return {
+        const props = {
             gain: AudioPropsCalc.default_gain,
             pitch: AudioPropsCalc.default_pitch
         };
+
+        return props;
     }
 }
 
@@ -1186,7 +1194,7 @@ function Audio_ResumeUnstreamed( _audioSound )
 
         _audioSound.pbuffersource.buffer = sampleData.buffer;
 
-        //if(_audioSound.loops>0)
+        //if(_audioSound.loop>0)
         //{
         //   _audioSound.pbuffersource.loop = true;
         //   
@@ -1196,7 +1204,7 @@ function Audio_ResumeUnstreamed( _audioSound )
         //else
 
         //oddly enough, this seems to work for looped sounds also...suspicious (see original above )
-        if(_audioSound.loops>0)
+        if(_audioSound.loop>0)
             _audioSound.pbuffersource.loop = true;
 
         {
