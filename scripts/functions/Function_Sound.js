@@ -164,10 +164,13 @@ function audio_init()
     g_AudioMainVolumeNode = g_WebAudioContext.createGain();
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
 
-    g_WebAudioContext.audioWorklet.addModule("scripts/sound/AudioBusProcessor.js").then(() => {
+    g_WebAudioContext.audioWorklet.addModule("html5game/sound/worklets/audio-worklet.js")
+    .then(() => {
         g_AudioBusMain = new AudioBus();
         g_AudioBusMain.connect(g_AudioMainVolumeNode);
         g_pBuiltIn.audio_bus_main = g_AudioBusMain;
+    }).catch((_err) => {
+        console.error("Failed to load audio worklets -- " + _err);
     });
 
     audio_falloff_set_model(DistanceModels.AUDIO_FALLOFF_NONE);
