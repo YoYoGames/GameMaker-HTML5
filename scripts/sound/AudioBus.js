@@ -5,27 +5,40 @@ class AudioBus extends AudioWorkletNode
 
 	constructor()
 	{
-        // Instantiate an AudioWorkletNode representing this bus
-        super(g_WebAudioContext, "audio-bus-processor");
+		// The bus inherits from AudioWorkletNode to allow for straightforward (dis)connection
+		super(g_WebAudioContext, "audio-bus-input", { 
+			numberOfInputs: 1,
+			numberOfOutputs: 2, 
+			outputChannelCount: [2, 2]
+		});
 
-        // GML object props
-		this.__type = "[AudioBus]";
-		this.__yyIsGMLObject = true;
+		// Output gain + mix node
+		this.outputNode = new AudioWorkletNode(g_WebAudioContext, "audio-bus-output",  { 
+			numberOfInputs: 2,
+			numberOfOutputs: 1, 
+			outputChannelCount: [2]
+		});
 
-		// The actual gain is a smoothed value so return the target instead
-		this.gainTarget = 1.0;
+		super.connect(this.outputNode, 0, 0); // Bypass connection
+		super.connect(this.outputNode, 1, 1); // Initial effect chain connection
 
 		// Front-end of AudioEffect
 		this.effects = Array(AudioBus.NUM_EFFECT_SLOTS).fill(undefined);
 		Object.seal(this.effects); // Fixes the array's size (but elements are still mutable)
 
+		// The actual gain is a smoothed value so return the target instead
+		this.gainTarget = 1.0;
+
+		// GML object props
+		this.__type = "[AudioBus]";
+		this.__yyIsGMLObject = true;
+
         // Define user-facing properties
 		Object.defineProperties(this, {
-			gmlbypass: 
-            {
+			gmlbypass: {
 				enumerable: true,
 				get: () => {
-                    const bypass = this.parameters.get("bypass");
+                	const bypass = this.parameters.get("bypass");
                     return bypass.value;
                 },
 				set: (_state) => {
@@ -33,37 +46,37 @@ class AudioBus extends AudioWorkletNode
                     bypass.value = yyGetBool(_state);
                 }
 			},        
-			gmlgain: 
-            {
+			gmlgain: {
 				enumerable: true,
 				get: () => {
                     return this.gainTarget; 
                 },
 				set: (_gain) => {
 					const newGain = yyGetReal(_gain);
-
 					this.gainTarget = newGain;
 
-                    const gain = this.parameters.get("gain");
+					const gain = this.outputNode.parameters.get("gain");
                     gain.setTargetAtTime(newGain, 0, AudioBus.GAIN_TIME_CONSTANT);
                 }
 			},
-			gmleffects: 
-            {
+			gmleffects: {
 				enumerable: true,
 				get: function () {  return this.effects; },
 				set: function (_effects) { 
 					if (_effects instanceof Array
-						&& _effects.length == AudioBus.NUM_EFFECT_SLOTS)
-					{
+						&& _effects.length == AudioBus.NUM_EFFECT_SLOTS) {
 						this.effects = _effects;
 					}
-					else
-					{
+					else {
 						throw new Error("AudioBus.effects must be an array of size " + AudioBus.NUM_EFFECT_SLOTS);
 					}
 				}
 			}
 		});
+	}
+
+	connect(_destination, _outputIndex, _inputIndex)
+	{
+		this.outputNode.connect(_destination, _outputIndex, _inputIndex);
 	}
 }

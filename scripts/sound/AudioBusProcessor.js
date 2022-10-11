@@ -1,46 +1,59 @@
-class AudioBusProcessor extends AudioWorkletProcessor
+class AudioBusInput extends AudioWorkletProcessor
 {
-    static NUM_EFFECT_SLOTS = 8;
-
     static get parameterDescriptors() 
     {
         return [
-            { name: "bypass", automationRate: "k-rate", defaultValue: 0, minValue: 0, maxValue: 1 },
-            { name: "gain",   automationRate: "a-rate", defaultValue: 1, minValue: 0 }
+            { name: "bypass", automationRate: "a-rate", defaultValue: 0, minValue: 0, maxValue: 1 }
         ];
-    }
-
-    constructor()
-    {
-        super();
-
-		this.effects = Array(AudioBusProcessor.NUM_EFFECT_SLOTS).fill(undefined);
-		Object.seal(this.effects); // Fixes the array's size (but elements are still mutable)
     }
 
     process(inputs, outputs, parameters) 
     {
-        const input = inputs[0]; // 1 input and output per AudioBusProcessor
+        // 1 input and 2 outputs
+        // 1st output is written to when bypassed
+        // 2nd output is written to when not bypassed
 
-        if (parameters.bypass[0] == 0.0)
+        for (let c = 0; c < inputs[0].length; ++c)
         {
-            // Run the input through the effects chain
-            this.effects.forEach(effect => {
-                if (effect != undefined)
-                    effect.process(input);
-            });
-
-            // Then apply the bus gain
-            input.forEach(channel => {
-                for (let s = 0; s < channel.length; ++s)
-                    channel[s] *= parameters.gain[s];
-            }); 
+            for (let s = 0; s < inputs[0][c].length; ++s)
+            {
+                if (parameters.bypass[s] == 1.0)
+                    outputs[0][c][s] = inputs[0][c][s];
+                else
+                    outputs[1][c][s] = inputs[0][c][s];
+            }
         }
-
-        outputs[0] = input;
 
         return true; // This should probably eventually be false
     }
 }
 
-registerProcessor("audio-bus-processor", AudioBusProcessor);
+class AudioBusOutput extends AudioWorkletProcessor
+{
+    static get parameterDescriptors() 
+    {
+        return [
+            { name: "gain", automationRate: "a-rate", defaultValue: 1, minValue: 0 }
+        ];
+    }
+
+    process(inputs, outputs, parameters) 
+    {
+        // 2 inputs and 1 output
+        // 1st input is from the bypass
+        // 2nd input is from the effect chain
+
+        // Copy the bypassed audio to the output
+        outputs[0] = inputs[0];
+
+        // Then mix in the affected audio with a gain scalar
+        for (let c = 0; c < inputs[1].length; ++c)
+            for (let s = 0; s < inputs[1][c].length; ++s)
+                outputs[0][c][s] += inputs[0][c][s] * parameters.gain[s];
+
+        return true; // This should probably eventually be false
+    }
+}
+
+registerProcessor("audio-bus-input", AudioBusInput);
+registerProcessor("audio-bus-output", AudioBusOutput);
