@@ -135,6 +135,7 @@ eT_ParagraphSpacing = 23;
 // Extras only in the runner
 eT_OriginX = 24;
 eT_OriginY = 25;
+eT_HeadPosChanged = 26;
 
 eACCT_Linear = 0;
 eACCT_CatmullRom_Centripetal = 1;
@@ -3559,6 +3560,117 @@ function ResetSpriteMessageEvents()
     g_pSpriteMessageEvents = [];
 }
 
+yySequenceManager.prototype.EvaluateLayerSequenceElement = function(_pSeqEl, _preDrawUpdate)
+{
+    if (_pSeqEl == null)
+        return;
+
+    var instance = this.Instances[_pSeqEl.m_instanceIndex];
+
+    if (instance != null)
+    {
+        if ((_pSeqEl.m_dirtyflags == 0) && (_preDrawUpdate || (instance.m_paused && instance.m_hasPlayed) || instance.m_finished))
+            return;
+
+        var fps = g_GameTimer.GetFPS();
+
+        instance.m_wrapped = false;
+
+        if (instance.m_hasPlayed == false)			// possibly check for dirtiness here too
+        {
+            // Scan through the track tree in the associated sequence and see if there's any instances we have to create
+            var pSeq = g_pSequenceManager.GetSequenceFromID(instance.m_sequenceIndex);
+            if (pSeq != null)
+            {
+                g_SeqStack.push(pSeq);
+                instance.SetupInstances(pSeq.m_tracks, -1, -1, _pSeqEl.m_layer.m_id);
+                instance.SetupAudioEmitters(pSeq.m_tracks);
+                g_SeqStack.pop();
+            }
+
+            instance.m_hasPlayed = true;
+        }
+
+
+        var sequence = this.Sequences[instance.m_sequenceIndex];
+
+        if(sequence != null)
+        {
+            g_SeqStack.push(sequence);
+
+            // Update instance
+            //instance.m_volume = sequence.m_volume;
+
+            // Advance the playhead in the current direction
+            // If we fall off the end of the sequence use the playback method to figure out what to do
+            instance.lastHeadPosition = instance.m_headPosition;
+
+            if(!_preDrawUpdate && !instance.m_paused && !instance.m_finished)
+            {
+                var sequenceSpeed = sequence.m_playbackSpeed;
+                if (sequence.m_playbackSpeedType == ePlaybackSpeedType_FramesPerSecond)
+                {
+                    sequenceSpeed /= fps;
+                }
+                instance.m_headPosition += instance.m_headDirection * instance.m_speedScale * sequenceSpeed;
+            }
+
+            var tmp = { headPosition: instance.m_headPosition, headDirection: instance.m_headDirection, finished: instance.m_finished };
+            instance.m_wrapped = HandleSequenceWrapping(sequence, tmp);
+            instance.m_headPosition = tmp.headPosition;
+            instance.m_headDirection = tmp.headDirection;                
+
+            var currMatrix = new Matrix();  // possibly set to current world mat?
+            
+            var setmat = sequence.m_xorigin != 0 || sequence.m_yorigin != 0 ||
+                        _pSeqEl.m_x != 0 || _pSeqEl.m_y != 0 ||
+                        _pSeqEl.m_angle != 0 ||
+                        _pSeqEl.m_scaleX != 1 || _pSeqEl.m_scaleY != 1 ||
+                        _pSeqEl.m_layer.m_xoffset != 0 || _pSeqEl.m_layer.m_yoffset != 0;
+            if (setmat)
+            {
+                var scaleMat = new Matrix();
+                var rotMat = new Matrix();
+                var offsetMat = new Matrix();
+                var originMat = new Matrix();
+
+                scaleMat.SetScale(_pSeqEl.m_scaleX, _pSeqEl.m_scaleY, 1);
+                rotMat.SetZRotation(_pSeqEl.m_angle);					
+                originMat.SetTranslation(-sequence.m_xorigin, -sequence.m_yorigin, 0);
+                offsetMat.SetTranslation(_pSeqEl.m_x + _pSeqEl.m_layer.m_xoffset, _pSeqEl.m_y + _pSeqEl.m_layer.m_yoffset, 0);
+
+                var tempmat1 = new Matrix();
+                var tempmat2 = new Matrix();
+                tempmat1.Multiply(originMat, scaleMat);
+                tempmat2.Multiply(tempmat1, rotMat);
+                tempmat1.Multiply(tempmat2, offsetMat);
+
+                var oldWorldMat = new Matrix(currMatrix);
+                currMatrix.Multiply(tempmat1, oldWorldMat);
+            }
+                            
+            this.HandleUpdateTracks(_pSeqEl, sequence, instance, instance.evalNodeHead, instance, currMatrix, null, sequence.m_tracks, instance.m_headPosition, instance.lastHeadPosition, instance.m_headDirection, false);
+
+            if (!_preDrawUpdate && !instance.m_paused && !instance.m_finished)
+            {
+                this.HandleMessageEvents(instance, sequence, _pSeqEl.m_id, fps);
+                this.HandleMomentEvents(instance, sequence, _pSeqEl.m_id, fps);
+            }
+
+            if (tmp.finished)
+            {
+                instance.SetInstanceInSequenceStatus(false);
+                instance.StopAllSounds();
+            }
+
+            instance.m_finished = tmp.finished;
+            _pSeqEl.m_dirtyflags = 0;
+        
+            g_SeqStack.pop();
+        }
+    }
+};
+
 // #############################################################################################
 /// Function:<summary>
 ///             Updates the sequence instances in a given room
@@ -3583,108 +3695,7 @@ yySequenceManager.prototype.UpdateInstancesForRoom = function (_room) {
         if (sequenceElement == null)
             continue;
 
-        var instance = this.Instances[sequenceElement.m_instanceIndex];
-
-        if (instance != null)
-        {
-            if ((sequenceElement.m_dirtyflags == 0) && ((instance.m_paused && instance.m_hasPlayed) || instance.m_finished))
-                continue;
-
-            instance.m_wrapped = false;
-
-            if (instance.m_hasPlayed == false)			// possibly check for dirtiness here too
-			{
-				// Scan through the track tree in the associated sequence and see if there's any instances we have to create
-				var pSeq = g_pSequenceManager.GetSequenceFromID(instance.m_sequenceIndex);
-				if (pSeq != null)
-				{
-                    g_SeqStack.push(pSeq);
-                    instance.SetupInstances(pSeq.m_tracks, -1, -1, sequenceElement.m_layer.m_id);
-                    instance.SetupAudioEmitters(pSeq.m_tracks);
-                    g_SeqStack.pop();
-				}
-
-				instance.m_hasPlayed = true;
-			}
-
-
-            var sequence = this.Sequences[instance.m_sequenceIndex];
-
-            if(sequence != null)
-            {
-                g_SeqStack.push(sequence);
-
-                // Update instance
-                //instance.m_volume = sequence.m_volume;
-
-                // Advance the playhead in the current direction
-                // If we fall off the end of the sequence use the playback method to figure out what to do
-                instance.lastHeadPosition = instance.m_headPosition;
-
-                if(!instance.m_paused && !instance.m_finished)
-                {
-                    var sequenceSpeed = sequence.m_playbackSpeed;
-                    if (sequence.m_playbackSpeedType == ePlaybackSpeedType_FramesPerSecond)
-                    {
-                        sequenceSpeed /= fps;
-                    }
-                    instance.m_headPosition += instance.m_headDirection * instance.m_speedScale * sequenceSpeed;
-                }
-
-                var tmp = { headPosition: instance.m_headPosition, headDirection: instance.m_headDirection, finished: instance.m_finished };
-                instance.m_wrapped = HandleSequenceWrapping(sequence, tmp);
-                instance.m_headPosition = tmp.headPosition;
-                instance.m_headDirection = tmp.headDirection;                
-
-                var currMatrix = new Matrix();  // possibly set to current world mat?
-                
-                var setmat = sequence.m_xorigin != 0 || sequence.m_yorigin != 0 ||
-                             sequenceElement.m_x != 0 || sequenceElement.m_y != 0 ||
-                             sequenceElement.m_angle != 0 ||
-                             sequenceElement.m_scaleX != 1 || sequenceElement.m_scaleY != 1 ||
-                             sequenceElement.m_layer.m_xoffset != 0 || sequenceElement.m_layer.m_yoffset != 0;
-                if (setmat)
-                {
-                    var scaleMat = new Matrix();
-                    var rotMat = new Matrix();
-                    var offsetMat = new Matrix();
-                    var originMat = new Matrix();
-
-                    scaleMat.SetScale(sequenceElement.m_scaleX, sequenceElement.m_scaleY, 1);
-                    rotMat.SetZRotation(sequenceElement.m_angle);					
-                    originMat.SetTranslation(-sequence.m_xorigin, -sequence.m_yorigin, 0);
-                    offsetMat.SetTranslation(sequenceElement.m_x + sequenceElement.m_layer.m_xoffset, sequenceElement.m_y + sequenceElement.m_layer.m_yoffset, 0);
-
-                    var tempmat1 = new Matrix();
-                    var tempmat2 = new Matrix();
-                    tempmat1.Multiply(originMat, scaleMat);
-                    tempmat2.Multiply(tempmat1, rotMat);
-                    tempmat1.Multiply(tempmat2, offsetMat);
-
-                    var oldWorldMat = new Matrix(currMatrix);
-                    currMatrix.Multiply(tempmat1, oldWorldMat);
-                }
-                               
-                this.HandleUpdateTracks(sequenceElement, sequence, instance, instance.evalNodeHead, instance, currMatrix, null, sequence.m_tracks, instance.m_headPosition, instance.lastHeadPosition, instance.m_headDirection, false);
-
-                if (!instance.m_paused && !instance.m_finished)
-                {
-                    this.HandleMessageEvents(instance, sequence, sequenceInstanceId, fps);
-                    this.HandleMomentEvents(instance, sequence, sequenceInstanceId, fps);
-                }
-
-                if (tmp.finished)
-                {
-                    instance.SetInstanceInSequenceStatus(false);
-                    instance.StopAllSounds();
-                }
-
-                instance.m_finished = tmp.finished;
-                sequenceElement.m_dirtyflags = 0;
-            
-                g_SeqStack.pop();
-            }
-        }
+        this.EvaluateLayerSequenceElement(sequenceElement, false);
     }
 
     this.ProcessMessageEvents();

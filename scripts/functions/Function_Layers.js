@@ -5014,10 +5014,14 @@ function layer_sequence_headpos(sequence_element_id, position)
                 headPos = yymin(headPos, length);                
             }
 
-            seqInst.m_headPosition = headPos;
-            seqInst.lastHeadPosition = headPos; // don't want to treat this like a normal time step
+            if ((seqInst.m_headPosition != headPos) || (seqInst.lastHeadPosition != headPos))
+            {
+                seqInst.m_headPosition = headPos;
+                seqInst.lastHeadPosition = headPos; // don't want to treat this like a normal time step
 
-            //seqInst.m_finished = tmp.finished;
+                el.m_dirtyflags |= (1 << eT_HeadPosChanged);
+                //seqInst.m_finished = tmp.finished;
+            }
 		}
     }
 
