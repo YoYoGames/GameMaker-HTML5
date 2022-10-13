@@ -143,15 +143,13 @@ function audio_reinit()
     }
 
     g_AudioMainVolumeNode.disconnect();
-   
+
     g_AudioMainVolumeNode = g_WebAudioContext.createGain();
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
-
 
     g_WebAudioContext.listener.pos = new Vector3(0,0,0);
     g_WebAudioContext.listener.velocity = new Vector3(0,0,0);
     g_WebAudioContext.listener.ori = new Array(0,0,0,0,0,0);
-  
 }
 
 
@@ -166,8 +164,15 @@ function audio_init()
     g_AudioMainVolumeNode = g_WebAudioContext.createGain();
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
 
-    //g_AudioMusicVolumeNode = g_WebAudioContext.createGainNode();
-    //g_AudioMusicVolumeNode.connect(g_AudioMainVolumeNode);
+    g_WebAudioContext.audioWorklet.addModule("html5game/sound/worklets/audio-worklet.js")
+    .then(() => {
+        g_AudioBusMain = new AudioBus();
+        g_AudioBusMain.connect(g_AudioMainVolumeNode);
+        g_pBuiltIn.audio_bus_main = g_AudioBusMain;
+    }).catch((_err) => {
+        console.error("Failed to load audio worklets -- " + _err);
+    });
+
     audio_falloff_set_model(DistanceModels.AUDIO_FALLOFF_NONE);
 
     //visibiliy event /property varies between browsers...ugh
@@ -1185,7 +1190,7 @@ function Audio_ResumeUnstreamed( _audioSound )
         } 
         else
         {
-            _audioSound.pgainnode.connect(g_AudioMainVolumeNode); //No emitter to connect to so it goes straight to MainVolNode
+            _audioSound.pgainnode.connect(g_AudioBusMain); //No emitter to connect to so it goes straight to main bus
             //instead connect to sample gain node
             //_audioSound.pgainnode.connect( audio_sampledata[_audioSound.soundid].pgainnode );
         }
@@ -1403,7 +1408,7 @@ function audio_play_sound(_asset_index, _priority, _loop, _gain, _offset, _pitch
 
     if (free_voice != null)
     {
-        free_voice.pgainnode.connect(g_AudioMainVolumeNode);
+        free_voice.pgainnode.connect(g_AudioBusMain);
 
         Audio_Play(free_voice, props);
 
@@ -2606,7 +2611,7 @@ function create_emitter()
     const emitter = g_WebAudioContext.createPanner();			// also clears to defaults.
     emitter.gainnode = g_WebAudioContext.createGain();
     emitter.gainnode.gain.value = 1.0;
-    emitter.gainnode.connect(g_AudioMainVolumeNode);
+    emitter.gainnode.connect(g_AudioBusMain);
     emitter.connect(emitter.gainnode);
     emitter.maxDistance = 100000;
     emitter.refDistance = 100;  //to match native    
@@ -4015,4 +4020,11 @@ function audio_start_recording(_deviceNum)
 function audio_stop_recording(_deviceNum)
 {
     gRecording = false;
+}
+
+function audio_bus_create()
+{
+    const bus = new AudioBus();
+    bus.connect(g_AudioBusMain);
+    return bus;
 }
