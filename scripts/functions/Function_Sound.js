@@ -144,7 +144,7 @@ function audio_reinit()
 
     g_AudioMainVolumeNode.disconnect();
 
-    g_AudioMainVolumeNode = g_WebAudioContext.createGain();
+    g_AudioMainVolumeNode = new GainNode(g_WebAudioContext);
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
 
     g_WebAudioContext.listener.pos = new Vector3(0,0,0);
@@ -161,16 +161,16 @@ function audio_init()
 
     g_HandleStreamedAudioAsUnstreamed = ( g_OSPlatform == BROWSER_IOS );
 
-    g_AudioMainVolumeNode = g_WebAudioContext.createGain();
+    g_AudioMainVolumeNode = new GainNode(g_WebAudioContext);
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
 
     g_WebAudioContext.audioWorklet.addModule("html5game/sound/worklets/audio-worklet.js")
     .then(() => {
         g_AudioBusMain = new AudioBus();
-        g_AudioBusMain.connect(g_AudioMainVolumeNode);
+        g_AudioBusMain.connectOutput(g_AudioMainVolumeNode);
         g_pBuiltIn.audio_bus_main = g_AudioBusMain;
     }).catch((_err) => {
-        console.error("Failed to load audio worklets -- " + _err);
+        console.error("Failed to load audio worklets => " + _err);
     });
 
     audio_falloff_set_model(DistanceModels.AUDIO_FALLOFF_NONE);
@@ -4025,6 +4025,11 @@ function audio_stop_recording(_deviceNum)
 function audio_bus_create()
 {
     const bus = new AudioBus();
-    bus.connect(g_AudioBusMain);
+    bus.connectOutput(g_AudioBusMain);
     return bus;
+}
+
+function audio_effect_create(_type)
+{
+    return AudioEffectStruct.Create(_type);
 }

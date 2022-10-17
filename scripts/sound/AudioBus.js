@@ -1,16 +1,19 @@
 class AudioBus extends AudioWorkletNode
 {
 	static NUM_EFFECT_SLOTS = 8;
-    static GAIN_TIME_CONSTANT = 0.005; // 5ms
 
 	constructor()
 	{
-		// The bus inherits from AudioWorkletNode to allow for straightforward (dis)connection
+		// The bus inherits from AudioWorkletNode to allow for straightforward input connections
 		super(g_WebAudioContext, "audio-bus-input", { 
 			numberOfInputs: 1,
 			numberOfOutputs: 2, 
 			outputChannelCount: [2, 2]
 		});
+
+		// GML object props
+		this.__type = "[AudioBus]";
+		this.__yyIsGMLObject = true;
 
 		// Output gain + mix node
 		this.outputNode = new AudioWorkletNode(g_WebAudioContext, "audio-bus-output",  { 
@@ -19,64 +22,131 @@ class AudioBus extends AudioWorkletNode
 			outputChannelCount: [2]
 		});
 
-		super.connect(this.outputNode, 0, 0); // Bypass connection
-		super.connect(this.outputNode, 1, 1); // Initial effect chain connection
+		this.connect(this.outputNode, 0, 0); // Initial effect chain connection
+		this.connect(this.outputNode, 1, 1); // Bypass connection
 
-		// Front-end of AudioEffect
+		this.bypass = false;
+		this.gain = 1.0;
 		this.effects = Array(AudioBus.NUM_EFFECT_SLOTS).fill(undefined);
-		Object.seal(this.effects); // Fixes the array's size (but elements are still mutable)
+		this.nodes = Array(AudioBus.NUM_EFFECT_SLOTS).fill(undefined);
 
-		// The actual gain is a smoothed value so return the target instead
-		this.gainTarget = 1.0;
+		this.proxy = new Proxy(this.effects, {
+			set: (_target, _property, _value, _receiver) => {
+				const propAsInt = parseInt(_property);
 
-		// GML object props
-		this.__type = "[AudioBus]";
-		this.__yyIsGMLObject = true;
+				if (this.isNodeIndex(propAsInt))
+					this.handleConnections(propAsInt, this.handleValue(_value));
+				
+				_target[_property] = _value;
+			}
+		});
 
         // Define user-facing properties
 		Object.defineProperties(this, {
 			gmlbypass: {
 				enumerable: true,
 				get: () => {
-                	const bypass = this.parameters.get("bypass");
-                    return bypass.value;
+                	return this.bypass;
                 },
 				set: (_state) => {
+					this.bypass = yyGetBool(_state);
+
                     const bypass = this.parameters.get("bypass");
-                    bypass.value = yyGetBool(_state);
+                    bypass.value = this.bypass;
                 }
 			},        
 			gmlgain: {
 				enumerable: true,
 				get: () => {
-                    return this.gainTarget; 
+                    return this.gain; 
                 },
 				set: (_gain) => {
-					const newGain = yyGetReal(_gain);
-					this.gainTarget = newGain;
+					this.gain = max(0.0, _gain);
 
 					const gain = this.outputNode.parameters.get("gain");
-                    gain.setTargetAtTime(newGain, 0, AudioBus.GAIN_TIME_CONSTANT);
+                    gain.setTargetAtTime(this.gain, 0, AudioEffect.PARAM_TIME_CONSTANT);
                 }
 			},
 			gmleffects: {
 				enumerable: true,
-				get: function () {  return this.effects; },
-				set: function (_effects) { 
-					if (_effects instanceof Array
-						&& _effects.length == AudioBus.NUM_EFFECT_SLOTS) {
-						this.effects = _effects;
-					}
-					else {
-						throw new Error("AudioBus.effects must be an array of size " + AudioBus.NUM_EFFECT_SLOTS);
-					}
-				}
+				get: () => {
+					return this.proxy;
+				},
+				set: (_effects) => {}
 			}
 		});
 	}
 
-	connect(_destination, _outputIndex, _inputIndex)
+	connectOutput(_destination, _outputIndex, _inputIndex)
 	{
-		this.outputNode.connect(_destination, _outputIndex, _inputIndex);
+		const node = this.outputNode.connect(_destination, _outputIndex, _inputIndex);
+	}
+
+	findNextNode(_idx)
+	{
+		const nodes = this.nodes.slice(_idx + 1, AudioBus.NUM_EFFECT_SLOTS);
+		const nextNode = nodes.find((_node) => _node !== undefined);
+
+		return nextNode ?? this.outputNode;
+	}
+
+	findPrevNode(_idx) 
+	{
+		const nodes = this.nodes.slice(0, _idx);
+		const prevNode = nodes.findLast((_node) => _node !== undefined);
+
+		return prevNode ?? this;
+	}
+
+	handleConnections(_idx, _newNode)
+	{
+		const currentNode = this.nodes[_idx];
+
+		if (currentNode === undefined && _newNode === undefined)
+			return; // No need to change anything
+
+		const prevNode = this.findPrevNode(_idx);
+		const nextNode = this.findNextNode(_idx);
+
+		// If the slot is occupied
+		if (currentNode !== undefined)
+		{
+			prevNode.disconnect(currentNode);
+
+			currentNode.disconnect();
+			this.effects[_idx].RemoveNode(currentNode);
+		}
+
+		// Set the new node
+		if (_newNode === undefined)
+		{
+			prevNode.connect(nextNode, 0, 0);
+		}
+		else
+		{
+			prevNode.connect(_newNode, 0, 0);
+			_newNode.connect(nextNode, 0, 0);
+		}
+
+		this.nodes[_idx] = _newNode;
+	}
+
+	handleValue(_value)
+	{
+		if (_value instanceof AudioEffectStruct)
+			return _value.addNode();
+
+		if (_value === undefined)
+			return _value;
+	
+		throw new Error("Value must be Struct.AudioEffect or undefined");
+	}
+
+	isNodeIndex(_prop)
+	{
+		if (_prop >= 0 && _prop < AudioBus.NUM_EFFECT_SLOTS)
+			return true;
+
+		return false;
 	}
 }
