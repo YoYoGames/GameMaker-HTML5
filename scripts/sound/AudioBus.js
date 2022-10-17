@@ -72,7 +72,7 @@ class AudioBus extends AudioWorkletNode
 				get: () => {
 					return this.proxy;
 				},
-				set: (_effects) => {} // ***** Should investigate how replacing the array affects the proxy
+				set: (_effects) => {}
 			}
 		});
 	}
