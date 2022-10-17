@@ -15,7 +15,7 @@ class AudioBusInput extends AudioWorkletProcessor
 
         for (let c = 0; c < inputs[0].length; ++c)
             for (let s = 0; s < inputs[0][c].length; ++s)
-                outputs[~~parameters.bypass][c][s] = inputs[0][c][s];
+                outputs[~~(parameters.bypass[s] ?? parameters.bypass[0])][c][s] = inputs[0][c][s];
 
         return true; // This should probably eventually be false
     }
