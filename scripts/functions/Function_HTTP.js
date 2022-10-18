@@ -199,6 +199,19 @@ function GetHTTPRequestSettings(_url, _headers) {
 				requestSettings.xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
 			}
 		}
+		
+		/* Enable credentials (i.e. cookies) for requests when enabled using the GML
+		 * http_set_request_crossorigin() function.
+		 *
+		 * This has to be an opt-in because if you enable credentials for a request and the
+		 * response doesn't include *exactly* the right blend of CORS headers the browser wants,
+		 * the browser will tell us the request failed and not give us the payload, probably
+		 * breaking things for lots of people who don't need cookies.
+		*/
+		if(g_HttpRequestCrossOriginType === "use-credentials")
+		{
+			requestSettings.xmlhttp.withCredentials = true;
+		}
 	}
 	return requestSettings;
 }
