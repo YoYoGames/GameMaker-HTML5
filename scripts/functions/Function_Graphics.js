@@ -2713,7 +2713,17 @@ function SetViewExtents(xview, yview, wview, hview,  angle)
 	}
 };
 
-
+function GetViewFrustum()
+{
+    if (g_ViewFrustumDirty)
+    {
+        var viewProjMat = new Matrix();
+        viewProjMat.Multiply(g_Matrix[MATRIX_VIEW], g_Matrix[MATRIX_PROJECTION]);
+        g_ViewFrustum.FromViewProjMat(viewProjMat);
+        g_ViewFrustumDirty = false;
+    }
+    return g_ViewFrustum;
+}
 
 function DirtyRoomExtents()
 {

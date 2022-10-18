@@ -18,6 +18,8 @@ document.write('<script type="text/javascript" src="scripts/device/iOS.js"></scr
 document.write('<script type="text/javascript" src="scripts/device/Gamepad.js"></script>');
 document.write('<script type="text/javascript" src="scripts/Vector3.js"></script>');
 document.write('<script type="text/javascript" src="scripts/Matrix.js"></script>');
+document.write('<script type="text/javascript" src="scripts/Plane.js"></script>');
+document.write('<script type="text/javascript" src="scripts/Frustum.js"></script>');
 document.write('<script type="text/javascript" src="scripts/Unsupported.js"></script>');
 document.write('<script type="text/javascript" src="scripts/Globals.js"></script>');
 document.write('<script type="text/javascript" src="scripts/GameGlobals.js"></script>');
