@@ -719,6 +719,15 @@ function    CreateSpriteFromStorage( _pStore )
     return pSprite;
 }
 
+function SphereIsVisible(position, radius)
+{
+	var worldMat = g_Matrix[MATRIX_WORLD];
+	var cullScale = worldMat.GetMaximumUnitScale();
+	var frustum = GetViewFrustum();
+	var visible = frustum.IntersectsSphere(worldMat.TransformVec3(position), radius * cullScale);
+	console.log(visible);
+	return visible;
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -733,22 +742,14 @@ function    CreateSpriteFromStorage( _pStore )
 yySprite.prototype.DrawSimple = function (_sub_image, _x, _y, _alpha) {
 	if (this.numb <= 0) return;
 
-    if (g_transRoomExtentsDirty)
-	{
-		UpdateTransRoomExtents();
-	}
-
-
+    // if (g_transRoomExtentsDirty)
+	// {
+	// 	UpdateTransRoomExtents();
+	// }
 
 	var cullRadius  = this.cullRadius;
-	if(((g_transRoomExtents.top - _y) <= cullRadius) &&
-	   ((_y - g_transRoomExtents.bottom) <= cullRadius) &&
-	   ((g_transRoomExtents.left - _x) <= cullRadius) &&
-	   ((_x - g_transRoomExtents.right) <= cullRadius)
 
-			|| ((g_isZeus) && (g_pCameraManager.GetActiveCamera() != null) && (g_pCameraManager.GetActiveCamera().m_is2D == false))
-
-			)
+	if (SphereIsVisible(new Vector3(_x, _y, 0.0), cullRadius))
 	{
 		_sub_image = (~ ~_sub_image) % this.numb;
 		if (_sub_image < 0) _sub_image = _sub_image + this.numb;
@@ -809,10 +810,10 @@ yySprite.prototype.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _col
 		}
 	}
 
-    if (g_transRoomExtentsDirty)
-	{
-		UpdateTransRoomExtents();
-	}
+    // if (g_transRoomExtentsDirty)
+	// {
+	// 	UpdateTransRoomExtents();
+	// }
 
     if (!this.ppTPE) return;
 
@@ -826,13 +827,7 @@ yySprite.prototype.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _col
 		cullRadius = ycullRadius;
 	}
 
-	if (((g_transRoomExtents.top - _y) <= cullRadius) &&
-		  ((_y - g_transRoomExtents.bottom) <= cullRadius) &&
-		  ((g_transRoomExtents.left - _x) <= cullRadius) &&
-		  ((_x - g_transRoomExtents.right) <= cullRadius)
-		  || ((g_isZeus) && (g_pCameraManager.GetActiveCamera() != null) && (g_pCameraManager.GetActiveCamera().m_is2D == false))
-
-			)
+	if (SphereIsVisible(new Vector3(_x, _y, 0.0), cullRadius))
 	{
 		// Index wraps..
 		_ind = (~ ~_ind) % this.numb;
