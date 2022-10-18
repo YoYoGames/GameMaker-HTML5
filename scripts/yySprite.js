@@ -724,9 +724,7 @@ function SphereIsVisible(position, radius)
 	var worldMat = g_Matrix[MATRIX_WORLD];
 	var cullScale = worldMat.GetMaximumUnitScale();
 	var frustum = GetViewFrustum();
-	var visible = frustum.IntersectsSphere(worldMat.TransformVec3(position), radius * cullScale);
-	console.log(visible);
-	return visible;
+	return frustum.IntersectsSphere(worldMat.TransformVec3(position), radius * cullScale);
 }
 
 // #############################################################################################
