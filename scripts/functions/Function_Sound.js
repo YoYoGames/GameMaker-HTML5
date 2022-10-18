@@ -2613,6 +2613,7 @@ function create_emitter()
     emitter.gainnode.gain.value = 1.0;
     emitter.gainnode.connect(g_AudioBusMain);
     emitter.connect(emitter.gainnode);
+    emitter.bus = g_AudioBusMain;
     emitter.maxDistance = 100000;
     emitter.refDistance = 100;  //to match native    
     emitter.pitch = 1.0;
@@ -2665,6 +2666,7 @@ function audio_emitter_free(_emitterid)
             }
                 
             emitter.disconnect();
+            emitter.gainnode.disconnect();
             delete audio_emitters[_emitterid];
         }
     }
@@ -4032,4 +4034,26 @@ function audio_bus_create()
 function audio_effect_create(_type)
 {
     return AudioEffectStruct.Create(_type);
+}
+
+function audio_emitter_bus(_emitterIdx, _bus)
+{
+    const emitter = audio_emitters[yyGetInt32(_emitterIdx)];
+
+    if (emitter === undefined)
+        return;
+
+    emitter.gainnode.disconnect();
+    emitter.gainnode.connect(_bus);
+    emitter.bus = _bus;
+}
+
+function audio_emitter_get_bus(_emitterIdx)
+{
+    const emitter = audio_emitters[yyGetInt32(_emitterIdx)];
+
+    if (emitter === undefined)
+        return undefined;
+
+    return emitter.bus;
 }
