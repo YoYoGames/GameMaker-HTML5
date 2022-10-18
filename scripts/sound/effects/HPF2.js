@@ -1,8 +1,8 @@
 class HPF2Effect extends AudioEffect
 {
-    constructor()
+    constructor(_params)
     {
-        super("hpf2-processor");
+        super("hpf2-processor", _params);
     }
 }
 

@@ -1,8 +1,8 @@
 class Reverb1Effect extends AudioEffect
 {
-    constructor()
+    constructor(_params)
     {
-        super("reverb1-processor");
+        super("reverb1-processor", _params);
     }
 }
 

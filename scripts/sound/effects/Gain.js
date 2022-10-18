@@ -1,8 +1,8 @@
 class GainEffect extends AudioEffect
 {
-    constructor()
+    constructor(_params)
     {
-        super("gain-processor");
+        super("gain-processor", _params);
     }
 }
 

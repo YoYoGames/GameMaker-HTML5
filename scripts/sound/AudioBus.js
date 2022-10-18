@@ -108,7 +108,7 @@ class AudioBus extends AudioWorkletNode
 		const prevNode = this.findPrevNode(_idx);
 		const nextNode = this.findNextNode(_idx);
 
-		// If the slot is occupied
+		// Disconnect the previous node
 		if (currentNode !== undefined)
 		{
 			prevNode.disconnect(currentNode);
@@ -116,8 +116,12 @@ class AudioBus extends AudioWorkletNode
 			currentNode.disconnect();
 			this.effects[_idx].RemoveNode(currentNode);
 		}
+		else
+		{
+			prevNode.disconnect(nextNode, 0, 0);
+		}
 
-		// Set the new node
+		// Reconnect the previous node (and any new node)
 		if (_newNode === undefined)
 		{
 			prevNode.connect(nextNode, 0, 0);
@@ -134,7 +138,7 @@ class AudioBus extends AudioWorkletNode
 	handleValue(_value)
 	{
 		if (_value instanceof AudioEffectStruct)
-			return _value.addNode();
+			return _value.addNode(_value.params);
 
 		if (_value === undefined)
 			return _value;

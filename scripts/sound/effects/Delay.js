@@ -1,8 +1,8 @@
 class DelayEffect extends AudioEffect
 {
-    constructor()
+    constructor(_params)
     {
-        super("delay-processor");
+        super("delay-processor", _params);
     }
 }
 

@@ -1,8 +1,8 @@
 class BitcrusherEffect extends AudioEffect
 {
-    constructor()
+    constructor(_params)
     {
-        super("bitcrusher-processor");
+        super("bitcrusher-processor", _params);
     }
 }
 

@@ -11,26 +11,27 @@ class AudioEffect extends AudioWorkletNode
 		Reverb1: 5
     };
 
-    static Create(_type)
+    static Create(_type, _params)
     {
         switch (_type)
         {
-            case AudioEffect.Type.Bitcrusher:   return new BitcrusherEffect();
-            case AudioEffect.Type.Delay:        return new DelayEffect();
-            case AudioEffect.Type.Gain:         return new GainEffect();
-            case AudioEffect.Type.HPF2:         return new HPF2Effect();
-            case AudioEffect.Type.LPF2:         return new LPF2Effect();
-            case AudioEffect.Type.Reverb1:      return new Reverb1Effect();
+            case AudioEffect.Type.Bitcrusher:   return new BitcrusherEffect(_params);
+            case AudioEffect.Type.Delay:        return new DelayEffect(_params);
+            case AudioEffect.Type.Gain:         return new GainEffect(_params);
+            case AudioEffect.Type.HPF2:         return new HPF2Effect(_params);
+            case AudioEffect.Type.LPF2:         return new LPF2Effect(_params);
+            case AudioEffect.Type.Reverb1:      return new Reverb1Effect(_params);
             default:                            return null;
         }
     }
 
-    constructor(_workletName)
+    constructor(_workletName, _params)
     {
         super(g_WebAudioContext, _workletName, { 
 			numberOfInputs: 1,
 			numberOfOutputs: 1, 
-			outputChannelCount: [2]
+			outputChannelCount: [2],
+            parameterData: _params
 		});
     }
 }
@@ -74,7 +75,7 @@ class AudioEffectStruct
 				set: (_state) => {
                     this.params.bypass = yyGetBool(_state);
 
-                    this.nodes.foreach((_node) => {
+                    this.nodes.forEach((_node) => {
                         const bypass = _node.parameters.get("bypass");
                         bypass.value = this.params.bypass;
                     });
@@ -83,9 +84,9 @@ class AudioEffectStruct
 		});
     }
 
-    addNode()
+    addNode(_params)
     {
-        const node = AudioEffect.Create(this.type);
+        const node = AudioEffect.Create(this.type, _params);
         this.nodes.push(node);
         
         return node;

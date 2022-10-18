@@ -1,0 +1,37 @@
+class GainProcessor extends AudioWorkletProcessor
+{
+    static get parameterDescriptors() 
+    {
+        return [
+            { name: "bypass", automationRate: "a-rate", defaultValue: 0, minValue: 0, maxValue: 1 },
+            { name: "gain",   automationRate: "a-rate", defaultValue: 1, minValue: 0 }
+        ];
+    }
+
+    process(inputs, outputs, parameters) 
+    {
+        const input = inputs[0];
+        const output = outputs[0];
+
+        const bypass = parameters.bypass;
+        const gain = parameters.gain;
+
+        for (let c = 0; c < input.length; ++c) {
+            const inputChannel = input[c];
+            const outputChannel = output[c];
+
+            for (let s = 0; s < inputChannel.length; ++s) {
+                outputChannel[s] = inputChannel[s];
+
+                if (bypass[s] ?? bypass[0])
+                    continue;
+
+                outputChannel[s] *= (gain[s] ?? gain[0]);
+            }
+        }
+
+        return true; // This should probably eventually be false
+    }
+}
+
+registerProcessor("gain-processor", GainProcessor);

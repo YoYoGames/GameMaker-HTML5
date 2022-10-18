@@ -1,8 +1,8 @@
 class LPF2Effect extends AudioEffect
 {
-    constructor()
+    constructor(_params)
     {
-        super("lpf2-processor");
+        super("lpf2-processor", _params);
     }
 }
 
