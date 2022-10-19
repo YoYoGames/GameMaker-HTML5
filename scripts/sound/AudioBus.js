@@ -1,6 +1,7 @@
 class AudioBus extends AudioWorkletNode
 {
 	static NUM_EFFECT_SLOTS = 8;
+	static MAX_CHANNELS = 8;
 
 	constructor()
 	{
@@ -8,7 +9,7 @@ class AudioBus extends AudioWorkletNode
 		super(g_WebAudioContext, "audio-bus-input", { 
 			numberOfInputs: 1,
 			numberOfOutputs: 2, 
-			outputChannelCount: [2, 2]
+			outputChannelCount: [AudioBus.MAX_CHANNELS, AudioBus.MAX_CHANNELS]
 		});
 
 		// GML object props
@@ -19,7 +20,7 @@ class AudioBus extends AudioWorkletNode
 		this.outputNode = new AudioWorkletNode(g_WebAudioContext, "audio-bus-output",  { 
 			numberOfInputs: 2,
 			numberOfOutputs: 1, 
-			outputChannelCount: [2]
+			outputChannelCount: [AudioBus.MAX_CHANNELS]
 		});
 
 		this.connect(this.outputNode, 0, 0); // Initial effect chain connection

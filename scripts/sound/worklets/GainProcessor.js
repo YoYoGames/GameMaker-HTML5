@@ -21,11 +21,14 @@ class GainProcessor extends AudioWorkletProcessor
             const outputChannel = output[c];
 
             for (let s = 0; s < inputChannel.length; ++s) {
+                // Copy the input to the output
                 outputChannel[s] = inputChannel[s];
 
+                // Check bypass state
                 if (bypass[s] ?? bypass[0])
                     continue;
 
+                // Apply gain
                 outputChannel[s] *= (gain[s] ?? gain[0]);
             }
         }

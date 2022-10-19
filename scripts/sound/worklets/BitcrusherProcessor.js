@@ -34,8 +34,8 @@ class BitcrusherProcessor extends AudioWorkletProcessor
     constructor()
     {
         super();
-        this.sample = [];
-        this.hold = 0;
+        this.sample = new Float32Array(MAX_CHANNELS);
+        this.hold = new Float32Array(MAX_CHANNELS);
     }
 
     process(inputs, outputs, parameters) 
@@ -49,25 +49,21 @@ class BitcrusherProcessor extends AudioWorkletProcessor
         const resolution = parameters.resolution;
         const mix = parameters.mix;
 
-        let h = this.hold;
-
         for (let c = 0; c < input.length; ++c) {
             const inputChannel = input[c];
             const outputChannel = output[c];
-
-            h = this.hold;
 
             for (let s = 0; s < inputChannel.length; ++s) {
                 // Copy the input to the output
                 outputChannel[s] = inputChannel[s];
 
                 // Update held sample
-                if (h === 0)
+                if (this.hold[c] === 0)
                     this.sample[c] = inputChannel[s];
 
                 // Update hold counter
-                ++h;
-                h %= (factor[s] ?? factor[0]);
+                ++this.hold[c];
+                this.hold[c] %= (factor[s] ?? factor[0]);
 
                 // Check bypass state
                 if (bypass[s] ?? bypass[0])
@@ -88,15 +84,13 @@ class BitcrusherProcessor extends AudioWorkletProcessor
 
                 val = Math.round(val * max) / max;
 
-                // Mix the distorted sample and original samples
+                // Mix the distorted and original samples
                 const m = (mix[s] ?? mix[0]);
 
                 outputChannel[s] *= (1.0 - m);
                 outputChannel[s] += (val * m);
             }
         }
-
-        this.hold = h;
 
         return true; // This should probably eventually be false
     }
