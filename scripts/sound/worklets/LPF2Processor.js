@@ -1,13 +1,13 @@
-class HPF2Processor extends AudioWorkletProcessor
+class LPF2Processor extends AudioWorkletProcessor
 {
     static get parameterDescriptors() 
     {
         const maxCutoff = Math.min(sampleRate / 2, 20000);
 
         return [
-            { name: "bypass", automationRate: "a-rate", defaultValue: 0,  minValue: 0,  maxValue: 1 },
-            { name: "cutoff", automationRate: "a-rate", defaultValue: 10, minValue: 10, maxValue: maxCutoff },
-            { name: "q",      automationRate: "a-rate", defaultValue: 1,  minValue: 1,  maxValue: 100 },
+            { name: "bypass", automationRate: "a-rate", defaultValue: 0,         minValue: 0,  maxValue: 1 },
+            { name: "cutoff", automationRate: "a-rate", defaultValue: maxCutoff, minValue: 10, maxValue: maxCutoff },
+            { name: "q",      automationRate: "a-rate", defaultValue: 1,         minValue: 1,  maxValue: 100 },
         ];
     }
 
@@ -90,9 +90,9 @@ class HPF2Processor extends AudioWorkletProcessor
         const a1 = -2 * cos_w0;
         const a2 = 1 - alpha;
     
-        const b0 = (1 + cos_w0) / 2;
-        const b1 = -1 - cos_w0;
-        const b2 = (1 + cos_w0) / 2;
+        const b0 = (1 - cos_w0) / 2;
+        const b1 = 1 - cos_w0;
+        const b2 = (1 - cos_w0) / 2;
     
         this.a1 = a1 / a0;
         this.a2 = a2 / a0;
@@ -105,4 +105,4 @@ class HPF2Processor extends AudioWorkletProcessor
     }
 }
 
-registerProcessor("hpf2-processor", HPF2Processor);
+registerProcessor("lpf2-processor", LPF2Processor);
