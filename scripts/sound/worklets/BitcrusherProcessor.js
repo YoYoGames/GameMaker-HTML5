@@ -7,7 +7,7 @@ class BitcrusherProcessor extends AudioWorkletProcessor
             { name: "gain",       automationRate: "a-rate", defaultValue: 1,  minValue: 0 },
             { name: "factor",     automationRate: "a-rate", defaultValue: 1,  minValue: 1, maxValue: 100 },
             { name: "resolution", automationRate: "a-rate", defaultValue: 16, minValue: 2, maxValue: 16  },
-            { name: "mix",        automationRate: "a-rate", defaultValue: 0,  minValue: 0, maxValue: 1   },
+            { name: "mix",        automationRate: "a-rate", defaultValue: 0,  minValue: 0, maxValue: 1   }
         ];
     }
 

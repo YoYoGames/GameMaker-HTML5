@@ -7,7 +7,7 @@ class HPF2Processor extends AudioWorkletProcessor
         return [
             { name: "bypass", automationRate: "a-rate", defaultValue: 0,  minValue: 0,  maxValue: 1 },
             { name: "cutoff", automationRate: "a-rate", defaultValue: 10, minValue: 10, maxValue: maxCutoff },
-            { name: "q",      automationRate: "a-rate", defaultValue: 1,  minValue: 1,  maxValue: 100 },
+            { name: "q",      automationRate: "a-rate", defaultValue: 1,  minValue: 1,  maxValue: 100 }
         ];
     }
 
