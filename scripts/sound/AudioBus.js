@@ -10,7 +10,9 @@ class AudioBus extends AudioWorkletNode
 		super(g_WebAudioContext, "audio-bus-input", { 
 			numberOfInputs: 1,
 			numberOfOutputs: 2, 
-			outputChannelCount: [maxChannels, maxChannels]
+			outputChannelCount: [maxChannels, maxChannels],
+			channelCount: maxChannels,
+			channelCountMode: "explicit"
 		});
 
 		// GML object props
@@ -21,7 +23,9 @@ class AudioBus extends AudioWorkletNode
 		this.outputNode = new AudioWorkletNode(g_WebAudioContext, "audio-bus-output",  { 
 			numberOfInputs: 2,
 			numberOfOutputs: 1, 
-			outputChannelCount: [maxChannels]
+			outputChannelCount: [maxChannels],
+			channelCount: maxChannels,
+			channelCountMode: "explicit"
 		});
 
 		this.connect(this.outputNode, 0, 0); // Initial effect chain connection

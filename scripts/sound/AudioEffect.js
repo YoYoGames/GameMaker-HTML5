@@ -27,11 +27,15 @@ class AudioEffect extends AudioWorkletNode
 
     constructor(_workletName, _params)
     {
+        const maxChannels = g_WebAudioContext.destination.channelCount;
+
         super(g_WebAudioContext, _workletName, { 
 			numberOfInputs: 1,
 			numberOfOutputs: 1, 
-			outputChannelCount: [g_WebAudioContext.destination.channelCount],
-            parameterData: _params
+			outputChannelCount: [maxChannels],
+            parameterData: _params,
+			channelCount: maxChannels,
+			channelCountMode: "explicit"
 		});
     }
 }
