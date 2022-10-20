@@ -30,7 +30,7 @@ class AudioEffect extends AudioWorkletNode
         super(g_WebAudioContext, _workletName, { 
 			numberOfInputs: 1,
 			numberOfOutputs: 1, 
-			outputChannelCount: [AudioBus.MAX_CHANNELS],
+			outputChannelCount: [g_WebAudioContext.destination.channelCount],
             parameterData: _params
 		});
     }

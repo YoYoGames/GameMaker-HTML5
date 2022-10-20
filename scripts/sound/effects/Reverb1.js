@@ -24,7 +24,7 @@ class Reverb1EffectStruct extends AudioEffectStruct
                     return this.params.size;
                 },
 				set: (_size) => {
-                    this.params.time = clamp(_size, 0.0, 1.0);
+                    this.params.size = clamp(_size, 0.0, 1.0);
 
                     this.nodes.forEach((_node) => {
                         const size = _node.parameters.get("size");
