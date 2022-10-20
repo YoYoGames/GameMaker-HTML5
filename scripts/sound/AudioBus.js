@@ -120,7 +120,7 @@ class AudioBus extends AudioWorkletNode
 			prevNode.disconnect(currentNode);
 
 			currentNode.disconnect();
-			this.effects[_idx].RemoveNode(currentNode);
+			this.effects[_idx].removeNode(currentNode);
 		}
 		else
 		{

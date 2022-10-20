@@ -98,7 +98,7 @@ class AudioEffectStruct
 
     removeNode(_node) 
     {
-        const idx = this.nodes.findIndex(_node);
+        const idx = this.nodes.findIndex(elem => elem === _node);
 
         if (idx != -1)
             this.nodes.splice(idx, 1);
