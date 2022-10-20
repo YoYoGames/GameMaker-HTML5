@@ -31,11 +31,14 @@ class BitcrusherProcessor extends AudioWorkletProcessor
         32768
     ];
 
-    constructor()
+    constructor(_options)
     {
         super();
-        this.sample = new Float32Array(MAX_CHANNELS);
-        this.hold = new Float32Array(MAX_CHANNELS);
+
+        const maxChannels = _options.outputChannelCount[0];
+
+        this.sample = new Float32Array(maxChannels);
+        this.hold = new Float32Array(maxChannels);
     }
 
     process(inputs, outputs, parameters) 

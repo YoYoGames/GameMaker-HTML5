@@ -11,9 +11,11 @@ class LPF2Processor extends AudioWorkletProcessor
         ];
     }
 
-    constructor()
+    constructor(_options)
     {
         super();
+
+        const maxChannels = _options.outputChannelCount[0];
 
         this.a1 = 0;
         this.a2 = 0;
@@ -21,10 +23,10 @@ class LPF2Processor extends AudioWorkletProcessor
         this.b1 = 0;
         this.b2 = 0;
 
-        this.x1 = new Float32Array(MAX_CHANNELS);
-        this.x2 = new Float32Array(MAX_CHANNELS);
-        this.y1 = new Float32Array(MAX_CHANNELS);
-        this.y2 = new Float32Array(MAX_CHANNELS);
+        this.x1 = new Float32Array(maxChannels);
+        this.x2 = new Float32Array(maxChannels);
+        this.y1 = new Float32Array(maxChannels);
+        this.y2 = new Float32Array(maxChannels);
 
         this.prevCutoff = -1;
         this.prevQ = -1;

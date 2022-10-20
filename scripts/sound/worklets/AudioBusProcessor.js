@@ -1,5 +1,3 @@
-const MAX_CHANNELS = 8;
-
 class AudioBusInput extends AudioWorkletProcessor
 {
     static get parameterDescriptors() 

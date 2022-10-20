@@ -133,18 +133,18 @@ class Reverb1Processor extends AudioWorkletProcessor
     {
         super();
 
-        this.maxChannels = _options.outputChannelCount[0];
+        const maxChannels = _options.outputChannelCount[0];
 
         this.prevSize = -1;
         this.prevDamp = -1;
         
-        this.lpfcf = new Array(this.maxChannels);
-        this.apf = new Array(this.maxChannels);
+        this.lpfcf = new Array(maxChannels);
+        this.apf = new Array(maxChannels);
 
         const lpcf_tunings = [Reverb1Processor.LPFCF_EVEN, Reverb1Processor.LPFCF_ODD];
         const apf_tunings = [Reverb1Processor.APF_EVEN, Reverb1Processor.APF_ODD];
 
-        for (let c = 0; c < this.maxChannels; ++c) {
+        for (let c = 0; c < maxChannels; ++c) {
             this.lpfcf[c] = new Array(Reverb1Processor.NUM_LPFCFS);
             this.apf[c] = new Array(Reverb1Processor.NUM_APFS);
 
@@ -158,7 +158,7 @@ class Reverb1Processor extends AudioWorkletProcessor
         this.setSize(0.5);
         this.setDamp(0.5);
     
-        for (let c = 0; c < this.maxChannels; ++c)
+        for (let c = 0; c < maxChannels; ++c)
             for (let i = 0; i < Reverb1Processor.NUM_APFS; ++i)
                 this.apf[c][i].setFeedback(0.5);
     }
@@ -218,7 +218,7 @@ class Reverb1Processor extends AudioWorkletProcessor
 
         const size = (_size * Reverb1Processor.ROOM_SCALAR) + Reverb1Processor.ROOM_OFFSET;
 
-        for (let c = 0; c < this.maxChannels; ++c)
+        for (let c = 0; c < this.lpfcf.length; ++c)
             for (let i = 0; i < Reverb1Processor.NUM_LPFCFS; ++i)
                 this.lpfcf[c][i].setFeedback(size);
 
@@ -232,7 +232,7 @@ class Reverb1Processor extends AudioWorkletProcessor
 
         const damp = _damp * Reverb1Processor.DAMP_SCALAR;
 
-        for (let c = 0; c < this.maxChannels; ++c)
+        for (let c = 0; c < this.lpfcf.length; ++c)
             for (let i = 0; i < Reverb1Processor.NUM_LPFCFS; ++i)
                 this.lpfcf[c][i].setDamp(damp);
 
