@@ -11,32 +11,18 @@ class AudioEffect extends AudioWorkletNode
 		Reverb1: 5
     };
 
-    static Create(_type, _params)
+    static getWorkletName(_type)
     {
         switch (_type)
         {
-            case AudioEffect.Type.Bitcrusher:   return new BitcrusherEffect(_params);
-            case AudioEffect.Type.Delay:        return new DelayEffect(_params);
-            case AudioEffect.Type.Gain:         return new GainEffect(_params);
-            case AudioEffect.Type.HPF2:         return new HPF2Effect(_params);
-            case AudioEffect.Type.LPF2:         return new LPF2Effect(_params);
-            case AudioEffect.Type.Reverb1:      return new Reverb1Effect(_params);
+            case AudioEffect.Type.Bitcrusher:   return "bitcrusher-processor";
+            case AudioEffect.Type.Delay:        return "delay-processor";
+            case AudioEffect.Type.Gain:         return "gain-processor";
+            case AudioEffect.Type.HPF2:         return "hpf2-processor";
+            case AudioEffect.Type.LPF2:         return "lpf2-processor";
+            case AudioEffect.Type.Reverb1:      return "reverb1-processor";
             default:                            return null;
         }
-    }
-
-    constructor(_workletName, _params)
-    {
-        const maxChannels = g_WebAudioContext.destination.channelCount;
-
-        super(g_WebAudioContext, _workletName, { 
-			numberOfInputs: 1,
-			numberOfOutputs: 1, 
-			outputChannelCount: [maxChannels],
-            parameterData: _params,
-			channelCount: maxChannels,
-			channelCountMode: "explicit"
-		});
     }
 }
 
@@ -90,7 +76,7 @@ class AudioEffectStruct
 
     addNode(_params)
     {
-        const node = AudioEffect.Create(this.type, _params);
+        const node = g_WorkletNodeManager.createEffect(this);
         this.nodes.push(node);
         
         return node;
@@ -100,9 +86,9 @@ class AudioEffectStruct
     {
         const idx = this.nodes.findIndex(elem => elem === _node);
 
-        this.nodes[idx].port.postMessage("kill");
+        g_WorkletNodeManager.killNode(this.nodes[idx]);
 
-        if (idx != -1)
+        if (idx !== -1)
             this.nodes.splice(idx, 1);
     }
 }

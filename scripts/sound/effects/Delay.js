@@ -1,11 +1,3 @@
-class DelayEffect extends AudioEffect
-{
-    constructor(_params)
-    {
-        super("delay-processor", _params);
-    }
-}
-
 class DelayEffectStruct extends AudioEffectStruct
 {
     constructor()

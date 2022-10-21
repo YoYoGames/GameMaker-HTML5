@@ -1,35 +1,108 @@
-class AudioBus extends AudioWorkletNode
+function WorkletNodeManager() {
+	this.nodes = [];
+	this.handle = setInterval(() => this.cleanup(), 5000);
+}
+
+WorkletNodeManager.prototype.createBusInput = function(_struct) {
+	const maxChannels = g_WebAudioContext.destination.channelCount;
+
+	const node = new AudioWorkletNode(g_WebAudioContext, "audio-bus-input", { 
+		numberOfInputs: 1,
+		numberOfOutputs: 2, 
+		outputChannelCount: [maxChannels, maxChannels],
+		channelCount: maxChannels,
+		channelCountMode: "explicit"
+	});
+
+	this.nodes.push({
+		struct: new WeakRef(_struct),
+		node: node
+	});
+
+	return node;
+};
+
+WorkletNodeManager.prototype.createBusOutput = function(_struct) {
+	const maxChannels = g_WebAudioContext.destination.channelCount;
+
+	const node = new AudioWorkletNode(g_WebAudioContext, "audio-bus-output",  { 
+		numberOfInputs: 2,
+		numberOfOutputs: 1, 
+		outputChannelCount: [maxChannels],
+		channelCount: maxChannels,
+		channelCountMode: "explicit"
+	});
+
+	this.nodes.push({
+		struct: new WeakRef(_struct),
+		node: node
+	});
+
+	return node;
+};
+
+WorkletNodeManager.prototype.createEffect = function(_struct) {
+	const workletName = AudioEffect.getWorkletName(_struct.type);
+	const maxChannels = g_WebAudioContext.destination.channelCount;
+
+	const node = new AudioWorkletNode(g_WebAudioContext, workletName, { 
+		numberOfInputs: 1,
+		numberOfOutputs: 1, 
+		outputChannelCount: [maxChannels],
+		parameterData: _struct.params,
+		channelCount: maxChannels,
+		channelCountMode: "explicit"
+	});
+
+	this.nodes.push({
+		struct: new WeakRef(_struct),
+		node: node
+	});
+
+	return node;
+};
+
+WorkletNodeManager.prototype.cleanup = function() {
+	this.nodes = this.nodes.filter((_elem) => {
+		const struct = _elem.struct.deref();
+
+		if (struct === undefined)
+		{
+			_elem.node.port.postMessage("kill");
+			return false;
+		}
+
+		return true;
+	});
+};
+
+WorkletNodeManager.prototype.killNode = function(_node) {
+	const idx = this.nodes.findIndex(_elem => _elem.node === _node);
+
+	if (idx !== -1)
+	{
+		this.nodes[idx].node.port.postMessage("kill");
+		this.nodes.splice(idx, 1);
+	}
+};
+
+var g_WorkletNodeManager = new WorkletNodeManager();
+
+class AudioBus
 {
 	static NUM_EFFECT_SLOTS = 8;
 
 	constructor()
 	{
-		const maxChannels = g_WebAudioContext.destination.channelCount;
-
-		// The bus inherits from AudioWorkletNode to allow for straightforward input connections
-		super(g_WebAudioContext, "audio-bus-input", { 
-			numberOfInputs: 1,
-			numberOfOutputs: 2, 
-			outputChannelCount: [maxChannels, maxChannels],
-			channelCount: maxChannels,
-			channelCountMode: "explicit"
-		});
-
 		// GML object props
 		this.__type = "[AudioBus]";
 		this.__yyIsGMLObject = true;
 
-		// Output gain + mix node
-		this.outputNode = new AudioWorkletNode(g_WebAudioContext, "audio-bus-output",  { 
-			numberOfInputs: 2,
-			numberOfOutputs: 1, 
-			outputChannelCount: [maxChannels],
-			channelCount: maxChannels,
-			channelCountMode: "explicit"
-		});
-
-		this.connect(this.outputNode, 0, 0); // Initial effect chain connection
-		this.connect(this.outputNode, 1, 1); // Bypass connection
+		this.inputNode = g_WorkletNodeManager.createBusInput(this);
+		this.outputNode = g_WorkletNodeManager.createBusOutput(this);
+		
+		this.inputNode.connect(this.outputNode, 0, 0); // Initial effect chain connection
+		this.inputNode.connect(this.outputNode, 1, 1); // Bypass connection
 
 		this.bypass = false;
 		this.gain = 1.0;
@@ -83,6 +156,11 @@ class AudioBus extends AudioWorkletNode
 		});
 	}
 
+	connectInput(_source, _outputIndex, _inputIndex)
+	{
+		_source.connect(this.inputNode, _outputIndex, _inputIndex);
+	}
+
 	connectOutput(_destination, _outputIndex, _inputIndex)
 	{
 		this.outputNode.connect(_destination, _outputIndex, _inputIndex);
@@ -101,7 +179,7 @@ class AudioBus extends AudioWorkletNode
 		const nodes = this.nodes.slice(0, _idx);
 		const prevNode = nodes.findLast((_node) => _node !== undefined);
 
-		return prevNode ?? this;
+		return prevNode ?? this.inputNode;
 	}
 
 	handleConnections(_idx, _newNode)

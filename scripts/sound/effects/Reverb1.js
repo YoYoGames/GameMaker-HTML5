@@ -1,11 +1,3 @@
-class Reverb1Effect extends AudioEffect
-{
-    constructor(_params)
-    {
-        super("reverb1-processor", _params);
-    }
-}
-
 class Reverb1EffectStruct extends AudioEffectStruct
 {
     constructor()

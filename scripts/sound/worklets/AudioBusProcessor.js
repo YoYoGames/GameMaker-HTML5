@@ -7,6 +7,17 @@ class AudioBusInput extends AudioWorkletProcessor
         ];
     }
 
+    constructor()
+    {
+        super();
+
+        this.keepAlive = true;
+        this.port.onmessage = (_msg) => {
+            if (_msg.data === "kill")
+                this.keepAlive = false;
+        };
+    }
+
     process(inputs, outputs, parameters) 
     {
         // 1 input and 2 outputs
@@ -22,7 +33,7 @@ class AudioBusInput extends AudioWorkletProcessor
                 outputs[parameters.bypass[s] ?? parameters.bypass[0]][c][s] = inputChannel[s];
         }
 
-        return true; // This should probably eventually be false
+        return this.keepAlive;
     }
 }
 
@@ -33,6 +44,17 @@ class AudioBusOutput extends AudioWorkletProcessor
         return [
             { name: "gain", automationRate: "a-rate", defaultValue: 1, minValue: 0 }
         ];
+    }
+
+    constructor()
+    {
+        super();
+
+        this.keepAlive = true;
+        this.port.onmessage = (_msg) => {
+            if (_msg.data === "kill")
+                this.keepAlive = false;
+        };
     }
 
     process(inputs, outputs, parameters) 
@@ -66,7 +88,7 @@ class AudioBusOutput extends AudioWorkletProcessor
                 outputChannel[s] += inputChannel[s] * (gain[s] ?? gain[0]);
         }
 
-        return true; // This should probably eventually be false
+        return this.keepAlive;
     }
 }
 

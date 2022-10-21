@@ -1190,7 +1190,7 @@ function Audio_ResumeUnstreamed( _audioSound )
         } 
         else
         {
-            _audioSound.pgainnode.connect(g_AudioBusMain); //No emitter to connect to so it goes straight to main bus
+            g_AudioBusMain.connectInput(_audioSound.pgainnode); //No emitter to connect to so it goes straight to main bus
             //instead connect to sample gain node
             //_audioSound.pgainnode.connect( audio_sampledata[_audioSound.soundid].pgainnode );
         }
@@ -1408,7 +1408,7 @@ function audio_play_sound(_asset_index, _priority, _loop, _gain, _offset, _pitch
 
     if (free_voice != null)
     {
-        free_voice.pgainnode.connect(g_AudioBusMain);
+        g_AudioBusMain.connectInput(free_voice.pgainnode);
 
         Audio_Play(free_voice, props);
 
@@ -2611,7 +2611,7 @@ function create_emitter()
     const emitter = g_WebAudioContext.createPanner();			// also clears to defaults.
     emitter.gainnode = g_WebAudioContext.createGain();
     emitter.gainnode.gain.value = 1.0;
-    emitter.gainnode.connect(g_AudioBusMain);
+    g_AudioBusMain.connectInput(emitter.gainnode);
     emitter.connect(emitter.gainnode);
     emitter.bus = g_AudioBusMain;
     emitter.maxDistance = 100000;
@@ -4027,7 +4027,8 @@ function audio_stop_recording(_deviceNum)
 function audio_bus_create()
 {
     const bus = new AudioBus();
-    bus.connectOutput(g_AudioBusMain);
+    g_AudioBusMain.connectInput(bus.outputNode);
+
     return bus;
 }
 
@@ -4044,7 +4045,7 @@ function audio_emitter_bus(_emitterIdx, _bus)
         return;
 
     emitter.gainnode.disconnect();
-    emitter.gainnode.connect(_bus);
+    _bus.connectInput(emitter.gainnode);
     emitter.bus = _bus;
 }
 

@@ -1,11 +1,3 @@
-class GainEffect extends AudioEffect
-{
-    constructor(_params)
-    {
-        super("gain-processor", _params);
-    }
-}
-
 class GainEffectStruct extends AudioEffectStruct
 {
     constructor()

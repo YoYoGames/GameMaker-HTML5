@@ -1,11 +1,3 @@
-class HPF2Effect extends AudioEffect
-{
-    constructor(_params)
-    {
-        super("hpf2-processor", _params);
-    }
-}
-
 class HPF2EffectStruct extends AudioEffectStruct
 {
     constructor()

@@ -1,11 +1,3 @@
-class LPF2Effect extends AudioEffect
-{
-    constructor(_params)
-    {
-        super("lpf2-processor", _params);
-    }
-}
-
 class LPF2EffectStruct extends AudioEffectStruct
 {
     constructor()
