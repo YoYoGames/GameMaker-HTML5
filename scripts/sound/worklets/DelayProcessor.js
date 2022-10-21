@@ -16,6 +16,12 @@ class DelayProcessor extends AudioWorkletProcessor
     {
         super();
 
+        this.keepAlive = true;
+        this.port.onmessage = (_msg) => {
+            if (_msg.data === "kill")
+                this.keepAlive = false;
+        };
+
         const maxChannels = _options.outputChannelCount[0];
 
         const delayLineLength = DelayProcessor.MAX_DELAY_TIME * sampleRate;
@@ -64,7 +70,7 @@ class DelayProcessor extends AudioWorkletProcessor
             }
         }
 
-        return true; // This should probably eventually be false
+        return this.keepAlive;
     }
 
     read(_channel, _time)

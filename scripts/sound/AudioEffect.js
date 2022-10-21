@@ -100,6 +100,8 @@ class AudioEffectStruct
     {
         const idx = this.nodes.findIndex(elem => elem === _node);
 
+        this.nodes[idx].port.postMessage("kill");
+
         if (idx != -1)
             this.nodes.splice(idx, 1);
     }

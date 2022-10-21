@@ -8,6 +8,17 @@ class GainProcessor extends AudioWorkletProcessor
         ];
     }
 
+    constructor()
+    {
+        super();
+
+        this.keepAlive = true;
+        this.port.onmessage = (_msg) => {
+            if (_msg.data === "kill")
+                this.keepAlive = false;
+        };
+    }
+
     process(inputs, outputs, parameters) 
     {
         const input = inputs[0];
@@ -33,7 +44,7 @@ class GainProcessor extends AudioWorkletProcessor
             }
         }
 
-        return true; // This should probably eventually be false
+        return this.keepAlive;
     }
 }
 

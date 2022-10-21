@@ -85,7 +85,7 @@ class AudioBus extends AudioWorkletNode
 
 	connectOutput(_destination, _outputIndex, _inputIndex)
 	{
-		const node = this.outputNode.connect(_destination, _outputIndex, _inputIndex);
+		this.outputNode.connect(_destination, _outputIndex, _inputIndex);
 	}
 
 	findNextNode(_idx)

@@ -35,6 +35,12 @@ class BitcrusherProcessor extends AudioWorkletProcessor
     {
         super();
 
+        this.keepAlive = true;
+        this.port.onmessage = (_msg) => {
+            if (_msg.data === "kill")
+                this.keepAlive = false;
+        };
+
         const maxChannels = _options.outputChannelCount[0];
 
         this.sample = new Float32Array(maxChannels);
@@ -95,7 +101,7 @@ class BitcrusherProcessor extends AudioWorkletProcessor
             }
         }
 
-        return true; // This should probably eventually be false
+        return this.keepAlive;
     }
 }
 
