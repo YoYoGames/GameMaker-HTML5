@@ -1,4 +1,4 @@
-class LPF2Processor extends AudioWorkletProcessor
+class LPF2Processor extends KillableWorkletProcessor
 {
     static get parameterDescriptors() 
     {
@@ -14,12 +14,6 @@ class LPF2Processor extends AudioWorkletProcessor
     constructor(_options)
     {
         super();
-
-        this.keepAlive = true;
-        this.port.onmessage = (_msg) => {
-            if (_msg.data === "kill")
-                this.keepAlive = false;
-        };
 
         const maxChannels = _options.outputChannelCount[0];
 

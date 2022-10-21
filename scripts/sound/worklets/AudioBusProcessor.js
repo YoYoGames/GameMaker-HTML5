@@ -1,12 +1,5 @@
-class AudioBusInput extends AudioWorkletProcessor
+class KillableWorkletProcessor extends AudioWorkletProcessor
 {
-    static get parameterDescriptors() 
-    {
-        return [
-            { name: "bypass", automationRate: "a-rate", defaultValue: 0, minValue: 0, maxValue: 1 }
-        ];
-    }
-
     constructor()
     {
         super();
@@ -16,6 +9,16 @@ class AudioBusInput extends AudioWorkletProcessor
             if (_msg.data === "kill")
                 this.keepAlive = false;
         };
+    }
+}
+
+class AudioBusInput extends KillableWorkletProcessor
+{
+    static get parameterDescriptors() 
+    {
+        return [
+            { name: "bypass", automationRate: "a-rate", defaultValue: 0, minValue: 0, maxValue: 1 }
+        ];
     }
 
     process(inputs, outputs, parameters) 
@@ -37,24 +40,13 @@ class AudioBusInput extends AudioWorkletProcessor
     }
 }
 
-class AudioBusOutput extends AudioWorkletProcessor
+class AudioBusOutput extends KillableWorkletProcessor
 {
     static get parameterDescriptors() 
     {
         return [
             { name: "gain", automationRate: "a-rate", defaultValue: 1, minValue: 0 }
         ];
-    }
-
-    constructor()
-    {
-        super();
-
-        this.keepAlive = true;
-        this.port.onmessage = (_msg) => {
-            if (_msg.data === "kill")
-                this.keepAlive = false;
-        };
     }
 
     process(inputs, outputs, parameters) 

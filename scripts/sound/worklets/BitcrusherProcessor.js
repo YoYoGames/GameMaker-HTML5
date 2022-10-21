@@ -1,4 +1,4 @@
-class BitcrusherProcessor extends AudioWorkletProcessor
+class BitcrusherProcessor extends KillableWorkletProcessor
 {
     static get parameterDescriptors() 
     {
@@ -34,12 +34,6 @@ class BitcrusherProcessor extends AudioWorkletProcessor
     constructor(_options)
     {
         super();
-
-        this.keepAlive = true;
-        this.port.onmessage = (_msg) => {
-            if (_msg.data === "kill")
-                this.keepAlive = false;
-        };
 
         const maxChannels = _options.outputChannelCount[0];
 
