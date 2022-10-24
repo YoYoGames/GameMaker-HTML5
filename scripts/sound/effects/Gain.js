@@ -1,27 +1,25 @@
-class GainEffectStruct extends AudioEffectStruct
-{
-    constructor()
-    {
-        super(AudioEffect.Type.Gain);
+function GainEffectStruct() {
+    AudioEffectStruct.call(this, AudioEffect.Type.Gain);
+    Object.setPrototypeOf(this, AudioEffectStruct.prototype);
 
-        this.params.gain = 1.0;
+    this.params.gain = 1.0;
 
-        // Define user-facing properties
-		Object.defineProperties(this, {
-			gmlgain: {
-				enumerable: true,
-				get: () => {
-                    return this.params.gain;
-                },
-				set: (_gain) => {
-                    this.params.gain = max(0.0, _gain);
+    // Define user-facing properties
+    Object.defineProperties(this, {
+        gmlgain: {
+            enumerable: true,
+            get: () => {
+                return this.params.gain;
+            },
+            set: (_gain) => {
+                this.params.gain = max(0.0, _gain);
 
-                    this.nodes.forEach((_node) => {
-                        const gain = _node.parameters.get("gain");
-                        gain.setTargetAtTime(this.params.gain, 0, AudioEffect.PARAM_TIME_CONSTANT);
-                    });
-                }
-			}
-		});
-    }
+                this.nodes.forEach((_node) => {
+                    console.log("In Gain Setter");
+                    const gain = _node.parameters.get("gain");
+                    gain.setTargetAtTime(this.params.gain, 0, AudioEffect.PARAM_TIME_CONSTANT);
+                });
+            }
+        }
+    });
 }
