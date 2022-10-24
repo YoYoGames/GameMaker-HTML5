@@ -80,8 +80,9 @@ AudioEffectStruct.prototype.addNode = function() {
 AudioEffectStruct.prototype.removeNode = function(_node) { 
     const idx = this.nodes.findIndex(elem => elem === _node);
 
-    g_WorkletNodeManager.killNode(this.nodes[idx]);
-
     if (idx !== -1)
+    {
+        g_WorkletNodeManager.killNode(this.nodes[idx]);
         this.nodes.splice(idx, 1);
+    }
 };
