@@ -155,6 +155,8 @@ function audio_reinit()
 
 function audio_init()
 {
+    g_AudioEffectsFeatureEnabled = IsFeatureEnabled("audio-fx");
+
     if(g_AudioModel != Audio_WebAudio) {
         return;
     }
@@ -168,7 +170,9 @@ function audio_init()
     .then(() => {
         g_AudioBusMain = new AudioBus();
         g_AudioBusMain.connectOutput(g_AudioMainVolumeNode);
-        g_pBuiltIn.audio_bus_main = g_AudioBusMain;
+
+        if (g_AudioEffectsFeatureEnabled)
+            g_pBuiltIn.audio_bus_main = g_AudioBusMain;
     }).catch((_err) => {
         console.error("Failed to load audio worklets => " + _err);
     });
@@ -4026,6 +4030,12 @@ function audio_stop_recording(_deviceNum)
 
 function audio_bus_create()
 {
+    if (!g_AudioEffectsFeatureEnabled)
+    {
+        throw new Error("Audio effects are disabled");
+        return undefined;
+    }
+
     const bus = new AudioBus();
     g_AudioBusMain.connectInput(bus.outputNode);
 
@@ -4034,11 +4044,23 @@ function audio_bus_create()
 
 function audio_effect_create(_type)
 {
+    if (!g_AudioEffectsFeatureEnabled)
+    {
+        throw new Error("Audio effects are disabled");
+        return undefined;
+    }
+
     return AudioEffectStruct.Create(_type);
 }
 
 function audio_emitter_bus(_emitterIdx, _bus)
 {
+    if (!g_AudioEffectsFeatureEnabled)
+    {
+        throw new Error("Audio effects are disabled");
+        return;
+    }
+
     const emitter = audio_emitters[yyGetInt32(_emitterIdx)];
 
     if (emitter === undefined)
@@ -4051,6 +4073,12 @@ function audio_emitter_bus(_emitterIdx, _bus)
 
 function audio_emitter_get_bus(_emitterIdx)
 {
+    if (!g_AudioEffectsFeatureEnabled)
+    {
+        throw new Error("Audio effects are disabled");
+        return undefined;
+    }
+
     const emitter = audio_emitters[yyGetInt32(_emitterIdx)];
 
     if (emitter === undefined)
