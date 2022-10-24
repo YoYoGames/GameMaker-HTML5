@@ -1,4 +1,18 @@
-class AudioBusInput extends AudioWorkletProcessor
+class KillableWorkletProcessor extends AudioWorkletProcessor
+{
+    constructor()
+    {
+        super();
+
+        this.keepAlive = true;
+        this.port.onmessage = (_msg) => {
+            if (_msg.data === "kill")
+                this.keepAlive = false;
+        };
+    }
+}
+
+class AudioBusInput extends KillableWorkletProcessor
 {
     static get parameterDescriptors() 
     {
@@ -12,16 +26,21 @@ class AudioBusInput extends AudioWorkletProcessor
         // 1 input and 2 outputs
         // 1st output is written to when not bypassed
         // 2nd output is written to when bypassed
+        const input = inputs[0];
 
-        for (let c = 0; c < inputs[0].length; ++c)
-            for (let s = 0; s < inputs[0][c].length; ++s)
-                outputs[~~(parameters.bypass[s] ?? parameters.bypass[0])][c][s] = inputs[0][c][s];
+        for (let c = 0; c < input.length; ++c)
+        {
+            const inputChannel = input[c];
 
-        return true; // This should probably eventually be false
+            for (let s = 0; s < inputChannel.length; ++s)
+                outputs[parameters.bypass[s] ?? parameters.bypass[0]][c][s] = inputChannel[s];
+        }
+
+        return this.keepAlive;
     }
 }
 
-class AudioBusOutput extends AudioWorkletProcessor
+class AudioBusOutput extends KillableWorkletProcessor
 {
     static get parameterDescriptors() 
     {
@@ -35,18 +54,33 @@ class AudioBusOutput extends AudioWorkletProcessor
         // 2 inputs and 1 output
         // 1st input is from the effect chain
         // 2nd input is from the bypass
+        const input0 = inputs[0];
+        const input1 = inputs[1];
+        const output = outputs[0];
+
+        const gain = parameters.gain;
 
         // Copy the bypassed audio to the output
-        for (let c = 0; c < inputs[1].length; ++c)
-            for (let s = 0; s < inputs[1][c].length; ++s)
-                outputs[0][c][s] = inputs[1][c][s];
+        for (let c = 0; c < input1.length; ++c)
+        {
+            const inputChannel = input1[c];
+            const outputChannel = output[c];
+
+            for (let s = 0; s < inputChannel.length; ++s)
+                outputChannel[s] = inputChannel[s];
+        }
 
         // Then mix in the affected audio with a gain scalar
-        for (let c = 0; c < inputs[0].length; ++c)
-            for (let s = 0; s < inputs[0][c].length; ++s)
-                outputs[0][c][s] += inputs[0][c][s] * (parameters.gain[s] ?? parameters.gain[0]);
+        for (let c = 0; c < input0.length; ++c)
+        {
+            const inputChannel = input0[c];
+            const outputChannel = output[c];
 
-        return true; // This should probably eventually be false
+            for (let s = 0; s < inputChannel.length; ++s)
+                outputChannel[s] += inputChannel[s] * (gain[s] ?? gain[0]);
+        }
+
+        return this.keepAlive;
     }
 }
 

@@ -1,101 +1,88 @@
-class AudioEffect extends AudioWorkletNode
-{
-    static PARAM_TIME_CONSTANT = 0.005; // 5ms
+function AudioEffect() {
+    AudioWorkletNode.call(this);
+}
 
-    static Type = {
-        Bitcrusher: 0,
-		Delay: 1,
-		Gain: 2,
-		HPF2: 3,
-		LPF2: 4,
-		Reverb1: 5
+AudioEffect.PARAM_TIME_CONSTANT = 0.005; // 5ms
+
+AudioEffect.Type = {
+    Bitcrusher: 0,
+    Delay: 1,
+    Gain: 2,
+    HPF2: 3,
+    LPF2: 4,
+    Reverb1: 5
+};
+
+AudioEffect.getWorkletName = function(_type) {
+    switch (_type)
+    {
+        case AudioEffect.Type.Bitcrusher:   return "bitcrusher-processor";
+        case AudioEffect.Type.Delay:        return "delay-processor";
+        case AudioEffect.Type.Gain:         return "gain-processor";
+        case AudioEffect.Type.HPF2:         return "hpf2-processor";
+        case AudioEffect.Type.LPF2:         return "lpf2-processor";
+        case AudioEffect.Type.Reverb1:      return "reverb1-processor";
+        default:                            return null;
+    }
+};
+
+function AudioEffectStruct(_type) {
+    // GML object props
+    this.__type = "[AudioEffect]";
+    this.__yyIsGMLObject = true;
+
+    this.nodes = [];
+
+    this.type = _type;
+    this.params = {
+        bypass: false
     };
+    
+    // Define user-facing properties
+    Object.defineProperties(this, {
+        gmlbypass: {
+            enumerable: true,
+            get: () => {
+                return this.params.bypass;  
+            },
+            set: (_state) => {
+                this.params.bypass = yyGetBool(_state);
 
-    static Create(_type)
-    {
-        switch (_type)
-        {
-            case AudioEffect.Type.Bitcrusher:   return new BitcrusherEffect();
-            case AudioEffect.Type.Delay:        return new DelayEffect();
-            case AudioEffect.Type.Gain:         return new GainEffect();
-            case AudioEffect.Type.HPF2:         return new HPF2Effect();
-            case AudioEffect.Type.LPF2:         return new LPF2Effect();
-            case AudioEffect.Type.Reverb1:      return new Reverb1Effect();
-            default:                            return null;
+                this.nodes.forEach((_node) => {
+                    const bypass = _node.parameters.get("bypass");
+                    bypass.value = this.params.bypass;
+                });
+            }
         }
-    }
-
-    constructor(_workletName)
-    {
-        super(g_WebAudioContext, _workletName, { 
-			numberOfInputs: 1,
-			numberOfOutputs: 1, 
-			outputChannelCount: [2]
-		});
-    }
+    });
 }
 
-class AudioEffectStruct
-{
-    static Create(_type)
+AudioEffectStruct.Create = function(_type) {
+    switch (_type)
     {
-        switch (_type)
-        {
-            case AudioEffect.Type.Bitcrusher:   return new BitcrusherEffectStruct();
-            case AudioEffect.Type.Delay:        return new DelayEffectStruct();
-            case AudioEffect.Type.Gain:         return new GainEffectStruct();
-            case AudioEffect.Type.HPF2:         return new HPF2EffectStruct();
-            case AudioEffect.Type.LPF2:         return new LPF2EffectStruct();
-            case AudioEffect.Type.Reverb1:      return new Reverb1EffectStruct();
-            default:                            return null;
-        }
+        case AudioEffect.Type.Bitcrusher:   return new BitcrusherEffectStruct();
+        case AudioEffect.Type.Delay:        return new DelayEffectStruct();
+        case AudioEffect.Type.Gain:         return new GainEffectStruct();
+        case AudioEffect.Type.HPF2:         return new HPF2EffectStruct();
+        case AudioEffect.Type.LPF2:         return new LPF2EffectStruct();
+        case AudioEffect.Type.Reverb1:      return new Reverb1EffectStruct();
+        default:                            return null;
     }
+};
 
-    constructor(_type)
+AudioEffectStruct.prototype.addNode = function() {
+    const node = g_WorkletNodeManager.createEffect(this);
+    this.nodes.push(node);
+    
+    return node;
+};
+
+AudioEffectStruct.prototype.removeNode = function(_node) { 
+    const idx = this.nodes.findIndex(elem => elem === _node);
+
+    if (idx !== -1)
     {
-        // GML object props
-		this.__type = "[AudioEffect]";
-		this.__yyIsGMLObject = true;
-
-        this.nodes = [];
-
-        this.type = _type;
-        this.params = {
-            bypass: false
-        };
-        
-        // Define user-facing properties
-		Object.defineProperties(this, {
-			gmlbypass: {
-				enumerable: true,
-				get: () => {
-                    return this.params.bypass;  
-                },
-				set: (_state) => {
-                    this.params.bypass = yyGetBool(_state);
-
-                    this.nodes.foreach((_node) => {
-                        const bypass = _node.parameters.get("bypass");
-                        bypass.value = this.params.bypass;
-                    });
-                }
-			}
-		});
+        g_WorkletNodeManager.killNode(this.nodes[idx]);
+        this.nodes.splice(idx, 1);
     }
-
-    addNode()
-    {
-        const node = AudioEffect.Create(this.type);
-        this.nodes.push(node);
-        
-        return node;
-    }
-
-    removeNode(_node) 
-    {
-        const idx = this.nodes.findIndex(_node);
-
-        if (idx != -1)
-            this.nodes.splice(idx, 1);
-    }
-}
+};
