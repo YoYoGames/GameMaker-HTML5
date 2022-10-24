@@ -15,7 +15,6 @@ function GainEffectStruct() {
                 this.params.gain = max(0.0, _gain);
 
                 this.nodes.forEach((_node) => {
-                    console.log("In Gain Setter");
                     const gain = _node.parameters.get("gain");
                     gain.setTargetAtTime(this.params.gain, 0, AudioEffect.PARAM_TIME_CONSTANT);
                 });
