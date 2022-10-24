@@ -1,4 +1,3 @@
-console.log("Hello*********");
 function BitcrusherEffectStruct() {
     AudioEffectStruct.call(this, AudioEffect.Type.Bitcrusher);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
