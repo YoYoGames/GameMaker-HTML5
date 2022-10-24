@@ -68,7 +68,6 @@ WorkletNodeManager.prototype.cleanup = function() {
 
 		if (struct === undefined)
 		{
-			console.log("Cleaning up node: " + _elem.node);
 			_elem.node.port.postMessage("kill");
 			return false;
 		}
@@ -82,7 +81,6 @@ WorkletNodeManager.prototype.killNode = function(_node) {
 
 	if (idx !== -1)
 	{
-		console.log("KILLING NODE");
 		this.nodes[idx].node.port.postMessage("kill");
 		this.nodes.splice(idx, 1);
 	}
