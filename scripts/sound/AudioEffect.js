@@ -1,6 +1,4 @@
-function AudioEffect() {
-    AudioWorkletNode.call(this);
-}
+function AudioEffect() {}
 
 AudioEffect.PARAM_TIME_CONSTANT = 0.005; // 5ms
 
@@ -40,6 +38,15 @@ function AudioEffectStruct(_type) {
     
     // Define user-facing properties
     Object.defineProperties(this, {
+        gmltype: {
+            enumerable: true,
+            get: () => {
+                return this.type;  
+            },
+            set: (_type) => {
+                throw new Error("Unable to set AudioEffect.type - property is read-only");
+            }
+        },
         gmlbypass: {
             enumerable: true,
             get: () => {
