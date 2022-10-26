@@ -875,10 +875,10 @@ Audio_WebAudio=1,
 	g_CurrentSurfaceIdStack =[], // ditto
 
 	g_gmlConst =null,
+	g_AudioBusMain = null;
 	g_AudioMainVolumeNode =null,
-	g_AudioMusicVolumeNode =null,
 	g_WebAudioContext =null,
-	g_pAudioMixer = null;
+	g_AudioEffectsFeatureEnabled = false;
 	g_dialogs = null,
 	g_dialogName = null,
 	Current_View = null,
