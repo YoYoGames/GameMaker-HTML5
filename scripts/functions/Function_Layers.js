@@ -1538,7 +1538,7 @@ LayerManager.prototype.UpdateLayers = function()
                     else
                     {
                         var fps = g_GameTimer.GetFPS();
-                        el.m_imageIndex += el.m_imageSpeed/fps;
+                        el.m_imageIndex += (el.m_imageSpeed * sprite.playbackspeed)/fps;
                     }            
                     //el.m_imageIndex += el.m_imageSpeed;
                 }
