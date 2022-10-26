@@ -122,10 +122,10 @@ class Reverb1Processor extends KillableWorkletProcessor
     static get parameterDescriptors() 
     {
         return [
-            { name: "bypass", automationRate: "a-rate", defaultValue: 0,  minValue: 0, maxValue: 1 },
-            { name: "size",   automationRate: "a-rate", defaultValue: 0,  minValue: 0, maxValue: 1 },
-            { name: "damp",   automationRate: "a-rate", defaultValue: 0,  minValue: 0, maxValue: 1 },
-            { name: "mix",    automationRate: "a-rate", defaultValue: 0,  minValue: 0, maxValue: 1 }
+            { name: "bypass", automationRate: "a-rate", defaultValue: 0,    minValue: 0, maxValue: 1 },
+            { name: "size",   automationRate: "a-rate", defaultValue: 0.5,  minValue: 0, maxValue: 1 },
+            { name: "damp",   automationRate: "a-rate", defaultValue: 0.5,  minValue: 0, maxValue: 1 },
+            { name: "mix",    automationRate: "a-rate", defaultValue: 0,    minValue: 0, maxValue: 1 }
         ];
     }
 

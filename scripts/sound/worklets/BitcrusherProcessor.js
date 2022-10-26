@@ -38,7 +38,7 @@ class BitcrusherProcessor extends KillableWorkletProcessor
         const maxChannels = _options.outputChannelCount[0];
 
         this.sample = new Float32Array(maxChannels);
-        this.hold = new Float32Array(maxChannels);
+        this.hold = new Uint32Array(maxChannels);
     }
 
     process(inputs, outputs, parameters) 
