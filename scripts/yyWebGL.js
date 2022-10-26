@@ -4881,6 +4881,8 @@ function WebGL_SetMatrix(_type, _matrix) {
 
     DirtyRoomExtents();
 
+    g_ViewFrustumDirty |= (_type == MATRIX_VIEW || _type == MATRIX_PROJECTION);
+
     if(g_webGL==null)
         return;
     switch (_type) {

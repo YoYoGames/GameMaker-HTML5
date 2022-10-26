@@ -18,6 +18,8 @@ document.write('<script type="text/javascript" src="scripts/device/iOS.js"></scr
 document.write('<script type="text/javascript" src="scripts/device/Gamepad.js"></script>');
 document.write('<script type="text/javascript" src="scripts/Vector3.js"></script>');
 document.write('<script type="text/javascript" src="scripts/Matrix.js"></script>');
+document.write('<script type="text/javascript" src="scripts/Plane.js"></script>');
+document.write('<script type="text/javascript" src="scripts/Frustum.js"></script>');
 document.write('<script type="text/javascript" src="scripts/Unsupported.js"></script>');
 document.write('<script type="text/javascript" src="scripts/Globals.js"></script>');
 document.write('<script type="text/javascript" src="scripts/GameGlobals.js"></script>');
@@ -144,6 +146,15 @@ document.write('<script type="text/javascript" src="scripts/jsBox2D/jsliquidfun.
 document.write('<script type="text/javascript" src="scripts/zlib/inflate.min.js"></script>');
 document.write('<script type="text/javascript" src="scripts/zlib/deflate.min.js"></script>');
 document.write('<script type="text/javascript" src="scripts/fingerprintjs/fingerprint.js"></script>');
+document.write('<script type="text/javascript" src="scripts/sound/WorkletNodeManager.js"></script>');
+document.write('<script type="text/javascript" src="scripts/sound/AudioBus.js"></script>');
+document.write('<script type="text/javascript" src="scripts/sound/AudioEffect.js"></script>');
+document.write('<script type="text/javascript" src="scripts/sound/effects/Bitcrusher.js"></script>');
+document.write('<script type="text/javascript" src="scripts/sound/effects/Delay.js"></script>');
+document.write('<script type="text/javascript" src="scripts/sound/effects/Gain.js"></script>');
+document.write('<script type="text/javascript" src="scripts/sound/effects/HPF2.js"></script>');
+document.write('<script type="text/javascript" src="scripts/sound/effects/LPF2.js"></script>');
+document.write('<script type="text/javascript" src="scripts/sound/effects/Reverb1.js"></script>');
 //document.write('<script type="text/javascript" src="scripts/spine/spine.js"></script>');
 document.write('<script type="text/javascript" src="scripts/spine/spine-core.js"></script>');
 

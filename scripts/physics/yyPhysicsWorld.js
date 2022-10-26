@@ -622,16 +622,16 @@ yyPhysicsWorld.prototype.DispatchContactEvents = function () {
                                                 
             // Setup instance data storage for the collision        
             inst1.phy_collision_points = 0;
-            inst1.phy_collision_x = [];
-            inst1.phy_collision_y = [];
-            inst1.phy_col_normal_x = [];
-            inst1.phy_col_normal_y = [];
+            inst1.phy_collision_x = undefined;
+            inst1.phy_collision_y = undefined;
+            inst1.phy_col_normal_x = undefined;
+            inst1.phy_col_normal_y = undefined;
             
             inst2.phy_collision_points = 0;
-            inst2.phy_collision_x = [];
-            inst2.phy_collision_y = [];
-            inst2.phy_col_normal_x = [];
-            inst2.phy_col_normal_y = [];            
+            inst2.phy_collision_x = undefined;
+            inst2.phy_collision_y = undefined;
+            inst2.phy_col_normal_x = undefined;
+            inst2.phy_col_normal_y = undefined;      
             
             // Transfer data from the manifolds to the instance storage
             var pointIndex = 0;
@@ -644,15 +644,17 @@ yyPhysicsWorld.prototype.DispatchContactEvents = function () {
                     if (!worldManifold.points.hasOwnProperty(j)) continue;                                    
                                                                     
                     // Set contact data on the instances
-                    inst1.phy_collision_x[pointIndex] = worldManifold.points[j].x * metreToPixelScale;
-                    inst1.phy_collision_y[pointIndex] = worldManifold.points[j].y * metreToPixelScale;
-                    inst1.phy_col_normal_x[pointIndex] = worldManifold.normal.x;
-                    inst1.phy_col_normal_y[pointIndex] = worldManifold.normal.y;
-                                    
-                    inst2.phy_collision_x[pointIndex] = worldManifold.points[j].x * metreToPixelScale;
-                    inst2.phy_collision_y[pointIndex] = worldManifold.points[j].y * metreToPixelScale;
-                    inst2.phy_col_normal_x[pointIndex] = worldManifold.normal.x;
-                    inst2.phy_col_normal_y[pointIndex] = worldManifold.normal.y;
+					if(pointIndex == 0)
+					{
+						inst1.phy_collision_x = worldManifold.points[j].x * metreToPixelScale;
+						inst1.phy_collision_y = worldManifold.points[j].y * metreToPixelScale;
+						inst2.phy_collision_x = worldManifold.points[j].x * metreToPixelScale;
+						inst2.phy_collision_y = worldManifold.points[j].y * metreToPixelScale;
+						inst1.phy_col_normal_x = worldManifold.normal.x;
+						inst1.phy_col_normal_y = worldManifold.normal.y;
+						inst2.phy_col_normal_x = worldManifold.normal.x;
+						inst2.phy_col_normal_y = worldManifold.normal.y;
+					}
                     
                     inst1.phy_collision_points++;
                     inst2.phy_collision_points++;
