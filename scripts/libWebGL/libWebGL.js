@@ -658,8 +658,6 @@ function yyWebGL(_canvas, _options) {
     // #############################################################################################
     /** @this {yyWebGL} */
     this.StartFrame = function () {
-        m_RenderStateManager.SaveStates();
-
         // Clear the command builder state
 	   
 	    m_frameCount++;
@@ -685,8 +683,6 @@ function yyWebGL(_canvas, _options) {
         
         // gl.clearStencil(0);
         // gl.clear(gl.STENCIL_BUFFER_BIT);
-
-        m_RenderStateManager.RestoreStates();
     };
     
     // #############################################################################################
