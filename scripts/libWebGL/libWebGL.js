@@ -658,7 +658,6 @@ function yyWebGL(_canvas, _options) {
     // #############################################################################################
     /** @this {yyWebGL} */
     this.StartFrame = function () {
-
         // Clear the command builder state
 	   
 	    m_frameCount++;
