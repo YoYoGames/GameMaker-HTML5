@@ -269,11 +269,17 @@ function touchHandler(event) {
 
 function positionHandler(e)
 {
+    var fIsWallpaperEngine = (window["wallpaperMediaIntegration"] || window["wallpaperRegisterAudioListener"]);
+    //console.log( "positionHandler - " + e.type  + ", pointerId - " + e["pointerId"] + ", "+ JSON.stringify(g_activeInputEventIDs) + ", " + fIsWallpaperEngine);
     var mouseDevice = -1;    
     var type = "";
+    var button = 0;
+    var buttons = 0;
     switch( e.type ) {
     case 'mousemove':
         mouseDevice = 0;
+        button = e.button;
+        buttons = e.buttons;
         break;
     case 'touchstart':
     case 'touchmove':
@@ -284,10 +290,29 @@ function positionHandler(e)
     case 'MSPointerDown':
         mouseDevice = allocateMouseDevice(e["pointerId"]); 
         type = "start";
+        button = e.button;
+        buttons = e.buttons;
         break;
     case 'pointermove':
     case 'MSPointerMove':
+    case 'pointerover':
         mouseDevice = getExistingMouseDevice(e["pointerId"]);
+        // RK :: Wallpaper Engine on Windows is not generating the "pointerdown" event it jumps straight to "pointerover", 
+        // to work around this we pretend this is the "pointerdown" then everything starts to work.
+        if (fIsWallpaperEngine && (mouseDevice == -1)) {
+            positionHandler( { 
+                                "type" : 'pointerdown', 
+                                "pointerId" : e["pointerId"],
+                                "button" : 1, 
+                                "buttons" : 1, 
+                                "clientX" : e.clientX, 
+                                "clientY" : e.clientY, 
+                                "preventDefault" : function() { }
+                            });
+            mouseDevice = getExistingMouseDevice(e["pointerId"]);
+        } // end if
+        button = e.button;
+        buttons = e.buttons;
         type = "move";
         break;
     case 'pointerup':
@@ -297,12 +322,28 @@ function positionHandler(e)
     case 'pointerout':
     case 'MSPointerOut':
         mouseDevice = getExistingMouseDevice(e["pointerId"]);
-        g_activeInputEventIDs[mouseDevice] = -1;
+        // RK :: Wallpaper Engine on Windows is not generating the "pointerdown" event it jumps straight to "pointerover", 
+        // to work around this we pretend this is the "pointerdown" then everything starts to work.
+        if (fIsWallpaperEngine && (mouseDevice == -1)) {
+            positionHandler( { 
+                                "type" : 'pointerdown', 
+                                "pointerId" : e["pointerId"],
+                                "button" : 1, 
+                                "buttons" : 1, 
+                                "clientX" : e.clientX, 
+                                "clientY" : e.clientY, 
+                                "preventDefault" : function() { }
+                            });
+            mouseDevice = getExistingMouseDevice(e["pointerId"]);
+        } // end if
         type = "end";
+        button = e.button;
+        buttons = e.buttons;
+        g_activeInputEventIDs[mouseDevice] = -1;
         break;
     }
 
-
+    //console.log( "mouseDevice - " + mouseDevice + ", type - "  + type + ", button - " + button + ", buttons - " + buttons + ", x - " + e.clientX + ", y - " + e.clientY + ", "  + JSON.stringify(g_activeInputEventIDs));
     if (mouseDevice >= 0) {
 
         //console.log( type + " - mouse=" + mouseDevice + ", id = " + e.pointerId);
@@ -336,10 +377,10 @@ function positionHandler(e)
                     {
                         g_ButtonButton = 0;
                         if (e.pointerType == "mouse") {
-                            g_ButtonButton = e.button;
+                            g_ButtonButton = button;
                         } // end if
 
-                        if(e.button != -1)
+                        if(button != -1)
                         {
                             // Swap middle and RIGHT button, so middle is button 3.   
                             if (g_ButtonButton == 2) g_ButtonButton = 1;
@@ -347,13 +388,14 @@ function positionHandler(e)
 
                             g_EventLastButtonDown = g_ButtonButton;
                             g_EventButtonDown = g_ButtonButton;
-                            g_EventButtons = e.buttons;
+                            g_EventButtons = buttons;
                         }
                     } // end block
                     break;
 
                 case "end":    g_EventButtons = 0; break;                
             }
+            //console.log( "x - " + eventX + ", y - " + eventY + " buttons - " + buttons);
         }
         
         // Store the details of the touch event in multi-touch storage
