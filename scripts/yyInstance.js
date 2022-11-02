@@ -3502,11 +3502,12 @@ yyInstanceManager.prototype.PerformEvent = function (_event, _index) {
 		var evnt = _event;
 		if (evnt != EVENT_COLLISION) evnt |= _index;
 
+		var count = g_currentCreateCounter++;
 		var pool = g_RunRoom.m_Active.pool;	
-		for (var index = 0; index < pool.length;index++ )
+		for (var index = pool.length - 1; index >= 0; index--)
 		{
 			var pInst = pool[index];
-			if (!pInst.marked)
+			if (!pInst.marked && (pInst.createCounter <= count))
 			{
 			    var pObject = pInst.pObject;
 
