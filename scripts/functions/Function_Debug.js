@@ -325,7 +325,47 @@ function show_debug_message( _txt )
 {
     var msg = yyGetString(_txt);
     if (!msg) return;
-    debug(msg);
+
+    if (arguments.length == 1) {
+        debug(msg);
+        return;
+    }
+
+    if (typeof(_obj) != "string") 
+    {
+        yyError("show_debug_message() trying to use string template but argument0 is not a string");
+    }
+
+    var _values = [];
+    for( var n=1; n<arguments.length; ++n) {
+        _values.push(yyGetString(arguments[n]) );
+    }
+    
+    debug(__yy_StringReplacePlaceholders(msg, _values));
+}
+
+// #############################################################################################
+/// Function:<summary>
+///             Output a message to the debug console
+///          </summary>
+///
+/// In:		 <param name="_txt">text to output</param>
+///				
+// #############################################################################################
+function show_debug_message_ext( _txt, _values )
+{
+    var msg = yyGetString(_txt);
+    if (!msg) return;
+
+    if (typeof(_str) != "string") {
+        yyError("show_debug_message_ext() argument0 is not a string");
+    }
+
+    if (!(_values instanceof Array)) {
+        yyError("show_debug_message_ext() argument1 is not an array");
+    }
+
+    debug(__yy_StringReplacePlaceholders(msg, _values));
 }
 
 // #############################################################################################

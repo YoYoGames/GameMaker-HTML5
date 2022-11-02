@@ -199,7 +199,7 @@ function bool(_v) {
 }
 
 
-function stringReplacePlaceholders(_str, _values)
+function __yy_StringReplacePlaceholders(_str, _values)
 {
     return _str.replaceAll(/{(\d+)}/g, function(match, group){
         
@@ -241,7 +241,7 @@ function string(_obj)
         _values.push( yyGetString(arguments[n]) );
     }
     
-    return stringReplacePlaceholders(_obj, _values);
+    return __yy_StringReplacePlaceholders(_obj, _values);
 }
 
 function string_ext(_str, _values)
@@ -254,7 +254,7 @@ function string_ext(_str, _values)
         yyError("string_ext() argument1 is not an array");
     }
 
-    return stringReplacePlaceholders(_str, _values);
+    return __yy_StringReplacePlaceholders(_str, _values);
 }
 
 // #############################################################################################
