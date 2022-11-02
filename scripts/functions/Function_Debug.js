@@ -331,7 +331,7 @@ function show_debug_message( _txt )
         return;
     }
 
-    if (typeof(_obj) != "string") 
+    if (typeof(msg) != "string") 
     {
         yyError("show_debug_message() trying to use string template but argument0 is not a string");
     }
@@ -357,7 +357,7 @@ function show_debug_message_ext( _txt, _values )
     var msg = yyGetString(_txt);
     if (!msg) return;
 
-    if (typeof(_str) != "string") {
+    if (typeof(msg) != "string") {
         yyError("show_debug_message_ext() argument0 is not a string");
     }
 
