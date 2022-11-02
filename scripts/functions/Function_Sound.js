@@ -2006,10 +2006,9 @@ function Audio_SetTrackPos( _audioSound, _time )
             //AudioBufferSourceNode- cannot call start/noteOn more than once- have to stop and replay at time offset
             //Audio_StopUnstreamed( _audioSound );
             //don't need to disconnect gain nodes since we are reusing audioSound
-            var duration = _audioSound.pbuffersource.buffer.duration;
-            if( _time >=0 && _time < duration )
+            if (_time >= 0)
             {
-                if( _audioSound.paused )
+                if (_audioSound.paused)
                 {
                     //simply need to resume at different offset
                     _audioSound.playbackpoint = _time;
@@ -2037,7 +2036,7 @@ function Audio_SetTrackPos( _audioSound, _time )
                       _audioSound.audio_tag.currentTime = _time;
                     });
         	}
-            else if( _time >= 0 && _time < duration )
+            else if (_time >= 0)
             {
                 _audioSound.audio_tag.currentTime = _time;
             }
