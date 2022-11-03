@@ -201,14 +201,14 @@ function bool(_v) {
 
 function __yy_StringReplacePlaceholders(_str, _values)
 {
-    return _str.replaceAll(/{(\d+)}/g, function(match, group){
+    return _str.replaceAll(/{([0-9]+)}/g, function(match, group){
         
         // Convert catch group to a number
         var _index = parseInt(group);
         
         // if the index is out-of-bounds just return the match (don't replace)
         if (_index < 0 || _index >= _values.length) return match;
-        return _values[_index];
+        return yyGetString(_values[_index]);
     })
 }
 
@@ -238,7 +238,7 @@ function string(_obj)
 
     var _values = [];
     for( var n=1; n<arguments.length; ++n) {
-        _values.push( yyGetString(arguments[n]) );
+        _values.push(arguments[n]);
     }
     
     return __yy_StringReplacePlaceholders(_obj, _values);
@@ -1113,6 +1113,19 @@ function string_ends_with(_str, _val) {
     return _str.endsWith(_val);
 }
 
+function __yy_StringSplit(str, sep, n) {
+    var out = [];
+
+    while(n--) {
+        var m = sep.exec(str);
+        if (m == null) break;
+        out.push(str.slice(sep.lastIndex, m.index))
+    };
+
+    out.push(str.slice(sep.lastIndex));
+    return out;
+}
+
 function string_split(_str, _delim, _removeEmpty, _maxSplits) {
 
     _str = yyGetString(_str);
@@ -1127,7 +1140,10 @@ function string_split(_str, _delim, _removeEmpty, _maxSplits) {
     _removeEmpty = arguments.length > 2 ? yyGetReal(_removeEmpty) : false;
     _maxSplits = arguments.length > 3 ? yyGetReal(_maxSplits) : _str.length;
 
-    var _out = _str.split(_delim, _maxSplits);
+    // Create a RegExp with the delimiter
+    var _rg = RegExp(_delim.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "g");
+
+    var _out = __yy_StringSplit(_str, _rg, _maxSplits);
     if (_removeEmpty) {
         _out = _out.filter(elm => elm);
     }
@@ -1154,7 +1170,7 @@ function string_split_ext(_str, _delims, _removeEmpty, _maxSplits) {
     var _rg = RegExp(_delims, "g");
 
     // Split the input string (limit to maxSplits)
-    var _out = _str.split(_rg, _maxSplits);
+    var _out = __yy_StringSplit(_str, _rg, _maxSplits);
     if (_removeEmpty) {
         // Remove empty strings
         _out = _out.filter(elm => elm);
@@ -1201,7 +1217,7 @@ function string_join_ext(_delim, _values, _offset, _length) {
     var _temp = [];
     // Loop through array range
     while (_loops > 0) {
-        _temp.push(_values[_offset]);
+        _temp.push(yyGetString(_values[_offset]));
 
         // Update index and loops
         _offset += _step;
@@ -1222,15 +1238,15 @@ function string_concat() {
     return stringJoinDelimiter("", _values);
 }
 
-function string_contat_ext(_values, _offset, _length) {
+function string_concat_ext(_values, _offset, _length) {
 
     if (!(_values instanceof Array)) {
-        yyError("string_contat_ext() argument1 is not an array");
+        yyError("string_concat_ext() argument1 is not an array");
     }
 
     // Check raw offset and length
-    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
-    _length = arguments.length > 3 ? yyGetReal(_length) : _values.length; 
+    _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
+    _length = arguments.length > 2 ? yyGetReal(_length) : _values.length; 
 
     var _itValues = computeIterationValues(_values.length, _offset, _length);
     _offset = _itValues[0];
@@ -1240,7 +1256,7 @@ function string_contat_ext(_values, _offset, _length) {
     var _temp = [];
     // Loop through array range
     while (_loops > 0) {
-        _temp.push(_values[_offset]);
+        _temp.push(yyGetString(_values[_offset]));
 
         // Update index and loops
         _offset += _step;
@@ -1274,6 +1290,7 @@ function string_foreach(_str, _func, _pos, _length) {
     var _loops = _itValues[1];
     var _step = _itValues[2];
 
+    _pos = _offset + 1;
     var _charCursor = 0;
     if (_step > 0) {
 
@@ -1319,7 +1336,6 @@ function string_foreach(_str, _func, _pos, _length) {
 			_offsetDiffs[(_counter++ % _loops)] = _size;
 		}
 
-        _pos = _offset + 1;
         // Now we will iterate over the string backwards using the stored offsets
 		for (var i = 0; i < _loops; i++)
 		{

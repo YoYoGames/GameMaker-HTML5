@@ -338,7 +338,7 @@ function show_debug_message( _txt )
 
     var _values = [];
     for( var n=1; n<arguments.length; ++n) {
-        _values.push(yyGetString(arguments[n]) );
+        _values.push(arguments[n]);
     }
     
     debug(__yy_StringReplacePlaceholders(msg, _values));
