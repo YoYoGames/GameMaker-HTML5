@@ -93,7 +93,7 @@ function activate_clipboard()
 
 			g_ActivatingClipboard = true;
 			// get permission first for clipboard
-			navigator.permissions.query( { name: 'clipboard-read', allowWithoutGesture: true}).then( function(result) {
+			navigator.permissions.query( { "name": 'clipboard-read', "allowWithoutGesture": true}).then( function(result) {
 
 				if ((result.state == 'granted') || (result.state == 'prompt')) {
 
