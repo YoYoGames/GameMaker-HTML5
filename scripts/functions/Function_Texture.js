@@ -36,9 +36,19 @@ function draw_self( _inst )
     	var spr = g_pSpriteManager.Get(index);
     	if( spr != null ){
     	    //spr.Draw( Math.floor(_inst.image_index ),
-    	    spr.Draw(_inst.image_index,
-    		_inst.x,_inst.y,_inst.image_xscale, _inst.image_yscale,
-    		_inst.image_angle, _inst.image_blend, _inst.image_alpha);
+    	    // spr.Draw(_inst.image_index,
+			// 	_inst.x,_inst.y,_inst.image_xscale, _inst.image_yscale,
+			// 	_inst.image_angle, _inst.image_blend, _inst.image_alpha);
+
+			// Moved this in from DrawLayerInstanceElement to deduplicate code
+			if ((_inst.image_xscale === 1) && (_inst.image_yscale === 1) && (_inst.image_angle === 0) && (ConvertGMColour(_inst.image_blend) === 0xffffff) &&  (_inst.image_alpha === 1))
+			{
+				spr.DrawSimple(_inst.image_index,_inst.x,_inst.y, _inst.image_alpha * g_GlobalAlpha);
+			}
+			else
+			{
+				spr.Draw(_inst.image_index,_inst.x,_inst.y,_inst.image_xscale,_inst.image_yscale,_inst.image_angle,ConvertGMColour(_inst.image_blend),_inst.image_alpha);
+			}
     	}
     }
     g_skeletonDrawInstance = null;
