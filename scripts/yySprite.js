@@ -480,9 +480,9 @@ yySprite.prototype.SetSWFDrawRoutines = function () {
 	        this.SWFDictionaryItems, this.SWFTimeline, _ind, this.xOrigin, this.yOrigin, _x, _y, _xscale, _yscale, _angle, _colour, _alpha, this.ppTPE);
     };
     
-    this.DrawSimple = function (_sub_image, _x, _y, _alpha) {
+    this.DrawSimple = function (_ind, _x, _y, _alpha) {
         Graphics_SWFDraw(
-            this.SWFDictionaryItems, this.SWFTimeline, _sub_image, this.xOrigin, this.yOrigin, _x, _y, 1.0, 1.0, 0.0, 0xffffffff, _alpha, this.ppTPE);
+            this.SWFDictionaryItems, this.SWFTimeline, _ind, this.xOrigin, this.yOrigin, _x, _y, 1.0, 1.0, 0.0, 0xffffffff, _alpha, this.ppTPE);
     };
 };
 
