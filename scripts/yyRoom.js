@@ -1392,7 +1392,26 @@ yyRoom.prototype.DrawLayerInstanceElement = function(_rect,_layer,_el)
 				{
 	
 					// Otherwise just DRAW it..
-					draw_self(inst);
+					var pImage = g_pSpriteManager.Get( inst.sprite_index );  //yySprite
+					if( pImage!=null )
+					{
+						g_skeletonDrawInstance = inst;
+						
+						if ((inst.image_xscale === 1) && (inst.image_yscale === 1) && (inst.image_angle === 0) && (ConvertGMColour(inst.image_blend) === 0xffffff) &&  (inst.image_alpha === 1))
+						{
+						    pImage.DrawSimple(inst.image_index,inst.x,inst.y, inst.image_alpha * g_GlobalAlpha);
+						
+						}
+						else
+						{
+						    pImage.Draw(inst.image_index,inst.x,inst.y,inst.image_xscale,inst.image_yscale,inst.image_angle,ConvertGMColour(inst.image_blend),inst.image_alpha);
+						
+						
+						}
+					 	
+					 	g_skeletonDrawInstance = null;
+					}
+					
 				}
 			}
 		} // end if
