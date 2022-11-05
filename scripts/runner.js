@@ -166,6 +166,6 @@ document.write('<script type="text/javascript" src="scripts/jsgif/NeuQuant.js"><
 document.write('<script type="text/javascript" src="scripts/jsgif/GIFEncoder.js"></script>');
 
 document.write('<script type="text/javascript" src="scripts/long/long.js"></script>');
-
+document.write('<script type="text/javascript" src="scripts/utils/TimeRampedParamLinear.js"></script>');
 
 /*jshint evil:false*/
