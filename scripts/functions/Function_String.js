@@ -201,7 +201,9 @@ function bool(_v) {
 
 function __yy_StringReplacePlaceholders(_str, _values)
 {
-    return _str.replaceAll(/{([0-9]+)}/g, function(match, group){
+    var rg = RegExp('{([0-9]+)}', 'g');
+
+    return _str.replaceAll(rg, function(match, group){
         
         // Convert catch group to a number
         var _index = parseInt(group);
@@ -1113,17 +1115,26 @@ function string_ends_with(_str, _val) {
     return _str.endsWith(_val);
 }
 
-function __yy_StringSplit(str, sep, n) {
-    var out = [];
+__yy_EscapeRegexPattern = RegExp('[.*+?^${}()|[\]\\]', 'g');
 
-    while(n--) {
-        var m = sep.exec(str);
-        if (m == null) break;
-        out.push(str.slice(sep.lastIndex, m.index))
-    };
+function __yy_StringSplit(input, separator, limit) {
 
-    out.push(str.slice(sep.lastIndex));
-    return out;
+    const output = [];
+    let finalIndex = 0;
+  
+    while (limit--) {
+      const lastIndex = separator.lastIndex;
+      const search = separator.exec(input);
+      if (search === null) {
+          break;
+      }
+      finalIndex = separator.lastIndex;
+      output.push(input.slice(lastIndex, search.index));
+    }
+  
+    output.push(input.slice(finalIndex));
+
+    return output;
 }
 
 function string_split(_str, _delim, _removeEmpty, _maxSplits) {
@@ -1141,7 +1152,7 @@ function string_split(_str, _delim, _removeEmpty, _maxSplits) {
     _maxSplits = arguments.length > 3 ? yyGetReal(_maxSplits) : _str.length;
 
     // Create a RegExp with the delimiter
-    var _rg = RegExp(_delim.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "g");
+    var _rg = RegExp(_delim.replace(__yy_EscapeRegexPattern, '\\$&'), 'g');
 
     var _out = __yy_StringSplit(_str, _rg, _maxSplits);
     if (_removeEmpty) {
@@ -1164,7 +1175,7 @@ function string_split_ext(_str, _delims, _removeEmpty, _maxSplits) {
     _maxSplits = arguments.length > 3 ? yyGetReal(_maxSplits) : _str.length;
 
     // Convert delimiter to stringm, escape the pipe symbols, remove empty entries,
-    _delims = _delims.map((val) => yyGetString(val).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).filter(elm => elm).join("|");
+    _delims = _delims.map((val) => yyGetString(val).replace(__yy_EscapeRegexPattern, '\\$&')).filter(elm => elm).join("|");
 
     // Create a RegExp with the delimiters
     var _rg = RegExp(_delims, "g");
