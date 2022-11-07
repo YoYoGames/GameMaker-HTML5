@@ -198,12 +198,11 @@ function bool(_v) {
     }
 }
 
+var g_PlaceholderRE = new RegExp('{([0-9]+)}', 'g');
 
 function __yy_StringReplacePlaceholders(_str, _values)
 {
-    var rg = RegExp('{([0-9]+)}', 'g');
-
-    return _str.replaceAll(rg, function(match, group){
+    return _str.replaceAll(g_PlaceholderRE, function(match, group){
         
         // Convert catch group to a number
         var _index = parseInt(group);
@@ -1088,14 +1087,23 @@ function string_lettersdigits(_str)
 }
 
 function string_trim_start(_str) {
+
+    _str = yyGetString(_str);
+
     return _str.trimStart();
 }
 
 function string_trim_end(_str) {
+
+    _str = yyGetString(_str);
+
     return _str.trimEnd();
 }
 
 function string_trim(_str) {
+
+    _str = yyGetString(_str);
+
     return _str.trim();
 }
 
@@ -1115,7 +1123,7 @@ function string_ends_with(_str, _val) {
     return _str.endsWith(_val);
 }
 
-__yy_EscapeRegexPattern = RegExp('[.*+?^${}()|[\]\\]', 'g');
+var g_EscapeRegexRE = new RegExp('[.*+?^${}()|[\]\\]', 'g');
 
 function __yy_StringSplit(input, separator, limit) {
 
@@ -1152,7 +1160,7 @@ function string_split(_str, _delim, _removeEmpty, _maxSplits) {
     _maxSplits = arguments.length > 3 ? yyGetReal(_maxSplits) : _str.length;
 
     // Create a RegExp with the delimiter
-    var _rg = RegExp(_delim.replace(__yy_EscapeRegexPattern, '\\$&'), 'g');
+    var _rg = new RegExp(_delim.replace(g_EscapeRegexRE, '\\$&'), 'g');
 
     var _out = __yy_StringSplit(_str, _rg, _maxSplits);
     if (_removeEmpty) {
@@ -1175,10 +1183,10 @@ function string_split_ext(_str, _delims, _removeEmpty, _maxSplits) {
     _maxSplits = arguments.length > 3 ? yyGetReal(_maxSplits) : _str.length;
 
     // Convert delimiter to stringm, escape the pipe symbols, remove empty entries,
-    _delims = _delims.map((val) => yyGetString(val).replace(__yy_EscapeRegexPattern, '\\$&')).filter(elm => elm).join("|");
+    _delims = _delims.map((val) => yyGetString(val).replace(g_EscapeRegexRE, '\\$&')).filter(elm => elm).join("|");
 
     // Create a RegExp with the delimiters
-    var _rg = RegExp(_delims, "g");
+    var _rg = new RegExp(_delims, "g");
 
     // Split the input string (limit to maxSplits)
     var _out = __yy_StringSplit(_str, _rg, _maxSplits);
