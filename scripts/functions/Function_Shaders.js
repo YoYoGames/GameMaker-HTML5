@@ -25,6 +25,7 @@ var fn_shader_get_sampler_index = function() { ErrorFunction("shader_set_uniform
 var fn_shader_enable_corner_id = function() { ErrorFunction("shader_enable_corner_id()"); };
 var fn_shader_set_uniform_i_array = function() { ErrorFunction("shader_set_uniform_array_i()"); };
 var fn_shader_set_uniform_f_array = function() { ErrorFunction("shader_set_uniform_array_f()"); };
+var fn_shader_set_uniform_f_buffer = function() { ErrorFunction("shader_set_uniform_buffer_f()"); };
 var fn_shader_set_uniform_matrix_array = function() { ErrorFunction("shader_set_uniform_matrix_array()"); };
 var fn_shader_get_name = function (index) { ErrorFunction("shader_get_name()"); };
 var g_CurrentShader = -1;
@@ -252,6 +253,14 @@ function shader_set_uniform_f_array(_handle, _array) {
     fn_shader_set_uniform_f_array(yyGetInt32(_handle), _array);
 }
 
+// #############################################################################################
+/// Function:<summary>   	
+///          </summary>
+// #############################################################################################
+function shader_set_uniform_f_buffer(_handle, _buffer, _offset, _count) {
+
+    fn_shader_set_uniform_f_buffer(yyGetInt32(_handle), yyGetInt32(_buffer), yyGetInt32(_offset), yyGetInt32(_count));
+}
 
 // #############################################################################################
 /// Function:<summary>
