@@ -4700,8 +4700,9 @@ function WebGL_shader_set_uniform_f_buffer_RELEASE(_handle, _buffer, _offset, _c
     }
 
     _count = yyGetInt32(_count);
-    if (_count <= 0) {
-        alert('ERROR: shader_set_uniform_f_buffer() Invalid count ' + _count);
+    if (_count <= 0 || ((_offset + _count * 4) > pBuff.m_Size)) {
+        alert('ERROR: shader_set_uniform_f_buffer() Invalid count ' + _count
+            + '. Trying to read outside of the buffer.');
         return;
     }
 
