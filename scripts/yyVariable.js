@@ -717,21 +717,21 @@ function getFunction(_function_or_script, _argn) {
 }
 
 // #############################################################################################
-// Returns array [offset, loops, step] given raw offset and raw length (used for array functions)
+// Returns [offset, loops, step] given raw offset and raw length (used for string/array functions)
 // #############################################################################################
-function computeIterationValues(_array, _rawOffset, _rawLength) {
+function computeIterationValues(_maxLength, _rawOffset, _rawLength) {
     
-    var _offset = Math.min(Math.max(_rawOffset, -_array.length), _array.length - 1);
-    if (_offset < 0) _offset = _array.length + _offset;
+    var _offset = Math.min(Math.max(_rawOffset, -_maxLength), _maxLength - 1);
+    if (_offset < 0) _offset = _maxLength + _offset;
 
     var _step = 0, _loops = 0;
     if (_rawLength < 0) {
         _step = -1;
-        _loops = Math.abs(Math.max(_offset + _rawLength, 0) - _offset) + 1;
+        _loops = Math.min(_offset + 1, Math.abs(_rawLength));
     }
     else {
         _step = 1;
-        _loops = Math.min(_offset + _rawLength, _array.length) - _offset;
+        _loops = Math.min(_offset + _rawLength, _maxLength) - _offset;
     }
 
     return [_offset, _loops, _step];
@@ -770,7 +770,7 @@ function array_find_index(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -803,7 +803,7 @@ function array_any(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -839,7 +839,7 @@ function array_all(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -875,7 +875,7 @@ function array_foreach(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -906,7 +906,7 @@ function array_reduce(_array, _func, _init, _offset, _length) {
     _length = arguments.length > 4 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -947,7 +947,7 @@ function array_filter(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -986,7 +986,7 @@ function array_filter_ext(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -1026,7 +1026,7 @@ function array_map(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -1063,7 +1063,7 @@ function array_map_ext(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -1100,7 +1100,7 @@ function array_copy_while(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -1136,7 +1136,7 @@ function array_unique(_array, _offset, _length) {
     _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -1170,7 +1170,7 @@ function array_unique_ext(_array, _offset, _length) {
     _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -1207,7 +1207,7 @@ function array_reverse(_array, _offset, _length) {
     _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -1240,7 +1240,7 @@ function array_reverse_ext(_array, _offset, _length) {
     _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
