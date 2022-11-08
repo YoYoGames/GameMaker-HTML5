@@ -21,7 +21,6 @@ var audio_emitters = {};
 var audio_emitters_index = 0;
 var audio_sampledata = [];
 var audio_global_paused = false;
-var audio_frame_count = 0;
 
 var audio_max_playing_sounds = 128; //Default, can be changed
 
@@ -88,49 +87,18 @@ var g_MP3VolumeStep = 0;
 
 function audio_update()
 {
-    if(g_AudioModel!= Audio_WebAudio)
+    if (g_AudioModel != Audio_WebAudio)
         return;
-    audio_frame_count++;
 
-    //process fading sounds
-    var currTime = g_WebAudioContext.currentTime;
-    for (var i = 0; i < g_fadingSounds.length; ++i)
-    {
-        var fadeData = g_fadingSounds[i];
-        var lerp = (currTime - fadeData.startTime) / fadeData.duration;
-        lerp = Math.max(0, Math.min(lerp, 1));
-        var newgain = (1 - lerp) * fadeData.startGain + (lerp * fadeData.endGain);
-        var bRemove = (lerp >= 1);
-
-        var sound = fadeData.audioSound;
-
-        if (sound !== null) {
-            //playing sound instance
-            if (sound.bActive) {
-                sound.gain = newgain;
-                sound.pgainnode.gain.value = AudioPropsCalc.CalcGain(sound);
-            } else {
-                bRemove = true;
-            }
+    // Update and apply gains
+    g_AudioGroups.forEach(_group => _group.gain.update());
+    audio_sampledata.forEach(_asset => _asset.gain.update());
+    audio_sounds.forEach(_voice => {
+        if (_voice.bActive) {
+            _voice.gain.update();
+            _voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(_voice);
         }
-        else if (fadeData.sampleData !== null) {
-            //sound resource
-            fadeData.sampleData.gain = newgain;
-            //+apply to all sounds currently playing this sample!
-            for (var n = 0; n < g_audioSoundCount; ++n) {
-                var psound = audio_sounds[n];
-                if (psound.bActive && psound.soundid == fadeData.soundid) {
-                    psound.pgainnode.gain.value = AudioPropsCalc.CalcGain(psound);
-                }
-            }
-        }
-
-        if (bRemove) {
-            //console.log("Completed fade " + i);
-            g_fadingSounds.splice(i, 1);
-            --i;
-        }
-    }
+    });
 }
 
 var g_hidden;
@@ -224,29 +192,10 @@ function Audio_Quit()
 }
 
 /** @constructor */
-function audioFadeData(_soundid, _targetGain, _time)
-{
-    this.soundid = _soundid;    //handle or resource index
-    this.endGain = _targetGain;
-    this.startTime = g_WebAudioContext.currentTime;
-    this.duration = _time * 0.001;  //ms->seconds
-
-    if (_soundid >= BASE_SOUND_INDEX) {
-        this.audioSound = GetAudioSoundFromHandle(_soundid);
-        this.startGain = this.audioSound.gain;
-    }
-    else {
-        this.sampleData = audio_sampledata[_soundid];
-        this.audioSound = null;
-        this.startGain = this.sampleData.gain;
-    }
-}
-
-/** @constructor */
 function audioSampleData()
 {
     this.buffer = null;
-    this.gain = 1.0;        //current volume setting for this sample (may be affected by audio_sound_gain(sampleindex) )
+    this.gain = new TimeRampedParamLinear(1);
     this.configGain = 1.0;  //the original volume setting in GMS
     this.pitch = 1.0;
     this.duration = 0.0;
@@ -255,10 +204,6 @@ function audioSampleData()
     this.kind = 0;
     this.state = AudioSampleState.INIT;
     this.commands = [];
-
-    //create a gain node for each sample also ( so we can apply sample gain changes easily to all playing sounds )
-    //BUT - we can't get this to work with emitter/panner nodes also...
-    //this.pgainnode = g_WebAudioContext.createGainNode();
 }
 
 audioSampleData.prototype.ProcessCommands = function ()
@@ -324,7 +269,7 @@ audioSound.prototype.Init = function(_props)
 	this.playbackpoint = 0;     //track position at last 'startedattime' checkpoint; 
     this.pbuffersource = null;
     this.pgainnode.disconnect();    //may be attached to panner(emitter) node OR main volume node - not both!
-    this.gain = _props.gain;
+    this.gain = new TimeRampedParamLinear(_props.gain);
     this.startoffset = _props.offset;
     this.pitch = _props.pitch;
 	this.pemitter = _props.emitter;
@@ -629,9 +574,9 @@ class AudioPlaybackProps
         this.priority = yyGetReal(_priority);
         this.loop = yyGetReal(_loop);
 
-        this.gain = _gain;
-        this.offset = _offset;
-        this.pitch = _pitch;
+        this.gain = Math.max(0, _gain);
+        this.offset = Math.max(0, _offset);
+        this.pitch = Math.max(0, _pitch);
     }
 
     Invalid()
@@ -680,10 +625,11 @@ class AudioPropsCalc
 	static CalcGain(_voice)
     {
         const asset = AudioPropsCalc.GetAssetProps(_voice.soundid);
+        const group = AudioPropsCalc.GetGroupProps(_voice.soundid);
     
         // Emitter gains are stored in their own audio node and 
         // will be multiplied with this value by the audio context
-        return _voice.gain * asset.gain;
+        return _voice.gain.get() * asset.gain.get() * group.gain.get();
     }
 
 	static CalcOffset(_voice)
@@ -703,7 +649,7 @@ class AudioPropsCalc
         const asset = AudioPropsCalc.GetAssetProps(_voice.soundid);
         const emitter = AudioPropsCalc.GetEmitterProps(_voice.pemitter);
     
-        return _voice.pitch *  asset.pitch * emitter.pitch;
+        return _voice.pitch * asset.pitch * emitter.pitch;
     }
 
     static GetAssetProps(_asset_index)
@@ -745,6 +691,29 @@ class AudioPropsCalc
         const props = {
             gain: AudioPropsCalc.default_gain,
             pitch: AudioPropsCalc.default_pitch
+        };
+
+        return props;
+    }
+
+    static GetGroupProps(_assetIndex)
+    {
+        const asset = Audio_GetSound(_assetIndex);
+
+        if (asset != null) {
+            const group = g_AudioGroups[asset.groupId];
+
+            if (group !== undefined) {
+                const props = {
+                    gain: group.gain,
+                };
+    
+                return props;
+            }
+        }
+    
+        const props = {
+            gain: AudioPropsCalc.default_gain,
         };
 
         return props;
@@ -1721,147 +1690,74 @@ function audio_sound_pitch(_soundid, pitch)
 
 function audio_sound_get_gain(_index)
 {
-    if (g_AudioModel == Audio_WebAudio)
-    {
-        _index = yyGetInt32(_index);
+    if (g_AudioModel != Audio_WebAudio)
+        return;
 
-        if (_index >= BASE_SOUND_INDEX) 
-	    {
-	        var voice = GetAudioSoundFromHandle(_index);
+    _index = yyGetInt32(_index);
 
-	        if (voice != null)
-	        {
-	            if (voice.bActive)
-	            {
-	                return voice.gain;
-	            }
-	        }
-	    }
-	    else
-	    {
-	        if (audio_sampledata[_index] != undefined)
-	        {
-	            return audio_sampledata[_index].gain;
-	        }
-	    }
+    if (_index >= BASE_SOUND_INDEX) {
+        const voice = GetAudioSoundFromHandle(_index);
+
+        if (voice != null && voice.bActive)
+            return voice.gain.get();
+    }
+    else {
+        const asset = audio_sampledata[_index];
+
+        if (asset !== undefined)
+            return asset.gain.get();
     }
 
-    return 0.0;
+    return 0;
 }
 
-//remove fade processing data for given id (handle or resource index)
-function removeFade(index)
-{
-    for (var i = 0; i < g_fadingSounds.length; ++i) {
-        if (g_fadingSounds[i].soundid == index) {
-            //console.log("Removing fade " + i);
-            g_fadingSounds.splice(i, 1);
-            return;
-        }
-    }
-}
-
-//add (or replace existing) fade data for given id (handle or resource index)
-function addFade(index, level, time)
-{
-    for (var i = 0; i < g_fadingSounds.length; ++i) {
-        if (g_fadingSounds[i].soundid == index)
-        {
-            //overwrite existing fade for this id
-            g_fadingSounds[i] = new audioFadeData(index, level, time);
-            //console.log("Replaced fade " + i);
-            return;
-        }
-    }
-    g_fadingSounds.push(new audioFadeData(index, level, time));
-    //console.log("Added fade " + (g_fadingSounds.length - 1));
-}
-
-function audio_sound_gain(_index, _level, _time)
+function audio_sound_gain(_index, _gain, _timeMs)
 {
     if (g_AudioModel != Audio_WebAudio)
         return;
 
     _index = yyGetInt32(_index);
-    _level = yyGetReal(_level);
-    _time = yyGetInt32(_time); 
+
+    _gain = yyGetReal(_gain);
+    _gain = Math.max(0, _gain);
+
+    _timeMs = yyGetInt32(_timeMs); 
+    _timeMs = Math.max(0, _timeMs);
 
     if (_index >= BASE_SOUND_INDEX) {
-        var sound = GetAudioSoundFromHandle(_index);
-        if (sound == null) {
+        const voice = GetAudioSoundFromHandle(_index);
+
+        if (voice == null)
             return;
-        }
 
-        if (sound.bActive) 
-        {
-            if (_time <= 0) 
-            {
-                removeFade(_index);
+        if (voice.bActive) {
+            voice.gain.set(_gain, _timeMs);
 
-                const new_gain = yymax(_level, 0.0);
-                sound.gain = new_gain;
-                sound.pgainnode.gain.value = AudioPropsCalc.CalcGain(sound);
-            }
-            else 
-            {
-                addFade(_index, _level, _time);
-            }
+            if (_timeMs == 0) 
+                voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(voice);
         }
     }
-    else
-    {
-        var ind = _index;
-        if (audio_sampledata[ind] != undefined)
-        {
-            //apply the initial sample gain setting from GMS
-            var configGain = audio_sampledata[ind].configGain;
-            _level *= configGain;
+    else {
+        const asset = audio_sampledata[_index];
 
-            if (_time <= 0) 
-            {
-                removeFade(_index);
+        if (asset !== undefined) {
+            asset.gain.set(_gain, _timeMs);
 
-                const new_gain = yymax(_level, 0.0);
-                audio_sampledata[ind].gain = new_gain;
-
-                //-should apply to all sounds currently playing this sample!
-                for (var i = 0; i < g_audioSoundCount; ++i) {
-                    var psound = audio_sounds[i];
-                    if (psound.bActive && psound.soundid == ind) {
-                        psound.pgainnode.gain.value = AudioPropsCalc.CalcGain(psound);
+            if (_timeMs == 0) {
+                // Update all the active voices playing this asset
+                audio_sounds.forEach(_voice => {
+                    if (_voice.bActive && _voice.soundid == _index) {
+                        _voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(_voice);
                     }
-                }
-            }
-            else {
-                addFade(_index, _level, _time);
+                });
             }
         }
     }
 }
 
-
 function audio_music_gain(level, time) 
 {
-    debug("audio_music_gain :: deprecated function\n"); //goodbye!
-/*
-    var speed = 30; 
-    if(g_RunRoom!=null)
-        speed = g_RunRoom.GetSpeed();
-	var framerate = 1000 / speed;
-
-	if(framerate<=0)
-		framerate = 1;
-
-	var steps = time / framerate;
-	if (steps < 1) 
-	    steps = 1;
-	
-	
-	g_MP3VolumeStep = (level - g_MP3UpdateVolume) / steps;
-	g_MP3VolumeNumSteps = steps;
-
-	//debug("setting music gain to " + level + " in " + g_MP3VolumeNumSteps + " steps");
-*/
+    debug("audio_music_gain :: deprecated function\n");
 }
 
 function handleVisibilityChange()
@@ -3093,12 +2989,13 @@ var g_AudioGroupCount = 0;
 var g_AudioGroups = [];
 
 /** @constructor */
-function yyAudioGroup( _groupId ) {
+function yyAudioGroup(_groupId) {
     this.groupId = _groupId;
 	this.loadState = eAudioGroup_Unloaded;
 	this.loadCount = 0;
 	this.loadProgress = 0;
-	this.soundList = [];    //array of sample index
+	this.soundList = []; // Array of asset indices
+    this.gain = new TimeRampedParamLinear(1);
 }
 
 yyAudioGroup.prototype.AddSound = function(_sound)
@@ -3106,7 +3003,7 @@ yyAudioGroup.prototype.AddSound = function(_sound)
     this.soundList.push(_sound);
 };
 
-yyAudioGroup.prototype.SetState = function( _newState) 
+yyAudioGroup.prototype.SetState = function(_newState) 
 {
     if( this.loadState != _newState )
     {
@@ -3122,6 +3019,27 @@ yyAudioGroup.prototype.SetState = function( _newState)
             ds_map_add(map, "group_id", this.groupId );
             g_pObjectManager.ThrowEvent(EVENT_OTHER_ASYNC_SAVE_LOAD,0);            
         }
+    }
+};
+
+yyAudioGroup.prototype.getGain = function() {
+    return this.gain.get();
+};
+
+yyAudioGroup.prototype.setGain = function(_gain, _timeMs) {
+    _gain = Math.max(0, _gain);
+    _timeMs = Math.max(0, _timeMs);
+
+    this.gain.set(_gain, _timeMs);
+
+    if (_timeMs == 0) {
+        // Update all active voices playing assets from this group
+        audio_sounds.forEach(_voice => {
+            const assetIndex = this.soundList.find(_assetIndex => _assetIndex == _voice.soundid);
+
+            if (assetIndex !== undefined)
+                _voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(_voice);
+        });
     }
 };
 
@@ -3297,7 +3215,7 @@ function Audio_InitSampleData()
             audio_sampledata[index] = sampleData;
             sampleData.buffer = null; 
             var initialGain = g_pGMFile.Sounds[index].volume;
-            sampleData.gain = initialGain;
+            sampleData.gain = new TimeRampedParamLinear(initialGain);
             sampleData.configGain = initialGain;
             sampleData.pitch = 1.0;
             sampleData.kind = g_pGMFile.Sounds[index].kind;
@@ -3423,31 +3341,35 @@ function audio_group_stop_all( _groupId )
     audio_group_stop_sounds( yyGetInt32(_groupId) );
 }
 
-function audio_group_set_gain( _groupId,_volume, _timeMs )
+function audio_group_set_gain(_groupId, _gain, _timeMs)
 {
-    //audio_sound_gain
     _groupId = yyGetInt32(_groupId);
-    _volume = yyGetReal(_volume);
+    _gain = yyGetReal(_gain);
     _timeMs = yyGetInt32(_timeMs);
 
-    for (var i = 0, len = audio_sampledata.length; i < len; i++) {
-        var element = audio_sampledata[i];
+    const group = g_AudioGroups[_groupId];
 
-        if (element != null) {
-            var groupId = element.groupId;
-            if (groupId == _groupId) {
-                audio_sound_gain(i, _volume, _timeMs);
-            }
-        }
-    }
+    if (group !== undefined)
+        group.setGain(_gain, _timeMs);
 }
 
+function audio_group_get_gain(_groupId)
+{
+    _groupId = yyGetInt32(_groupId);
+
+    const group = g_AudioGroups[_groupId];
+
+    if (group !== undefined) 
+        return group.getGain();
+
+    return 1;
+}
 
 function audio_create_stream(_filename)
 {
     var sampleData = new audioSampleData();
     sampleData.buffer = null;
-    sampleData.gain = 1;
+    sampleData.gain = new TimeRampedParamLinear(1);
     sampleData.configGain = 1;
     sampleData.pitch = 1;
     sampleData.kind = 1; //streamed
@@ -3613,7 +3535,7 @@ function audio_create_buffer_sound(_bufferId, _bufferFormat, _sampleRate, _offse
     }
 
     var sampleData = new audioSampleData();
-    sampleData.gain = 1.0;
+    sampleData.gain = new TimeRampedParamLinear(1);
     sampleData.configGain = 1.0;
     sampleData.pitch = 1.0;
     sampleData.kind = 0;
@@ -3779,7 +3701,7 @@ function audio_create_play_queue(_format, _sampleRate, _channels)
 
     // Now setup the new sound to queue
     var sampleData = new audioSampleData();
-    sampleData.gain = 1.0;
+    sampleData.gain = new TimeRampedParamLinear(1);
     sampleData.configGain = 1.0;
     sampleData.pitch = 1.0;
     sampleData.kind = 0;
