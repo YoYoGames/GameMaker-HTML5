@@ -188,6 +188,7 @@ function InitWebGLFunctions() {
     fn_shader_enable_corner_id = WebGL_shader_enable_corner_id_RELEASE;	
     fn_shader_set_uniform_i_array = WebGL_shader_set_uniform_i_array_RELEASE;
     fn_shader_set_uniform_f_array = WebGL_shader_set_uniform_f_array_RELEASE;
+    fn_shader_set_uniform_f_buffer = WebGL_shader_set_uniform_f_buffer_RELEASE;
     fn_shader_set_uniform_matrix_array = WebGL_shader_set_uniform_matrix_array_RELEASE;    
     shaders_are_supported = WebGL_shaders_are_supported_RELEASE;
     fn_shader_get_name = WebGL_shader_get_name_RELEASE;
@@ -4676,6 +4677,42 @@ function WebGL_shader_set_uniform_f_array_RELEASE(_handle, _array)
     else {
         alert('ERROR: shader_set_uniform_f_array() Data is not an array');
     }
+}
+
+// #############################################################################################
+/// Function:<summary>
+///
+///          </summary>
+// #############################################################################################
+function WebGL_shader_set_uniform_f_buffer_RELEASE(_handle, _buffer, _offset, _count)
+{
+    var pBuff = g_BufferStorage.Get(yyGetInt32(_buffer));
+
+    if (!pBuff) {
+        alert('ERROR: shader_set_uniform_f_buffer() Data is not a buffer');
+        return;
+    }
+
+    _offset = yyGetInt32(_offset);
+    if (_offset < 0) {
+        alert('ERROR: shader_set_uniform_f_buffer() Invalid offset ' + _offset);
+        return;
+    }
+
+    _count = yyGetInt32(_count);
+    if (_count <= 0 || ((_offset + _count * 4) > pBuff.m_Size)) {
+        alert('ERROR: shader_set_uniform_f_buffer() Invalid count ' + _count
+            + '. Trying to read outside of the buffer.');
+        return;
+    }
+
+    var _array = new Array(_count);
+    for (var i = 0; i < _count; ++i) {
+        _array[i] = pBuff.yyb_peek(eBuffer_F32, _offset);
+        _offset += 4;
+    }
+
+    g_webGL.SetUniformArrayF(yyGetInt32(_handle), _array);
 }
 
 // #############################################################################################
