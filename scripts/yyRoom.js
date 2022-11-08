@@ -2904,6 +2904,7 @@ ClippingMaskState.prototype.Save = function()
 
 g_clippingMaskStack = [];
 g_globalClippingMaskState = null;
+g_SeqClippingMaskDepth = 0;
 
 yyRoom.prototype.HandleSequenceClipMask = function (_rect, _layer, _pSequenceEl, _node, _track, _headPosition, _lastHeadPosition, _headDirection, _sequence)
 {
@@ -2914,113 +2915,91 @@ yyRoom.prototype.HandleSequenceClipMask = function (_rect, _layer, _pSequenceEl,
 
 	// Find mask and subject tracks as immediate children of this track
 	var currentNode = _node.m_subtree == null ? null : _node.m_subtree;
-	for(var i = 0; i < _track.m_tracks.length; i++)
-	{
+	for(var i = 0; i < _track.m_tracks.length; i++) {
 		var subtrack = _track.m_tracks[i];
-		if(subtrack.m_type == eSTT_ClipMask_Mask)
-		{
+		if(subtrack.m_type == eSTT_ClipMask_Mask) {
 			maskTrack = subtrack;
 			maskNode = currentNode;
-
-			if(subjectTrack != null)
-			{
-				break;
-			}
+			if(subjectTrack != null) break;
 		}
-		else if(subtrack.m_type == eSTT_ClipMask_Subject)
-		{
+		else if(subtrack.m_type == eSTT_ClipMask_Subject) {
 			subjectTrack = subtrack;
 			subjectNode = currentNode;
-
-			if(maskTrack != null)
-			{
-				break;
-			}
+			if(maskTrack != null) break;
 		}
-
 		currentNode = currentNode.m_next;
 	}
 
-	// Set up stencil
-	if (g_clippingMaskStack == null || g_clippingMaskStack.length == 0)
+	if (g_SeqClippingMaskDepth == 0)
 	{
-		// Get current render states to restore to when we're done
-		if (g_globalClippingMaskState == null) g_globalClippingMaskState = new ClippingMaskState();
-		g_globalClippingMaskState.Save();
+		g_webGL.RSMan.SaveStates();
 		g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilEnable, true);
 	}
 
-	// Render to stencil buffer
-	var state = new ClippingMaskState();
-	state.StencilFunc = yyGL.CmpFunc_CmpGreater;
-	state.StencilPass = yyGL.StencilOp_Replace;
-	state.ColourWriteEnable = 0;
-	state.ZWriteEnable = 0;
-	state.StencilRef = g_clippingMaskStack.length + 1;
-	state.Apply();
-	// So we can restore this state again, for nested clipping masks
-	g_clippingMaskStack.push(state);
-
+	// Setup mask states
 
 	// Always alpha test
-	if (g_globalClippingMaskState.AlphaTestEnable == 0)
-	{
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaTestEnable, true);
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaRef, 0); // we want colour parameters on the clipping mask to apply to the result of the clipping mask (subject) not the mask (which this simulates)
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaFunc, yyGL.CmpFunc_CmpGreater);
-	}
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaTestEnable, true);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaRef, 0); // we want colour parameters on the clipping mask to apply to the result of the clipping mask (subject) not the mask (which this simulates)
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaFunc, yyGL.CmpFunc_CmpGreater);
+
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilEnable, true);				
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilFunc, yyGL.CmpFunc_CmpEqual);	
+
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_ColourWriteEnable, 0);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_ZWriteEnable, false);			
+	
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilRef, g_SeqClippingMaskDepth);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilPass, yyGL.StencilOp_Incr);
+
+	g_SeqClippingMaskDepth++;
 
 	// Draw mask
 	g_SeqStack.push(maskTrack);
 	this.DrawTrackList(_rect, _layer, _pSequenceEl, maskNode.m_subtree, _headPosition, _lastHeadPosition, _headDirection, maskTrack.m_tracks, _sequence);
 	g_SeqStack.pop();
 
-	// Increase stencil buffer
-	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilPass, yyGL.StencilOp_Incr);
-	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilFunc, g_clippingMaskStack.length < 2 ? yyGL.CmpFunc_CmpLessEqual : yyGL.CmpFunc_CmpEqual);
-	g_webGL.RSMan.SetRenderState(yyGL.RenderState_ColourWriteEnable, g_clippingMaskStack.length < 2 ? g_globalClippingMaskState.ColourWriteEnable : 0);
-	g_webGL.RSMan.SetRenderState(yyGL.RenderState_ZWriteEnable, g_clippingMaskStack.length < 2 ? g_globalClippingMaskState.ZWriteEnable : 0);
+	g_SeqClippingMaskDepth--;
 
-	// Apply global alpha test state
-	if (g_globalClippingMaskState.AlphaTestEnable == 0)
+	if (g_SeqClippingMaskDepth == 0)
 	{
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaTestEnable, g_globalClippingMaskState.AlphaTestEnable);
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaRef, g_globalClippingMaskState.AlphaRef);
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaFunc, g_globalClippingMaskState.AlphaFunc);
+		g_webGL.RSMan.SetRenderState(yyGL.RenderState_ColourWriteEnable, g_webGL.RSMan.PeekPrevState(yyGL.RenderState_ColourWriteEnable));
+		g_webGL.RSMan.SetRenderState(yyGL.RenderState_ZWriteEnable, g_webGL.RSMan.PeekPrevState(yyGL.RenderState_ZWriteEnable));
+
+		// Apply global alpha test state		
+		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaTestEnable, g_webGL.RSMan.PeekPrevState(yyGL.RenderState_AlphaTestEnable));
+		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaRef, g_webGL.RSMan.PeekPrevState(yyGL.RenderState_AlphaRef));
+		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaFunc, g_webGL.RSMan.PeekPrevState(yyGL.RenderState_AlphaFunc));
 	}
+
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilRef, g_SeqClippingMaskDepth + 1);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilPass, yyGL.StencilOp_Keep);
 
 	// Draw subject/children
 	g_SeqStack.push(subjectTrack);
 	this.DrawTrackList(_rect, _layer, _pSequenceEl, subjectNode.m_subtree, _headPosition, _lastHeadPosition, _headDirection, subjectTrack.m_tracks, _sequence);
 	g_SeqStack.pop();
 
-	// Always alpha test
-	if (g_globalClippingMaskState.AlphaTestEnable == 0)
-	{
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaTestEnable, true);
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaRef, 0); // we want colour parameters on the clipping mask to apply to the result of the clipping mask (subject) not the mask (which this simulates)
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaFunc, yyGL.CmpFunc_CmpGreater);
-	}
-	
-	// Zero stencil buffer
-	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilPass, yyGL.StencilOp_Zero);
-	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilFunc, yyGL.CmpFunc_CmpEqual);
+	// Cleanup mask	
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilPass, yyGL.StencilOp_Decr);
 	g_webGL.RSMan.SetRenderState(yyGL.RenderState_ColourWriteEnable, 0);
 	g_webGL.RSMan.SetRenderState(yyGL.RenderState_ZWriteEnable, 0);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaTestEnable, true);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaRef, 0); // we want colour parameters on the clipping mask to apply to the result of the clipping mask (subject) not the mask (which this simulates) 
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaFunc, yyGL.CmpFunc_CmpGreater);
 
-	// Draw mask again
+	g_SeqClippingMaskDepth++;
+
+	// Draw mask
 	g_SeqStack.push(maskTrack);
 	this.DrawTrackList(_rect, _layer, _pSequenceEl, maskNode.m_subtree, _headPosition, _lastHeadPosition, _headDirection, maskTrack.m_tracks, _sequence);
 	g_SeqStack.pop();
 
-	// Pop and apply the render state for this track
-	var restore = g_clippingMaskStack.pop();
-	restore.Apply();
-	//delete restore;
+	g_SeqClippingMaskDepth--;
 
-	// Restore global render state, we're out of the clipping mask track
-	if (g_clippingMaskStack.length == 0) {
-		g_globalClippingMaskState.Apply();
+	if (g_SeqClippingMaskDepth == 0)
+	{
+		g_webGL.RSMan.RestoreStates();
 	}
 };
 
