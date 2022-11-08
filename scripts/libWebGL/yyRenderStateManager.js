@@ -341,6 +341,17 @@ function yyRenderStateManager(_numTextureStages,_stackSize,_commandBuilder,_inte
         // Or do we need multiple sets of changeflags at all?? Just combine m_changeFlags and m_changeSamplerFlags 
         m_anyChange = m_changeFlags.AnyBitSet() || m_changeSamplerFlags.AnyBitSet(); 
     };
+
+    this.PeekPrevState = function (_state)
+    {
+		if (m_stackTop <= 0)
+			return 0;
+
+		if ((_state < 0) || (_state >= yyGL.RenderState_MAX))
+			return 0;
+
+		return m_stack[m_stackTop - 1].m_renderStates[_state];
+	};
  
     this.SetSamplerState = function(_stage, _state, _value) 
     { 
