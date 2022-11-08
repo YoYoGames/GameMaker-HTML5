@@ -1741,11 +1741,6 @@ function audio_sound_gain(_index, _gain, _timeMs)
         const asset = audio_sampledata[_index];
 
         if (asset !== undefined) {
-            //apply the initial sample gain setting from GMS
-            //**** WHAT IS THIS?? */
-            var configGain = audio_sampledata[_index].configGain;
-            _gain *= configGain;
-
             asset.gain.set(_gain, _timeMs);
 
             if (_timeMs == 0) {
