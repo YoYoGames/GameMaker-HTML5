@@ -783,7 +783,7 @@ class CConfigurableTimeSource extends CStatefulTimeSource
     {
         // Maybe we should check whether its a function?
         if (typeof _callback != 'function'
-         && typeof _callback != 'number')
+        && (typeof _callback != 'number' || script_get(_callback) === null))
         {
             yyError("Error: Time source callback must be a method or function");
         }
