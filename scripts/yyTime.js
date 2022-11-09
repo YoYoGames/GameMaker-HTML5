@@ -781,7 +781,6 @@ class CConfigurableTimeSource extends CStatefulTimeSource
     /* Validates the requested callback */
     ValidateCallback(_callback)
     {
-        // Maybe we should check whether its a function?
         if (typeof _callback != 'function'
         && (typeof _callback != 'number' || script_get(_callback) === null))
         {
