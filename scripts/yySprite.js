@@ -108,7 +108,7 @@ yySprite.prototype.GetBoundingBox = function () { return this.bbox; };
 yySprite.prototype.GetCount = function () { return this.numb; };
 
 /** Truncates a floating point value into an integer. */
-var __floatToInt = function (x) { return (x | 0); };
+var __floatToInt = function (x) { return ~~x; };
 
 /**
  * @param {spine.Skeleton} _skeleton
