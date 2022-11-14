@@ -134,7 +134,7 @@ function audio_init()
     g_AudioMainVolumeNode = new GainNode(g_WebAudioContext);
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
 
-    g_WebAudioContext.audioWorklet.addModule("html5game/sound/worklets/audio-worklet.js")
+    g_WebAudioContext.audioWorklet.addModule(g_pGMFile.Options.GameDir + "/sound/worklets/audio-worklet.js")
     .then(() => {
         g_AudioBusMain = new AudioBus();
         g_AudioBusMain.connectOutput(g_AudioMainVolumeNode);
