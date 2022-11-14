@@ -985,7 +985,7 @@ function camera_get_view_mat(arg0) {
     //Have to check these funcs returning matrixes
     var pCam = g_pCameraManager.GetCamera(yyGetInt32(arg0));
     if (pCam != null) {
-        return pCam.GetViewMat();
+        return pCam.GetViewMat().m;
     }
     return -1;
 
@@ -994,7 +994,7 @@ function camera_get_proj_mat(arg0) {
     //Have to check these funcs returning matrixes
     var pCam = g_pCameraManager.GetCamera(yyGetInt32(arg0));
     if (pCam != null) {
-        return pCam.GetProjMat();
+        return pCam.GetProjMat().m;
     }
     return -1;
 

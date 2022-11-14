@@ -409,7 +409,7 @@ function __yy_gml_array_set_owner( _a )
 
 function __yy_gml_array_check_index( _a, _b )
 {
-    if (!(_b instanceof Array)) { 
+    if (!(_b instanceof Array) && !(_b instanceof Float32Array)) { 
         yyError( "trying to index variable which is not an array" );
     } // end if
     _a = yyGetInt32(_a);
