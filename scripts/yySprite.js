@@ -107,6 +107,113 @@ yySprite.prototype.GetYOrigin = function () { return this.yOrigin; };
 yySprite.prototype.GetBoundingBox = function () { return this.bbox; };
 yySprite.prototype.GetCount = function () { return this.numb; };
 
+/** Truncates a floating point value into an integer. */
+var __floatToInt = function (x) { return ~~x; };
+
+/**
+ * @param {spine.Skeleton} _skeleton
+ *
+ * @returns {[width: Number, height: Number]?}
+ */
+yySprite.prototype.GetSkeletonSpriteSize = function (_skeleton)
+{
+	var bounds = new YYRECT();
+
+	_skeleton.updateWorldTransform();
+
+	if (this.GetSkeletonBounds(_skeleton, bounds))
+	{
+		var width  = __floatToInt(bounds.right - bounds.left + 0.5);
+		var height = __floatToInt(bounds.bottom - bounds.top + 0.5);
+		return [width, height];
+	}
+
+	var skins = _skeleton.data.skins;
+	for (var i = 0; i < skins.length; ++i)
+	{
+		_skeleton.setSkin(skins[i]);
+		_skeleton.updateWorldTransform();
+
+		if (this.GetSkeletonBounds(_skeleton, bounds))
+		{
+			var width  = __floatToInt(bounds.right - bounds.left + 0.5);
+			var height = __floatToInt(bounds.bottom - bounds.top + 0.5);
+			return [width, height];
+		}
+	}
+
+	return null;
+};
+
+/**
+ * @param {spine.Skeleton} _skeleton
+ * @param {YYRECT} _bounds
+ *
+ * @returns {Boolean}
+ */
+yySprite.prototype.GetSkeletonBounds = function (_skeleton, _bounds)
+{
+	var retval = false;
+
+	_bounds.left   = Number.MAX_SAFE_INTEGER;
+	_bounds.top    = Number.MAX_SAFE_INTEGER;
+	_bounds.right  = Number.MIN_SAFE_INTEGER;
+	_bounds.bottom = Number.MIN_SAFE_INTEGER;
+
+	var drawOrder = _skeleton.drawOrder;
+	// var x = _skeleton.x, y = _skeleton.y;
+	for (var i = 0; i < drawOrder.length; ++i)
+	{
+		var slot = drawOrder[i];
+		if (slot.attachment)
+		{
+			if (slot.attachment instanceof spine.RegionAttachment)
+			{
+				var region = slot.attachment;
+
+				var vertices = new Array(8);
+				region.computeWorldVertices(slot.bone, vertices, 0, 2);
+
+				for (var j = 0; j < 4; ++j)
+				{
+					var transformedX = vertices[(j * 2) + 0];
+					var transformedY = vertices[(j * 2) + 1];
+
+					_bounds.left   = __floatToInt(Math.min(_bounds.left,   transformedX));
+					_bounds.right  = __floatToInt(Math.max(_bounds.right,  transformedX));
+					_bounds.top    = __floatToInt(Math.min(_bounds.top,    transformedY));
+					_bounds.bottom = __floatToInt(Math.max(_bounds.bottom, transformedY));
+
+					retval = true;
+				}
+			}
+			else if (slot.attachment instanceof spine.MeshAttachment)
+			{
+				var mesh = slot.attachment;
+
+				var vertices = new Array(mesh.worldVerticesLength);
+				mesh.computeWorldVertices(slot, 0, mesh.worldVerticesLength, vertices, 0, 2);
+
+				var numVerts = mesh.worldVerticesLength >> 1;
+				for (var j = 0; j < numVerts; ++j)
+				{
+					var transformedX = vertices[(j * 2) + 0];
+					var transformedY = vertices[(j * 2) + 1];
+
+					_bounds.left   = __floatToInt(Math.min(_bounds.left,   transformedX));
+					_bounds.right  = __floatToInt(Math.max(_bounds.right,  transformedX));
+					_bounds.top    = __floatToInt(Math.min(_bounds.top,    transformedY));
+					_bounds.bottom = __floatToInt(Math.max(_bounds.bottom, transformedY));
+
+					retval = true;
+				}
+			}
+		}
+	}
+
+	return retval;
+};
+
 yySprite.prototype.GetScaledBoundingBox = function(_xscale, _yscale)
 {
 	var scaledBB = new YYRECT;
