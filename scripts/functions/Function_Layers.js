@@ -3572,6 +3572,62 @@ function tileset_get_uvs(_ind) {
     return null;
 }
 
+function tileset_get_info(_ind) {
+
+    var pDest = g_pBackgroundManager.GetImage(yyGetInt32(_ind));
+    var ret = undefined;
+    if( pDest) {
+        ret = new GMLObject();
+
+        var pTPE = pDest.TPEntry;        
+        var texture = pTPE.texture;
+        variable_struct_set(ret, "width", texture.width); 
+        variable_struct_set(ret, "height", texture.height); 
+        variable_struct_set(ret, "texture", pTPE.tp); 
+        variable_struct_set(ret, "tile_width", pDest.tilewidth); 
+        variable_struct_set(ret, "tile_height", pDest.tileheight); 
+        variable_struct_set(ret, "tile_horizontal_separator", pDest.tilehsep); 
+        variable_struct_set(ret, "tile_vertical_separator", pDest.tilevsep); 
+        variable_struct_set(ret, "tile_columns", pDest.tilecolumns); 
+        variable_struct_set(ret, "tile_count", pDest.tilecount); 
+        variable_struct_set(ret, "frame_count", pDest.frames); 
+        variable_struct_set(ret, "frame_length_ms", pDest.framelength); 
+
+        var frames = new GMLObject();
+        for( var t = 0; t < pDest.tilecount; ++t) {
+
+            var allFramesSame = true;
+            for( var f=0; allFramesSame &&  f<pDest.frames; ++f) {
+
+                var tt = pDest.framedata[ (t*pDest.frames) + f ];
+                if (tt == 0) break;
+                allFramesSame = (tt == t);
+
+            } // end for
+
+            // goto next tile if all frames are the same in the framedata.
+            if (allFramesSame) continue;
+
+
+            var fr = [];            
+            for( var f=0; f<pDest.frames; ++f) {
+
+                var tt = pDest.framedata[ (t*pDest.frames) + f ];
+                if (tt == 0) break;
+
+                fr[f] = tt;
+            } // end for
+
+            variable_struct_set(frames, t.toString(), fr); 
+        } // end for
+
+        variable_struct_set(ret, "frames", frames); 
+    } // end if
+
+    return ret;
+}
+
+
 function tilemap_get_tileset( arg1) 
 {
     var room = g_pLayerManager.GetTargetRoomObj();
