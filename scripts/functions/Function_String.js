@@ -1375,3 +1375,74 @@ function string_foreach(_str, _func, _pos, _length) {
 
     }
 }
+
+
+var g_Clipboard = [];
+var g_ClipboardActive = false;
+var g_ActivatingClipboard = false;
+
+function activate_clipboard()
+{
+	// if we support clipboard
+	if (!g_ClipboardActive && navigator.clipboard) {
+
+		if (!g_ActivatingClipboard) {
+
+			g_ActivatingClipboard = true;
+			// get permission first for clipboard
+			navigator.permissions.query( { "name": 'clipboard-read', "allowWithoutGesture": true}).then( function(result) {
+
+				if ((result.state == 'granted') || (result.state == 'prompt')) {
+
+					// flag that clipboard is active and 
+					g_ClipboardActive = true;
+					g_ActivatingClipboard = false;
+
+					// empty out everything that we have accumulated on the GM Clipboard into the main clipboard
+					for( var n =0; n<g_Clipboard.length; ++n) {
+						navigator.clipboard.writeText( g_Clipboard[n]);
+					} // end for
+					g_Clipboard = [];
+
+					// setup to read text from clipboard
+					navigator.clipboard.readText().then( clipText => { if (clipText != "") g_Clipboard.push( clipText ); } ).catch( () => {} );
+
+				} // end if
+
+			});
+		} // end if
+	} // end if
+} // end activate_clipboard
+
+function clipboard_has_text() { 
+	if (!g_ClipboardActive) {
+		activate_clipboard();
+		return false;
+	} // end if
+	navigator.clipboard.readText().then( clipText => { if (clipText != "") g_Clipboard.push( clipText ); } ).catch( () => {} );
+	return g_Clipboard.length > 0; 
+}
+
+function clipboard_get_text() {
+	var ret = "";
+	if (!g_ClipboardActive) {
+		activate_clipboard();
+	} // end if
+	else
+	if (g_Clipboard.length > 0) {
+		ret = g_Clipboard.pop();
+	} // end if
+	return ret;
+}
+
+function clipboard_set_text(str) {
+	var textToCopy = yyGetString(str);
+	if (!g_ClipboardActive) {
+		activate_clipboard();
+		g_Clipboard.push( textToCopy );
+	} // end if
+	else {
+		if (navigator.clipboard)
+			navigator.clipboard.writeText(textToCopy);
+	} // end else
+}

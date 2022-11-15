@@ -1546,32 +1546,6 @@ function audio_resume_sound( _soundid)
     }
 }
 
-function audio_play_music( _soundid,_bLoop)
-{
-	debug("audio_play_music :: deprecated function\n");
-}
-
-function audio_stop_music()
-{
-	debug("audio_stop_music :: deprecated function");
-}
-
-function audio_pause_music() 
-{
-	debug("audio_pause_music :: deprecated function");
-}
-
-function audio_resume_music() 
-{
-    debug("audio_resume_music :: deprecated function");
-}
-
-function audio_music_is_playing() 
-{
-    debug("audio_music_is_playing :: deprecated function");
-    return 0;
-}
-
 function audio_exists(_id) {
 
     _id = yyGetInt32(_id);
