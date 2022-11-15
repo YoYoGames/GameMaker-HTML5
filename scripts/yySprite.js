@@ -501,7 +501,7 @@ yySprite.prototype.BuildSkeletonData = function (_skelIndex) {
             var skeletonData = g_pSpriteManager.SkeletonData[_skelIndex];
             this.m_skeletonSprite = new yySkeletonSprite();
             //this.m_skeletonSprite.Load(skeletonData.json, skeletonData.atlas, skeletonData.width, skeletonData.height);
-            this.m_skeletonSprite.Load(this.pName, skeletonData.json, skeletonData.atlas, skeletonData.numTextures, skeletonData.textureSizes);
+            this.m_skeletonSprite.Load(this.pName, skeletonData.json, skeletonData.atlas, skeletonData.numTextures, skeletonData.textureSizes, this);
         }     
         
         // Set simple draw routines to target the skeleton sprite
@@ -645,10 +645,6 @@ function    CreateSpriteFromStorage( _pStore )
 		pSprite.m_LoadedFromChunk = true;
 	    pSprite.BuildSWFData(_pStore.swf, pSprite.xOrigin, pSprite.yOrigin);
 	}
-	
-	if (_pStore.skel !== undefined) {
-	    pSprite.BuildSkeletonData(_pStore.skel);
-	}
 
 	if (_pStore.sequence !== undefined) {
 	    pSprite.BuildSequenceData(_pStore.sequence);
@@ -663,13 +659,12 @@ function    CreateSpriteFromStorage( _pStore )
 	pSprite.ppTPE = [];
     for(var i=_pStore.TPEntryIndex.length-1;i>=0;i--){
     	pSprite.ppTPE[i] =   _pStore.TPEntryIndex[i];       // Just use the storage data directly - it's never changed!
-    }
+    }	
+
     if (pSprite.numb == 0)
     {
         pSprite.numb = pSprite.ppTPE.length;
     }
-
-	pSprite.CalcCullRadius();    
 
 	// Copy actual entry, and set Crop width+height as it must be at least 1
 	for(var i=0;i<pSprite.ppTPE.length;i++)
@@ -679,7 +674,14 @@ function    CreateSpriteFromStorage( _pStore )
             if( pSprite.ppTPE[i].CropWidth==0 ) pSprite.ppTPE[i].CropWidth=1;
             if( pSprite.ppTPE[i].CropHeight==0 ) pSprite.ppTPE[i].CropHeight=1;
         } // end if
+	}	
+
+	// Do this after we've set up our TPEs
+	if (_pStore.skel !== undefined) {
+		pSprite.BuildSkeletonData(_pStore.skel);
 	}
+
+	pSprite.CalcCullRadius();    	
 
     // Expand masks
     if( pSprite.Masks )

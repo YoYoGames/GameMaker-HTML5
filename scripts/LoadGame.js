@@ -910,27 +910,7 @@ function LoadGame(_GameFile)
 				}
 			}
 
-			// Do some extra work to find the textures associated with any spine sprites and add them to our texture list for this group
-			if (pTGInfo.spinesprites.length > 0)
-			{
-				for(var i = 0; i < pTGInfo.spinesprites.length; i++)
-				{
-					var sprt = g_pSpriteManager.Sprites[pTGInfo.spinesprites[i]];
-					if (sprt !== null)
-					{
-						if (sprt.m_skeletonSprite)
-						{	
-						    var entry = pTGInfo.textures.length;
-						    var numTextures = sprt.m_skeletonSprite.GetNumAtlasTextures();
-						    for (var t = 0; t < numTextures; t++)
-						    {
-						        pTGInfo.textures[entry] = sprt.m_skeletonSprite.GetAtlasTextureID(t);
-						        entry++;
-						    }
-						}
-					}
-				}
-			}
+			// Spine sprites now just reference textures from the group so we don't need to retrieve them separately
 
 			g_pTextureGroupInfoManager.AddTextureGroupInfo(pTGInfo);
 		}
