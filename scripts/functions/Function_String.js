@@ -94,54 +94,54 @@ function ord(_str) {
 
 // #############################################################################################
 /// Function:<summary>
-///          	Turns str into a real number. str can contain a minus sign, a decimal dot and 
-///             even an exponential part.
+///          	Turns a value into a real number. If the value is a string, 
+///          	it can contain a sign, a decimal dot and even an exponential part.
 ///          </summary>
 ///
-/// In:		<param name="_str"></param>
+/// In:		<param name="_v"></param>
 /// Out:	<returns>
 ///				
 ///			</returns>
 // #############################################################################################
 function real(_v) {
-    if (_v == undefined)
-    {
-        yyError("real() argument is undefined");
-    }
-    else if (_v == null)
-    {
-        yyError("real() argument is unset");
-    }
-    else if (typeof (_v) == "boolean")
-	{
-        if (_v) return 1; else return 0;
-    }
-    else if (typeof (_v) == "number")
-	{
-        return _v;
-    }
-    else if (typeof (_v) == "string")
-	{
-        var stringAsNumber = parseFloat(_v);
-        if (isNaN(stringAsNumber))
-        {
-	        yyError("unable to convert string " + _v + " to real");
-	    }
-	    else
-	    {
-	        return stringAsNumber;
-	    }
-    }
-    else if (_v instanceof Long)
-    {
-        return _v.toNumber();
+	switch (typeof _v) {
+		case "number":
+			return _v;
+		case "boolean":
+			return _v ? 1 : 0;
+		case "string":
+			const stringAsNumber = parseFloat(_v);
+			if (!Number.isNaN(stringAsNumber)) {
+				return stringAsNumber;
+			} else {
+				// Strings that start with "NaN" or "inf" shouldn't error.
+				// The check is case insensitive and signs are allowed.
+				const value = _v.trim().toLowerCase();
+				const sign = (value[0] === "+" || value[0] === "-") ? value[0] : "";
+				const startValue = value.substring(sign.length, 3 + sign.length);
+				if (startValue === "nan") {
+					return Number.NaN;
+				} else if (startValue === "inf") {
+					return sign === "-" ? Number.NEGATIVE_INFINITY : Number.POSITIVE_INFINITY;
+				} else {
+					yyError('unable to convert string "' + _v + '" to number');
+				}
+			}
+			break;
+		case "undefined":
+			yyError("real() argument is undefined");
+			break;
+		default:
+			if (_v === null) {
+				yyError("real() argument is null");
+			} else if (_v instanceof Array) {
+				yyError("real() argument is array");
+			} else if (_v instanceof Long) {
+				return _v.toNumber();
+			}
+			break;
 	}
-    else if (_v instanceof Array)
-    {
-        yyError("real() argument is array");
-    }
-
-    return parseFloat(_v);
+	return parseFloat(_v);
 }
 
 function bool(_v) {
