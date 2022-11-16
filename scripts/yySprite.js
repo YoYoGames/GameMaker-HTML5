@@ -626,6 +626,29 @@ yySprite.prototype.BuildSkeletonData = function (_skelIndex) {
 
 // #############################################################################################
 /// Property: <summary>
+///           	Build skeleton data associated with the sprite
+///           </summary>
+// #############################################################################################
+yySprite.prototype.BuildSkeletonData2 = function (skeletonData) {
+
+	this.m_skeletonSprite = new yySkeletonSprite();
+	//this.m_skeletonSprite.Load(skeletonData.json, skeletonData.atlas, skeletonData.width, skeletonData.height);
+	this.m_skeletonSprite.LoadAsync(this.pName, skeletonData.json, skeletonData.atlas, skeletonData.numTextures, skeletonData.textureSizes);   
+
+	// Set simple draw routines to target the skeleton sprite
+	this.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _colour, _alpha) {    	    
+		this.m_skeletonSprite.Draw(_ind, _x, _y, _xscale, _yscale, _angle, _colour, _alpha);
+	};
+	
+	this.DrawSimple = function (_ind, _x, _y, _alpha) {
+		this.m_skeletonSprite.Draw(_ind, _x, _y, 1, 1, 0, 0xffffff, _alpha);
+	};
+
+	this.numb = SKELETON_FRAMECOUNT;
+};
+
+// #############################################################################################
+/// Property: <summary>
 ///           	Build sequence associated with the sprite
 ///           </summary>
 // #############################################################################################
