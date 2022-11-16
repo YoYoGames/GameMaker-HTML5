@@ -3977,6 +3977,9 @@ function audio_effect_create(_type, _params)
         return undefined;
     }
 
+    if (_params && typeof _params !== "object")
+        yyError("Error: Audio effect parameters must be a struct");
+
     return AudioEffectStruct.Create(_type, _params);
 }
 
