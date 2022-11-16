@@ -3969,7 +3969,7 @@ function audio_bus_create()
     return bus;
 }
 
-function audio_effect_create(_type)
+function audio_effect_create(_type, _params)
 {
     if (!g_AudioEffectsFeatureEnabled)
     {
@@ -3977,7 +3977,7 @@ function audio_effect_create(_type)
         return undefined;
     }
 
-    return AudioEffectStruct.Create(_type);
+    return AudioEffectStruct.Create(_type, _params);
 }
 
 function audio_emitter_bus(_emitterIdx, _bus)
