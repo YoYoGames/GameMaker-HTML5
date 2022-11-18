@@ -111,7 +111,7 @@ yySkeletonSprite.prototype.SetupTPE = function (_name, _width, _height, _tex) {
 ///          </summary>
 // #############################################################################################
 //yySkeletonSprite.prototype.Load = function (_jsonData, _atlasData, _width, _height) {
-yySkeletonSprite.prototype.Load = function (_sprName, _jsonData, _atlasData, _numTextures, _textureSizes)
+yySkeletonSprite.prototype.Load = function (_atlasDir, _sprName, _jsonData, _atlasData, _numTextures, _textureSizes)
 {
     // Setup local variables for use with callback functions
     //var width = _width;
@@ -119,8 +119,6 @@ yySkeletonSprite.prototype.Load = function (_sprName, _jsonData, _atlasData, _nu
     var numTextures = _numTextures;
     var textureSizes = _textureSizes;
     var currTexture = 0;
-
-    var atlasImageDir = _sprName + '/';
 
     var self = this;
     var loadTexture = function (_atlasPage) {
@@ -147,7 +145,7 @@ yySkeletonSprite.prototype.Load = function (_sprName, _jsonData, _atlasData, _nu
 		newTex.width = newTex.image.width = textureSizes[currTexture].width;
         newTex.height = newTex.image.height = textureSizes[currTexture].height;		
 		
-        var tex = Graphics_AddTexture(g_RootDir + atlasImageDir + _atlasPage);
+        var tex = Graphics_AddTexture(g_RootDir + _atlasDir + _atlasPage);
         newTex.rendererObject = tex;        
         
 		g_Textures[tex].onload = function (e) {	
@@ -177,80 +175,6 @@ yySkeletonSprite.prototype.Load = function (_sprName, _jsonData, _atlasData, _nu
     this.m_skeletonJson = new spine.SkeletonJson(new spine.AtlasAttachmentLoader(this.m_atlas));
 	//this.m_skeletonData = this.m_skeletonJson.readSkeletonData(JSON.parse(_jsonData));
 	this.m_skeletonData = this.m_skeletonJson.readSkeletonData(_jsonData);
-};
-
-// #############################################################################################
-/// Function:<summary>
-///             Setup from pre-loaded string data
-///          </summary>
-// #############################################################################################
-//yySkeletonSprite.prototype.Load = function (_jsonData, _atlasData, _width, _height) {
-yySkeletonSprite.prototype.LoadAsync = function (_sprName, _jsonData, _atlasData, _numTextures, _textureSizes)
-{
-    // Setup local variables for use with callback functions
-    //var width = _width;
-    //var height = _height;
-    var numTextures = _numTextures;
-    var textureSizes = _textureSizes;
-    var currTexture = 0;
-
-    var atlasImageDir = '';
-
-    var self = this;
-    var loadTexture = function (_atlasPage) {
-            
-        /*var atlasPage = _atlasPage;
-        atlasPage.width = width;
-        atlasPage.height = height;
-        
-        var tex = Graphics_AddTexture(g_RootDir + _atlasPage.name);        
-        atlasPage.rendererObject = tex;        
-        
-        g_Textures[tex].onload = function (e) {		
-            self.SetupTPE(atlasPage.name, e.srcElement.width, e.srcElement.height, tex);
-        };
-        g_Textures[tex].onerror = function (e) {
-            debug("ImageError: " + e.srcElement.src);
-        };		
-        g_Textures[tex].URL = _atlasPage.name;*/
-        
-        var newTex = new yySpineTexture();
-        newTex.name = _atlasPage;
-        //newTex.width = newTex.image.width = width;
-        //newTex.height = newTex.image.height = height;		
-        newTex.width = newTex.image.width = textureSizes[currTexture].width;
-        newTex.height = newTex.image.height = textureSizes[currTexture].height;		
-        
-        var tex = Graphics_AddTexture(g_RootDir + atlasImageDir + _atlasPage);
-        newTex.rendererObject = tex;        
-        
-        g_Textures[tex].onload = function (e) {	
-            newTex.image = 	e.SrcElement;
-            var target = e.target || e.srcElement;      // for compatibility with IE6-8
-            self.SetupTPE(newTex.name, target.width, target.height, tex);
-        };
-        g_Textures[tex].onerror = function (e) {
-            var target = e.target || e.srcElement;      // for compatibility with IE6-8
-            debug("ImageError: " + target.src);
-        };		
-        g_Textures[tex].URL = _atlasPage;
-
-        if (currTexture < (numTextures - 1))
-            currTexture++;
-        
-        return newTex;
-    };
-
-    //this.m_atlas = new spine.TextureAtlas(_atlasData, { load: loadTexture });   
-    //this.m_atlas = new spine.TextureAtlas(_atlasData, loadTexture);   
-    this.m_atlas = new spine.TextureAtlas(_atlasData);   
-    for(let page of this.m_atlas.pages)
-    {
-        page.setTexture(loadTexture(page.name));
-    }
-    this.m_skeletonJson = new spine.SkeletonJson(new spine.AtlasAttachmentLoader(this.m_atlas));
-    //this.m_skeletonData = this.m_skeletonJson.readSkeletonData(JSON.parse(_jsonData));
-    this.m_skeletonData = this.m_skeletonJson.readSkeletonData(_jsonData);
 };
 
 yySkeletonSprite.prototype.GetNumAtlasTextures = function ()

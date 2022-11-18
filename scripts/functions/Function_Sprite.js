@@ -747,6 +747,9 @@ function sprite_add(_filename, _imgnumb, _removeback, _smooth, _xorig, _yorig)
 
 	// Create a new sprite
 	var pNewSpr = new yySprite();
+	pNewSpr.m_LoadedFromIncludedFiles = true;
+
+	if (_filename.substring(0, 5) == "file:") return -1;
 	pNewSpr.pName = _filename;
 
 	var newindex = g_pSpriteManager.AddSprite(pNewSpr);
@@ -764,7 +767,6 @@ function sprite_add(_filename, _imgnumb, _removeback, _smooth, _xorig, _yorig)
 
 	////////////////////////////////////////////////////////////////////////////
 	// JPEGs, PNGs etc.
-	if (_filename.substring(0, 5) == "file:") return -1;
 	var pFileName = _filename;
 
 	var image = Graphics_AddTexture(pFileName);
@@ -869,10 +871,24 @@ function sprite_replace(_ind, _filename, _imgnumb, _removeback, _smooth, _xorig,
 
 	// Create a new sprite
 	var pNewSpr = g_pSpriteManager.Get(_ind);
+	pNewSpr.m_LoadedFromIncludedFiles = true;
 
 	if (_filename.substring(0, 5) == "file:") return -1;
 	var pFileName = _filename;
 
+	////////////////////////////////////////////////////////////////////////////
+	// Spine
+	if (_filename.endsWith('.json')) {
+		pNewSpr.LoadFromSpineAsync(_filename, function (err) {
+			var node = g_pASyncManager.Add(_ind, _filename, ASYNC_SPRITE, {});
+			node.m_Complete = true;
+			node.m_Status = err ? ASYNC_STATUS_ERROR : ASYNC_STATUS_LOADED;
+		});
+		return _ind;
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	// JPEGs, PNGs etc.
 	var image = Graphics_AddTexture(pFileName);
 	g_Textures[image].onload = ASync_ImageLoad_Callback;
 	g_Textures[image].onerror = ASync_ImageLoad_Error_Callback;
