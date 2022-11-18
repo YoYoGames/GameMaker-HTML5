@@ -626,6 +626,132 @@ yySprite.prototype.BuildSkeletonData = function (_skelIndex) {
 
 // #############################################################################################
 /// Property: <summary>
+///           	Loads sprite data from a Spine .json file
+///           </summary>
+// #############################################################################################
+yySprite.prototype.LoadFromSpineAsync = function (_filename, _callback) {
+	var loadFileContents = function (_filename, _callback) {
+		var errorMessage = 'Could not load file contents!';
+		var request = new XMLHttpRequest();
+		request.open('GET', CheckWorkingDirectory(_filename), true);
+		request.send();
+		request.onload = function () {
+			if (_callback) {
+				_callback((request.status == 200) ? null : errorMessage,
+					request.response || request.responseText);
+			}
+		};
+		request.onerror = function () {
+			if (_callback) {
+				_callback(errorMessage);
+			}
+		};
+	};
+
+	var getSpineTexturePages = function (_atlas) {
+		var lines = _atlas.split('\n');
+		
+		// Array of texture page info
+		var textures = [];
+		// Current texture page
+		var current = undefined;
+		// If true then next line read is a filename
+		var checkFilename = true;
+
+		var reSize = new RegExp(/^size\s*:\s*(\d+)\s*,\s*(\d+)$/);
+
+		for (var i = 0; i < lines.length; ++i) {
+			var line = lines[i].trim();
+
+			if (checkFilename) {
+				// Found texture name
+				if (current != undefined) {
+					textures.push(current);
+				}
+				current = { name: line };
+				checkFilename = false;
+			} else {
+				if (line == '') {
+					// Found texture page separator
+					checkFilename = true;
+				} else if (current != undefined) {
+					// Found texture size
+					var m = line.match(reSize);
+					if (m) {
+						current.width = parseInt(m[1]);
+						current.height = parseInt(m[2]);
+					}
+				}
+			}
+		}
+
+		if (current != undefined) {
+			textures.push(current);
+		}
+
+		return textures;
+	};
+
+	var sprite = this;
+	var atlasFilename = _filename.slice(0, -5) + '.atlas';
+	var waitingForCallback = 2;
+	var hasError = false;
+	var atlas;
+	var textures;
+
+	var tryCallback = function (err) {
+		if (hasError) {
+			return;
+		}
+	
+		if (err) {
+			hasError = true;
+			if (_callback) {
+				_callback(err);
+			}
+			return;
+		}
+
+		if (--waitingForCallback == 0) {
+			var skeletonData = {
+				json: json,
+				atlas: atlas,
+				numTextures: textures.length,
+				textureSizes: textures,
+			};
+			sprite.BuildSkeletonData2(skeletonData);
+			var size = sprite.GetSkeletonSpriteSize((new yySkeletonInstance(sprite.m_skeletonSprite)).m_skeleton);
+			if (size instanceof Array)
+			{
+				sprite.width = size[0];
+				sprite.height = size[1];
+			}
+
+			// Trigger async callback
+			if (_callback) {
+				_callback();
+			}
+		}
+	};
+
+	loadFileContents(_filename, function (_err, _contents) {
+		if (!_err) {
+			json = _contents;
+		}
+		tryCallback(_err);
+	});
+
+	loadFileContents(atlasFilename, function (_err, _contents) {
+		if (!_err) {
+			atlas = _contents;
+			textures = getSpineTexturePages(atlas);
+		}
+		tryCallback(_err);
+	});
+};
+
+// #############################################################################################
+/// Property: <summary>
 ///           	Build skeleton data associated with the sprite
 ///           </summary>
 // #############################################################################################

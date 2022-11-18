@@ -754,114 +754,11 @@ function sprite_add(_filename, _imgnumb, _removeback, _smooth, _xorig, _yorig)
 	////////////////////////////////////////////////////////////////////////////
 	// Spine
 	if (_filename.endsWith('.json')) {
-		var LoadFileContents = function (_filename, _props) {
-			var request = new XMLHttpRequest();
-			request.open('GET', CheckWorkingDirectory(_filename), true);
-			if (_props.responseType) {
-				request.responseType = _props.responseType;
-			}
-			request.send();
-			request.onload = function (ev) {
-				if (_props.onload) {
-					_props.onload(request);
-				}
-			};
-			request.onerror = function (ev) {
-				if (_props.onerror) {
-					_props.onerror(request);
-				}
-			};
-		};
-
-		var GetSpineTexturePages = function (_atlas) {
-			var lines = _atlas.split('\n');
-			
-			// Array of texture page info
-			var textures = [];
-			// Current texture page
-			var current = undefined;
-			// If true then next line read is a filename
-			var checkFilename = true;
-	
-			var reSize = new RegExp(/^size\s*:\s*(\d+)\s*,\s*(\d+)$/);
-	
-			for (var i = 0; i < lines.length; ++i) {
-				var line = lines[i].trim();
-	
-				if (checkFilename) {
-					// Found texture name
-					if (current != undefined) {
-						textures.push(current);
-					}
-					current = { name: line };
-					checkFilename = false;
-				} else {
-					if (line == '') {
-						// Found texture page separator
-						checkFilename = true;
-					} else if (current != undefined) {
-						// Found texture size
-						var m = line.match(reSize);
-						if (m) {
-							current.width = parseInt(m[1]);
-							current.height = parseInt(m[2]);
-						}
-					}
-				}
-			}
-	
-			if (current != undefined) {
-				textures.push(current);
-			}
-	
-			return textures;
-		};
-
-		var atlasFilename = _filename.slice(0, -5) + '.atlas';
-		var atlas;
-		var textures;
-		var waitingForCallback = 2;
-
-		var tryCallback = function () {
-			if (--waitingForCallback == 0) {
-				var skeletonData = {
-					json: json,
-					atlas: atlas,
-					numTextures: textures.length,
-					textureSizes: textures,
-				};
-				pNewSpr.BuildSkeletonData2(skeletonData);
-				var size = pNewSpr.GetSkeletonSpriteSize((new yySkeletonInstance(pNewSpr.m_skeletonSprite)).m_skeleton);
-				if (size instanceof Array)
-				{
-					pNewSpr.width = size[0];
-					pNewSpr.height = size[1];
-				}
-
-				// Trigger async callback
-				var node = g_pASyncManager.Add(newindex, _filename, ASYNC_SPRITE, {});
-				node.m_Complete = true;
-				node.m_Status = ASYNC_STATUS_LOADED;
-			}
-		};
-
-		LoadFileContents(_filename, {
-			onload: function (_request) {
-				json = _request.responseText;
-				tryCallback();
-			},
-			onerror: tryCallback,
+		pNewSpr.LoadFromSpineAsync(_filename, function (err) {
+			var node = g_pASyncManager.Add(newindex, _filename, ASYNC_SPRITE, {});
+			node.m_Complete = true;
+			node.m_Status = err ? ASYNC_STATUS_ERROR : ASYNC_STATUS_LOADED;
 		});
-
-		LoadFileContents(atlasFilename, {
-			onload: function (_request) {
-				atlas = _request.responseText;
-				textures = GetSpineTexturePages(atlas);
-				tryCallback();
-			},
-			onerror: tryCallback,
-		});
-
 		return newindex;
 	}
 
