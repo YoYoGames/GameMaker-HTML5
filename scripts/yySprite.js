@@ -728,7 +728,7 @@ yySprite.prototype.LoadFromSpineAsync = function (_filename, _callback) {
 				numTextures: textures.length,
 				textureSizes: textures,
 			};
-			sprite.BuildSkeletonData(skeletonData, true);
+			sprite.BuildSkeletonData(skeletonData);
 			var size = sprite.GetSkeletonSpriteSize((new yySkeletonInstance(sprite.m_skeletonSprite)).m_skeleton);
 			if (size instanceof Array)
 			{
