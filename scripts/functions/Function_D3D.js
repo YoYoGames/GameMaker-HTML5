@@ -1893,7 +1893,7 @@ function WebGL_gpu_set_fog(_enable,_col,_start,_end)
     } // end if
 
     // Support arrays like the C++ runner
-    g_webGL.RSMan.SetRenderState(yyGL.RenderState_FogEnable, yyGetInt32(_enable) >= 0.5);
+    g_webGL.RSMan.SetRenderState(yyGL.RenderState_FogEnable, yyGetBool(_enable));
     g_webGL.RSMan.SetRenderState(yyGL.RenderState_FogColour, yyGetInt32(_col));
     g_webGL.RSMan.SetRenderState(yyGL.RenderState_FogStart, yyGetReal(_start));
     g_webGL.RSMan.SetRenderState(yyGL.RenderState_FogEnd, yyGetReal(_end));
