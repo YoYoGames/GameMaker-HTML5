@@ -665,6 +665,11 @@ yySprite.prototype.LoadFromSpineAsync = function (_filename, _callback) {
 			if (checkFilename) {
 				// Found texture name
 				if (current != undefined) {
+					if (current.width === undefined
+						|| current.height === undefined) {
+						// Size was not parsed!
+						return undefined;
+					}
 					textures.push(current);
 				}
 				current = { name: line };
@@ -685,6 +690,11 @@ yySprite.prototype.LoadFromSpineAsync = function (_filename, _callback) {
 		}
 
 		if (current != undefined) {
+			if (current.width === undefined
+				|| current.height === undefined) {
+				// Size was not parsed!
+				return undefined;
+			}
 			textures.push(current);
 		}
 
@@ -744,6 +754,10 @@ yySprite.prototype.LoadFromSpineAsync = function (_filename, _callback) {
 		if (!_err) {
 			atlas = _contents;
 			textures = getSpineTexturePages(atlas);
+			if (textures === undefined) {
+				tryCallback('Invalid atlas format!');
+				return;
+			}
 		}
 		tryCallback(_err);
 	});
