@@ -43,6 +43,9 @@ function __yy_convert_key( _key )
             else
                 _key = "__@@YYKey-" + JSON.stringify(_key);
             break;
+        case "function":
+            _key = "__@@YYKeyFunc-" + _key.name;
+            break;
         default:
             yyError( "Illegal key type for ds_map");
             break;
@@ -82,6 +85,11 @@ function __yy_from_key(_key)
             var buffer = _key.substring( 18 );
             _key = getABFromId(buffer);
         } // end if
+        else
+        if (_key.startsWith("__@@YYKeyFunc-")) {
+            var funcName = _key.substring( 14 );
+            _key = eval(funcName);
+        }
     } // end if
 
     return _key;
