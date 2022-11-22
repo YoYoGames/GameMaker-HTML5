@@ -429,6 +429,7 @@ function sprite_add_from_screen_RELEASE(_ind, _x, _y, _w, _h, _removeback, _smoo
 
 	pTPE.tp = Graphics_AddImage(singleimage);
 	pTPE.texture = g_Textures[pTPE.tp];
+	pTPE.texture.complete = true;
 
 	return _ind;
 }
@@ -524,6 +525,7 @@ function sprite_create_from_surface_RELEASE(_id, _x, _y, _w, _h, _removeback, _s
 
 	pTPE.tp = Graphics_AddImage(singleimage);
 	pTPE.texture = g_Textures[pTPE.tp];
+	pTPE.texture.complete = true;
 
     Graphics_SetupTPECaching(pTPE);
 
@@ -596,6 +598,8 @@ function sprite_add_from_surface_RELEASE(_ind, _id, _x, _y, _w, _h, _removeback,
 
 	pTPE.tp = Graphics_AddImage(singleimage);
 	pTPE.texture = g_Textures[pTPE.tp];
+	pTPE.texture.complete = true;
+
 
 	return _ind;
 }
@@ -696,6 +700,8 @@ function sprite_duplicate_RELEASE(_ind)
 		pTPE.x = 0;
 		pTPE.y = 0;
 		pTPE.texture = g_Textures[pTPE.tp];
+		pTPE.texture.complete = true;
+
 	}
 	return newindex;
 }
@@ -1003,6 +1009,7 @@ function sprite_merge(_dest, _src) {
 
 		pTPE.tp = Graphics_AddImage(singleimage);
 		pTPE.texture = g_Textures[pTPE.tp];
+		pTPE.texture.complete = true;
 
 		pDest.numb++;
 	}
