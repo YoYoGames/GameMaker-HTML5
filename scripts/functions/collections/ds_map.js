@@ -25,77 +25,6 @@ UniqueId.prototype.generateId = function(){
     return (++UniqueId.prototype._id).toString();
 };
 
-// Convert a JS object into something we can use as a key
-function __yy_convert_key( _key )
-{
-    switch( typeof(_key) ) {
-        case "undefined":
-        case "number":
-        case "string":
-        case "boolean":
-            break;
-        case "object":
-            if (_key instanceof Long)
-                _key = "__@@YYLong-" + _key.toString();
-            else
-            if (_key instanceof ArrayBuffer)
-                _key = "__@@YYArrayBuffer-" + getABId(_key);
-            else
-                _key = "__@@YYKey-" + json_stringify(_key);
-            break;
-        case "function":
-            _key = "__@@YYKeyFunc-" + _key.name;
-            break;
-        default:
-            yyError( "Illegal key type for ds_map");
-            break;
-    } // end switch
-    return _key;    
-} // end __yy_convert_key
-
-function getABId( _key )
-{
-    for (var l = 0; l < g_BufferStorage.pool.length; l++)
-    {
-        if (g_BufferStorage.pool[l].m_pRAWUnderlyingBuffer == _key) return l.toString();
-    }
-    return -1;
-}
-
-function getABFromId( _id )
-{
-    return buffer_get_address( Number.fromString( _id) );
-}
-
-// convert a key into a JS object we can return to the user
-function __yy_from_key(_key)
-{
-    if (typeof(_key) === "string" ) {
-        if (_key.startsWith("__@@YYKey-")) {
-            var json = _key.substring( 10 );
-            _key = JSON.parse(json);
-        } // end if
-        else
-        if (_key.startsWith("__@@YYLong-")) {
-            var long = _key.substring( 11 );
-            _key = Long.fromString(long);
-        } // end if
-        else
-        if (_key.startsWith("__@@YYArrayBuffer-")) {
-            var buffer = _key.substring( 18 );
-            _key = getABFromId(buffer);
-        } // end if
-        else
-        if (_key.startsWith("__@@YYKeyFunc-")) {
-            var funcName = _key.substring( 14 );
-            _key = eval(funcName);
-        }
-    } // end if
-
-    return _key;
-} // end __yy_from_key
-
-
 
 // #############################################################################################
 /// Function:<summary>
@@ -120,7 +49,7 @@ function yy_MapListContainer( _type,_obj ) {
 // #############################################################################################
 function ds_map_create() {
 
-	var pMap = {};
+	var pMap = new Map();
 	var id = g_ActiveMaps.Add( pMap );
 	return id;
 }
@@ -164,23 +93,22 @@ function ds_map_clear(_id) {
 	var pMap = g_ActiveMaps.Get( _id );
     if (pMap) {
         ds_map_destroy_children(pMap);
-    	var pVar = {};
-        g_ActiveMaps.Set( _id, pVar );
     }
 }
 
 function ds_map_destroy_children(_pMap) {
-    for (var k in _pMap) {
-        var v = _pMap[k];
-        if (v != null && v.Object !== undefined) switch (v.ObjType) {
+    _pMap.forEach( function( v, key, _pMap) {
+        if (v != null && v.Object !== undefined) 
+            switch (v.ObjType) {
             case MAP_TYPE:
                 ds_map_destroy(v.Object);
                 break;
             case LIST_TYPE:
                 ds_list_destroy(v.Object);
                 break;
-        }
-    }
+            } // end switch
+    });
+    _pMap.clear();
 }
 
 // #############################################################################################
@@ -200,13 +128,10 @@ function ds_map_copy(_dest,_source) {
 	var pSrc = g_ActiveMaps.Get(yyGetInt32(_source));
 	if (pDest && pSrc)
 	{
-		pDest = {};
-		for (var v in pSrc)
-		{
-		    if (pSrc.hasOwnProperty(v)) {
-			    pDest[v] = pSrc[v];
-			}
-		}
+		pDest = new Map();
+        pSrc.forEach( function(v, key, pSrc) {
+			 pDest.set( key, v);
+		});
         g_ActiveMaps.Set(_dest, pDest);
     }
 }
@@ -226,14 +151,7 @@ function ds_map_size(_id) {
 
     var pMap = g_ActiveMaps.Get(yyGetInt32(_id));
     if( pMap) {
-        var count=0;
-        for (var i in pMap) {
-                     
-            if (pMap.hasOwnProperty(i)) {
-                count++;
-            }
-        }
-        return count;
+        return pMap.length;
     }
     return 0;
 }
@@ -253,12 +171,7 @@ function ds_map_empty(_id) {
 
     var pMap = g_ActiveMaps.Get(yyGetInt32(_id));
     if( pMap) {
-        for (var i in pMap) {
-            if (pMap.hasOwnProperty(i)) {
-                return false;
-            }
-        }
-        return true;
+        return pMap.length == 0;
     }
     return false;
 }
@@ -277,7 +190,7 @@ function ds_map_empty(_id) {
 // #############################################################################################
 function ds_map_replace(_id, _key, _val) {
 
-    _key = __yy_convert_key(_key);
+    //_key = __yy_convert_key(_key);
     var pMap = g_ActiveMaps.Get(yyGetInt32(_id));
     if (pMap) pMap[_key] = _val;
 }
@@ -304,13 +217,10 @@ function ds_map_replace_list(_id, _key, _val) {
 // #############################################################################################
 function ds_map_delete(_id, _key) {
 
-    _key = __yy_convert_key(_key);
+    //_key = __yy_convert_key(_key);
     var pMap = g_ActiveMaps.Get(yyGetInt32(_id));
     if (pMap) {
-        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete
-        // this works better than setting to undefined because it removes the field completely,
-        // so hasOwnProperty becomes a reliable indication of whether a pair exists.
-        delete pMap[_key];
+        pMap.delete( _key );
     }
 }
 
@@ -327,10 +237,10 @@ function ds_map_delete(_id, _key) {
 // #############################################################################################
 function ds_map_exists(_id, _key) {
 
-    _key = __yy_convert_key(_key);
+    //_key = __yy_convert_key(_key);
     var pMap = g_ActiveMaps.Get(yyGetInt32(_id));
     if (pMap) {
-        return pMap.hasOwnProperty(_key);
+        return pMap.has(_key);
     }
     return false;
 }
@@ -349,12 +259,10 @@ function ds_map_exists(_id, _key) {
 // #############################################################################################
 function ds_map_add(_id,_key,_val) {
 
-    _key = __yy_convert_key(_key);
+    //_key = __yy_convert_key(_key);
     var pMap = g_ActiveMaps.Get(yyGetInt32(_id));
     if (pMap) {
-        if (pMap.hasOwnProperty(_key)) {
-            // yyError("Error: KEY(" + _key + ") already present in ds_map[" + _id + "], you can not add a key twice.");
-        } else pMap[_key] = _val;
+        pMap.set( _key, _val)
     }
 }
 
@@ -382,10 +290,10 @@ function ds_map_add_list(_id, _key, _val) {
 // #############################################################################################
 function ds_map_set(_id,_key,_val) {
 
-    _key = __yy_convert_key(_key);
+    //_key = __yy_convert_key(_key);
     var pMap = g_ActiveMaps.Get(yyGetInt32(_id));
     if (pMap) {
-        pMap[_key] = _val;        
+        pMap.set( _key, _val );
     }
 }
 
@@ -395,10 +303,10 @@ function ds_map_set(_id,_key,_val) {
 // #############################################################################################
 function ds_map_set_pre(_id,_key,_val) {
 
-    _key = __yy_convert_key(_key);
+    //_key = __yy_convert_key(_key);
     var pMap = g_ActiveMaps.Get(yyGetInt32(_id));
     if (pMap) {
-        pMap[_key] = _val;        
+        pMap.set( _key, _val );;        
     }
     return _val;
 }
@@ -409,12 +317,12 @@ function ds_map_set_pre(_id,_key,_val) {
 // #############################################################################################
 function ds_map_set_post(_id,_key,_val) {
 
-    _key = __yy_convert_key(_key);
+    //_key = __yy_convert_key(_key);
     var ret = _val;
     var pMap = g_ActiveMaps.Get(yyGetInt32(_id));
     if (pMap) {
         ret = pMap[_key];
-        pMap[_key] = _val;        
+        pMap.set( _key, _val );;        
     }
     return ret;
 }
@@ -437,7 +345,7 @@ function ds_map_find_value(_id, _key) {
         yyError("Error: " + _id + " is not a valid map reference");
         return undefined;
     }
-    _key = __yy_convert_key(_key);
+    //_key = __yy_convert_key(_key);
 
     var pMap = g_ActiveMaps.Get(yyGetInt32(_id));
     if( pMap){
@@ -496,7 +404,7 @@ function ds_map_keys_to_array(_id, _array) {
     if( pMap){
         for( var a in pMap) {
             if (pMap.hasOwnProperty(a)) {
-                ret.push( __yy_from_key(a) );
+                ret.push( a );
             } // end if
         } // end for
     } // end if
@@ -510,7 +418,7 @@ function ds_map_is_map(_id, _key) {
         yyError("Error: " + _id + " is not a valid map reference");
         return undefined;
     }
-    _key = __yy_convert_key(_key);
+    //_key = __yy_convert_key(_key);
 
     var pMap = g_ActiveMaps.Get(yyGetInt32(_id));
     if( pMap){
@@ -528,7 +436,7 @@ function ds_map_is_list(_id, _key) {
         yyError("Error: " + _id + " is not a valid map reference");
         return undefined;
     }
-    _key = __yy_convert_key(_key);
+    //_key = __yy_convert_key(_key);
 
     var pMap = g_ActiveMaps.Get(yyGetInt32(_id));
     if( pMap){
@@ -556,7 +464,7 @@ function ds_map_is_list(_id, _key) {
 // #############################################################################################
 function ds_map_find_previous(_id,_key) {
 
-    _key = __yy_convert_key(_key);
+    //_key = __yy_convert_key(_key);
 	var prev = undefined;
 	var pMap = g_ActiveMaps.Get(yyGetInt32(_id));
     for (var item in pMap) {
@@ -564,7 +472,7 @@ function ds_map_find_previous(_id,_key) {
         if (pMap.hasOwnProperty(item)) {
 
             if (item == _key) {
-                return __yy_from_key(prev);
+                return prev;
             }            
             prev = item;
         }
@@ -585,7 +493,7 @@ function ds_map_find_previous(_id,_key) {
 // #############################################################################################
 function ds_map_find_next(_id,_key) {
 
-    _key = __yy_convert_key(_key);
+    //_key = __yy_convert_key(_key);
     var next = false;
     var pMap = g_ActiveMaps.Get(yyGetInt32(_id));
     for (var item in pMap) {
@@ -593,7 +501,7 @@ function ds_map_find_next(_id,_key) {
         if (pMap.hasOwnProperty(item)) {
         
             if (next) {
-                return __yy_from_key(item);
+                return item;
             }        
             if (item == _key) {
                 next = true;
@@ -639,7 +547,7 @@ function ds_map_find_first(_id) {
     for (var item in pMap) {
             
         if (pMap.hasOwnProperty(item)) {
-            return __yy_from_key(item);
+            return item;
         }
     }
     return undefined;
@@ -664,7 +572,7 @@ function ds_map_find_last(_id) {
     for (var item in pMap) {
             
         if (pMap.hasOwnProperty(item)) {
-            prev = __yy_from_key(item);
+            prev = item;
         }
     }
     return prev;
