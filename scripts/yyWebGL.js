@@ -4017,6 +4017,7 @@ function WebGL_background_create_from_surface_RELEASE(_id,_x,_y,_w,_h,_removebac
         pTPE.texture.webgl_textureid = glTexture;
         pTPE.texture.m_Width = singleimage.width;
         pTPE.texture.m_Height = singleimage.height;
+        pTPE.texture.complete = true;
             
         var pNew = new yyBackgroundImage();
         pNew.TPEntry = pTPE;
@@ -4083,6 +4084,7 @@ function WebGL_background_create_from_screen_RELEASE(_x,_y,_w,_h,_removeback,_sm
     pTPE.texture.height = _h;
     pTPE.texture.m_Width = _w;
     pTPE.texture.m_Height = _h;    
+    pTPE.texture.complete = true;
         
     var pNew = new yyBackgroundImage();
     pNew.TPEntry = pTPE;
@@ -4148,6 +4150,7 @@ function WebGL_sprite_create_from_surface_RELEASE(_id, _x, _y, _w, _h, _removeba
         pTPE.texture.webgl_textureid = glTexture;
         pTPE.texture.m_Width = singleimage.width;
         pTPE.texture.m_Height = singleimage.height;
+        pTPE.texture.complete = true;
 
 	    // Create a new sprite
         var pNewSpr = new yySprite();                
@@ -4241,6 +4244,7 @@ function WebGL_sprite_add_from_surface_RELEASE(_ind, _id, _x, _y, _w, _h, _remov
         pTPE.texture.webgl_textureid = glTexture;
         pTPE.texture.m_Width = singleimage.width;
         pTPE.texture.m_Height = singleimage.height;
+        pTPE.texture.complete = true;
         
         // Get the sprite being added to
         var pSpr = g_pSpriteManager.Get(_ind);

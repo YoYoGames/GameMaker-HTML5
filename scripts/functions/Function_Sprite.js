@@ -429,6 +429,7 @@ function sprite_add_from_screen_RELEASE(_ind, _x, _y, _w, _h, _removeback, _smoo
 
 	pTPE.tp = Graphics_AddImage(singleimage);
 	pTPE.texture = g_Textures[pTPE.tp];
+	pTPE.texture.complete = true;
 
 	return _ind;
 }
@@ -524,6 +525,7 @@ function sprite_create_from_surface_RELEASE(_id, _x, _y, _w, _h, _removeback, _s
 
 	pTPE.tp = Graphics_AddImage(singleimage);
 	pTPE.texture = g_Textures[pTPE.tp];
+	pTPE.texture.complete = true;
 
     Graphics_SetupTPECaching(pTPE);
 
@@ -596,6 +598,8 @@ function sprite_add_from_surface_RELEASE(_ind, _id, _x, _y, _w, _h, _removeback,
 
 	pTPE.tp = Graphics_AddImage(singleimage);
 	pTPE.texture = g_Textures[pTPE.tp];
+	pTPE.texture.complete = true;
+
 
 	return _ind;
 }
@@ -696,6 +700,8 @@ function sprite_duplicate_RELEASE(_ind)
 		pTPE.x = 0;
 		pTPE.y = 0;
 		pTPE.texture = g_Textures[pTPE.tp];
+		pTPE.texture.complete = true;
+
 	}
 	return newindex;
 }
@@ -747,9 +753,26 @@ function sprite_add(_filename, _imgnumb, _removeback, _smooth, _xorig, _yorig)
 
 	// Create a new sprite
 	var pNewSpr = new yySprite();
-	var newindex = g_pSpriteManager.AddSprite(pNewSpr);
+	pNewSpr.m_LoadedFromIncludedFiles = true;
 
 	if (_filename.substring(0, 5) == "file:") return -1;
+	pNewSpr.pName = _filename;
+
+	var newindex = g_pSpriteManager.AddSprite(pNewSpr);
+
+	////////////////////////////////////////////////////////////////////////////
+	// Spine
+	if (_filename.endsWith('.json')) {
+		pNewSpr.LoadFromSpineAsync(_filename, function (err) {
+			var node = g_pASyncManager.Add(newindex, _filename, ASYNC_SPRITE, {});
+			node.m_Complete = true;
+			node.m_Status = err ? ASYNC_STATUS_ERROR : ASYNC_STATUS_LOADED;
+		});
+		return newindex;
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	// JPEGs, PNGs etc.
 	var pFileName = _filename;
 
 	var image = Graphics_AddTexture(pFileName);
@@ -758,7 +781,6 @@ function sprite_add(_filename, _imgnumb, _removeback, _smooth, _xorig, _yorig)
 
 	g_pASyncManager.Add(newindex, _filename, ASYNC_SPRITE, g_Textures[image]);
 
-	pNewSpr.pName = _filename;
 	pNewSpr.width = -1;
 	pNewSpr.height = -1;
 	pNewSpr.bbox = new YYRECT();
@@ -855,10 +877,24 @@ function sprite_replace(_ind, _filename, _imgnumb, _removeback, _smooth, _xorig,
 
 	// Create a new sprite
 	var pNewSpr = g_pSpriteManager.Get(_ind);
+	pNewSpr.m_LoadedFromIncludedFiles = true;
 
 	if (_filename.substring(0, 5) == "file:") return -1;
 	var pFileName = _filename;
 
+	////////////////////////////////////////////////////////////////////////////
+	// Spine
+	if (_filename.endsWith('.json')) {
+		pNewSpr.LoadFromSpineAsync(_filename, function (err) {
+			var node = g_pASyncManager.Add(_ind, _filename, ASYNC_SPRITE, {});
+			node.m_Complete = true;
+			node.m_Status = err ? ASYNC_STATUS_ERROR : ASYNC_STATUS_LOADED;
+		});
+		return _ind;
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	// JPEGs, PNGs etc.
 	var image = Graphics_AddTexture(pFileName);
 	g_Textures[image].onload = ASync_ImageLoad_Callback;
 	g_Textures[image].onerror = ASync_ImageLoad_Error_Callback;
@@ -973,6 +1009,7 @@ function sprite_merge(_dest, _src) {
 
 		pTPE.tp = Graphics_AddImage(singleimage);
 		pTPE.texture = g_Textures[pTPE.tp];
+		pTPE.texture.complete = true;
 
 		pDest.numb++;
 	}

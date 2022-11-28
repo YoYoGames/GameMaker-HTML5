@@ -283,20 +283,21 @@ function yyGamepadManager() {
     */
     // #############################################################################################
     /// Function:<summary>
-    ///             Private: checks for the presence of the requisite functionality
+    ///             Private: Checks for the presence of the requisite functionality and runs it.
+    ///             We must do so to prevent crashes on pages served with the "Feature-Policy: gamepad 'none'" header.
     ///          </summary>
     // #############################################################################################
-    function GamepadsSupported() {    
-        return !!navigator["getGamepads"] || !!navigator["webkitGetGamepads"] || !!navigator["webkitGamepads"];
+    function GamepadsSupported() {
+
+        var api = null;
+        try {
+            api = GetGamepads();
+        } catch(err) {
+            console.log("Failed to initialize the Gamepad API: " + err);
+        }
+        return(api !== null);
     }
-    
-    // Private data
-    var m_supported = GamepadsSupported() 
-        ? GAMEPAD_API_POLLING_SUPPORT 
-        : GAMEPAD_API_NOT_SUPPORTED;
-    var m_gamePads = [];
-               
-    
+
     // #############################################################################################
     /// Function:<summary>
     ///             Private: Gets the devices from the Gamepad support
@@ -309,7 +310,13 @@ function yyGamepadManager() {
         if (navigator["webkitGamepads"])       { return navigator["webkitGamepads"](); }    
         return null;
     }
-    
+
+    // Private data
+    var m_supported = GamepadsSupported() 
+        ? GAMEPAD_API_POLLING_SUPPORT 
+        : GAMEPAD_API_NOT_SUPPORTED;
+    var m_gamePads = [];
+
     // #############################################################################################
     /// Function:<summary>
     ///             Private: Polls the html5 support for gamepads

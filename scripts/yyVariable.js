@@ -682,6 +682,64 @@ function array_sort( _array, _typeofSort )
     } // end else
 } // end array_sort
 
+function array_shuffle( _array )
+{
+    var ret = undefined;
+    if (Array.isArray(_array)) {
+
+     ret = _array.slice();        
+     var currentIndex = ret.length, temporaryValue, randomIndex;
+
+      // While there remain elements to shuffle...
+      while (0 !== currentIndex) {
+
+        // Pick a remaining element...
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+
+        // And swap it with the current element.
+        temporaryValue = ret[currentIndex];
+        ret[currentIndex] = ret[randomIndex];
+        ret[randomIndex] = temporaryValue;
+      }
+
+
+    } // end if
+    else {
+        yyError( "argument0 is not an array");
+    } // end else
+    return ret;
+} // end array_shuffle
+
+function array_shuffle_ext( _array )
+{
+    var ret = undefined;
+    if (Array.isArray(_array)) {
+
+     ret = _array;        
+     var currentIndex = ret.length, temporaryValue, randomIndex;
+
+      // While there remain elements to shuffle...
+      while (0 !== currentIndex) {
+
+        // Pick a remaining element...
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+
+        // And swap it with the current element.
+        temporaryValue = ret[currentIndex];
+        ret[currentIndex] = ret[randomIndex];
+        ret[randomIndex] = temporaryValue;
+      }
+
+
+    } // end if
+    else {
+        yyError( "argument0 is not an array");
+    } // end else
+    return ret;
+} // end array_shuffle_ext
+
 
 function array_first(_array) {
 
