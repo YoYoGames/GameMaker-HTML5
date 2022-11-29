@@ -1244,6 +1244,34 @@ function is_infinity(_x) {
     return !Number.isFinite(_x) && !Number.isNaN(_x);
 }
 
+function YYIsInstanceof(_x,_v)
+{
+    var ret = false;
+    if ((typeof(_x) == "object") && (_x.__yyIsGMLObject === true)) {
+        var func = undefined;
+        var funcId = yyGetInt32(_v);
+        if (funcId >= 100000)
+            func = JSON_game.Scripts[ funcId - 100000];
+
+        if (func) {
+
+            var c = Object.getPrototypeOf(_x);
+            var funcProto  = func.prototype;
+            while( c && !ret ) {
+                if (c === funcProto) {
+                    ret = true;
+                    break;
+                } // end if
+
+                c =Object.getPrototypeOf(c);
+            } // end while
+
+        } // end if
+    } // end if
+
+    return ret;
+}
+
 function YYInstanceof(_x) {
     var type = typeof(_x);
     var ret = undefined;
