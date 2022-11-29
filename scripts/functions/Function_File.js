@@ -1197,9 +1197,8 @@ function _json_encode_map(_map) {
     var ret = {};
     var pMap = g_ActiveMaps.Get(_map);
     if (pMap) {
-        for (var i in pMap) {
-            if (!pMap.hasOwnProperty(i)) continue;
-            if (pMap[i] !== undefined) ret[i] = _json_encode_value( pMap[i] );
+        for (const [key, val] of pMap) {
+            ret[ key.toString() ] = _json_encode_value( val );
         } // end for
     } // end if
 
