@@ -10,7 +10,6 @@
 //
 // **********************************************************************************************************************
 
-﻿
 var g_VideoUserEnded = false; //For some reason I can't figure this from the video player...
 
 function video_get_format() {

@@ -134,7 +134,7 @@ function audio_init()
     g_AudioMainVolumeNode = new GainNode(g_WebAudioContext);
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
 
-    g_WebAudioContext.audioWorklet.addModule("html5game/sound/worklets/audio-worklet.js")
+    g_WebAudioContext.audioWorklet.addModule(g_pGMFile.Options.GameDir + "/sound/worklets/audio-worklet.js")
     .then(() => {
         g_AudioBusMain = new AudioBus();
         g_AudioBusMain.connectOutput(g_AudioMainVolumeNode);
@@ -575,8 +575,11 @@ class AudioPlaybackProps
         this.loop = yyGetReal(_loop);
 
         this.gain = Math.max(0, _gain);
-        this.offset = Math.max(0, _offset);
         this.pitch = Math.max(0, _pitch);
+        this.offset = _offset;
+
+        if (this.offset !== AudioPropsCalc.not_specified)
+            this.offset = Math.max(0, _offset);
     }
 
     Invalid()
