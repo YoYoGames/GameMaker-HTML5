@@ -333,10 +333,8 @@ function clickable_set_style(_button, _styleMap) {
         var butt = div1.firstChild; 
         if (butt) {
         
-            for (var key in pMap) {
-                if (!pMap.hasOwnProperty(key)) continue;
-                
-                butt.style[key] = pMap[key];
+            for (const [key, val] of pMap) {                
+                butt.style[key] = val;
             }
         }        
     }
