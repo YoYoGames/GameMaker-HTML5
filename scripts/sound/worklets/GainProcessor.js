@@ -1,4 +1,4 @@
-class GainProcessor extends KillableWorkletProcessor
+class GainProcessor extends AudioWorkletProcessor
 {
     static get parameterDescriptors() 
     {
@@ -6,6 +6,12 @@ class GainProcessor extends KillableWorkletProcessor
             { name: "bypass", automationRate: "a-rate", defaultValue: 0, minValue: 0, maxValue: 1 },
             { name: "gain",   automationRate: "a-rate", defaultValue: 1, minValue: 0 }
         ];
+    }
+
+    constructor() 
+    {
+        super();
+        this.makeMortal();
     }
 
     process(inputs, outputs, parameters) 

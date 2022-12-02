@@ -1,4 +1,4 @@
-class BitcrusherProcessor extends KillableWorkletProcessor
+class BitcrusherProcessor extends AudioWorkletProcessor
 {
     static get parameterDescriptors() 
     {
@@ -34,6 +34,7 @@ class BitcrusherProcessor extends KillableWorkletProcessor
     constructor(_options)
     {
         super();
+        this.makeMortal();
 
         const maxChannels = _options.outputChannelCount[0];
 
