@@ -121,30 +121,35 @@ function audio_reinit()
 }
 
 
-function audio_init()
+function Audio_Init()
 {
-    g_AudioEffectsFeatureEnabled = IsFeatureEnabled("audio-fx");
-
-    if(g_AudioModel != Audio_WebAudio) {
+    if (g_AudioModel !== Audio_WebAudio)
         return;
-    }
+
+    g_WebAudioContext = new AudioContext();
+    g_WebAudioContext.addEventListener("statechange", Audio_WebAudioContextOnStateChanged);
 
     g_HandleStreamedAudioAsUnstreamed = ( g_OSPlatform == BROWSER_IOS );
 
     g_AudioMainVolumeNode = new GainNode(g_WebAudioContext);
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
 
-    g_WebAudioContext.audioWorklet.addModule(g_pGMFile.Options.GameDir + "/sound/worklets/audio-worklet.js")
-    .then(() => {
-        g_AudioBusMain = new AudioBus();
+    if (g_OSBrowser == BROWSER_SAFARI_MOBILE) {
+        g_AudioBusMain = new DummyAudioBus();
         g_AudioBusMain.connectOutput(g_AudioMainVolumeNode);
-
-        if (g_AudioEffectsFeatureEnabled)
+        g_pBuiltIn.audio_bus_main = g_AudioBusMain;
+    }
+    else {
+        g_WebAudioContext.audioWorklet.addModule(g_pGMFile.Options.GameDir + "/sound/worklets/audio-worklet.js")
+        .then(() => {
+            g_AudioBusMain = new AudioBus();
+            g_AudioBusMain.connectOutput(g_AudioMainVolumeNode);
             g_pBuiltIn.audio_bus_main = g_AudioBusMain;
-    }).catch((_err) => {
-        console.error("Failed to load audio worklets => " + _err);
-    });
-
+        }).catch((_err) => {
+            console.error("Failed to load audio worklets => " + _err);
+        });
+    }
+    
     audio_falloff_set_model(DistanceModels.AUDIO_FALLOFF_NONE);
 
     //visibiliy event /property varies between browsers...ugh
@@ -3960,10 +3965,11 @@ function audio_stop_recording(_deviceNum)
 
 function audio_bus_create()
 {
-    if (!g_AudioEffectsFeatureEnabled)
-    {
-        throw new Error("Audio effects are disabled");
-        return undefined;
+    if (g_OSBrowser == BROWSER_SAFARI_MOBILE) {
+        const bus = new DummyAudioBus();
+        g_AudioBusMain.connectInput(bus.outputNode);
+
+        return bus;
     }
 
     const bus = new AudioBus();
@@ -3974,23 +3980,11 @@ function audio_bus_create()
 
 function audio_effect_create(_type)
 {
-    if (!g_AudioEffectsFeatureEnabled)
-    {
-        throw new Error("Audio effects are disabled");
-        return undefined;
-    }
-
     return AudioEffectStruct.Create(_type);
 }
 
 function audio_emitter_bus(_emitterIdx, _bus)
 {
-    if (!g_AudioEffectsFeatureEnabled)
-    {
-        throw new Error("Audio effects are disabled");
-        return;
-    }
-
     const emitter = audio_emitters[yyGetInt32(_emitterIdx)];
 
     if (emitter === undefined)
@@ -4003,12 +3997,6 @@ function audio_emitter_bus(_emitterIdx, _bus)
 
 function audio_emitter_get_bus(_emitterIdx)
 {
-    if (!g_AudioEffectsFeatureEnabled)
-    {
-        throw new Error("Audio effects are disabled");
-        return undefined;
-    }
-
     const emitter = audio_emitters[yyGetInt32(_emitterIdx)];
 
     if (emitter === undefined)
