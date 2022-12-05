@@ -996,7 +996,7 @@ yySprite.prototype.DrawSimple = function (_sub_image, _x, _y, _alpha) {
 
 	var cullRadius  = this.cullRadius;
 
-	if (SphereIsVisible(new Vector3(_x, _y, 0.0), cullRadius))
+	if (SphereIsVisible(new Vector3(_x, _y, GR_Depth), cullRadius))
 	{
 		_sub_image = (~ ~_sub_image) % this.numb;
 		if (_sub_image < 0) _sub_image = _sub_image + this.numb;
@@ -1074,7 +1074,7 @@ yySprite.prototype.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _col
 		cullRadius = ycullRadius;
 	}
 
-	if (SphereIsVisible(new Vector3(_x, _y, 0.0), cullRadius))
+	if (SphereIsVisible(new Vector3(_x, _y, GR_Depth), cullRadius))
 	{
 		// Index wraps..
 		_ind = (~ ~_ind) % this.numb;
