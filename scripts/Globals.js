@@ -1628,7 +1628,7 @@ function BrowserDetect() {
 		this.browser = this.searchString(this.dataBrowser) || "An unknown browser";
 		this.browser_version = this.GetBrowserVersion();
 		this.version = this.searchVersion(navigator.userAgent) || this.searchVersion(navigator.appVersion) || "an unknown version";
-		this.OS = this.searchString(this.dataOS) || "an unknown OS";
+		this.OS = this.GetOS(this.browser);
 		this.os_version = this.GetOSVersion();		
 	},
 	
@@ -1647,6 +1647,16 @@ function BrowserDetect() {
         return -1;
 	},
 
+	this.GetOS = function(_browser) {
+		const os = this.searchString(this.dataOS) || "an unknown OS";
+
+		// macOS and iPadOS have identical userAgent strings on Safari
+		if (_browser === "Safari" && os === "Mac" && navigator["maxTouchPoints"] && navigator["maxTouchPoints"] > 1)
+			return "iPad";
+
+		return os;
+	},
+	
     /** @this {BrowserDetect} */	
 	this.GetOSVersion= function () {
 		
