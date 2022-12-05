@@ -18,7 +18,7 @@ function AudioBus() {
 		set: (_target, _property, _value, _receiver) => {
 			const propAsInt = parseInt(_property);
 
-			if (this.isNodeIndex(propAsInt))
+			if (AudioBus.isNodeIndex(propAsInt))
 				this.handleConnections(propAsInt, this.handleValue(_value));
 			
 			_target[_property] = _value;
@@ -137,10 +137,81 @@ AudioBus.prototype.handleValue = function(_value)
 	throw new Error("Value must be Struct.AudioEffect or undefined");
 };
 
-AudioBus.prototype.isNodeIndex = function(_prop)
+AudioBus.isNodeIndex = function(_prop)
 {
 	if (_prop >= 0 && _prop < AudioBus.NUM_EFFECT_SLOTS)
 		return true;
 
 	return false;
+};
+
+function DummyAudioBus() {
+	this.outputNode = new GainNode(g_WebAudioContext);
+
+	this.bypass = false;
+	this.gain = 1.0;
+	this.effects = Array(AudioBus.NUM_EFFECT_SLOTS).fill(undefined);
+
+	this.proxy = new Proxy(this.effects, {
+		set: (_target, _property, _value, _receiver) => {
+			const propAsInt = parseInt(_property);
+
+			if (AudioBus.isNodeIndex(propAsInt))
+				_value = this.handleValue(_value);
+			
+			_target[_property] = _value;
+		}
+	});
+
+	Object.defineProperties(this, {
+		gmlbypass: {
+			enumerable: true,
+			get: () => {
+				return this.bypass;
+			},
+			set: (_state) => {
+				this.bypass = yyGetBool(_state);
+			}
+		},        
+		gmlgain: {
+			enumerable: true,
+			get: () => {
+				return this.gain; 
+			},
+			set: (_gain) => {
+				this.gain = max(0.0, _gain);
+
+				const gain = this.outputNode.gain;
+				gain.setTargetAtTime(this.gain, 0, AudioEffect.PARAM_TIME_CONSTANT);
+			}
+		},
+		gmleffects: {
+			enumerable: true,
+			get: () => {
+				return this.proxy;
+			},
+			set: (_effects) => {}
+		}
+	});
+}
+
+DummyAudioBus.prototype.connectInput = function(_source, _outputIndex, _inputIndex)
+{
+	_source.connect(this.outputNode);
+};
+
+DummyAudioBus.prototype.connectOutput = function(_destination, _outputIndex, _inputIndex)
+{
+	this.outputNode.connect(_destination, _outputIndex, _inputIndex);
+};
+
+DummyAudioBus.prototype.handleValue = function(_value)
+{
+	if (_value instanceof AudioEffectStruct)
+		return _value;
+
+	if (_value === undefined)
+		return _value;
+
+	throw new Error("Value must be Struct.AudioEffect or undefined");
 };
