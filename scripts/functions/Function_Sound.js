@@ -3991,6 +3991,11 @@ function audio_emitter_bus(_emitterIdx, _bus)
     if (emitter === undefined)
         return;
 
+    const busType = g_UseDummyAudioBus ? DummyAudioBus : AudioBus;
+
+    if (!(_bus instanceof busType))
+        yyError("audio_emitter_bus() - argument 'bus' should be a Struct.AudioBus");
+
     emitter.gainnode.disconnect();
     _bus.connectInput(emitter.gainnode);
     emitter.bus = _bus;
@@ -4004,4 +4009,21 @@ function audio_emitter_get_bus(_emitterIdx)
         return undefined;
 
     return emitter.bus;
+}
+
+function audio_bus_get_emitters(_bus)
+{
+    const busType = g_UseDummyAudioBus ? DummyAudioBus : AudioBus;
+
+    if (!(_bus instanceof busType))
+        yyError("audio_bus_get_emitters() - argument 'bus' should be a Struct.AudioBus");
+
+    const emitterIds = [];
+
+    for (const id in audio_emitters) {
+        if (audio_emitters[id].bus === _bus)
+            emitterIds.push(Number(id));
+    }
+
+    return emitterIds;
 }
