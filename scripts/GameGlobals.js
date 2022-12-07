@@ -18,4 +18,5 @@
 
 function    yyGameGlobals()
 {
+	this.__type = "global";
 }

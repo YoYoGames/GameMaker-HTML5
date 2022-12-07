@@ -1,4 +1,4 @@
-class DelayProcessor extends KillableWorkletProcessor
+class DelayProcessor extends AudioWorkletProcessor
 {
     static MAX_DELAY_TIME = 5; // seconds
 
@@ -15,6 +15,7 @@ class DelayProcessor extends KillableWorkletProcessor
     constructor(_options)
     {
         super();
+        this.makeMortal();
 
         const maxChannels = _options.outputChannelCount[0];
 

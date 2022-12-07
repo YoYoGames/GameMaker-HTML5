@@ -44,6 +44,7 @@ function InitAboyne()
 	g_pBuiltIn.infinity = Number.POSITIVE_INFINITY;	
 	
 	Graphics_Init(canvas);
+	Audio_Init(); 
 
     g_pInstanceManager = new yyInstanceManager();
 	g_pObjectManager = new yyObjectManager();

@@ -1197,9 +1197,8 @@ function _json_encode_map(_map) {
     var ret = {};
     var pMap = g_ActiveMaps.Get(_map);
     if (pMap) {
-        for (var i in pMap) {
-            if (!pMap.hasOwnProperty(i)) continue;
-            if (pMap[i] !== undefined) ret[i] = _json_encode_value( pMap[i] );
+        for (const [key, val] of pMap) {
+            ret[ key.toString() ] = _json_encode_value( val );
         } // end for
     } // end if
 
@@ -1211,6 +1210,23 @@ function json_encode(_map) {
     var obj = _json_encode_map(yyGetInt32(_map));
 
     return JSON.stringify(obj);
+}
+
+var g_STRING_VISITED_LIST = new Map();
+
+function STRING_HasBeenVisited( _v )
+{
+	return g_STRING_VISITED_LIST.has(_v);
+} // end STRING_HasBeenVisited
+
+function STRING_AddVisited( _v )
+{
+	g_STRING_VISITED_LIST.set( _v, _v);
+}
+
+function STRING_RemoveVisited( _v )
+{
+	g_STRING_VISITED_LIST.delete(_v);
 }
 
 function json_stringify_value(_v)
@@ -1234,16 +1250,21 @@ function json_stringify_value(_v)
         if (_v instanceof Long) {
             return _v.toNumber();
         }
-        else if (_v instanceof Array) {
+        else if (_v instanceof Array  && !STRING_HasBeenVisited(_v)) {
+        	STRING_AddVisited(_v);
             var ret = [];
             for(var i = 0; i < _v.length; i++)
             {
                 ret.push(json_stringify_value(_v[i]));
             }
+            STRING_RemoveVisited(_v);
             return ret;
         } // end if
-        else if (_v.__yyIsGMLObject) {
+        else if (_v.__yyIsGMLObject && !STRING_HasBeenVisited(_v)) {
+
+        	STRING_AddVisited(_v);
             var ret = {};
+
             for (var n in _v) {
                 if (_v.hasOwnProperty(n)) {
 
@@ -1268,8 +1289,12 @@ function json_stringify_value(_v)
                     } // end if
                 } // end if
             } // end for
+            STRING_RemoveVisited(_v);
             return ret;
         } // end else
+        else  if (STRING_HasBeenVisited(_v)) {
+        	return "Cycle found"
+        }
     } // end else
     return undefined;
 }
