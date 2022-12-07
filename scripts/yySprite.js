@@ -100,12 +100,120 @@ function    yySprite()
 	this.sequence = null;						    // If present, we use sequence keyframe data for frame timing
 	this.nineslicedata = null;
 	this.m_LoadedFromChunk = false;
+	this.m_LoadedFromIncludedFiles = false;
 }
 yySprite.prototype.GetCollisionChecking = function () { return this.colcheck; };
 yySprite.prototype.GetXOrigin = function () { return this.xOrigin; };
 yySprite.prototype.GetYOrigin = function () { return this.yOrigin; };
 yySprite.prototype.GetBoundingBox = function () { return this.bbox; };
 yySprite.prototype.GetCount = function () { return this.numb; };
+
+/** Truncates a floating point value into an integer. */
+var __floatToInt = function (x) { return ~~x; };
+
+/**
+ * @param {spine.Skeleton} _skeleton
+ *
+ * @returns {[width: Number, height: Number]?}
+ */
+yySprite.prototype.GetSkeletonSpriteSize = function (_skeleton)
+{
+	var bounds = new YYRECT();
+
+	_skeleton.updateWorldTransform();
+
+	if (this.GetSkeletonBounds(_skeleton, bounds))
+	{
+		var width  = __floatToInt(bounds.right - bounds.left + 0.5);
+		var height = __floatToInt(bounds.bottom - bounds.top + 0.5);
+		return [width, height];
+	}
+
+	var skins = _skeleton.data.skins;
+	for (var i = 0; i < skins.length; ++i)
+	{
+		_skeleton.setSkin(skins[i]);
+		_skeleton.updateWorldTransform();
+
+		if (this.GetSkeletonBounds(_skeleton, bounds))
+		{
+			var width  = __floatToInt(bounds.right - bounds.left + 0.5);
+			var height = __floatToInt(bounds.bottom - bounds.top + 0.5);
+			return [width, height];
+		}
+	}
+
+	return null;
+};
+
+/**
+ * @param {spine.Skeleton} _skeleton
+ * @param {YYRECT} _bounds
+ *
+ * @returns {Boolean}
+ */
+yySprite.prototype.GetSkeletonBounds = function (_skeleton, _bounds)
+{
+	var retval = false;
+
+	_bounds.left   = Number.MAX_SAFE_INTEGER;
+	_bounds.top    = Number.MAX_SAFE_INTEGER;
+	_bounds.right  = Number.MIN_SAFE_INTEGER;
+	_bounds.bottom = Number.MIN_SAFE_INTEGER;
+
+	var drawOrder = _skeleton.drawOrder;
+	// var x = _skeleton.x, y = _skeleton.y;
+	for (var i = 0; i < drawOrder.length; ++i)
+	{
+		var slot = drawOrder[i];
+		if (slot.attachment)
+		{
+			if (slot.attachment instanceof spine.RegionAttachment)
+			{
+				var region = slot.attachment;
+
+				var vertices = new Array(8);
+				region.computeWorldVertices(slot.bone, vertices, 0, 2);
+
+				for (var j = 0; j < 4; ++j)
+				{
+					var transformedX = vertices[(j * 2) + 0];
+					var transformedY = vertices[(j * 2) + 1];
+
+					_bounds.left   = __floatToInt(Math.min(_bounds.left,   transformedX));
+					_bounds.right  = __floatToInt(Math.max(_bounds.right,  transformedX));
+					_bounds.top    = __floatToInt(Math.min(_bounds.top,    transformedY));
+					_bounds.bottom = __floatToInt(Math.max(_bounds.bottom, transformedY));
+
+					retval = true;
+				}
+			}
+			else if (slot.attachment instanceof spine.MeshAttachment)
+			{
+				var mesh = slot.attachment;
+
+				var vertices = new Array(mesh.worldVerticesLength);
+				mesh.computeWorldVertices(slot, 0, mesh.worldVerticesLength, vertices, 0, 2);
+
+				var numVerts = mesh.worldVerticesLength >> 1;
+				for (var j = 0; j < numVerts; ++j)
+				{
+					var transformedX = vertices[(j * 2) + 0];
+					var transformedY = vertices[(j * 2) + 1];
+
+					_bounds.left   = __floatToInt(Math.min(_bounds.left,   transformedX));
+					_bounds.right  = __floatToInt(Math.max(_bounds.right,  transformedX));
+					_bounds.top    = __floatToInt(Math.min(_bounds.top,    transformedY));
+					_bounds.bottom = __floatToInt(Math.max(_bounds.bottom, transformedY));
+
+					retval = true;
+				}
+			}
+		}
+	}
+
+	return retval;
+};
 
 yySprite.prototype.GetScaledBoundingBox = function(_xscale, _yscale)
 {
@@ -493,28 +601,167 @@ yySprite.prototype.SetSWFDrawRoutines = function () {
 ///           	Build skeleton data associated with the sprite
 ///           </summary>
 // #############################################################################################
-yySprite.prototype.BuildSkeletonData = function (_skelIndex) {
+yySprite.prototype.BuildSkeletonData = function (_skeletonData) {
+	if (_skeletonData) {
+		this.m_skeletonSprite = new yySkeletonSprite();
+		//this.m_skeletonSprite.Load(skeletonData.json, skeletonData.atlas, skeletonData.width, skeletonData.height);
+		this.m_skeletonSprite.Load(
+			this.m_LoadedFromIncludedFiles ? '' : (this.pName + '/'),
+			this.pName, _skeletonData.json, _skeletonData.atlas,
+			_skeletonData.numTextures, _skeletonData.textureSizes,
+            this);
+	}
 
-    if (_skelIndex >= 0) {
-        if (g_pSpriteManager.SkeletonData !== undefined) {
-        
-            var skeletonData = g_pSpriteManager.SkeletonData[_skelIndex];
-            this.m_skeletonSprite = new yySkeletonSprite();
-            //this.m_skeletonSprite.Load(skeletonData.json, skeletonData.atlas, skeletonData.width, skeletonData.height);
-            this.m_skeletonSprite.Load(this.pName, skeletonData.json, skeletonData.atlas, skeletonData.numTextures, skeletonData.textureSizes, this);
-        }     
-        
-        // Set simple draw routines to target the skeleton sprite
-        this.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _colour, _alpha) {    	    
-            this.m_skeletonSprite.Draw(_ind, _x, _y, _xscale, _yscale, _angle, _colour, _alpha);
-        };
-        
-        this.DrawSimple = function (_ind, _x, _y, _alpha) {
-            this.m_skeletonSprite.Draw(_ind, _x, _y, 1, 1, 0, 0xffffff, _alpha);
-        };
+	// Set simple draw routines to target the skeleton sprite
+	this.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _colour, _alpha) {    	    
+		this.m_skeletonSprite.Draw(_ind, _x, _y, _xscale, _yscale, _angle, _colour, _alpha);
+	};
+	
+	this.DrawSimple = function (_ind, _x, _y, _alpha) {
+		this.m_skeletonSprite.Draw(_ind, _x, _y, 1, 1, 0, 0xffffff, _alpha);
+	};
 
-        this.numb = SKELETON_FRAMECOUNT;
-    }
+	this.numb = SKELETON_FRAMECOUNT;
+};
+
+// #############################################################################################
+/// Property: <summary>
+///           	Loads sprite data from a Spine .json file
+///           </summary>
+// #############################################################################################
+yySprite.prototype.LoadFromSpineAsync = function (_filename, _callback) {
+	var loadFileContents = function (_filename, _callback) {
+		var errorMessage = 'Could not load file contents!';
+		var request = new XMLHttpRequest();
+		request.open('GET', CheckWorkingDirectory(_filename), true);
+		request.send();
+		request.onload = function () {
+			if (_callback) {
+				_callback((request.status == 200) ? null : errorMessage,
+					request.response || request.responseText);
+			}
+		};
+		request.onerror = function () {
+			if (_callback) {
+				_callback(errorMessage);
+			}
+		};
+	};
+
+	var getSpineTexturePages = function (_atlas) {
+		var lines = _atlas.split('\n');
+		
+		// Array of texture page info
+		var textures = [];
+		// Current texture page
+		var current = undefined;
+		// If true then next line read is a filename
+		var checkFilename = true;
+
+		var reSize = new RegExp(/^size\s*:\s*(\d+)\s*,\s*(\d+)$/);
+
+		for (var i = 0; i < lines.length; ++i) {
+			var line = lines[i].trim();
+
+			if (checkFilename) {
+				// Found texture name
+				if (current != undefined) {
+					if (current.width === undefined
+						|| current.height === undefined) {
+						// Size was not parsed!
+						return undefined;
+					}
+					textures.push(current);
+				}
+				current = { name: line };
+				checkFilename = false;
+			} else {
+				if (line == '') {
+					// Found texture page separator
+					checkFilename = true;
+				} else if (current != undefined) {
+					// Found texture size
+					var m = line.match(reSize);
+					if (m) {
+						current.width = parseInt(m[1]);
+						current.height = parseInt(m[2]);
+					}
+				}
+			}
+		}
+
+		if (current != undefined) {
+			if (current.width === undefined
+				|| current.height === undefined) {
+				// Size was not parsed!
+				return undefined;
+			}
+			textures.push(current);
+		}
+
+		return textures;
+	};
+
+	var sprite = this;
+	var atlasFilename = _filename.slice(0, -5) + '.atlas';
+	var waitingForCallback = 2;
+	var hasError = false;
+	var atlas;
+	var textures;
+
+	var tryCallback = function (err) {
+		if (hasError) {
+			return;
+		}
+	
+		if (err) {
+			hasError = true;
+			if (_callback) {
+				_callback(err);
+			}
+			return;
+		}
+
+		if (--waitingForCallback == 0) {
+			var skeletonData = {
+				json: json,
+				atlas: atlas,
+				numTextures: textures.length,
+				textureSizes: textures,
+			};
+			sprite.BuildSkeletonData(skeletonData);
+			var size = sprite.GetSkeletonSpriteSize((new yySkeletonInstance(sprite.m_skeletonSprite)).m_skeleton);
+			if (size instanceof Array)
+			{
+				sprite.width = size[0];
+				sprite.height = size[1];
+			}
+
+			// Trigger async callback
+			if (_callback) {
+				_callback();
+			}
+		}
+	};
+
+	loadFileContents(_filename, function (_err, _contents) {
+		if (!_err) {
+			json = _contents;
+		}
+		tryCallback(_err);
+	});
+
+	loadFileContents(atlasFilename, function (_err, _contents) {
+		if (!_err) {
+			atlas = _contents;
+			textures = getSpineTexturePages(atlas);
+			if (textures === undefined) {
+				tryCallback('Invalid atlas format!');
+				return;
+			}
+		}
+		tryCallback(_err);
+	});
 };
 
 // #############################################################################################
@@ -678,7 +925,10 @@ function    CreateSpriteFromStorage( _pStore )
 
 	// Do this after we've set up our TPEs
 	if (_pStore.skel !== undefined) {
-		pSprite.BuildSkeletonData(_pStore.skel);
+		var skeletonData = g_pSpriteManager.SkeletonData
+			? g_pSpriteManager.SkeletonData[_pStore.skel]
+			: undefined;
+	    pSprite.BuildSkeletonData(skeletonData);
 	}
 
 	pSprite.CalcCullRadius();    	
@@ -749,7 +999,7 @@ yySprite.prototype.DrawSimple = function (_sub_image, _x, _y, _alpha) {
 
 	var cullRadius  = this.cullRadius;
 
-	if (SphereIsVisible(new Vector3(_x, _y, 0.0), cullRadius))
+	if (SphereIsVisible(new Vector3(_x, _y, GR_Depth), cullRadius))
 	{
 		_sub_image = (~ ~_sub_image) % this.numb;
 		if (_sub_image < 0) _sub_image = _sub_image + this.numb;
@@ -827,7 +1077,7 @@ yySprite.prototype.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _col
 		cullRadius = ycullRadius;
 	}
 
-	if (SphereIsVisible(new Vector3(_x, _y, 0.0), cullRadius))
+	if (SphereIsVisible(new Vector3(_x, _y, GR_Depth), cullRadius))
 	{
 		// Index wraps..
 		_ind = (~ ~_ind) % this.numb;

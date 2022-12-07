@@ -343,6 +343,7 @@ function background_duplicate(_back)
 		pTPE.copy(pBack.TPEntry);
 		pTPE.tp = Graphics_AddImage(pImage);
 		pTPE.texture = g_Textures[pTPE.tp];
+		pTPE.texture.complete = true;
 		pTPE.x = 0;
 		pTPE.y = 0;
 
@@ -380,6 +381,7 @@ function background_assign( _dest, _src )
 		pNew.TPEntry.copy(pSrc.TPEntry);
 		pNew.TPEntry.tp = Graphics_AddImage(pImage);
 		pNew.TPEntry.texture = g_Textures[pNew.TPEntry.tp];
+		pNew.TPEntry.texture.complete = true;
 		pNew.TPEntry.x = 0;
 		pNew.TPEntry.y = 0;
 
@@ -642,6 +644,7 @@ function background_set_alpha_from_background(_ind, _back)
 
 		pDest.TPEntry.tp = Graphics_AddImage(pImage);
 		pDest.TPEntry.texture = g_Textures[pSrc.TPEntry.tp]; //Fritz: this was reffing pBack, presuming this should be source?
+		pDest.TPEntry.texture.complete = true;
 		pDest.TPEntry.x = 0;
 		pDest.TPEntry.y = 0;
 		pDest.copy = true;

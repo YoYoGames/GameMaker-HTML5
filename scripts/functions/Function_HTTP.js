@@ -431,12 +431,9 @@ function http_request(_url, _method, _headerMap, _body)
     // Turn the supplied header ds_map into a set of key-value pairs
     var headers = [];
     var pMap = g_ActiveMaps.Get(_headerMap);    
-    for (var key in pMap) {    
-        if (pMap.hasOwnProperty(key)) {
-            headers.push({ key: key, value: pMap[key] });
-        }
+    for (const [key, item] of pMap) {    
+	    headers.push({ key: key, value: item  });
     }
-
     // If the "_body" is a number then it's an index to a binary buffer
     if (typeof(_body) === 'number') {
         return http_request_buffer(_url, _method, headers, _body);

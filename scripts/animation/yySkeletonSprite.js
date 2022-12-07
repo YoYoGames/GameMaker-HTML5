@@ -111,7 +111,7 @@ yySkeletonSprite.prototype.SetupTPE = function (_name, _width, _height, _tex) {
 ///          </summary>
 // #############################################################################################
 //yySkeletonSprite.prototype.Load = function (_jsonData, _atlasData, _width, _height) {
-yySkeletonSprite.prototype.Load = function (_sprName, _jsonData, _atlasData, _numTextures, _textureSizes, _sprite)
+yySkeletonSprite.prototype.Load = function (_atlasDir, _sprName, _jsonData, _atlasData, _numTextures, _textureSizes, _sprite)
 {
     // Setup local variables for use with callback functions
     //var width = _width;
@@ -119,8 +119,6 @@ yySkeletonSprite.prototype.Load = function (_sprName, _jsonData, _atlasData, _nu
     var numTextures = _numTextures;
     var textureSizes = _textureSizes;
     var currTexture = 0;
-
-    var atlasImageDir = _sprName + '/';
 
     var self = this;
     var loadTexture = function (_atlasPage, _TPE) {
@@ -154,7 +152,7 @@ yySkeletonSprite.prototype.Load = function (_sprName, _jsonData, _atlasData, _nu
         }
         else
         {
-            var tex = Graphics_AddTexture(g_RootDir + atlasImageDir + _atlasPage);
+            var tex = Graphics_AddTexture(g_RootDir + _atlasDir + _atlasPage);
             newTex.rendererObject = tex;        
 
             g_Textures[tex].onload = function (e) {	

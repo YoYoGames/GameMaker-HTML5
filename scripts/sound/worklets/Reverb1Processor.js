@@ -73,7 +73,7 @@ class AllPassFilter
     }
 }
 
-class Reverb1Processor extends KillableWorkletProcessor
+class Reverb1Processor extends AudioWorkletProcessor
 {
     static NUM_LPFCFS = 8;
     static NUM_APFS = 4;
@@ -132,6 +132,7 @@ class Reverb1Processor extends KillableWorkletProcessor
     constructor(_options)
     {
         super();
+        this.makeMortal();
 
         const maxChannels = _options.outputChannelCount[0];
 

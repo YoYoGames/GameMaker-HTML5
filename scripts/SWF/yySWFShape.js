@@ -321,6 +321,7 @@ function Graphics_AddImageFromData(_w, _h, _data)
 	pTPE.texture.webgl_textureid = glTexture;
 	pTPE.texture.m_Width = singleimage.width;
 	pTPE.texture.m_Height = singleimage.height;
+	pTPE.texture.complete = true;
 
 	return pTPE;
 }
