@@ -2396,10 +2396,11 @@ function variable_instance_get_names( _id )
 
 function __yy_gml_copy_prototype( _dest, _source)
 {
-  for (key in _source) {
-    if (key === "yy_staticInitialiser") continue;
-    _dest[key] = _source[key]; // copies each property to the objCopy object
-  }    
+    Object.setPrototypeOf( _dest, _source );
+  //for (key in _source) {
+  //  if (key === "yy_staticInitialiser") continue;
+  //  _dest[key] = _source[key]; // copies each property to the objCopy object
+  //}    
 }
 
 
