@@ -569,171 +569,6 @@ function audio_sound_is_playable(_soundId)
 	return (sampleData.state == AudioSampleState.READY);
 }
 
-class AudioPlaybackProps
-{
-    constructor(_asset_index, _priority, _loop, _gain = 1.0,
-        _offset = AudioPropsCalc.not_specified, 
-        _pitch = AudioPropsCalc.default_pitch,
-        _emitter_index = AudioPropsCalc.invalid_index)
-    {
-        this.asset_index = yyGetInt32(_asset_index);
-        this.asset = Audio_GetSound(_asset_index);
-
-        this.emitter_index = yyGetInt32(_emitter_index);
-        this.emitter = audio_emitters[this.emitter_index];
-
-        this.priority = yyGetReal(_priority);
-        this.loop = yyGetReal(_loop);
-
-        this.gain = Math.max(0, _gain);
-        this.pitch = Math.max(0, _pitch);
-        this.offset = _offset;
-
-        if (this.offset !== AudioPropsCalc.not_specified)
-            this.offset = Math.max(0, _offset);
-    }
-
-    Invalid()
-    {
-        if (this.asset == null)
-        {
-            debug("Audio playback failed - invalid asset index: " + this.asset_index);
-            return true;
-        }
-
-        if (!audio_group_is_loaded(this.asset.groupId))
-        {
-            debug(audio_get_name(this.asset_index) + ": Audio Group " + this.asset.groupId + " is not loaded");
-            return true;
-        }
-
-        if (!Audio_WebAudioPlaybackAllowed())
-        {
-            debug("Audio playback failed. WebAudio Context suspended (user must interact with the page before audio can be played).");
-            return true;
-        }
-
-        if (this.emitter_index != AudioPropsCalc.invalid_index 
-            && this.emitter == undefined)
-        {
-            debug("Attempting to play sound on inactive emitter: " + this.emitter_index);
-            return true;
-        }
-
-        return false;
-    } 
-}
-
-class AudioPropsCalc
-{
-    static invalid_index = -1;
-    static not_specified = -1.0;
-
-	static default_priority = 0.0;
-	static default_loop = false;
-	static default_gain = 1.0;
-	static default_offset = 0.0;
-	static default_pitch = 1.0;
-	static default_listener_mask = 1;
-
-	static CalcGain(_voice)
-    {
-        const asset = AudioPropsCalc.GetAssetProps(_voice.soundid);
-        const group = AudioPropsCalc.GetGroupProps(_voice.soundid);
-    
-        // Emitter gains are stored in their own audio node and 
-        // will be multiplied with this value by the audio context
-        return _voice.gain.get() * asset.gain.get() * group.gain.get();
-    }
-
-	static CalcOffset(_voice)
-    {
-        if (_voice.startoffset == AudioPropsCalc.not_specified)
-        {
-            const asset = AudioPropsCalc.GetAssetProps(_voice.soundid);
-    
-            return asset.offset;
-        }
-    
-        return _voice.startoffset;
-    }
-
-	static CalcPitch(_voice)
-    {
-        const asset = AudioPropsCalc.GetAssetProps(_voice.soundid);
-        const emitter = AudioPropsCalc.GetEmitterProps(_voice.pemitter);
-    
-        return _voice.pitch * asset.pitch * emitter.pitch;
-    }
-
-    static GetAssetProps(_asset_index)
-    {
-        const asset = Audio_GetSound(_asset_index);
-
-        if (asset != null)
-        {
-            const props = {
-                gain: asset.gain,
-                offset: asset.trackPos,
-                pitch: asset.pitch
-            };
-
-            return props;
-        }
-    
-        const props = {
-            gain: AudioPropsCalc.default_gain,
-            offset: AudioPropsCalc.default_offset,
-            pitch: AudioPropsCalc.default_pitch
-        };
-
-        return props;
-    }
-
-    static GetEmitterProps(_emitter)
-    {
-        if (_emitter != null)
-        {
-            const props = {
-                gain: _emitter.gainnode.gain.value,
-                pitch: _emitter.pitch
-            };
-
-            return props;
-        }
-    
-        const props = {
-            gain: AudioPropsCalc.default_gain,
-            pitch: AudioPropsCalc.default_pitch
-        };
-
-        return props;
-    }
-
-    static GetGroupProps(_assetIndex)
-    {
-        const asset = Audio_GetSound(_assetIndex);
-
-        if (asset != null) {
-            const group = g_AudioGroups[asset.groupId];
-
-            if (group !== undefined) {
-                const props = {
-                    gain: group.gain,
-                };
-    
-                return props;
-            }
-        }
-    
-        const props = {
-            gain: AudioPropsCalc.default_gain,
-        };
-
-        return props;
-    }
-}
-
 function Audio_Play(_voice)
 {
     const sound_asset = Audio_GetSound(_voice.soundid);
@@ -936,8 +771,11 @@ function Audio_PlaySilentStreamed()
     if (soundid == -1)
         return;
 
-    const props = new AudioPlaybackProps(soundid, 0, false);
-    var audioSound = allocateSound(props);
+    const props = new AudioPlaybackProps({
+        sound: soundid
+    });
+
+    var audioSound = getFreeVoice(props);
     if (audioSound == null) return;
     audioSound.pgainnode.gain.value = 0;
 
@@ -1269,7 +1107,7 @@ function Audio_IsPlayingStreamed( _audioSound )
 }
 
 
-function allocateSound(_props)
+function getFreeVoice(_props)
 {
 	if(g_AudioModel!= Audio_WebAudio)
        return null;
@@ -1373,104 +1211,103 @@ function Audio_GetSound(soundid)
 	}
 
 	return pSound;
-		
+}
 
+function audio_play_sound_common(_props) {
+    if (_props.invalid())
+        return -1;
+
+    const voice = getFreeVoice(_props);
+
+    if (voice === null)
+        return -1;
+
+    switch (_props.type) {
+        case AudioPlaybackType.NON_POSITIONAL:
+            g_AudioBusMain.connectInput(voice.pgainnode);
+            break;
+        case AudioPlaybackType.POSITIONAL_SPECIFIED:
+            const pos = _props.position;
+            // Create a temporary emitter
+            _props.emitter = create_emitter();
+            _props.emitter.setPosition(pos.x, pos.y, pos.z);
+            emitter_set_falloff(_props.emitter, pos.falloff_ref, pos.falloff_max, pos.falloff_factor);
+            // Intentional fall-through
+        case AudioPlaybackType.POSITIONAL_EMITTER:
+            voice.pemitter = _props.emitter;
+            voice.pgainnode.connect(voice.pemitter);
+            break;
+        default:
+            debug("Warning: Unknown audio playback type => " + _props.type);
+            return -1;
+    }
+
+    Audio_Play(voice, _props);
+
+    return voice.handle;
 }
 
 // interface functions -----------------------------------------------------
 
 function audio_play_sound(_asset_index, _priority, _loop, _gain, _offset, _pitch)
 {
-    const props = new AudioPlaybackProps(_asset_index, _priority, _loop, _gain, _offset, _pitch);
+    const props = new AudioPlaybackProps({
+        sound: _asset_index, 
+        priority: _priority, 
+        loop: _loop, 
+        gain: _gain, 
+        offset: _offset, 
+        pitch: _pitch
+    });
 
-    if (props.Invalid())
-    {
-        return -1;
-    }
-    
-    const audio_index_before_alloc = audio_sounds_index;
-
-    // Get a voice to play the sound on
-    const free_voice = allocateSound(props);
-
-    if (free_voice != null)
-    {
-        g_AudioBusMain.connectInput(free_voice.pgainnode);
-
-        Audio_Play(free_voice, props);
-
-        // If a new sound was not automatically added to the handle map during allocation, then make sure we add it here
-        if (audio_index_before_alloc == audio_sounds_index)
-        {
-            free_voice.handle = audio_sounds_index;
-            g_handleMap[audio_sounds_index - BASE_SOUND_INDEX] = free_voice;
-            ++audio_sounds_index;
-        }
-
-        return free_voice.handle;
-    }
-
-    return -1;
+    return audio_play_sound_common(props); 
 }
 
 function audio_play_sound_on(_emitter_index, _asset_index, _loop, _priority, _gain, _offset, _pitch)
 {
-    const props = new AudioPlaybackProps(_asset_index, _priority, _loop, _gain, _offset, _pitch, _emitter_index);
+    const props = new AudioPlaybackProps({
+        emitter: _emitter_index,
+        sound: _asset_index,
+        loop: _loop,
+        priority: _priority, 
+        gain: _gain, 
+        offset: _offset, 
+        pitch: _pitch
+    });
 
-    if (props.Invalid())
-    {
-        return -1;
-    }
-
-    const voice = play_sound_on_emitter(props);
-
-    if (voice != null)
-    {
-        return voice.handle;
-    }
-        
-    return -1;
-}
-
-function play_sound_on_emitter(_props)
-{
-    const free_voice = allocateSound(_props);
-
-    if (free_voice == null)
-    {
-        return null;
-    }
-
-    free_voice.pemitter = _props.emitter;
-    free_voice.pgainnode.connect(free_voice.pemitter);
-
-    Audio_Play(free_voice, _props);
-
-    return free_voice;
+    return audio_play_sound_common(props);
 }
 
 function audio_play_sound_at(_asset_index, _x, _y, _z, _falloff_ref, _falloff_max, _falloff_fac, _loop, _priority, _gain, _offset, _pitch)
 {
-    const props = new AudioPlaybackProps(_asset_index, _priority, _loop, _gain, _offset, _pitch);
+    const props = new AudioPlaybackProps({
+        sound: _asset_index,
+        position: {
+            x: _x,
+            y: _y,
+            z: _z,
+            falloff_ref: _falloff_ref,
+            falloff_max: _falloff_max,
+            falloff_factor: _falloff_fac
+        },
+        loop: _loop, 
+        priority: _priority, 
+        gain: _gain, 
+        offset: _offset, 
+        pitch: _pitch
+    });
 
-	if (props.Invalid())
-	{
-		return -1;
-	}
+    return audio_play_sound_common(props);
+}
 
-    // Create a temporary emitter
-    props.emitter = create_emitter();
-    props.emitter.setPosition(yyGetReal(_x), yyGetReal(_y), yyGetReal(_z));
-    emitter_set_falloff(props.emitter, yyGetReal(_falloff_ref), yyGetReal(_falloff_max), yyGetReal(_falloff_fac));
+function audio_play_sound_ext(_params)
+{
+    if (typeof _params !== "object")
+        yyError("Error: audio_play_sound_ext => argument must be a struct");
 
-    const voice = play_sound_on_emitter(props);
+    const props = new AudioPlaybackProps(_params);
 
-    if (voice != null)
-    {
-        return voice.handle;
-    }
-
-    return -1;
+    return audio_play_sound_common(props);
 }
 	
 function audio_stop_sound( _soundid )
@@ -3429,7 +3266,10 @@ function allocateBufferSound( )
       const sound = buffer_sounds[i];
       if (sound != null && !sound.bBuffered)
       {
-          const props = new AudioPlaybackProps(BASE_BUFFER_SOUND_INDEX + i, 10, false);
+          const props = new AudioPlaybackProps({
+            sound: BASE_BUFFER_SOUND_INDEX + i, 
+            priority: 10
+          });
           sound.Init(props);
           return sound;
       }
@@ -3438,7 +3278,10 @@ function allocateBufferSound( )
   //no free sounds, create a new one
   if( g_bufferSoundCount < audio_max_playing_sounds )
   {
-    const props = new AudioPlaybackProps(BASE_BUFFER_SOUND_INDEX + g_bufferSoundCount, 10, false);
+    const props = new AudioPlaybackProps({
+        sound: BASE_BUFFER_SOUND_INDEX + g_bufferSoundCount,
+        priority: 10
+    });
     var newSound = new audioSound(props);
     buffer_sounds[g_bufferSoundCount] = newSound;
     newSound.handle = BASE_BUFFER_SOUND_INDEX + g_bufferSoundCount;
@@ -3590,7 +3433,10 @@ function allocateQueueSound( )
         const sound = queue_sounds[i];
         if (sound && !sound.bQueued)
         {
-            const props = new AudioPlaybackProps(BASE_QUEUE_SOUND_INDEX + i, 10, false);
+            const props = new AudioPlaybackProps({
+                sound: BASE_QUEUE_SOUND_INDEX + i,
+                priority: 10
+            });
             sound.Init(props);
             return sound;
         }
@@ -3609,7 +3455,10 @@ function allocateQueueSound( )
             }
         }
 
-        const props = new AudioPlaybackProps(BASE_QUEUE_SOUND_INDEX + found, 10, false);
+        const props = new AudioPlaybackProps({
+            sound: BASE_QUEUE_SOUND_INDEX + found,
+            priority: 10
+        });
         var newSound = new audioSound(props);
         queue_sounds[found] = newSound;
         newSound.handle = BASE_QUEUE_SOUND_INDEX + found;
