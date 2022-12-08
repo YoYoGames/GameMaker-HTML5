@@ -3979,9 +3979,12 @@ function audio_bus_create()
     return bus;
 }
 
-function audio_effect_create(_type)
+function audio_effect_create(_type, _params)
 {
-    return AudioEffectStruct.Create(_type);
+    if (_params && typeof _params !== "object")
+        yyError("Error: Audio effect parameters must be a struct");
+
+    return AudioEffectStruct.Create(_type, _params);
 }
 
 function audio_emitter_bus(_emitterIdx, _bus)

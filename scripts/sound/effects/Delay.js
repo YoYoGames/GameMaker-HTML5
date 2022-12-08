@@ -1,10 +1,8 @@
-function DelayEffectStruct() {
+function DelayEffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.Delay);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
 
-    this.params.time = 0.0;
-    this.params.feedback = 0.0;
-    this.params.mix = 0.0;
+    this.initParams(_params, DelayEffectStruct.paramDescriptors());
 
     // Define user-facing properties
     Object.defineProperties(this, {
@@ -14,7 +12,7 @@ function DelayEffectStruct() {
                 return this.params.time;
             },
             set: (_time) => {
-                this.params.time = clamp(_time, 0.0, 5.0);
+                this.setParam(DelayEffectStruct.paramDescriptors().time, _time);
 
                 this.nodes.forEach((_node) => {
                     const time = _node.parameters.get("time");
@@ -28,7 +26,7 @@ function DelayEffectStruct() {
                 return this.params.feedback;
             },
             set: (_feedback) => {
-                this.params.feedback = clamp(_feedback, 0.0, 1.0);
+                this.setParam(DelayEffectStruct.paramDescriptors().feedback, _feedback);
 
                 this.nodes.forEach((_node) => {
                     const feedback = _node.parameters.get("feedback");
@@ -42,7 +40,7 @@ function DelayEffectStruct() {
                 return this.params.mix;
             },
             set: (_mix) => {
-                this.params.mix = clamp(_mix, 0.0, 1.0);
+                this.setParam(DelayEffectStruct.paramDescriptors().mix, _mix);
 
                 this.nodes.forEach((_node) => {
                     const mix = _node.parameters.get("mix");
@@ -52,3 +50,10 @@ function DelayEffectStruct() {
         }
     });
 }
+
+DelayEffectStruct.paramDescriptors = () => ({
+    bypass:   AudioEffectStruct.paramDescriptors().bypass,
+    time:     { name: "time",     integer: false, defaultValue: 0, minValue: 0, maxValue: 5 },
+    feedback: { name: "feedback", integer: false, defaultValue: 0, minValue: 0, maxValue: 1 },
+    mix:      { name: "mix",      integer: false, defaultValue: 0, minValue: 0, maxValue: 1 }
+});
