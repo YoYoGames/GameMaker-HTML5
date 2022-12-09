@@ -112,15 +112,13 @@ function yy_getHash( _v )
     var ret = _v;
     switch( typeof(_v) ) {
     case "object":
-        if (!(_v instanceof Array) && !(_v instanceof ArrayBuffer)) {
-            if (_v.id !== undefined) {
-                ret = _v.id;
-            } // end if
-            else {
-                // lets convert 
-                ret = YYHASH_value(_v);
-            } // end else
-        } // end if        
+        if (_v.id !== undefined) {
+            ret = _v.id;
+        } // end if
+        else {
+            // lets convert 
+            ret = YYHASH_value(_v);
+        } // end else
         break;
     default:
         break;
