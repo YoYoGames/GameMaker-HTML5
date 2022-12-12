@@ -1,10 +1,8 @@
-function Reverb1EffectStruct() {
+function Reverb1EffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.Reverb1);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
 
-    this.params.size = 0.5;
-    this.params.damp = 0.5;
-    this.params.mix = 0.0;
+    this.initParams(_params, Reverb1EffectStruct.paramDescriptors());
 
     // Define user-facing properties
     Object.defineProperties(this, {
@@ -14,7 +12,7 @@ function Reverb1EffectStruct() {
                 return this.params.size;
             },
             set: (_size) => {
-                this.params.size = clamp(_size, 0.0, 1.0);
+                this.setParam(Reverb1EffectStruct.paramDescriptors().size, _size);
 
                 this.nodes.forEach((_node) => {
                     const size = _node.parameters.get("size");
@@ -28,7 +26,7 @@ function Reverb1EffectStruct() {
                 return this.params.damp;
             },
             set: (_damp) => {
-                this.params.damp = clamp(_damp, 0.0, 1.0);
+                this.setParam(Reverb1EffectStruct.paramDescriptors().damp, _damp);
 
                 this.nodes.forEach((_node) => {
                     const damp = _node.parameters.get("damp");
@@ -42,7 +40,7 @@ function Reverb1EffectStruct() {
                 return this.params.mix;
             },
             set: (_mix) => {
-                this.params.mix = clamp(_mix, 0.0, 1.0);
+                this.setParam(Reverb1EffectStruct.paramDescriptors().mix, _mix);
 
                 this.nodes.forEach((_node) => {
                     const mix = _node.parameters.get("mix");
@@ -52,3 +50,10 @@ function Reverb1EffectStruct() {
         }
     });
 }
+
+Reverb1EffectStruct.paramDescriptors = () => ({
+    bypass: AudioEffectStruct.paramDescriptors().bypass,
+    size:   { name: "size", integer: false, defaultValue: 0.5, minValue: 0, maxValue: 1 },
+    damp:   { name: "damp", integer: false, defaultValue: 0.5, minValue: 0, maxValue: 1 },
+    mix:    { name: "mix",  integer: false, defaultValue: 0,   minValue: 0, maxValue: 1 }
+});

@@ -19,7 +19,7 @@ class DelayProcessor extends AudioWorkletProcessor
 
         const maxChannels = _options.outputChannelCount[0];
 
-        const delayLineLength = DelayProcessor.MAX_DELAY_TIME * sampleRate;
+        const delayLineLength = (DelayProcessor.MAX_DELAY_TIME * sampleRate) + 1;
 
         this.buffer = new Array(maxChannels);
         this.writeIndex = new Uint32Array(maxChannels);

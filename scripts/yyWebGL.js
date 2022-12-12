@@ -380,7 +380,12 @@ function InitLightingEnv() {
     GR_PointLights = new Float32Array(yyGL.MAX_LIGHTS * 4);
     GR_LightColours = new Float32Array(yyGL.MAX_LIGHTS * 4);    
     GR_AmbientLight = new Float32Array(4);
-    
+    GR_AmbientLight[0] = 1;
+    GR_AmbientLight[1] = 1;
+    GR_AmbientLight[2] = 1;
+    GR_AmbientLight[3] = 1;    
+
+
     var baseIndex;
     for (var i = 0; i < yyGL.MAX_LIGHTS; i++) 
     {                

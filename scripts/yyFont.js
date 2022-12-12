@@ -1807,34 +1807,22 @@ yyFontManager.prototype.GR_Text_Draw = function (_str, x, y, linesep, linewidth,
 	var ss = Math.sin(ang);
 	var cc = Math.cos(ang);
 
-	var fontSize = thefont ? thefont.TextHeight('M') : 20;
-	if (this.valign == 1)
-		y = y - fontSize*yscale / 2.0;
+	if (linesep < 0) linesep = thefont ? thefont.TextHeight('M') : 20;
 
-	if (this.valign == 2)
-		y = y - fontSize*yscale;
-	
-	if (linesep <= 0)
-		linesep = fontSize;
-	
 	var xsep = ss * xscale * linesep;
 	var ysep = cc * yscale * linesep;
-	
-	// if (linesep > 0)
-	{
-		if (this.valign == 1)
-		{
-			y = y -(((sl.length-1) * ysep) / 2.0);
-			// x = x - ((sl.length * xsep) / 2.0);
-		}
 
-		if (this.valign == 2)
-		{
-			y = y - ((sl.length-1) * ysep);
-			// x = x - (sl.length * xsep);
-		}
+	if (this.valign == 1)
+	{
+		y = y - (sl.length*ysep)/2;
+		x = x - (sl.length*xsep)/2;
 	}
 
+	if (this.valign == 2)
+	{
+		y = y - sl.length*ysep;
+		x = x - sl.length*xsep;
+	}
 
 	// draw it
 	if (!thefont)

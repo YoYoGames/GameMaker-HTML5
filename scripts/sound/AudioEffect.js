@@ -32,9 +32,7 @@ function AudioEffectStruct(_type) {
     this.nodes = [];
 
     this.type = _type;
-    this.params = {
-        bypass: false
-    };
+    this.params = {};
     
     // Define user-facing properties
     Object.defineProperties(this, {
@@ -53,7 +51,7 @@ function AudioEffectStruct(_type) {
                 return this.params.bypass;  
             },
             set: (_state) => {
-                this.params.bypass = yyGetBool(_state);
+                this.setParam(AudioEffectStruct.paramDescriptors().bypass, _state);
 
                 this.nodes.forEach((_node) => {
                     const bypass = _node.parameters.get("bypass");
@@ -64,18 +62,22 @@ function AudioEffectStruct(_type) {
     });
 }
 
-AudioEffectStruct.Create = function(_type) {
+AudioEffectStruct.Create = function(_type, _params) {
     switch (_type)
     {
-        case AudioEffect.Type.Bitcrusher:   return new BitcrusherEffectStruct();
-        case AudioEffect.Type.Delay:        return new DelayEffectStruct();
-        case AudioEffect.Type.Gain:         return new GainEffectStruct();
-        case AudioEffect.Type.HPF2:         return new HPF2EffectStruct();
-        case AudioEffect.Type.LPF2:         return new LPF2EffectStruct();
-        case AudioEffect.Type.Reverb1:      return new Reverb1EffectStruct();
+        case AudioEffect.Type.Bitcrusher:   return new BitcrusherEffectStruct(_params);
+        case AudioEffect.Type.Delay:        return new DelayEffectStruct(_params);
+        case AudioEffect.Type.Gain:         return new GainEffectStruct(_params);
+        case AudioEffect.Type.HPF2:         return new HPF2EffectStruct(_params);
+        case AudioEffect.Type.LPF2:         return new LPF2EffectStruct(_params);
+        case AudioEffect.Type.Reverb1:      return new Reverb1EffectStruct(_params);
         default:                            return null;
     }
 };
+
+AudioEffectStruct.paramDescriptors = () => ({
+    bypass: { name: "bypass", integer: true, defaultValue: 0, minValue: 0, maxValue: 1 }
+});
 
 AudioEffectStruct.prototype.addNode = function() {
     const node = g_WorkletNodeManager.createEffect(this);
@@ -84,11 +86,26 @@ AudioEffectStruct.prototype.addNode = function() {
     return node;
 };
 
+AudioEffectStruct.prototype.initParams = function(_params, _descriptors) {
+    Object.values(_descriptors).forEach(_desc => {
+        const val = _params ? (_params["gml" + _desc.name] ?? _desc.defaultValue) : _desc.defaultValue;
+        this.setParam(_desc, val);
+    });
+};
+
+AudioEffectStruct.prototype.setParam = function(_desc, _val) {
+    _val = clamp(_val, _desc.minValue, _desc.maxValue);
+
+    if (_desc.integer === true)
+        _val = ~~_val;
+
+    this.params[_desc.name] = _val;
+};
+
 AudioEffectStruct.prototype.removeNode = function(_node) { 
     const idx = this.nodes.findIndex(elem => elem === _node);
 
-    if (idx !== -1)
-    {
+    if (idx !== -1) {
         g_WorkletNodeManager.killNode(this.nodes[idx]);
         this.nodes.splice(idx, 1);
     }
