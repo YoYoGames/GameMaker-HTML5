@@ -1372,7 +1372,7 @@ function script_execute_ext( _self, _other, _index, _array, _offset, _length )
 			} // end if
 		} // end else
 
-		var newArgs = []
+        var newArgs = [];
 		for (var n = _offset, i=0; (i < _length); ++i, n+=dir)
 			newArgs.push( _array[n] );
 
