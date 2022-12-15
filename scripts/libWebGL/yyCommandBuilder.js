@@ -797,7 +797,7 @@ function yyCommandBuilder(_interpolatePixels) {
             case yyGL.RenderState_FogStart:
                 m_fogStart = _renderStateData;
                 var range = m_fogEnd - m_fogStart;
-                m_fogParameters[1] = 0.0;//(range == 0.0) ? 0.0 : (1.0 / range);
+                m_fogParameters[1] = (range == 0.0) ? 0.0 : (1.0 / range);
                 SetLightingEnv(SHADER_ENV_FOG_BIT);
             break;     
 
@@ -805,7 +805,7 @@ function yyCommandBuilder(_interpolatePixels) {
                 m_fogEnd = _renderStateData;
                 m_fogParameters[2] = _renderStateData;
                 var range = m_fogEnd - m_fogStart;
-                m_fogParameters[1] = 0.0;//(range == 0.0) ? 0.0 : (1.0 / range);
+                m_fogParameters[1] = (range == 0.0) ? 0.0 : (1.0 / range);
                 SetLightingEnv(SHADER_ENV_FOG_BIT);
             break;     
 

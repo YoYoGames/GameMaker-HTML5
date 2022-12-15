@@ -432,7 +432,10 @@ function http_request(_url, _method, _headerMap, _body)
     var headers = [];
     var pMap = g_ActiveMaps.Get(_headerMap);    
     for (const [key, item] of pMap) {    
-	    headers.push({ key: key, value: item  });
+        var v = key;
+        if (pMap.originalKeys && pMap.originalKeys.has(key))
+            v = pMap.originalKeys.get(key);        	
+	    headers.push({ key: v, value: item  });
     }
     // If the "_body" is a number then it's an index to a binary buffer
     if (typeof(_body) === 'number') {

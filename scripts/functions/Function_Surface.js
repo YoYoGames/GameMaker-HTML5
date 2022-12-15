@@ -404,7 +404,8 @@ function surface_set_target_system_RELEASE(_id)
         });
 
         g_CurrentSurfaceIdStack.push(g_CurrentSurfaceId);
-        g_CurrentSurfaceId = _id;
+        g_CurrentSurfaceId = _id;
+
         if (g_webGL) {
             g_CurrentFrameBuffer = pSurf.FrameBuffer;
             g_webGL.SetRenderTarget(pSurf.FrameBuffer);
@@ -455,7 +456,10 @@ function surface_set_target_RELEASE(_id)
             cannvas_graphics: graphics,
         });
         g_CurrentSurfaceIdStack.push(g_CurrentSurfaceId);
-        g_CurrentSurfaceId = _id;        if (g_webGL) {
+        g_CurrentSurfaceId = _id;
+
+
+        if (g_webGL) {
             g_CurrentFrameBuffer = pSurf.FrameBuffer;
             g_webGL.SetRenderTarget(pSurf.FrameBuffer);
             g_RenderTargetActive = -1;
@@ -478,16 +482,21 @@ function surface_set_target_RELEASE(_id)
         if (g_webGL) g_webGL.Flush();
         DirtyRoomExtents();
 
-        if (!g_webGL) {
+
+        if (!g_webGL) {
             Graphics_SetInterpolation_Auto(graphics);
         }
 	}	
 }
 
-function surface_get_target() {
-    return g_CurrentSurfaceId;
-}
-
+function surface_get_target() {
+
+    return g_CurrentSurfaceId;
+
+}
+
+
+
 // #############################################################################################
 /// Function:<summary>
 ///          	Resets the drawing target to the normal screen.
@@ -522,21 +531,28 @@ function surface_reset_target_RELEASE()
             g_CurrentFrameBuffer = storedState.FrameBuffer;
         }
 
-
-
-        Graphics_SetViewPort(g_clipx, g_clipy, g_clipw, g_cliph);
-        if (g_isZeus) {
-            UpdateDefaultCamera(g_worldx, g_worldy, g_worldw, g_worldh, 0);
-        }
-        else {
-            Graphics_SetViewArea(g_worldx, g_worldy, g_worldw, g_worldh, 0);
+        if (g_InGUI_Zone && g_SurfaceStack.length == 0) {
+            // (This is function SetGuiView in the C++ runner)
+            Graphics_SetViewPort(0, 0, g_DisplayWidth, g_DisplayHeight);
+            g_pProjection.OrthoLH(g_DisplayWidth, -g_DisplayHeight * g_RenderTargetActive, 1.0, 32000.0);
+            Calc_GUI_Scale();
+        } else {
+            Graphics_SetViewPort(g_clipx, g_clipy, g_clipw, g_cliph);
+            if (g_isZeus) {
+                UpdateDefaultCamera(g_worldx, g_worldy, g_worldw, g_worldh, 0);
+            }
+            else {
+                Graphics_SetViewArea(g_worldx, g_worldy, g_worldw, g_worldh, 0);
+            }
         }
     }
     else {
         ErrorOnce("Error: Surface stacking error detected");
     }
     if (g_webGL) g_webGL.SetRenderTarget(g_CurrentFrameBuffer);
-    g_CurrentSurfaceId = g_CurrentSurfaceIdStack.pop();    if (g_CurrentSurfaceId == null) g_CurrentSurfaceId = -1;
+    g_CurrentSurfaceId = g_CurrentSurfaceIdStack.pop();
+    if (g_CurrentSurfaceId == null) g_CurrentSurfaceId = -1;
+
     if (!g_webGL) Graphics_SetInterpolation_Auto(graphics);
     DirtyRoomExtents();
 }
