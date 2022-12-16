@@ -693,7 +693,7 @@ const shuffleArray = (_array, _offset, _length) => {
         _array[_offset + i] = _array[j];
         _array[j] = temp;
     }
-}
+};
 
 function array_shuffle( _array, _offset, _length )
 {
@@ -776,7 +776,6 @@ function array_last(_array) {
     var _length = _array.length;
     return _length == 0 ? undefined : _array[_length -1];
 }
-
 
 // #############################################################################################
 // Returns a function given a function or script index (used for array functions)
