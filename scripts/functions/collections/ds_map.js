@@ -40,21 +40,21 @@ function yy_MapListContainer( _type,_obj ) {
 // --------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------
-const hasOwnProperty = Object.prototype.hasOwnProperty
+const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 // Hashes a string
 const YYHASH_hash = (string) => {
 
-    let hash = 0
+    let hash = 0;
 
-    string = string.toString()
+    string = string.toString();
 
     for(let i = 0; i < string.length; i++)
     {
-        hash = (((hash << 5) - hash) + string.charCodeAt(i)) & 0xFFFFFFFF
+        hash = (((hash << 5) - hash) + string.charCodeAt(i)) & 0xFFFFFFFF;
     }
 
-    return hash
+    return hash;
 }
 
 // Deep hashes an object
@@ -62,11 +62,11 @@ const YYHASH_object = (obj) => {
     //
     if(typeof obj.getTime == 'function')
     {
-        return obj.getTime()
+        return obj.getTime();
     }
 
     // get all the property keys here
-    let props = []
+    let props = [];
     for(let property in obj)
     {
         if(hasOwnProperty.call(obj, property))
@@ -77,20 +77,20 @@ const YYHASH_object = (obj) => {
     props.sort(); // sort them all
 
     // calculate the hash
-    let result = 0
+    let result = 0;
     for(let property in props)
     {
-        result += YYHASH_hash(property + YYHASH_value(obj[property]))
+        result += YYHASH_hash(property + YYHASH_value(obj[property]));
     }
 
-    return result
+    return result;
 }
 
 const YYHASH_value = (value) => {
 
-    const type = value == undefined ? undefined : typeof value
+    const type = value == undefined ? undefined : typeof value;
     // Does a type check on the passed in value and calls the appropriate hash method
-    return YYHASH_MAPPER[type] ? YYHASH_MAPPER[type](value) + YYHASH_hash(type) : 0
+    return YYHASH_MAPPER[type] ? YYHASH_MAPPER[type](value) + YYHASH_hash(type) : 0;
 }
 
 const YYHASH_MAPPER =
