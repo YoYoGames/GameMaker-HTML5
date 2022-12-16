@@ -14,6 +14,7 @@
 // 
 // **********************************************************************************************************************   
 var g_webGL = null;
+var g_isWebGL2 = false;
 
 var g_savedWebGLState = null;
 var g_webGL_textureFont = null;   
@@ -80,6 +81,21 @@ var g_circleSteps = 36,
 var offsethackGL = 0.5;
 
 var g_extAnisotropic = null;
+var g_extTextureHalfFloat = null;
+var g_extTextureHalfFloatLinear = null;
+var g_extColourBufferHalfFloat = null;
+var g_extTextureFloat = null;
+var g_extTextureFloatLinear = null;
+var g_extColourBufferFloat = null;
+
+var g_SupportHalfFloatSurfs = false;
+var g_SupportFloatSurfs = false;
+var g_SupportSubFourChannelHalfFloatSurfs = false;	
+var g_SupportSubFourChannelFloatSurfs = false;
+var g_SupportSubFourChannelIntSurfs = false;
+var g_HalfFloatSurfsUseSizedFormats = false;		
+var g_FloatSurfsUseSizedFormats = false;
+var g_IntSurfsUseSizedFormats = false;
 
 // #############################################################################################
 /// Function:<summary>
@@ -3526,9 +3542,9 @@ function WebGL_draw_line_width_color_RELEASE(_x1, _y1, _x2, _y2, _w, _col1, _col
 ///				
 ///			</returns>
 // #############################################################################################
-function initTextureFramebuffer(_pTPE, _w,_h) {
+function initTextureFramebuffer(_pTPE, _w,_h, _format) {
 
-    var frameBufferData = g_webGL.CreateFramebuffer(_w, _h);
+    var frameBufferData = g_webGL.CreateFramebuffer(_w, _h, _format);
     _pTPE.FrameBufferData = frameBufferData;
     
     _pTPE.FrameBuffer = frameBufferData.FrameBuffer;
@@ -3550,7 +3566,7 @@ function initTextureFramebuffer(_pTPE, _w,_h) {
 ///				
 ///			</returns>
 // #############################################################################################
-function WebGL_surface_create_RELEASE(_w, _h, _forceid) {
+function WebGL_surface_create_RELEASE(_w, _h, _format, _forceid) {
 
     _w = yyGetInt32(_w);
     _h = yyGetInt32(_h);
@@ -3568,7 +3584,7 @@ function WebGL_surface_create_RELEASE(_w, _h, _forceid) {
     pTPE.texture.width = _w;
     pTPE.texture.height = _h;
     pTPE.texture.m_Width = _w;
-    pTPE.texture.m_Height = _h;
+    pTPE.texture.m_Height = _h;    
 
     if( _forceid != undefined )
     {
@@ -3580,7 +3596,7 @@ function WebGL_surface_create_RELEASE(_w, _h, _forceid) {
         }
     }
         
-    initTextureFramebuffer(pTPE,_w,_h);
+    initTextureFramebuffer(pTPE,_w,_h, _format);
 
     pTPE.x = 0;
     pTPE.y = 0;
