@@ -687,21 +687,19 @@ const shuffleArray = (_array, _offset, _length) => {
     _offset ??= 0;
     _length ??= _array.length - _offset;
 
-    for (let i = offset + length; i > offset; ) {
-        const j = Math.floor(Math.random() * i);
-
-        --i;
-        const temp = array[i];
-        array[i] = array[j];
-        array[j] = temp;
+    for (let i = _length - 1; i > 0; --i) {
+        const j = _offset + Math.floor(Math.random() * (i + 1));
+        const temp = _array[_offset + i];
+        _array[_offset + i] = _array[j];
+        _array[j] = temp;
     }
 }
 
 function array_shuffle( _array, _offset, _length )
 {
     // Check raw offset and length
-    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
-    _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
+    _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
+    _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
 
     var ret = undefined;
     if (Array.isArray(_array)) {
@@ -716,10 +714,10 @@ function array_shuffle( _array, _offset, _length )
         if (_step < 0) _offset -= (_loops - 1);
 
         // Duplicate the array
-        ret = _array.slice();
+        ret = _array.slice(_offset, _offset + _loops);
 
         // Shuffle the array
-        shuffleArray(ret, _offset, _loops);
+        shuffleArray(ret);
 
     } // end if
     else {
@@ -730,6 +728,10 @@ function array_shuffle( _array, _offset, _length )
 
 function array_shuffle_ext(_array, _offset, _length)
 {
+    // Check raw offset and length
+    _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
+    _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
+
     var ret = undefined;
     if (Array.isArray(_array)) {
 
@@ -753,7 +755,7 @@ function array_shuffle_ext(_array, _offset, _length)
     else {
         yyError( "argument0 is not an array");
     } // end else
-    return ret;
+    return _loops;
 } // end array_shuffle_ext
 
 
@@ -940,7 +942,7 @@ function array_contains_ext(_array, _values, _matchAll, _offset, _length) {
     if (subArrayLength == 0) return true;
 
     // Check raw offset and length
-    _matchAll = _offset = arguments.length > 3 ? yyGetBool(_matchAll) : false;
+    _matchAll = _offset = arguments.length > 2 ? yyGetBool(_matchAll) : false;
     _offset = arguments.length > 3 ? yyGetReal(_offset) : 0;
     _length = arguments.length > 4 ? yyGetReal(_length) : _array.length; 
 
@@ -959,7 +961,7 @@ function array_contains_ext(_array, _values, _matchAll, _offset, _length) {
         var current = _array[_offset];
 		for (var i = 0; i < subArrayLength; ++i)
 		{
-			if (YYCompareVal(current, _values[i], g_GMLMathEpsilon, false) == 0)
+			if (yyCompareVal(current, _values[i], g_GMLMathEpsilon, false) == 0)
 			{
 				matched = true;
 				matchCount += 1;
