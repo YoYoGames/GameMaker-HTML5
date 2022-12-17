@@ -682,27 +682,27 @@ function array_sort( _array, _typeofSort )
     } // end else
 } // end array_sort
 
-function array_shuffle( _array )
+function array_shuffle_common( _array, _return_copy )
 {
     var ret = undefined;
     if (Array.isArray(_array)) {
 
-     ret = _array.slice();        
-     var currentIndex = ret.length, temporaryValue, randomIndex;
+        ret = (_return_copy === true) ? _array.slice() : _array;
 
-      // While there remain elements to shuffle...
-      while (0 !== currentIndex) {
+        var currentIndex = ret.length, temporaryValue, randomIndex;
 
-        // Pick a remaining element...
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex -= 1;
+        // While there remain elements to shuffle...
+        while (0 !== currentIndex) {
 
-        // And swap it with the current element.
-        temporaryValue = ret[currentIndex];
-        ret[currentIndex] = ret[randomIndex];
-        ret[randomIndex] = temporaryValue;
-      }
+            // Pick a remaining element...
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex -= 1;
 
+            // And swap it with the current element.
+            temporaryValue = ret[currentIndex];
+            ret[currentIndex] = ret[randomIndex];
+            ret[randomIndex] = temporaryValue;
+        }
 
     } // end if
     else {
@@ -711,33 +711,14 @@ function array_shuffle( _array )
     return ret;
 } // end array_shuffle
 
+function array_shuffle( _array )
+{
+    return array_shuffle_common( _array, true);
+} // end array_shuffle
+
 function array_shuffle_ext( _array )
 {
-    var ret = undefined;
-    if (Array.isArray(_array)) {
-
-     ret = _array;        
-     var currentIndex = ret.length, temporaryValue, randomIndex;
-
-      // While there remain elements to shuffle...
-      while (0 !== currentIndex) {
-
-        // Pick a remaining element...
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex -= 1;
-
-        // And swap it with the current element.
-        temporaryValue = ret[currentIndex];
-        ret[currentIndex] = ret[randomIndex];
-        ret[randomIndex] = temporaryValue;
-      }
-
-
-    } // end if
-    else {
-        yyError( "argument0 is not an array");
-    } // end else
-    return ret;
+    return array_shuffle_common( _array, false);
 } // end array_shuffle_ext
 
 
