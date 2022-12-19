@@ -4259,6 +4259,7 @@ function ShallowCopyVars( _dest, _other)
 {
     if (_other != undefined) {
         var props = Object.getOwnPropertyNames(_other);
+        props = props.filter(val => !val.startsWith("__"));
         for (var i = 0; i < props.length; i++)
         {
             var prop = props[i];
