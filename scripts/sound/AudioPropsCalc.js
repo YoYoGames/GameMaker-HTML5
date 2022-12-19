@@ -23,14 +23,14 @@ AudioPropsCalc.CalcOffset = function(_voice) {
     }
 
     return _voice.startoffset;
-}
+};
 
 AudioPropsCalc.CalcPitch = function(_voice) {
     const asset = AudioPropsCalc.GetAssetProps(_voice.soundid);
     const emitter = AudioPropsCalc.GetEmitterProps(_voice.pemitter);
 
     return _voice.pitch * asset.pitch * emitter.pitch;
-}
+};
 
 AudioPropsCalc.GetAssetProps = function(_asset_index) {
     const asset = Audio_GetSound(_asset_index);
@@ -48,7 +48,7 @@ AudioPropsCalc.GetAssetProps = function(_asset_index) {
         offset: AudioPropsCalc.default_offset,
         pitch: AudioPropsCalc.default_pitch
     }))();
-}
+};
 
 AudioPropsCalc.GetEmitterProps = function(_emitter) {
     if (_emitter != null) {
@@ -62,7 +62,7 @@ AudioPropsCalc.GetEmitterProps = function(_emitter) {
         gain: AudioPropsCalc.default_gain,
         pitch: AudioPropsCalc.default_pitch
     }))();
-}
+};
 
 AudioPropsCalc.GetGroupProps = function(_assetIndex) {
     const asset = Audio_GetSound(_assetIndex);
@@ -80,4 +80,4 @@ AudioPropsCalc.GetGroupProps = function(_assetIndex) {
     return (() => ({
         gain: AudioPropsCalc.default_gain,
     }))();
-}
+};

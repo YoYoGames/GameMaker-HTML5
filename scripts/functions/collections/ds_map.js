@@ -55,7 +55,7 @@ const YYHASH_hash = (string) => {
     }
 
     return hash;
-}
+};
 
 // Deep hashes an object
 const YYHASH_object = (obj) => {
@@ -84,14 +84,14 @@ const YYHASH_object = (obj) => {
     }
 
     return result;
-}
+};
 
 const YYHASH_value = (value) => {
 
     const type = value == undefined ? undefined : typeof value;
     // Does a type check on the passed in value and calls the appropriate hash method
     return YYHASH_MAPPER[type] ? YYHASH_MAPPER[type](value) + YYHASH_hash(type) : 0;
-}
+};
 
 const YYHASH_MAPPER =
 {
@@ -101,7 +101,7 @@ const YYHASH_MAPPER =
     object: YYHASH_object
     // functions are excluded because they are not representative of the state of an object
     // types 'undefined' or 'null' will have a hash of 0
-}
+};
 // --------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------
