@@ -67,8 +67,8 @@ function BitcrusherEffectStruct(_params) {
 
 BitcrusherEffectStruct.paramDescriptors = () => ({
     bypass:     AudioEffectStruct.paramDescriptors().bypass,
-    gain:       { name: "gain",       integer: false, defaultValue: 1,  minValue: 0, maxValue: Number.MAX_VALUE },
-    factor:     { name: "factor",     integer: true,  defaultValue: 1,  minValue: 1, maxValue: 100 },
-    resolution: { name: "resolution", integer: true,  defaultValue: 16, minValue: 2, maxValue: 16  },
-    mix:        { name: "mix",        integer: false, defaultValue: 0,  minValue: 0, maxValue: 1   }
+    gain:       { name: "gain",       integer: false, defaultValue: 1.0, minValue: 0.0, maxValue: Number.MAX_VALUE },
+    factor:     { name: "factor",     integer: true,  defaultValue: 20,  minValue: 1,   maxValue: 100 },
+    resolution: { name: "resolution", integer: true,  defaultValue: 8,   minValue: 2,   maxValue: 16  },
+    mix:        { name: "mix",        integer: false, defaultValue: 0.8, minValue: 0.0, maxValue: 1.0 }
 });

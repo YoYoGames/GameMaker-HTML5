@@ -53,7 +53,7 @@ function DelayEffectStruct(_params) {
 
 DelayEffectStruct.paramDescriptors = () => ({
     bypass:   AudioEffectStruct.paramDescriptors().bypass,
-    time:     { name: "time",     integer: false, defaultValue: 0, minValue: 0, maxValue: 5 },
-    feedback: { name: "feedback", integer: false, defaultValue: 0, minValue: 0, maxValue: 1 },
-    mix:      { name: "mix",      integer: false, defaultValue: 0, minValue: 0, maxValue: 1 }
+    time:     { name: "time",     integer: false, defaultValue: 0.2,  minValue: 0.0, maxValue: 5.0 },
+    feedback: { name: "feedback", integer: false, defaultValue: 0.5,  minValue: 0.0, maxValue: 1.0 },
+    mix:      { name: "mix",      integer: false, defaultValue: 0.35, minValue: 0.0, maxValue: 1.0 }
 });
