@@ -25,5 +25,5 @@ function GainEffectStruct(_params) {
 
 GainEffectStruct.paramDescriptors = () => ({
     bypass: AudioEffectStruct.paramDescriptors().bypass,
-    gain:   { name: "gain", integer: false, defaultValue: 1, minValue: 0, maxValue: Number.MAX_VALUE }
+    gain:   { name: "gain", integer: false, defaultValue: 0.5, minValue: 0.0, maxValue: Number.MAX_VALUE }
 });

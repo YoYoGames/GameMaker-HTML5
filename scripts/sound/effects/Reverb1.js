@@ -53,7 +53,7 @@ function Reverb1EffectStruct(_params) {
 
 Reverb1EffectStruct.paramDescriptors = () => ({
     bypass: AudioEffectStruct.paramDescriptors().bypass,
-    size:   { name: "size", integer: false, defaultValue: 0.5, minValue: 0, maxValue: 1 },
-    damp:   { name: "damp", integer: false, defaultValue: 0.5, minValue: 0, maxValue: 1 },
-    mix:    { name: "mix",  integer: false, defaultValue: 0,   minValue: 0, maxValue: 1 }
+    size:   { name: "size", integer: false, defaultValue: 0.7,  minValue: 0.0, maxValue: 1.0 },
+    damp:   { name: "damp", integer: false, defaultValue: 0.1,  minValue: 0.0, maxValue: 1.0 },
+    mix:    { name: "mix",  integer: false, defaultValue: 0.35, minValue: 0.0, maxValue: 1.0 }
 });
