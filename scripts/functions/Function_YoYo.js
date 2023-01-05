@@ -1342,6 +1342,7 @@ function script_execute( _self, _other, _index )
     return 0;
 } // end script_execute
 
+var method_call = script_execute_ext;
 function script_execute_ext( _self, _other, _index, _array, _offset, _length )
 {
     _offset = _offset || 0;
@@ -1352,7 +1353,30 @@ function script_execute_ext( _self, _other, _index, _array, _offset, _length )
     	yyError( "script_execute_ext : argument 2 is not an array")
     }
     else {
-	    var newArgs = _array.slice(_offset, _offset+_length);
+
+    	var dir = 1;
+		if (_offset < 0) _offset = _array.length + _offset;
+		if (_offset >= _array.length) _offset = _array.length;
+		if (_length < 0) {
+			dir = -1;
+			if ((_offset + _length) < 0) {
+				_length = _offset+1;
+			} // end if
+			else {
+				_length = -_length;
+			} // end else
+		} // end if
+		else {
+			if ((_offset + _length) > _array.length) {
+				_length = _array.length - _offset;
+			} // end if
+		} // end else
+
+        var newArgs = [];
+		for (var n = _offset, i=0; (i < _length); ++i, n+=dir)
+			newArgs.push( _array[n] );
+
+
 	    func = undefined;
 	    if (typeof _index === "function") {
 	        newArgs.splice( 0, 0, _self, _other );
