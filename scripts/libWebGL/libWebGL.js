@@ -176,7 +176,8 @@ function yyWebGL(_canvas, _options) {
 			g_IntSurfsUseSizedFormats = false;					
         }
 
-        if (g_extColourBufferHalfFloat)
+        // This can probably be simplified
+        if (g_extColourBufferHalfFloat || g_extColourBufferFloat)
         {
             if (g_isWebGL2)
             {                
@@ -185,7 +186,8 @@ function yyWebGL(_canvas, _options) {
             }
             else
             {
-                if (g_extTextureHalfFloat && g_extTextureHalfFloatLinear)
+                if ((g_extTextureHalfFloat && g_extTextureHalfFloatLinear) ||
+                    (g_extTextureFloat && g_extTextureFloatLinear))
                 {
                     g_SupportHalfFloatSurfs = true;                                        
                     g_SupportSubFourChannelHalfFloatSurfs = false;
@@ -273,7 +275,8 @@ function yyWebGL(_canvas, _options) {
 
 	    var glcontext = null;
 	    //f=M.getContext(           "experimental-webgl",{antialias:l})))
-	    var contextNames = ["webgl","experimental-webgl","moz-webgl","webkit-3d"];
+	    //var contextNames = ["webgl","experimental-webgl","moz-webgl","webkit-3d"];
+        var contextNames = ["webgl2", "webgl","experimental-webgl","moz-webgl","webkit-3d"];
 	    //if (window.WebGLRenderingContext)
 	    {
 		    for (var i = 0; i < contextNames.length; i++)
@@ -1184,10 +1187,10 @@ function yyWebGL(_canvas, _options) {
     ///          </summary>
     // ############################################################################################# 
     /** @this {yyWebGL} */
-    this.UpdateTexture = function (_texture, _x, _y, _w,_h,_canvas) {
+    this.UpdateTexture = function (_texture, _x, _y, _w,_h,_canvas, _format) {
     
         // TODO: Not sure I like this being part of the command chain, should it be handled like pixel/screen/surface gets?
-        m_CommandBuilder.UpdateTexture( _texture, _x, _y, _w,_h,_canvas );
+        m_CommandBuilder.UpdateTexture( _texture, _x, _y, _w,_h,_canvas, _format );
     };
     
     // #############################################################################################
@@ -1705,6 +1708,149 @@ function yyWebGL(_canvas, _options) {
 
         return ret;
     };
+
+    /** @this {yyWebGL} */
+    this.ReadPixels = function(_x, _y, _w, _h, _format) { 
+        
+        var pPixels = null;
+
+        // Get format info
+        var texFormatData = this.ConvertTexFormat(_format);
+
+        // See texImage2D section in https://registry.khronos.org/webgl/specs/2.0.0/
+        // for details of which array types are valid for which formats
+        switch(_format)
+        {
+            case eTextureFormat_A8R8G8B8: pPixels = new Uint8Array( _w*_h*4 ); break;
+            case eTextureFormat_A4R4G4B4: pPixels = new Uint16Array( _w*_h); break;
+            case eTextureFormat_Float16: pPixels = new Uint16Array( _w*_h); break;
+            case eTextureFormat_Float32: pPixels = new Float32Array( _w*_h); break;
+            case eTextureFormat_R8: pPixels = new Uint8Array( _w*_h); break;
+            case eTextureFormat_R8G8: pPixels = new Uint8Array( _w*_h*2); break;
+            case eTextureFormat_R16G16B16A16_Float: pPixels = new Uint16Array( _w*_h*4); break;
+            case eTextureFormat_R32G32B32A32_Float: pPixels = new Float32Array( _w*_h*4); break;
+            default: return null;   // unhandled format            
+        }
+
+        gl.readPixels(_x, _y, _w, _h, texFormatData.format, texFormatData.type, pPixels);
+
+        return pPixels;
+    };
+
+    function half_to_float(_uint16val) {
+
+        // See https://en.wikipedia.org/wiki/Half-precision_floating-point_format for details
+        
+        var ret = 0.0;
+        var exponent = (_uint16val & 0x7C00) >> 10;
+        var fraction = _uint16val & 0x03FF;
+        var sign = 1.0;
+        if ((_uint16val >> 15) != 0)
+        {
+            sign = -1.0;
+        }
+        if (exponent != 0)
+        {
+            if (exponent === 0x1f)
+            {
+                if (fraction != 0)
+                    ret = NaN;
+                else
+                    ret = Infinity;
+            }
+            else
+            {
+                ret = sign * (Math.pow(2, exponent - 15) * (1 + (fraction / 0x400)));
+            }
+        }
+        else
+        {
+            ret = sign * (0.00006103515625 * (fraction / 0x400));           // 0.00006103515625 is the minimum exponent value (2 to the power -14)
+        }
+
+        return ret;
+    }
+
+    /** @this {yyWebGL} */
+    this.ConvertSurfColToRValue = function(_pBuffer, _format) { 
+        
+        var ret = 0;
+
+        if (_pBuffer == null)
+            return 0;
+
+        // The expectation is that _pBuffer is in the correct format for the particular sort of data
+        // we're wanting to unpack (i.e. eTextureFormat_A8R8G8B8 will expect a Uint8Array, while
+        // eTextureFormat_A4R4G4B4 will expect a Uint16Array )
+        switch(_format)
+        {
+            case eTextureFormat_A8R8G8B8:
+                {                    
+                    ret = (_pBuffer[0]) | (_pBuffer[1] << 8) | (_pBuffer[2] << 16) | (_pBuffer[3] << 24);
+                } break;
+            case eTextureFormat_A4R4G4B4:
+                {
+                    var r,g,b,a;
+                    var col16 = _pBuffer[0];
+
+                    r = (((col16 & 0xf000) >> 12) / 15.0) * 255.0; 
+                    g = (((col16 & 0xf00) >> 8) / 15.0) * 255.0; 
+                    b = (((col16 & 0xf0) >> 4) / 15.0) * 255.0; 
+                    a = ((col16 & 0xf) / 15.0) * 255.0;                     
+            
+                    r = yymin(r, 255); 
+                    g = yymin(g, 255); 
+                    b = yymin(b, 255); 
+                    a = yymin(a, 255); 
+                                
+                    ret = r | (g << 8) | (b << 16) | (a << 24); 
+                } break;                
+            case eTextureFormat_Float16:
+                {
+                    var r = half_to_float(_pBuffer[0]);                    
+
+                    ret = new Array(r, 0.0, 0.0, 0.0);
+                } break;
+            case eTextureFormat_Float32:
+                {
+                    var r = _pBuffer[0];
+
+                    ret = new Array(r, 0.0, 0.0, 0.0)  ;
+                } break;
+            case eTextureFormat_R8:
+                {
+                    ret = _pBuffer[0];
+                } break;
+            case eTextureFormat_R8G8:
+                {                    
+                    ret = (_pBuffer[0]) | (_pBuffer[1] << 8);
+                } break;
+            case eTextureFormat_R16G16B16A16_Float:
+                {
+                    var r,g,b,a;
+
+                    r = half_to_float(_pBuffer[0]);
+                    g = half_to_float(_pBuffer[1]);
+                    b = half_to_float(_pBuffer[2]);
+                    a = half_to_float(_pBuffer[3]);
+
+                    ret = new Array(r, g, b, a);
+                } break;
+            case eTextureFormat_R32G32B32A32_Float:
+                {
+                    var r,g,b,a;
+
+                    r = _pBuffer[0];
+                    g = _pBuffer[1];
+                    b = _pBuffer[2];
+                    a = _pBuffer[3];
+
+                    ret = new Array(r, g, b, a);
+                } break;
+        }
+
+        return ret;
+    };
     
     // #############################################################################################
     /// Function:<summary>
@@ -1712,15 +1858,18 @@ function yyWebGL(_canvas, _options) {
     ///          </summary>
     // #############################################################################################
     /** @this {yyWebGL} */
-    this.GetPixel = function(_x, _y) {    
+    this.GetPixel = function(_x, _y, _format) {    
     
         // Execute current list to ensure what we grab is actually what should've been drawn now
-        this.Flush();    
+        //this.Flush();    
+        this.FlushAll();    
 
         // Now read the pixel
-        var pPixels = new Uint8Array(16);
-        gl.readPixels(_x, m_deviceHeight-_y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pPixels);
-        var col = (pPixels[0]) + (pPixels[1] << 8) + (pPixels[2] << 16) + (pPixels[3] * 0x01000000);
+        //var pPixels = new Uint8Array(16);
+        //gl.readPixels(_x, m_deviceHeight-_y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pPixels);        
+        //var col = (pPixels[0]) + (pPixels[1] << 8) + (pPixels[2] << 16) + (pPixels[3] * 0x01000000);
+        var pPixels = this.ReadPixels(_x, m_deviceHeight-_y, 1, 1, _format);
+        var col = this.ConvertSurfColToRValue(pPixels, _format);
 
         // Clear the command builder state
         m_CommandBuilder.Reset();
@@ -1732,7 +1881,7 @@ function yyWebGL(_canvas, _options) {
     ///          </summary>
     // #############################################################################################
     /** @this {yyWebGL} */
-    this.GetPixelFromFramebuffer = function ( _frameBuffer, _x, _y )
+    this.GetPixelFromFramebuffer = function ( _frameBuffer, _x, _y, _format )
     {
         // Execute current list to ensure what we grab is actually what should've been drawn now
 	    this.FlushAll();
@@ -1743,8 +1892,10 @@ function yyWebGL(_canvas, _options) {
 	    // Now set the surface, read the pixel, and change it back.
 	    var pPixels = new Uint8Array(16);
 	    gl.bindFramebuffer(gl.FRAMEBUFFER, _frameBuffer);
-	    gl.readPixels(_x, _y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pPixels);	    
-	    var col = (pPixels[0]) + (pPixels[1] << 8) + (pPixels[2] << 16) + (pPixels[3] * 0x01000000);
+	    //gl.readPixels(_x, _y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pPixels);	    
+	    //var col = (pPixels[0]) + (pPixels[1] << 8) + (pPixels[2] << 16) + (pPixels[3] * 0x01000000);
+        var pPixels = this.ReadPixels(_x, _y, 1, 1, _format);
+        var col = this.ConvertSurfColToRValue(pPixels, _format);
 	    
 	    // Re-bind the original framebuffer
 	    gl.bindFramebuffer(gl.FRAMEBUFFER, storedFrameBuffer);	    
@@ -1768,7 +1919,7 @@ function yyWebGL(_canvas, _options) {
     ///			</returns>
     // #############################################################################################
     /** @this {yyWebGL} */
-    this.GetRectFromFramebuffer = function (_frameBuffer, _x, _y, _w, _h)
+    this.GetRectFromFramebuffer = function (_frameBuffer, _x, _y, _w, _h, _format)
     {
 
         // Execute current list to ensure what we grab is actually what should've been drawn now
@@ -1778,9 +1929,17 @@ function yyWebGL(_canvas, _options) {
         var storedFrameBuffer = gl.getParameter(gl.FRAMEBUFFER_BINDING);
 
         // Now set the surface, read the pixel, and change it back.
-        var pPixels = new Uint8Array( _w*_h*4 );
+        //var pPixels = new Uint8Array( _w*_h*4 );
         gl.bindFramebuffer(gl.FRAMEBUFFER, _frameBuffer);
-        gl.readPixels(_x, _y, _w, _h, gl.RGBA, gl.UNSIGNED_BYTE, pPixels);
+        //gl.readPixels(_x, _y, _w, _h, gl.RGBA, gl.UNSIGNED_BYTE, pPixels);
+        var pPixels = this.ReadPixels(_x, _y, _w, _h, _format);
+
+        // The result of this function is always expected to be a Uint8Array
+        if (!(pPixels instanceof Uint8Array))
+        {
+            var temparray = new Uint8Array(pPixels.buffer);
+            pPixels = temparray;
+        }
         
         // Re-bind the original framebuffer
         gl.bindFramebuffer(gl.FRAMEBUFFER, storedFrameBuffer);

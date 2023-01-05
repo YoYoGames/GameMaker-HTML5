@@ -2593,9 +2593,9 @@ function WebGL_TextureDrawWH_RELEASE(_pTPE, _xorig, _yorig, _width, _height, _x,
 ///			 <param name="_y"></param>
 ///			 <param name="_canvas"></param>
 // #############################################################################################
-function WebGL_UpdateTexture_RELEASE( _texture, _x, _y, _w,_h, _canvas ) {
+function WebGL_UpdateTexture_RELEASE( _texture, _x, _y, _w,_h, _canvas, _format ) {
 
-    g_webGL.UpdateTexture(_texture, _x, _y, _w, _h, _canvas);
+    g_webGL.UpdateTexture(_texture, _x, _y, _w, _h, _canvas, _format);
     
 }
 
@@ -3177,17 +3177,36 @@ function WebGL_draw_point_RELEASE(_x, _y) {
 ///			</returns>
 // #############################################################################################
 function WebGL_draw_getpixel_RELEASE(_x, _y) {
-    return WebGL_draw_getpixel_ext_RELEASE(_x,_y) & 0x00ffffff;
+    
+    var ret = WebGL_draw_getpixel_ext_RELEASE(_x,_y);
+    if (Array.isArray(ret))
+    {
+        return ret;
+    }
+    else
+    {
+        return ret & 0x00ffffff;
+    }    
 }
 
 function WebGL_draw_getpixel_ext_RELEASE(_x, _y) {
 
+    var format = eTextureFormat_A8R8G8B8;
+    if ((g_CurrentSurfaceId != null) && (g_CurrentSurfaceId != -1))
+    {
+        var pSurf = g_Surfaces.Get(g_CurrentSurfaceId);
+        if (pSurf != null)
+        {		
+            format = pSurf.FrameBufferData.Texture.Format;
+        }
+    }
+    
     _x = yyGetInt32(_x);
     _y = yyGetInt32(_y); 
     if (g_RenderTargetActive < 0) {
         _y = g_webGL.DeviceHeight - _y;
     }
-    return g_webGL.GetPixel(_x, _y);    
+    return g_webGL.GetPixel(_x, _y, format);    
 }
 
 // #############################################################################################
@@ -3686,7 +3705,16 @@ function WebGL_surface_free_RELEASE(_id) {
 // #############################################################################################
 function WebGL_surface_getpixel_RELEASE(_id, _x, _y) {
 
-    return WebGL_surface_getpixel_ext_RELEASE(_id, _x, _y) & 0x00ffffff;
+    var ret = WebGL_surface_getpixel_ext_RELEASE(_id, _x, _y);
+
+    if (Array.isArray(ret))
+    {
+        return ret;
+    }
+    else
+    {
+        return ret & 0x00ffffff;
+    }    
 }
 
 // #############################################################################################
@@ -3702,7 +3730,7 @@ function WebGL_surface_getpixel_ext_RELEASE(_id, _x, _y) {
 	    _x = yyGetInt32(_x);
 	    _y = yyGetInt32(_y);
 	    
-	    ret = g_webGL.GetPixelFromFramebuffer(pSurf.FrameBuffer, _x, _y);
+	    ret = g_webGL.GetPixelFromFramebuffer(pSurf.FrameBuffer, _x, _y, pSurf.FrameBufferData.Texture.Format);
     }
     return ret;
 }
@@ -5125,7 +5153,7 @@ function WEBGL_buffer_get_surface(_buffer, _surface, _mode, _offset, _modulo) {
     if(_offset === undefined) _offset = 0;
 
     // Get RAW buffer
-    var pixels = g_webGL.GetRectFromFramebuffer(pSurf.FrameBuffer, 0, 0, pSurf.m_Width, pSurf.m_Height);
+    var pixels = g_webGL.GetRectFromFramebuffer(pSurf.FrameBuffer, 0, 0, pSurf.m_Width, pSurf.m_Height, pSurf.FrameBufferData.Texture.Format);
    
     // Resize buffer if required and valid to do so
     if(pBuff.m_Type == eBuffer_Format_Grow && _offset + pixels.length > pBuff.m_Size)
@@ -5164,7 +5192,7 @@ function WEBGL_buffer_set_surface(_buffer, _surface, _mode, _offset, _modulo) {
     //_pTPE.texture.webgl_textureid = frameBufferData.Texture;
 
     var data = new Uint8Array(pBuff.m_pRAWUnderlyingBuffer);
-    WebGL_UpdateTexture_RELEASE(pSurf.texture.webgl_textureid, 0, 0, pSurf.m_Width,pSurf.m_Height, data);
+    WebGL_UpdateTexture_RELEASE(pSurf.texture.webgl_textureid, 0, 0, pSurf.m_Width,pSurf.m_Height, data, pSurf.FrameBufferData.Texture.Format);
     
     data = null;      // free Uint8Array[]
 }

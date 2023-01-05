@@ -1098,7 +1098,7 @@ function surface_copy_part(_destination,_x,_y, _source,_xs,_ys,_ws,_hs)
 }
 
 function SurfaceFormatSupported(_format)
-{
+{        
 	switch (_format)
 	{
 		case eTextureFormat_A8R8G8B8: return true;
@@ -1144,9 +1144,9 @@ function surface_get_format(_id)
 	{
         if (g_webGL)
         {
-            if ((pSurf.texture) && (pSurf.texture.webgl_textureid))
+            if (pSurf.FrameBufferData.Texture)
             {
-                return pSurf.texture.Format;
+                return pSurf.FrameBufferData.Texture.Format;
             }
         }
         else
