@@ -211,6 +211,8 @@ function audioSampleData()
     this.pitch = 1.0;
     this.duration = 0.0;
     this.trackPos = 0.0;    //sample track offset(seconds)
+    this.loopStart = 0.0;
+    this.loopEnd = 0.0;
     this.groupId = 0;
     this.kind = 0;
     this.state = AudioSampleState.INIT;
@@ -276,8 +278,10 @@ function audioSound(_props)
 audioSound.prototype.Init = function(_props)
 {
     this.bActive = false;
-	this.startedattime = g_WebAudioContext.currentTime; //last checkpoint time
-	this.playbackpoint = 0;     //track position at last 'startedattime' checkpoint; 
+    this.playbackCheckpoint = {
+        contextTime: 0.0,
+        bufferTime: 0.0
+    };
     this.pbuffersource = null;
     this.pgainnode.disconnect();    //may be attached to panner(emitter) node OR main volume node - not both!
     this.gain = new TimeRampedParamLinear(_props.gain);
@@ -318,6 +322,145 @@ audioSound.prototype.Init = function(_props)
 	    }
     }
 };
+
+audioSound.prototype.setLoopStart = function(_offsetSecs) {
+    if (this.bActive === false || this.pbuffersource === null || g_WebAudioContext === null)
+        return;
+
+    const samplePeriod = 1.0 / g_WebAudioContext.sampleRate;
+
+    const trueLoopEnd = this.getTrueLoopEnd();
+    const maxLoopStart = trueLoopEnd - samplePeriod;
+
+    _offsetSecs = Math.max(0.0, _offsetSecs);
+    _offsetSecs = Math.min(_offsetSecs, maxLoopStart);
+
+    this.setPlaybackCheckpoint();
+    
+    this.pbuffersource.loopStart = _offsetSecs;
+
+    this.setPlaybackCheckpoint();
+};
+
+audioSound.prototype.setLoopEnd = function(_offsetSecs) {
+    if (this.bActive === false || this.pbuffersource === null || g_WebAudioContext === null)
+        return;
+
+    const samplePeriod = 1.0 / g_WebAudioContext.sampleRate;
+    const duration = this.pbuffersource.buffer.duration;
+    const loopStart = this.pbuffersource.loopStart;
+
+    const minLoopEnd = (_offsetSecs <= 0.0) ? 0.0 : (loopStart + samplePeriod);
+
+    _offsetSecs = Math.max(minLoopEnd, _offsetSecs);
+    _offsetSecs = Math.min(_offsetSecs, duration);      
+    
+    this.setPlaybackCheckpoint();
+    const playbackPosition = this.playbackCheckpoint.bufferTime;
+
+    /* 
+        Once the loop section has been reached a single time, Web Audio
+        considers the buffer source to be 'looping' and will constrain the playback
+        position to the loop section. So, in case our new loop-end here leaves the current
+        playback position outside of the new loop section, we need to preemptively disable looping
+        in order to prevent the 'correction' of the playback position during the next render quantum.
+        The voice-level attribute (i.e. this.loop) will still reflect the user's chosen loop status.
+    */
+    this.pbuffersource.loop = (playbackPosition < _offsetSecs);
+    this.pbuffersource.loopEnd = _offsetSecs;
+    
+    this.setPlaybackCheckpoint();
+};
+
+audioSound.prototype.getLoopStart = function() {
+    if (this.bActive === false || this.pbuffersource === null)
+        return 0.0;
+
+    return this.pbuffersource.loopStart;
+};
+
+audioSound.prototype.getLoopEnd = function() {
+    if (this.bActive === false || this.pbuffersource === null)
+        return 0.0;
+
+    return this.pbuffersource.loopEnd;
+};
+
+audioSound.prototype.getTrueLoopEnd = function() {
+    if (this.bActive === false || this.pbuffersource === null)
+        return 0.0;
+
+    const loopEnd = this.pbuffersource.loopEnd;
+
+    if (loopEnd <= 0.0)
+        return this.pbuffersource.buffer.duration;
+
+    return loopEnd;
+};
+
+audioSound.prototype.getLoopLength = function() {
+    if (this.bActive === false || this.pbuffersource === null)
+        return 0.0;
+
+    const loopStart = this.pbuffersource.loopStart;
+    const trueLoopEnd = this.getTrueLoopEnd();
+
+    return (trueLoopEnd - loopStart);
+};
+
+audioSound.prototype.setPlaybackCheckpoint = function() {
+    if (g_WebAudioContext === null)
+        return;
+
+    const contextTime = g_WebAudioContext.currentTime;
+
+    this.playbackCheckpoint = {
+        contextTime: contextTime,
+        bufferTime: this.getPlaybackPosition(contextTime)
+    };
+};
+
+audioSound.prototype.getPlaybackPosition = function(_contextTime) {
+    if (this.bActive === false || this.pbuffersource === null || g_WebAudioContext === null)
+        return 0.0;
+
+    const checkpoint = this.playbackCheckpoint;
+
+    if (this.paused === true)
+        return checkpoint.bufferTime;
+
+    const pitch = this.pbuffersource.playbackRate.value;
+
+    if (_contextTime === undefined)
+        _contextTime = g_WebAudioContext.currentTime;
+
+    const timePassed = (_contextTime - checkpoint.contextTime) * pitch;
+
+    const trueLoopEnd = this.getTrueLoopEnd();
+    const wasBeyondLoopEnd = (checkpoint.bufferTime > trueLoopEnd);
+
+    const isLooping = this.pbuffersource.loop;
+
+    let playbackPosition = checkpoint.bufferTime;
+
+    if (isLooping === false || wasBeyondLoopEnd === true) {
+        playbackPosition += timePassed;
+    }
+    else {
+        const loopStart = this.getLoopStart();
+        const timeToLoopStart = loopStart - checkpoint.bufferTime;
+        
+        if (timePassed < timeToLoopStart) {
+            playbackPosition += timePassed;
+        }
+        else {
+            const loopLength = this.getLoopLength();
+            playbackPosition = loopStart + (timePassed - timeToLoopStart) % loopLength;
+        }
+    }
+
+    return playbackPosition;
+}
 
 function GetAudioSoundFromHandle( _handle )
 {
@@ -594,6 +737,9 @@ function Audio_Play(_voice)
         return false;
     }
 
+    // This should probably be closer to the 'real' start
+    _voice.setPlaybackCheckpoint();
+
     if (playbackStreamed)
     {
         Audio_PlayStreamed(_voice);
@@ -815,7 +961,7 @@ function Audio_PlayUnstreamed(_voice)
             sourceNode = _voice.pbuffersource;
 		}
 
-        _voice.startedattime = g_WebAudioContext.currentTime;
+        _voice.playbackCheckpoint.contextTime = g_WebAudioContext.currentTime;
 		
         sourceNode.onended = (event) => 
         {
@@ -831,7 +977,7 @@ function Audio_PlayUnstreamed(_voice)
 		{
             const offset = AudioPropsCalc.CalcOffset(_voice);
             sourceNode.start(0, offset);
-            _voice.playbackpoint = offset;
+            _voice.playbackCheckpoint.bufferTime = offset;
 		}
 	}
 	catch (ex)
@@ -942,7 +1088,7 @@ function Audio_PauseUnstreamed( _audioSound )
     {
         _audioSound.pbuffersource.onended = null;
         _audioSound.pbuffersource.stop(0);
-        _audioSound.playbackpoint = Audio_GetTrackPos(_audioSound);
+        _audioSound.setPlaybackCheckpoint();
     }
 	}catch(Ex) 	{
 		debug("Audio_PauseUnstreamed exception: " + Ex );
@@ -994,7 +1140,7 @@ function Audio_ResumeUnstreamed( _audioSound )
         var pitch = AudioPropsCalc.CalcPitch(_audioSound);
         _audioSound.pbuffersource = g_WebAudioContext.createBufferSource();
         _audioSound.pbuffersource.playbackRate.value = pitch;
-        _audioSound.startedattime = g_WebAudioContext.currentTime;
+        _audioSound.playbackCheckpoint.contextTime = g_WebAudioContext.currentTime;
 
         _audioSound.pgainnode = g_WebAudioContext.createGain();
 
@@ -1036,8 +1182,8 @@ function Audio_ResumeUnstreamed( _audioSound )
             _audioSound.pbuffersource.loop = true;
 
         {
-            var numloopsplayed = Math.floor(_audioSound.playbackpoint/_audioSound.pbuffersource.buffer.duration);
-            var playpoint = _audioSound.playbackpoint - numloopsplayed * _audioSound.pbuffersource.buffer.duration;
+            var numloopsplayed = Math.floor(_audioSound.playbackCheckpoint.bufferTime/_audioSound.pbuffersource.buffer.duration);
+            var playpoint = _audioSound.playbackCheckpoint.bufferTime - numloopsplayed * _audioSound.pbuffersource.buffer.duration;
             //_audioSound.pbuffersource.noteGrainOn(0,playpoint,_audioSound.pbuffersource.buffer.duration-playpoint); //This would just play what was left in the buffer
             _audioSound.pbuffersource.start(0,playpoint);
         }
@@ -1487,8 +1633,8 @@ function audio_sound_pitch(_soundid, pitch)
 
         if (voice != null && voice.bActive)
 		{
-            voice.playbackpoint = Audio_GetTrackPos(voice);
-            voice.startedattime = g_WebAudioContext.currentTime;
+            voice.setPlaybackCheckpoint();
+
             voice.pitch = pitch;
 
             const new_pitch = AudioPropsCalc.CalcPitch(voice);
@@ -1521,8 +1667,7 @@ function audio_sound_pitch(_soundid, pitch)
 
             if (voice.bActive && voice.soundid == _soundid)		
             {
-                voice.playbackpoint = Audio_GetTrackPos(voice);
-                voice.startedattime = g_WebAudioContext.currentTime;
+                voice.setPlaybackCheckpoint();
 
                 const new_pitch = AudioPropsCalc.CalcPitch(voice);
 
@@ -1679,41 +1824,7 @@ function audio_sound_length(_soundid)
 	return -1;
 }
 
-function Audio_GetTrackPos(_voice)
-{
-    if (_voice.bActive)
-    {
-        if (!_voice.bStreamed)
-        {
-            //playbackpoint is set to current track position on pause or pitch change, and startedattime is reset to current time
-            //-for maintaining track position on paused/resumed or repeated pitch changes
-            let time = _voice.playbackpoint;   //track position checkpoint at last pause/pitch change
 
-            if (!_voice.paused)
-            {
-                const pitch = _voice.pbuffersource.playbackRate.value;   //handle pitch setting
-                time += (g_WebAudioContext.currentTime - _voice.startedattime) * pitch;    //+track position offset since last checkpoint
-            }
-
-            //handle loops
-            if (_voice.loop == true)
-            {
-                time %= _voice.pbuffersource.buffer.duration;
-            }
-
-            return time;
-        }
-        else
-        {
-            if (_voice.audio_tag != null)
-            {
-                return _voice.audio_tag.currentTime;
-            }
-        }
-    }
-
-    return 0.0;
-}
 
 function audio_sound_get_track_position(_soundid)
 {
@@ -1728,7 +1839,7 @@ function audio_sound_get_track_position(_soundid)
 
 		if (voice != null)
 		{
-		    return Audio_GetTrackPos(voice);
+		    return voice.getPlaybackPosition();
 		}
 	}
 	else if (_soundid >= 0)
@@ -1762,7 +1873,7 @@ function Audio_SetTrackPos( _audioSound, _time )
                 if (_audioSound.paused)
                 {
                     //simply need to resume at different offset
-                    _audioSound.playbackpoint = _time;
+                    _audioSound.playbackCheckpoint.bufferTime = _time;
                 }
                 else
                 {
@@ -1829,6 +1940,132 @@ function audio_sound_set_track_position(_soundid, _time)
 	        }
 	    }
     }
+}
+
+function audio_sound_loop_start(_index, _offsetSecs) {
+    _index = yyGetInt32(_index);
+    _offsetSecs = yyGetReal(_offsetSecs);
+
+    const assetDuration = audio_sound_length(_index);
+
+    if (assetDuration === -1) {
+        debug("audio_sound_loop_start() - could not determine length of asset");
+        return;
+    }
+
+    _offsetSecs = clamp(_offsetSecs, 0, assetDuration);
+
+    if (_index >= BASE_SOUND_INDEX) {
+        const voice = GetAudioSoundFromHandle(_index);
+
+        if (voice !== null)
+            voice.setLoopStart(_offsetSecs);     
+	}
+	else {
+		const asset = Audio_GetSound(_index);
+
+        if (asset === null) {
+            debug("audio_sound_loop_start() - no asset found with index " + _index);
+            return;
+        }
+
+        asset.loopStart = _offsetSecs;
+
+        const voices = audio_sounds.filter(_voice => _voice.soundid === _index);
+        voices.forEach(_voice => _voice.setLoopStart(_offsetSecs));
+	}
+}
+
+function audio_sound_get_loop_start(_index) {
+    _index = yyGetInt32(_index);
+
+    if (_index >= BASE_SOUND_INDEX) {
+        const voice = GetAudioSoundFromHandle(_index);
+        
+        if (voice === null)
+            return 0.0;
+
+        if (voice.bStreamed) {
+            // Handle streamed sounds
+            return 0.0;
+        }
+        else {
+            return voice.pbuffersource.loopStart;
+        }
+	}
+	else {
+		const asset = Audio_GetSound(_index);
+
+        if (asset === null) {
+            debug("audio_sound_get_loop_start() - no asset found with index " + _index);
+            return 0.0;
+        }
+
+        return asset.loopStart;
+	}
+}
+
+function audio_sound_loop_end(_index, _offsetSecs) {
+    _index = yyGetInt32(_index);
+    _offsetSecs = yyGetReal(_offsetSecs);
+
+    const assetDuration = audio_sound_length(_index);
+
+    if (assetDuration === -1) {
+        debug("audio_sound_loop_end() - could not determine length of asset");
+        return;
+    }
+
+    _offsetSecs = clamp(_offsetSecs, 0, assetDuration);
+
+    if (_index >= BASE_SOUND_INDEX) {
+        const voice = GetAudioSoundFromHandle(_index);
+
+        if (voice !== null)
+            voice.setLoopEnd(_offsetSecs);     
+	}
+	else {
+		const asset = Audio_GetSound(_index);
+
+        if (asset === null) {
+            debug("audio_sound_loop_end() - no asset found with index " + _index);
+            return;
+        }
+
+        asset.loopEnd = _offsetSecs;
+
+        const voices = audio_sounds.filter(_voice => _voice.soundid === _index);
+        voices.forEach(_voice => _voice.setLoopEnd(_offsetSecs));
+	}
+}
+
+function audio_sound_get_loop_end(_index) {
+    _index = yyGetInt32(_index);
+
+    if (_index >= BASE_SOUND_INDEX) {
+        const voice = GetAudioSoundFromHandle(_index);
+        
+        if (voice === null)
+            return 0.0;
+
+        if (voice.bStreamed) {
+            // Handle streamed sounds
+            return 0.0;
+        }
+        else {
+            return voice.pbuffersource.loopEnd;
+        }
+	}
+	else {
+		const asset = Audio_GetSound(_index);
+
+        if (asset === null) {
+            debug("audio_sound_get_loop_end() - no asset found with index " + _index);
+            return 0.0;
+        }
+
+        return asset.loopEnd;
+	}
 }
 
 function audio_system() {
@@ -2508,8 +2745,7 @@ function audio_emitter_pitch(index, pitch)
 		{
             if (voice.pemitter === emitter) 
             {
-                voice.playbackpoint = Audio_GetTrackPos(voice);
-                voice.startedattime = g_WebAudioContext.currentTime;
+                voice.setPlaybackCheckpoint();
 
                 const new_pitch = AudioPropsCalc.CalcPitch(voice);
 
