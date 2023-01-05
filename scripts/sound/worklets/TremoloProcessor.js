@@ -16,17 +16,16 @@ class TremoloProcessor extends AudioWorkletProcessor
 
         const maxChannels = _options.outputChannelCount[0];
 
-        this.lfo = new Array(maxChannels);
-
-        for (let c = 0; c < maxChannels; ++c) {
-            this.lfo[c] = new WavetableLFO();
-        }
-
         this.prevRate = new Array(maxChannels).fill(1.0);
         this.prevOffset = new Array(maxChannels).fill(0.0);
         this.prevShape = new Array(maxChannels).fill(LFO.Shape.INV_SAWTOOTH);
 
+        this.lfo = new Array(maxChannels);
+
         for (let c = 0; c < maxChannels; ++c) {
+            this.lfo[c] = new WavetableLFO();
+
+            this.lfo[c].setFs(sampleRate);
             this.lfo[c].setFreq(this.prevRate[c]);
             this.lfo[c].setShape(this.prevShape[c]);
 
