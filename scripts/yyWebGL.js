@@ -4035,7 +4035,13 @@ function WebGL_background_create_from_surface_RELEASE(_id,_x,_y,_w,_h,_removebac
 
     var pSurf = g_Surfaces.Get(_id);
     if (pSurf != null)
-    {	        
+    {	  
+        if (pSurf.FrameBufferData.Texture.Format != eTextureFormat_A8R8G8B8)
+        {
+            debug("Surface " + yyGetInt32(_id) + " can't be used as a background source as it uses unsupported format " + g_webGL.GetSurfaceFormatName(pSurf.FrameBufferData.Texture.Format));
+            return -1;
+        }
+
         // Clamp coordinates
         _x = ~~_x;
         _y = ~~_y;
@@ -4164,6 +4170,12 @@ function WebGL_sprite_create_from_surface_RELEASE(_id, _x, _y, _w, _h, _removeba
     var pSurf = g_Surfaces.Get(yyGetInt32(_id));
     if (pSurf != null)
     {	    	
+        if (pSurf.FrameBufferData.Texture.Format != eTextureFormat_A8R8G8B8)
+        {
+            debug("Surface " + yyGetInt32(_id) + " can't be used as a sprite source as it uses unsupported format " + g_webGL.GetSurfaceFormatName(pSurf.FrameBufferData.Texture.Format));
+            return -1;
+        }
+
         // Clamp coordinates
         _x = yyGetInt32(_x);
         _y = yyGetInt32(_y);
@@ -4258,6 +4270,12 @@ function WebGL_sprite_add_from_surface_RELEASE(_ind, _id, _x, _y, _w, _h, _remov
     var pSurf = g_Surfaces.Get(yyGetInt32(_id));
     if (pSurf != null)
     {
+        if (pSurf.FrameBufferData.Texture.Format != eTextureFormat_A8R8G8B8)
+        {
+            debug("Surface " + yyGetInt32(_id) + " can't be used as a sprite source as it uses unsupported format " + g_webGL.GetSurfaceFormatName(pSurf.FrameBufferData.Texture.Format));
+            return -1;
+        }
+
         _ind = yyGetInt32(_ind);
 
         // Clamp coordinates

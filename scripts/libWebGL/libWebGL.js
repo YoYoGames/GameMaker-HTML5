@@ -1265,6 +1265,28 @@ function yyWebGL(_canvas, _options) {
 	    return ret;
     };
 
+    this.GetSurfaceFormatName = function( _format)
+    {
+        switch (_format)
+        {
+            case	eTextureFormat_UnknownFormat:		return "surface_unknown";
+            case	eTextureFormat_A8R8G8B8:			return "surface_rgba8unorm";
+                //case	eTextureFormat_DXT1:				return "surface_unknown";		// block compressed formats are not valid for surfaces
+                //case	eTextureFormat_DXT2:				return "surface_unknown";
+                //case	eTextureFormat_DXT3:				return "surface_unknown";
+                //case	eTextureFormat_DXT4:				return "surface_unknown";
+                //case	eTextureFormat_DXT5:				return "surface_unknown";
+            case	eTextureFormat_Float16:				return "surface_r16float";
+            case	eTextureFormat_Float32:				return "surface_r32float";
+            case	eTextureFormat_A4R4G4B4:			return "surface_rgba4unorm";
+            case	eTextureFormat_R8:					return "surface_r8unorm";
+            case	eTextureFormat_R8G8:				return "surface_rg8unorm";
+            case	eTextureFormat_R16G16B16A16_Float:	return "surface_rgba16float";
+            case	eTextureFormat_R32G32B32A32_Float:	return "surface_rgba32float";
+            default:	return "surface_unknown";
+        }
+    };
+
     this.ConvertTexFormat = function(_format)
     {
         // This still needs fixing for all formats
