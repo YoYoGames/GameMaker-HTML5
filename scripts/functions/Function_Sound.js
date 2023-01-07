@@ -109,10 +109,8 @@ var g_hidden;
 
 function audio_reinit()
 {
-    if (g_AudioModel != Audio_WebAudio)
-    {
+    if (g_AudioModel !== Audio_WebAudio)
         return;
-    }
 
     g_AudioMainVolumeNode.disconnect();
 
@@ -123,7 +121,6 @@ function audio_reinit()
     g_WebAudioContext.listener.velocity = new Vector3(0,0,0);
     g_WebAudioContext.listener.ori = new Array(0,0,0,0,0,0);
 }
-
 
 function Audio_Init()
 {
@@ -829,9 +826,6 @@ function Audio_Play(_voice)
 	return true;
 }
 
-//play streamed audio
-//_audioSound : audioSound object
-//_soundid : sample index
 
 function Audio_PlayStreamed(_voice, _onStart)
 {
@@ -1201,7 +1195,7 @@ function Audio_IsSoundPlaying( _audioSound )
 		else
 			bPlaying = Audio_IsPlayingUnstreamed( _audioSound );
 	}
-    //debug("Audio_IsSoundPlaying " + _audioSound.soundid + "= " + bPlaying );
+    
     return bPlaying;
 }
 
@@ -1259,6 +1253,7 @@ function getFreeVoice(_props)
 		{
 		    if (sound.bQueued && sound.soundid == _props.asset_index)
 		        return null; //queue sound already allocated
+
 		    //check if sound has stopped
 			var bStopped = false;
 			if( sound.bStreamed )
@@ -1438,9 +1433,9 @@ function audio_play_sound_ext(_params)
     return audio_play_sound_common(props);
 }
 	
-function audio_stop_sound( _soundid )
+function audio_stop_sound(_soundid)
 {
-	if(g_AudioModel!= Audio_WebAudio)
+	if (g_AudioModel !== Audio_WebAudio)
 	    return;
 
 	_soundid = yyGetInt32(_soundid);
@@ -1468,9 +1463,9 @@ function audio_stop_sound( _soundid )
 	}
 }
 
-function audio_pause_sound( _soundid)
+function audio_pause_sound(_soundid)
 {
-    if(g_AudioModel!=Audio_WebAudio)
+    if (g_AudioModel !== Audio_WebAudio)
         return;
 
     _soundid = yyGetInt32(_soundid);
@@ -1498,9 +1493,9 @@ function audio_pause_sound( _soundid)
 	}
 }
 
-function audio_resume_sound( _soundid)
+function audio_resume_sound(_soundid)
 {
-    if(g_AudioModel!= Audio_WebAudio)
+    if (g_AudioModel !== Audio_WebAudio)
         return;
 
     _soundid = yyGetInt32(_soundid);
@@ -1525,7 +1520,7 @@ function audio_resume_sound( _soundid)
     }
 }
 
-function audio_play_music( _soundid,_bLoop)
+function audio_play_music(_soundid, _bLoop)
 {
 	debug("audio_play_music :: deprecated function\n");
 }
