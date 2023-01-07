@@ -325,6 +325,129 @@ audioSound.prototype.Init = function(_props)
     }
 };
 
+audioSound.prototype.stop = function() {
+    if (this.bActive === false)
+        return;
+
+    if (this.soundid >= BASE_QUEUE_SOUND_INDEX 
+    && this.soundid < (BASE_QUEUE_SOUND_INDEX + g_queueSoundCount)) {
+        var queueSoundId = this.soundid - BASE_QUEUE_SOUND_INDEX;
+        queue_sounds[queueSoundId].scriptNode.onended = null;
+        queue_sounds[queueSoundId].scriptNode.disconnect();
+    }
+    else if (this.pbuffersource !== null) {
+        this.pbuffersource.onended = null;
+        this.pbuffersource.loop = false;
+        this.pbuffersource.stop(0);
+        this.pbuffersource.disconnect();
+    }
+
+    if (this.pgainnode !== null)
+        this.pgainnode.disconnect();
+
+    this.pemitter = null;
+    this.soundid = -1;
+    this.bActive = false;
+};
+
+audioSound.prototype.pause = function() {
+    if (this.bActive === false || this.paused === true)
+        return;
+
+    //remove ended handler which sets bActive to false - 
+    //need to keep sound "active" while paused, so it is not replaced by new sound
+    if (this.soundid >= BASE_QUEUE_SOUND_INDEX 
+    && this.soundid < (BASE_QUEUE_SOUND_INDEX + g_queueSoundCount)) {
+        const queueSoundId = this.soundid - BASE_QUEUE_SOUND_INDEX;
+        queue_sounds[queueSoundId].scriptNode.onended = null;
+        queue_sounds[queueSoundId].scriptNode.disconnect(0);
+    }
+    else {
+        this.pbuffersource.onended = null;
+        this.pbuffersource.stop(0);
+        this.setPlaybackCheckpoint();
+    }
+
+    this.paused = true;
+};
+
+audioSound.prototype.resume = function() {
+    if (this.bActive === false || this.paused === false)
+        return;
+
+    if (this.soundid >= BASE_QUEUE_SOUND_INDEX 
+    && this.soundid < (BASE_QUEUE_SOUND_INDEX + g_queueSoundCount)) {
+        const queueSoundId = this.soundid - BASE_QUEUE_SOUND_INDEX;
+        queue_sounds[queueSoundId].scriptNode.connect(this.pgainnode);
+        queue_sounds[queueSoundId].scriptNode.onended = (_event) => {
+            this.bActive = false;
+        };
+    }
+    else {
+        const pitch = AudioPropsCalc.CalcPitch(this);
+        this.pbuffersource = g_WebAudioContext.createBufferSource();
+        this.pbuffersource.playbackRate.value = pitch;
+        this.playbackCheckpoint.contextTime = g_WebAudioContext.currentTime;
+
+        this.pgainnode = g_WebAudioContext.createGain();
+
+        const sampleData = Audio_GetSound(this.soundid);
+
+        this.pgainnode.gain.value = AudioPropsCalc.CalcGain(this);
+
+        this.pbuffersource.connect(this.pgainnode);
+
+        this.pbuffersource.onended = (_event) => {
+            this.bActive = false;
+        };
+
+        if (this.pemitter !== null) 
+            this.pgainnode.connect(this.pemitter);
+        else
+            g_AudioBusMain.connectInput(this.pgainnode);
+
+        this.pbuffersource.buffer = sampleData.buffer;
+
+        //oddly enough, this seems to work for looped sounds also...suspicious (see original above )
+        if (this.loop === true)
+            this.pbuffersource.loop = true;
+ 
+        const numloopsplayed = Math.floor(this.playbackCheckpoint.bufferTime / this.pbuffersource.buffer.duration);
+        const playpoint = this.playbackCheckpoint.bufferTime - numloopsplayed * this.pbuffersource.buffer.duration;
+        this.pbuffersource.start(0, playpoint);
+    }
+
+    this.paused = false;
+};
+
+audioSound.prototype.isPlaying = function() {
+    if (this.bActive === false)
+        return false;
+
+    if (this.bQueued) {
+        var queued_sound = queue_sounds[this.soundid - BASE_QUEUE_SOUND_INDEX];
+
+        if (!queued_sound || !queued_sound.scriptNode || !queued_sound.scriptNode.onended) 
+            return false;
+
+        return true;
+    }
+    else {
+        if (this.pbuffersource === null)
+            return false;
+
+        //NB- "playbackState" is only defined for webkitAudioContext - undefined for AudioContext
+        // ... we should get rid of it then
+        if (this.pbuffersource.playbackState == undefined 
+        || this.pbuffersource.playbackState != this.pbuffersource.FINISHED_STATE
+        || _audioSound.paused) {
+            return true;
+        }
+    }
+    
+    return false;
+};
+
 audioSound.prototype.setLoopStart = function(_offsetSecs) {
     if (this.bActive === false || this.pbuffersource === null || g_WebAudioContext === null)
         return;
