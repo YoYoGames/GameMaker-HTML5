@@ -176,8 +176,7 @@ function Audio_Init()
     Audio_InitSampleData();
     AudioGroups_Init();
 
-    // We perform the 'autoplay' test and register event listeners (if autoplay is not available)
-    Audio_WebAudioContextTestAutoPlay();
+    Audio_WebAudioContextTryUnlock();
 }
 
 function Audio_Quit()
@@ -559,61 +558,11 @@ function getUrlForSound( _soundid )
 
 // Web audio context -------------
 var g_WaitingForWebAudioTouchUnlock = false;
-var g_WebAudioAutoplayTested = false;
-var g_WebAudioAutoplayTestPassed = false;
 var g_HandleStreamedAudioAsUnstreamed = false;
 
 function Audio_WebAudioPlaybackAllowed()
 {
-    return g_WebAudioContext && (g_WebAudioAutoplayTestPassed || g_WebAudioContext.state === WebAudioContextState.RUNNING);
-}
-
-function Audio_WebAudioContextTestAutoPlay()
-{
-	if ( g_WebAudioAutoplayTestPassed || g_WebAudioAutoplayTested )
-		return;
-
-    g_WebAudioAutoplayTested = true;
-
-	var audio_tag = new Audio( g_builtinSilentSound );
-	audio_tag.controls = false;
-	audio_tag.autoplay = true;
-	audio_tag.preload = "none";
-	document.body.appendChild( audio_tag );
-
-	try
-	{
-		var playPromise = audio_tag.play();
-		if ( playPromise !== undefined )
-		{
-			playPromise.then( function ()
-			{
-				debug( "WebAudio autoplay test passed." );
-				g_WebAudioAutoplayTestPassed = true;
-				Audio_WebAudioContextReportStatus();
-
-				document.body.removeChild( audio_tag );
-
-			} ).catch( function ( error )
-			{
-				console.log( "WebAudio autoplay test failed: ", error );
-				document.body.removeChild( audio_tag );
-				Audio_WebAudioContextTryUnlock();
-			} );
-		}
-		else
-		{
-			console.log( "WebAudio autoplay test failed: Playback promise invalid." );
-			document.body.removeChild( audio_tag );
-			Audio_WebAudioContextTryUnlock();
-		}
-	}
-	catch ( ex )
-	{
-		debug( "WebAudio autoplay test failed with exception: " + ex );
-		document.body.removeChild( audio_tag );
-		Audio_WebAudioContextTryUnlock();
-	}
+    return g_WebAudioContext && (g_WebAudioContext.state === WebAudioContextState.RUNNING);
 }
 
 function Audio_WebAudioContextTryUnlock()
@@ -837,14 +786,6 @@ function Audio_PlayStreamed(_voice, _onStart)
     	debug("Audio_PlayStreamed exception: " + ex);
     	return false;
 	}
-}
-
-
-
-
-
-
-
 }
 
 function Audio_PlayUnstreamed(_voice)
