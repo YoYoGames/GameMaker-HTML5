@@ -1298,7 +1298,7 @@ function getFreeVoice(_props)
 	{
 		debug("killing sound on channel " + killIndex );
 		var killSound = audio_sounds[ killIndex ];
-		Audio_Stop( killSound );
+		killSound.stop();
 		killSound.Init(_props);	//allocate a new handle
 		return killSound;	//re-use it
 	}
@@ -1439,16 +1439,16 @@ function audio_stop_sound(_soundid)
 
 	_soundid = yyGetInt32(_soundid);
 	
-	var sound;
-	if(_soundid>=BASE_SOUND_INDEX)
-	{
-		sound = GetAudioSoundFromHandle( _soundid );
-		if (sound != null) {
-		    if (sound.bQueued) {
+	if (_soundid >= BASE_SOUND_INDEX) {
+		const voice = GetAudioSoundFromHandle(_soundid);
+
+		if (voice !== null) {
+		    if (voice.bQueued) {
                 // remove from handle map
-		        g_handleMap[sound.handle - BASE_SOUND_INDEX] = undefined;
+		        g_handleMap[voice.handle - BASE_SOUND_INDEX] = undefined;
 		    }
-            Audio_Stop(sound);
+
+            voice.stop();
 		}
 	}
 	else {
@@ -1464,13 +1464,13 @@ function audio_pause_sound(_soundid)
 
     _soundid = yyGetInt32(_soundid);
 	
-	var sound;
-	if( _soundid >= BASE_SOUND_INDEX)
-	{
-		sound = GetAudioSoundFromHandle( _soundid );
-		if( sound != null ) {
-		    Audio_Pause( sound );
-		}
+	if (_soundid >= BASE_SOUND_INDEX) {
+		const voice = GetAudioSoundFromHandle(_soundid);
+
+		if (voice === null)
+            return;
+
+        voice.pause();
 	}
 	else {
         audio_sounds.filter(_voice => _voice.soundid === _soundid)
@@ -1485,12 +1485,13 @@ function audio_resume_sound(_soundid)
 
     _soundid = yyGetInt32(_soundid);
 
-    if (_soundid >= BASE_SOUND_INDEX)
-    {    
-        let sound = GetAudioSoundFromHandle( _soundid );
-        if( sound != null ) {
-            Audio_Resume( sound );
-        }
+    if (_soundid >= BASE_SOUND_INDEX) {    
+        const voice = GetAudioSoundFromHandle(_soundid);
+
+        if (voice === null)
+            return;
+
+        voice.resume();
     }
     else {
         audio_sounds.filter(_voice => _voice.soundid === _soundid)
@@ -2169,7 +2170,7 @@ function audio_pause_all_opt( _bSystemPause )
 		{
 			if( !sound.paused )
 			{
-				Audio_Pause( sound );
+				sound.pause();
                 if( _bSystemPause )
 					sound.systempaused = true;   
             }
@@ -2211,14 +2212,14 @@ function audio_resume_all_opt(_bSystemPause)
 					//only resume sounds paused by system pause -
 					if(sound.systempaused )
 					{
-						Audio_Resume( sound );
+						sound.resume();
 						sound.systempaused = false;   
 					}
 				}
 				else
 				{
 					//resume all sounds
-					Audio_Resume( sound );
+					sound.resume();
 				}
 			}
 		}
@@ -2274,16 +2275,13 @@ function audio_is_playing(_soundid)
 
 	_soundid = yyGetInt32(_soundid);
 
-	if (_soundid >= BASE_SOUND_INDEX) 
-	{
-		var sound = GetAudioSoundFromHandle( _soundid );
-		if( sound != null )
-		{
-			if( Audio_IsSoundPlaying( sound ) )
-			{
-				return true;
-			}
-		}
+	if (_soundid >= BASE_SOUND_INDEX) {
+		const voice = GetAudioSoundFromHandle(_soundid);
+
+		if (voice === null)
+            return false;
+
+		return sound.isPlaying();
 	}	
 	else {
         return audio_sounds.filter(_voice => _voice.soundid === _soundid)
@@ -2728,7 +2726,7 @@ function audio_channel_num( _num_channels)
 			var sound = audio_sounds[i];
 			if( sound.bActive )
 			{
-				Audio_Stop( sound );
+				sound.stop();
 			}
 		}
 		
