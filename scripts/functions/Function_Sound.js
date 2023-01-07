@@ -298,19 +298,16 @@ audioSound.prototype.Init = function(_props)
 	this.streamSource = null; //web audio source for streamed audio
     this.pgainnode.gain.value = AudioPropsCalc.CalcGain(this); 
 	
-	if( this.soundid >=0 )
-	{
-	    this.bStreamed = IsSoundStreamed( this.soundid );
-	    this.bBuffered = IsSoundBuffered( this.soundid );
-	    this.bQueued = IsSoundQueued( this.soundid );
-	    //apply sample gain setting
+	if (this.soundid >= 0) {
+	    this.bStreamed = IsSoundStreamed(this.soundid);
+	    this.bBuffered = IsSoundBuffered(this.soundid);
+	    this.bQueued = IsSoundQueued(this.soundid);
 
-	    if (!this.bBuffered && !this.bQueued )
-	    {
-		      if( this.handle >= BASE_SOUND_INDEX ) {
-							//re-using existing object - invalidate the handleMap for this soundid, as we are replacing with a new one
-							//otherwise, functions with previous handle argument, will affect this new sound (with different handle)
-							g_handleMap[ this.handle -  BASE_SOUND_INDEX ] = null;
+	    if (this.bBuffered === false && this.bQueued === false) {
+		      if (this.handle >= BASE_SOUND_INDEX) {
+                    //re-using existing object - invalidate the handleMap for this soundid, as we are replacing with a new one
+                    //otherwise, functions with previous handle argument, will affect this new sound (with different handle)
+                    g_handleMap[ this.handle -  BASE_SOUND_INDEX ] = null;
 		      }
 
 		      //increment handle each time we use
@@ -2287,8 +2284,6 @@ function audio_is_playing(_soundid)
         return audio_sounds.filter(_voice => _voice.soundid === _soundid)
                            .some(_voice => _voice.isPlaying());
 	}
-
-    return false;       
 }
 
 // ******************************************************************************************
