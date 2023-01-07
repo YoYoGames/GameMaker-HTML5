@@ -59,6 +59,11 @@ var Channels = {
 		AUDIO_CHANNELS_3D:2
 };
 
+const AudioStreamType = {
+    UNSTREAMED: 0,
+    STREAMED: 1
+};
+
 var AudioSampleState =
 {
 	INIT: 'init',
@@ -211,7 +216,7 @@ function audioSampleData()
     this.loopStart = 0.0;
     this.loopEnd = 0.0;
     this.groupId = 0;
-    this.kind = 0;
+    this.kind = AudioStreamType.UNSTREAMED;
     this.state = AudioSampleState.INIT;
     this.commands = [];
 }
@@ -280,7 +285,7 @@ audioSound.prototype.Init = function(_props)
         bufferTime: 0.0
     };
     this.pbuffersource = null;
-    this.pgainnode.disconnect();    //may be attached to panner(emitter) node OR main volume node - not both!
+    this.pgainnode.disconnect();
     this.gain = new TimeRampedParamLinear(_props.gain);
     this.startoffset = _props.offset;
     this.pitch = _props.pitch;
@@ -488,7 +493,7 @@ function IsSoundStreamed( soundid )
 
     if (soundid >= 0 && soundid < audio_sampledata.length)
     {
-       if (audio_sampledata[soundid].kind == 1)
+       if (audio_sampledata[soundid].kind == AudioStreamType.STREAMED)
        {
             return true;
        }
@@ -3076,7 +3081,7 @@ yyAudioGroup.prototype.Load = function()
     {
         var index = this.soundList[i];
 
-        if (g_pGMFile.Sounds[index].kind == 0)
+        if (g_pGMFile.Sounds[index].kind == AudioStreamType.UNSTREAMED)
         {
             //unstreamed -> AudioManager_AddRawSound
         	var id = AudioManager_AddRawSound( g_RootDir + g_pGMFile.Sounds[index].origName,
@@ -3313,7 +3318,7 @@ function audio_create_stream(_filename)
     sampleData.gain = new TimeRampedParamLinear(1);
     sampleData.configGain = 1;
     sampleData.pitch = 1;
-    sampleData.kind = 1; //streamed
+    sampleData.kind = AudioStreamType.STREAMED;
     sampleData.duration = -1; //unknown
     sampleData.groupId = 0;
     sampleData.fromFile = yyGetString(_filename);
@@ -3485,7 +3490,7 @@ function audio_create_buffer_sound(_bufferId, _bufferFormat, _sampleRate, _offse
     sampleData.gain = new TimeRampedParamLinear(1);
     sampleData.configGain = 1.0;
     sampleData.pitch = 1.0;
-    sampleData.kind = 0;
+    sampleData.kind = AudioStreamType.UNSTREAMED;
     sampleData.duration = bufferSize / ( _sampleRate * numChannels * bitsPerSample / 8 );
     sampleData.groupId = 0;
     sampleData.commands = [];
@@ -3657,7 +3662,7 @@ function audio_create_play_queue(_format, _sampleRate, _channels)
     sampleData.gain = new TimeRampedParamLinear(1);
     sampleData.configGain = 1.0;
     sampleData.pitch = 1.0;
-    sampleData.kind = 0;
+    sampleData.kind = AudioStreamType.UNSTREAMED;
     sampleData.duration = 0.0;
     sampleData.groupId = 0;
     sampleData.commands = [];
