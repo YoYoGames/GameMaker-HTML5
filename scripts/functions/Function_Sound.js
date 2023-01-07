@@ -97,12 +97,11 @@ function audio_update()
     // Update and apply gains
     g_AudioGroups.forEach(_group => _group.gain.update());
     audio_sampledata.forEach(_asset => _asset.gain.update());
-    audio_sounds.forEach(_voice => {
-        if (_voice.bActive) {
-            _voice.gain.update();
-            _voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(_voice);
-        }
-    });
+    audio_sounds.filter(_voice => _voice.bActive === true)
+                .forEach(_voice => {
+                    _voice.gain.update();
+                    _voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(_voice);
+                });
 }
 
 var g_hidden;
@@ -1452,14 +1451,9 @@ function audio_stop_sound(_soundid)
             Audio_Stop(sound);
 		}
 	}
-	else
-	{
-		for(var i=0;i<g_audioSoundCount;++i)
-		{
-			sound = audio_sounds[i];
-			if( sound.soundid == _soundid )
-				Audio_Stop( sound );
-		}   
+	else {
+        audio_sounds.filter(_voice => _voice.soundid === _soundid)
+                    .forEach(_voice => _voice.stop());  
 	}
 }
 
@@ -1478,18 +1472,9 @@ function audio_pause_sound(_soundid)
 		    Audio_Pause( sound );
 		}
 	}
-	else
-	{
-		for(var i=0;i<g_audioSoundCount;++i)
-		{
-			sound = audio_sounds[i];
-			if( sound.soundid == _soundid )		
-			{				
-				Audio_Pause( sound );
-				//audio_sounds[i].systempaused = true;   //?why only for this case...? TODO required for pause/resume on page hide; 
-				//but don't resume sounds which were already paused on page hide!
-			}
-		}
+	else {
+        audio_sounds.filter(_voice => _voice.soundid === _soundid)
+                    .forEach(_voice => _voice.pause());
 	}
 }
 
@@ -1507,16 +1492,9 @@ function audio_resume_sound(_soundid)
             Audio_Resume( sound );
         }
     }
-    else
-    {
-        for(var i=0;i<g_audioSoundCount;++i)
-        {
-            let sound = audio_sounds[i];
-            if( sound.soundid == _soundid )		
-            {
-                Audio_Resume(sound);
-            }
-        }              
+    else {
+        audio_sounds.filter(_voice => _voice.soundid === _soundid)
+                    .forEach(_voice => _voice.resume());             
     }
 }
 
@@ -1948,8 +1926,8 @@ function audio_sound_loop_start(_index, _offsetSecs) {
 
         asset.loopStart = _offsetSecs;
 
-        const voices = audio_sounds.filter(_voice => _voice.soundid === _index);
-        voices.forEach(_voice => _voice.setLoopStart(_offsetSecs));
+        audio_sounds.filter(_voice => _voice.soundid === _index)
+                    .forEach(_voice => _voice.setLoopStart(_offsetSecs));
 	}
 }
 
@@ -2011,8 +1989,8 @@ function audio_sound_loop_end(_index, _offsetSecs) {
 
         asset.loopEnd = _offsetSecs;
 
-        const voices = audio_sounds.filter(_voice => _voice.soundid === _index);
-        voices.forEach(_voice => _voice.setLoopEnd(_offsetSecs));
+        audio_sounds.filter(_voice => _voice.soundid === _index)
+                    .forEach(_voice => _voice.setLoopEnd(_offsetSecs));
 	}
 }
 
@@ -2201,30 +2179,13 @@ function audio_pause_all_opt( _bSystemPause )
 
 function audio_stop_all() 
 {
-    for(var i=0;i<g_audioSoundCount;++i)
-    {
-        var sound = audio_sounds[i];
-		if( sound.bActive )
-		{
-			Audio_Stop( sound );
-        }
-    }   
+    audio_sounds.forEach(_voice => _voice.stop()); 
 }
 
-function audio_group_stop_sounds( _groupId) 
+function audio_group_stop_sounds(_groupId) 
 {
-    for(var i=0;i<g_audioSoundCount;++i)
-    {
-        var sound = audio_sounds[i];
-		if( sound.bActive )
-		{
-			var groupId = audio_sampledata[ sound.soundid ].groupId;
-			if( groupId == _groupId )
-			{
-			    Audio_Stop( sound );
-			}
-        }
-    }   
+    audio_sounds.filter(_voice => audio_sampledata[_voice.soundid].groupId === _groupId)
+                .forEach(_voice => voice.stop()); 
 }
 
 function audio_pause_all( )
@@ -2324,23 +2285,9 @@ function audio_is_playing(_soundid)
 			}
 		}
 	}	
-	else 
-	{
-		//_soundid = sample index
-		for(var i=0; i < g_audioSoundCount; ++i )
-		{
-			sound = audio_sounds[i];
-			if( sound.soundid == _soundid )
-			{
-			    if( sound.bActive )
-			    {
-				    if( Audio_IsSoundPlaying( sound ) )
-				    {
-					    return true;
-				    }
-		        }
-			}
-		}
+	else {
+        return audio_sounds.filter(_voice => _voice.soundid === _soundid)
+                           .some(_voice => _voice.isPlaying());
 	}
 
     return false;       
@@ -2617,29 +2564,22 @@ function audio_emitter_create(  )
 
 function audio_emitter_free(_emitterid)
 {
-    if(g_AudioModel==Audio_WebAudio)
-    {
-        _emitterid = yyGetInt32(_emitterid);
+    if (g_AudioModel !== Audio_WebAudio)
+        return;
 
-        var emitter = audio_emitters[_emitterid];
-        if( emitter != undefined )
-        {
-            //stop playing sounds
-            var i;
-            for( i=0; i < g_audioSoundCount; ++i )
-            {
-                var sound = audio_sounds[i];
-                if( sound.bActive && sound.pemitter === emitter )
-                {
-                    Audio_Stop( sound );   
-                }
-            }
-                
-            emitter.disconnect();
-            emitter.gainnode.disconnect();
-            delete audio_emitters[_emitterid];
-        }
-    }
+    _emitterid = yyGetInt32(_emitterid);
+
+    const emitter = audio_emitters[_emitterid];
+
+    if (emitter === undefined)
+        return;
+
+    audio_sounds.filter(_voice => _voice.pemitter === emitter)
+                .forEach(_voice => _voice.stop());
+        
+    emitter.disconnect();
+    emitter.gainnode.disconnect();
+    delete audio_emitters[_emitterid];
 }
 
 function audio_master_gain( _one)
