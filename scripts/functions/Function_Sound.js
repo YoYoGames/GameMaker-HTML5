@@ -935,15 +935,7 @@ function Audio_PlayUnstreamed(_voice)
 
         _voice.playbackCheckpoint.contextTime = g_WebAudioContext.currentTime;
 		
-        sourceNode.onended = (event) => 
-        {
-            _voice.bActive = false;
-
-            if (_voice.pbuffersource.loop === true)
-            {
-                Audio_PlayUnstreamed(_voice);
-            }
-		};
+        sourceNode.onended = (_event) => { _voice.bActive = false; };
 		
 		if (!queued)
 		{
