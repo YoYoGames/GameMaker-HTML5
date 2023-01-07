@@ -986,17 +986,12 @@ function getFreeVoice(_props)
 		        return null; //queue sound already allocated
 
 		    //check if sound has stopped
-			var bStopped = false;
-			if( sound.bStreamed )
-			{
-			    bStopped = sound.audio_tag == null || sound.audio_tag.ended;
-			} 
-			else
-			{
-			    bStopped = ((sound.pbuffersource != null && sound.pbuffersource.playbackState != undefined && sound.pbuffersource.playbackState == sound.pbuffersource.FINISHED_STATE) && !sound.paused);  //!don't re-use paused sounds or we can't resume them!
-			}
-			if( bStopped )
-			{
+			const bStopped = ((sound.pbuffersource != null 
+                && sound.pbuffersource.playbackState != undefined 
+                && sound.pbuffersource.playbackState == sound.pbuffersource.FINISHED_STATE) 
+                && !sound.paused);  //!don't re-use paused sounds or we can't resume them!
+
+			if (bStopped === true) {
 				//sound has finished playing, re-use
 				sound.Init(_props);
 				return sound; 
@@ -1327,14 +1322,7 @@ function audio_sound_pitch(_soundid, pitch)
 
             const new_pitch = AudioPropsCalc.CalcPitch(voice);
 
-			if (voice.bStreamed)
-			{
-				voice.audio_tag.playbackRate = new_pitch;
-            }
-			else
-			{
-                voice.pbuffersource.playbackRate.value = new_pitch;
-			}
+			voice.pbuffersource.playbackRate.value = new_pitch;
 		}
     }
     else
@@ -1359,14 +1347,7 @@ function audio_sound_pitch(_soundid, pitch)
 
                 const new_pitch = AudioPropsCalc.CalcPitch(voice);
 
-                if (voice.bStreamed)
-                {
-                    voice.audio_tag.playbackRate = new_pitch;
-                }
-                else
-                {
-                    voice.pbuffersource.playbackRate.value = new_pitch;
-                }
+                voice.pbuffersource.playbackRate.value = new_pitch;
             }
         }
     }
@@ -1547,50 +1528,25 @@ function Audio_SetTrackPos( _audioSound, _time )
 {
     if( _audioSound.bActive )
     {
-        if( !_audioSound.bStreamed )
+        const duration = _audioSound.pbuffersource.buffer.duration;
+
+        if (_time >= 0)
         {
-            //AudioBufferSourceNode- cannot call start/noteOn more than once- have to stop and replay at time offset
-            //Audio_StopUnstreamed( _audioSound );
-            //don't need to disconnect gain nodes since we are reusing audioSound
-            const duration = _audioSound.pbuffersource.buffer.duration;
+            _time = Math.min(_time, duration);
 
-            if (_time >= 0)
+            if (_audioSound.paused)
             {
-                _time = Math.min(_time, duration);
-
-                if (_audioSound.paused)
-                {
-                    //simply need to resume at different offset
-                    _audioSound.playbackCheckpoint.bufferTime = _time;
-                }
-                else
-                {
-                    _audioSound.pbuffersource.onended = null;
-                    _audioSound.pbuffersource.stop(0);
-                    _audioSound.pbuffersource.disconnect();
-                    _audioSound.startoffset = _time;
-
-                    Audio_PlayUnstreamed(_audioSound);
-                }
+                //simply need to resume at different offset
+                _audioSound.playbackCheckpoint.bufferTime = _time;
             }
-        }
-        else // Streamed sounds
-        {
-        	const duration = _audioSound.audio_tag.duration;
-
-        	// If we haven't loaded the audio metadata (and thus can't determine the duration),
-        	// then postpone the setting of the track position until it has loaded.
-        	if (isNaN(duration))
-        	{
-        		_audioSound.audio_tag.addEventListener('loadedmetadata', function() {
-                    _time = Math.min(_time, this.duration);
-                    this.currentTime = _time;
-                });
-        	}
-            else if (_time >= 0)
+            else
             {
-                _time = Math.min(_time, duration);
-                _audioSound.audio_tag.currentTime = _time;
+                _audioSound.pbuffersource.onended = null;
+                _audioSound.pbuffersource.stop(0);
+                _audioSound.pbuffersource.disconnect();
+                _audioSound.startoffset = _time;
+
+                Audio_PlayUnstreamed(_audioSound);
             }
         }
     }
@@ -1673,13 +1629,7 @@ function audio_sound_get_loop_start(_index) {
         if (voice === null)
             return 0.0;
 
-        if (voice.bStreamed) {
-            // Handle streamed sounds
-            return 0.0;
-        }
-        else {
-            return voice.pbuffersource.loopStart;
-        }
+        return voice.getLoopStart();
 	}
 	else {
 		const asset = Audio_GetSound(_index);
@@ -1736,13 +1686,7 @@ function audio_sound_get_loop_end(_index) {
         if (voice === null)
             return 0.0;
 
-        if (voice.bStreamed) {
-            // Handle streamed sounds
-            return 0.0;
-        }
-        else {
-            return voice.pbuffersource.loopEnd;
-        }
+        return voice.getLoopEnd();
 	}
 	else {
 		const asset = Audio_GetSound(_index);
@@ -2394,14 +2338,7 @@ function audio_emitter_pitch(index, pitch)
 
                 const new_pitch = AudioPropsCalc.CalcPitch(voice);
 
-                if (voice.bStreamed)
-                {
-                    voice.audio_tag.playbackRate = new_pitch;
-                }
-                else
-                {
-                    voice.pbuffersource.playbackRate.value = new_pitch;
-                }
+                voice.pbuffersource.playbackRate.value = new_pitch;
             }
 		}
     } 
