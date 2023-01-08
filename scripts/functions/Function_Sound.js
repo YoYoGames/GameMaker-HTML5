@@ -441,6 +441,13 @@ audioSound.prototype.isPlaying = function() {
     return false;
 };
 
+audioSound.prototype.isPaused = function() {
+    if (this.bActive === false)
+        return false; 
+    
+    return (_voice.paused === true);
+};
+
 audioSound.prototype.setLoopStart = function(_offsetSecs) {
     if (this.bActive === false || this.pbuffersource === null || g_WebAudioContext === null)
         return;
@@ -973,14 +980,10 @@ function Audio_PlayUnstreamed(_voice)
     }
 }
 
-function Audio_IsSoundPaused(_voice)
 {
-    if (_voice.bActive) 
     {
-        return _voice.paused;
     }
 
-    return false;
 }
 
 function getFreeVoice(_props)
@@ -1192,14 +1195,15 @@ function audio_stop_sound(_soundid)
 	if (_soundid >= BASE_SOUND_INDEX) {
 		const voice = GetAudioSoundFromHandle(_soundid);
 
-		if (voice !== null) {
-		    if (voice.bQueued) {
-                // remove from handle map
-		        g_handleMap[voice.handle - BASE_SOUND_INDEX] = undefined;
-		    }
+		if (voice === null)
+            return;
 
-            voice.stop();
-		}
+        if (voice.bQueued) {
+            // remove from handle map
+            g_handleMap[voice.handle - BASE_SOUND_INDEX] = undefined;
+        }
+
+        voice.stop();
 	}
 	else {
         audio_sounds.filter(_voice => _voice.soundid === _soundid)
