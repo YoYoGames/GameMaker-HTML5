@@ -1895,42 +1895,24 @@ function audio_resume_all_opt(_bSystemPause)
     } 
 }
 
-function audio_is_paused( _soundid )
+function audio_is_paused(_soundid)
 {
     if (g_AudioModel !== Audio_WebAudio) 
         return false;
 
     _soundid = yyGetInt32(_soundid);
 		
-	if (_soundid >= BASE_SOUND_INDEX) 
-	{
-        //_soundid = single sound handle		
-		var sound = GetAudioSoundFromHandle( _soundid );
-		if( sound != null )
-		{
-		    return Audio_IsSoundPaused( sound );
-		}
+	if (_soundid >= BASE_SOUND_INDEX) {
+		const voice = GetAudioSoundFromHandle(_soundid);
+
+		if (voice === null)
+            return false;
+
+		return sound.isPaused();
 	}
-	else 
-	{
-		//_soundid = sample index
-		for(var i=0; i < g_audioSoundCount; ++i )
-		{
-			sound = audio_sounds[i];
-			if( sound.soundid == _soundid )
-			{
-			    if( sound.bActive )
-			    {
-				    if( Audio_IsSoundPaused( sound ) )
-				    {
-					    return true;
-				    }
-		        }
-			}
-		}
-	}
-	
-	return false;
+        
+    return audio_sounds.filter(_voice => _voice.soundid === _soundid)
+                       .some(_voice => _voice.isPaused());
 }
 
 // ******************************************************************************************
@@ -1952,10 +1934,9 @@ function audio_is_playing(_soundid)
 
 		return sound.isPlaying();
 	}	
-	else {
-        return audio_sounds.filter(_voice => _voice.soundid === _soundid)
-                           .some(_voice => _voice.isPlaying());
-	}
+        
+    return audio_sounds.filter(_voice => _voice.soundid === _soundid)
+                       .some(_voice => _voice.isPlaying());
 }
 
 // ******************************************************************************************
