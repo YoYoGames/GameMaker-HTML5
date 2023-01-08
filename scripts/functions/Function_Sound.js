@@ -1459,41 +1459,34 @@ function handleVisibilityChange()
 
 function audio_sound_length(_soundid)
 {
-	if(g_AudioModel!=Audio_WebAudio)
-	    return -1;
+	if (g_AudioModel !== Audio_WebAudio)
+	    return -1.0;
 
 	_soundid = yyGetInt32(_soundid);
 
-	//TODO !...can we get streamed sound duration...? there is a duration property in the audio tag but doesn't sound promising...
-	var sampleid = -1;
-	if(_soundid<BASE_SOUND_INDEX)	//sample index
-	{
-		sampleid = _soundid;
+	let assetIndex = -1;
+
+	if (_soundid < BASE_SOUND_INDEX) {
+        if (Audio_GetSound(_soundid) !== null)
+		    assetIndex = _soundid;
 	}
-	else	//handle
-	{
-		var sound = GetAudioSoundFromHandle( _soundid );
-		if( sound != null ) {
-		    sampleid = sound.soundid;
-		}
+	else {
+		const voice = GetAudioSoundFromHandle(_soundid);
+
+		if (voice !== null) 
+		    assetIndex = sound.soundid;
 	}
 
-	if( sampleid != -1 )
-	{
-		 if( IsSoundStreamed( sampleid ) )
-		 {
-			//for streamed sounds - duration passed through from asset compiler
-			return( audio_sampledata[ sampleid ].duration );
-		 }
+	if (assetIndex !== -1) {
+		 if (IsSoundStreamed(sampleid))
+			// Streamed sounds have their duration recorded by the asset compiler
+			return audio_sampledata[sampleid].duration;
 		 else
-		 {
-			return audio_sampledata[ sampleid ].buffer.duration;
-		 }
+			return audio_sampledata[sampleid].buffer.duration;
 	}
-	return -1;
+
+	return -1.0;
 }
-
-
 
 function audio_sound_get_track_position(_soundid)
 {
