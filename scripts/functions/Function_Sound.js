@@ -578,7 +578,30 @@ audioSound.prototype.getPlaybackPosition = function(_contextTime) {
     }
 
     return playbackPosition;
-}
+};
+
+audioSound.prototype.setPlaybackPosition = function(_offset) {
+    if (this.bActive === false || this.pbuffersource === null)
+        return;
+
+    const duration = this.pbuffersource.buffer.duration;
+
+    _offset = Math.max(0.0, _offset);
+    _offset = Math.min(_time, duration);
+
+    if (this.paused === true) {
+        //simply need to resume at different offset
+        this.playbackCheckpoint.bufferTime = _offset;
+    }
+    else {
+        this.pbuffersource.onended = null;
+        this.pbuffersource.stop();
+        this.pbuffersource.disconnect();
+        this.startoffset = _time;
+
+        Audio_PlayUnstreamed(this);
+    }
+};
 
 function GetAudioSoundFromHandle( _handle )
 {
@@ -1517,34 +1540,6 @@ function audio_sound_get_track_position(_soundid)
 	return 0.0;
 }
 
-function Audio_SetTrackPos( _audioSound, _time )
-{
-    if( _audioSound.bActive )
-    {
-        const duration = _audioSound.pbuffersource.buffer.duration;
-
-        if (_time >= 0)
-        {
-            _time = Math.min(_time, duration);
-
-            if (_audioSound.paused)
-            {
-                //simply need to resume at different offset
-                _audioSound.playbackCheckpoint.bufferTime = _time;
-            }
-            else
-            {
-                _audioSound.pbuffersource.onended = null;
-                _audioSound.pbuffersource.stop(0);
-                _audioSound.pbuffersource.disconnect();
-                _audioSound.startoffset = _time;
-
-                Audio_PlayUnstreamed(_audioSound);
-            }
-        }
-    }
-}
-
 function audio_sound_set_track_position(_soundid, _time)
 {
     if (g_AudioModel != Audio_WebAudio) 
@@ -1557,10 +1552,10 @@ function audio_sound_set_track_position(_soundid, _time)
 	{
 		const voice = GetAudioSoundFromHandle(_soundid);
 
-		if (voice != null)
-		{
-            Audio_SetTrackPos(voice, _time);
-        }
+		if (voice === null)
+            return;
+        
+        voice.setPlaybackPosition(_time);
     }
     else if (_soundid >= 0)
     {
