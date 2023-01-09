@@ -227,7 +227,7 @@ audioSampleData.prototype.ProcessCommands = function ()
 		switch (currentCommand[0])
 		{
 			case AudioCommand.PLAY:
-				Audio_Play(currentCommand[1]);
+				currentCommand[1].play();
 				break;
 		}
 	}
@@ -296,8 +296,6 @@ audioSound.prototype.Init = function(_props)
 	this.bStreamed = false;
 	this.bBuffered = false;
 	this.bQueued = false;
-	this.audio_tag = null; //html5 audio tag for streamed audio
-	this.streamSource = null; //web audio source for streamed audio
     this.pgainnode.gain.value = AudioPropsCalc.CalcGain(this); 
 	
 	if (this.soundid >= 0) {
@@ -318,6 +316,95 @@ audioSound.prototype.Init = function(_props)
 		      ++audio_sounds_index;
 	    }
     }
+};
+
+audioSound.prototype.start = function(_buffer) {
+    const startOffset = AudioPropsCalc.CalcOffset(this);
+
+    // Is this workaround necessary if we start outside of the loop section?
+    const shouldLoop = (this.loop === true) && (startOffset < this.loopEnd);
+
+    this.pbuffersource = new AudioBufferSourceNode(g_WebAudioContext, {
+        buffer: _buffer,
+        loop: shouldLoop,
+        loopStart: this.loopStart,
+        loopEnd: this.loopEnd,
+        playbackRate: AudioPropsCalc(this)
+    });
+
+    this.pbuffersource.onended = (_event) => {
+        this.bActive = false;
+        this.pbuffersource = null; // Release buffer source (holds the only ref to buffer for streamed sounds)
+    };
+
+    this.pbuffersource.connect(this.pgainnode);
+
+    this.playbackCheckpoint = {
+        contextTime: g_WebAudioContext.currentTime,
+        bufferTime: startOffset
+    };
+    
+    this.pbuffersource.start(0, startOffset);
+};
+
+audioSound.prototype.play = function() {
+    if (g_WebAudioContext === null)
+        return;
+
+    const asset = Audio_GetSound(this.soundid);
+
+    if (asset.state !== AudioSampleState.READY ) {
+		// Decode audio if it's been preloaded
+        const currentSound = g_pSoundManager.Get(_voice.soundid);
+
+        if (asset.state == AudioSampleState.LOADED && !_voice.bStreamed && currentSound) {
+            const rawData = g_RawSounds[currentSound.pName];
+
+            if (rawData)
+                asset.TryDecode(rawData, true);
+		}
+
+        // This won't actually get processed without a TryDecode call though?
+        asset.commands.push([AudioCommand.PLAY, _voice]);
+
+        return;
+    }
+
+    if (this.bStreamed) {
+        const srcUrl = getUrlForSound(this.soundid);
+
+        const request = new XMLHttpRequest();
+        request.open("GET", srcUrl, true);
+        request.responseType = "arraybuffer";
+        request.onload = () => {
+            const audioData = request.response;
+
+            g_WebAudioContext.decodeAudioData(audioData)
+            .then((_buffer) => {
+                this.start(_buffer);
+            });
+        };
+
+        request.send();
+    }
+    else {
+        if (this.bQueued) {
+            const queue_id = this.soundid - BASE_QUEUE_SOUND_INDEX;
+            const queueSound = queue_sounds[queue_id];
+
+            queueSound.gainnode = this.pgainnode;
+
+            queueSound.scriptNode.connect(this.pgainnode);
+            queueSound.scriptNode.onended = (_event) => { this.bActive = false; };
+            
+            this.playbackCheckpoint.contextTime = g_WebAudioContext.currentTime;
+        }
+        else {
+            this.start(asset.buffer);
+        }
+    }
+
+    this.bActive = true;
 };
 
 audioSound.prototype.stop = function() {
@@ -625,8 +712,7 @@ audioSound.prototype.setPlaybackPosition = function(_offset) {
         this.pbuffersource.stop();
         this.pbuffersource.disconnect();
         this.startoffset = _time;
-
-        Audio_PlayUnstreamed(this);
+        this.start(this.pbuffersource.buffer);
     }
 };
 
@@ -830,182 +916,6 @@ function audio_sound_is_playable(_soundId)
 	return (sampleData.state == AudioSampleState.READY);
 }
 
-function Audio_Play(_voice)
-{
-    const sound_asset = Audio_GetSound(_voice.soundid);
-    const playbackStreamed = _voice.bStreamed && !g_HandleStreamedAudioAsUnstreamed;
-
-    if (sound_asset.state != AudioSampleState.READY )
-	{
-		// Decode audio if it's been preloaded
-        var currentSound = g_pSoundManager.Get(_voice.soundid);
-
-        if (sound_asset.state == AudioSampleState.LOADED && !playbackStreamed && currentSound )
-		{
-            var rawData = g_RawSounds[currentSound.pName];
-
-            if (rawData)
-            {
-                sound_asset.TryDecode(rawData, true);
-            }
-		}
-
-        sound_asset.commands.push([AudioCommand.PLAY, _voice]);
-
-        return false;
-    }
-
-    // This should probably be closer to the 'real' start
-    _voice.setPlaybackCheckpoint();
-
-    if (playbackStreamed)
-    {
-        Audio_PlayStreamed(_voice);
-    }
-    else
-    {
-        Audio_PlayUnstreamed(_voice);
-    }
-
-    _voice.bActive = true;
-
-	return true;
-}
-
-
-function Audio_PlayStreamed(_voice, _onStart)
-{
-    var srcUrl = getUrlForSound(_voice.soundid);
-
-	try
-	{
-		//recreate audio tag - problems with reusing
-		//-can only connect to volume node by calling createMediaElementSource ( which throws exception if done again for same audio tag )
-		if (_voice.audio_tag != null)
-		{
-            document.body.removeChild(_voice.audio_tag);
-		}
-
-        _voice.audio_tag = new Audio();
-        var audio_tag = _voice.audio_tag;
-		audio_tag.controls = false;
-		audio_tag.autoplay = true;
-		audio_tag.preload = "none";
-        audio_tag.loop = _voice.loop;
-		audio_tag.src = set_load_location(null, null, srcUrl);
-		audio_tag.defaultPlaybackRate = AudioPropsCalc.CalcPitch(_voice);
-        const offset = AudioPropsCalc.CalcOffset(_voice);
-		audio_tag.currentTime = offset;
-		audio_tag.preservesPitch = false;
-		document.body.appendChild(audio_tag);
-
-		// Set the start offset once we have the audio metadata
-		if (offset > 0.0)
-		{
-			audio_tag.addEventListener('loadedmetadata', function() {
-                _voice.audio_tag.currentTime = offset;
-			});
-		}
-
-		audio_tag.load(); //required if src has changed?; might even fix currentTime setting bug...kind of
-       
-        try 
-        {
-            var playPromise = audio_tag.play();
-
-            if (playPromise !== undefined) 
-            {
-				playPromise.then(() => {
-					// Automatic playback started
-                    if (_onStart)
-                    {
-                        _onStart();
-                    }
-				}).catch((error) => {
-					// Automatic playback failed
-					console.log("Audio playback failed: ", error);
-                    Audio_Stop(_voice);
-				});
-			}
-        }
-        catch (ex) 
-        {
-			debug("audio_tag.play() exception: " + ex);
-		}
-		
-		// When audio ends, set it to inactive, allowing it to be reallocated (if not already recycled).
-		audio_tag.addEventListener("ended", function (e) {
-            if (_voice.audio_tag == this) 
-            {
-                Audio_Stop(_voice);
-            }
-            else 
-            {
-				// Remove the audio tag (recycled voice will have a new audio tag)
-				document.body.removeChild(this);
-			}
-		});
-        
-        _voice.streamSource = g_WebAudioContext.createMediaElementSource(audio_tag);   
-        _voice.streamSource.connect(_voice.pgainnode); 
-	}
-    catch (ex) 
-    {
-    	debug("Audio_PlayStreamed exception: " + ex);
-    	return false;
-	}
-}
-
-function Audio_PlayUnstreamed(_voice)
-{
-	try
-	{
-		var sourceNode = null;
-		var queued = false;
-	
-        if (_voice.soundid >= BASE_QUEUE_SOUND_INDEX
-            && _voice.soundid < (BASE_QUEUE_SOUND_INDEX + g_queueSoundCount))
-		{
-			queued = true;
-            var queue_id = _voice.soundid - BASE_QUEUE_SOUND_INDEX;
-			queue_sounds[queue_id].scriptNode.connect(_voice.pgainnode);
-            queue_sounds[queue_id].gainnode = _voice.pgainnode;
-			sourceNode = queue_sounds[queue_id].scriptNode;
-		}
-		else
-        {
-            _voice.pbuffersource = g_WebAudioContext.createBufferSource();
-            _voice.pbuffersource.playbackRate.value = AudioPropsCalc.CalcPitch(_voice);
-            _voice.pbuffersource.loop = _voice.loop;
-            const sound_asset = Audio_GetSound(_voice.soundid);
-            _voice.pbuffersource.buffer = sound_asset.buffer;
-            _voice.pbuffersource.connect(_voice.pgainnode);
-            sourceNode = _voice.pbuffersource;
-		}
-
-        _voice.playbackCheckpoint.contextTime = g_WebAudioContext.currentTime;
-		
-        sourceNode.onended = (_event) => { _voice.bActive = false; };
-		
-		if (!queued)
-		{
-            const offset = AudioPropsCalc.CalcOffset(_voice);
-            sourceNode.start(0, offset);
-            _voice.playbackCheckpoint.bufferTime = offset;
-		}
-	}
-	catch (ex)
-	{
-		debug("Audio_PlayUnstreamed exception: " + ex);
-    }
-}
-
-{
-    {
-    }
-
-}
-
 function getFreeVoice(_props)
 {
 	if(g_AudioModel!= Audio_WebAudio)
@@ -1137,7 +1047,7 @@ function audio_play_sound_common(_props) {
             return -1;
     }
 
-    Audio_Play(voice, _props);
+    voice.play();
 
     return voice.handle;
 }
