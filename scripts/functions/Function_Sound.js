@@ -466,37 +466,26 @@ audioSound.prototype.resume = function() {
         };
     }
     else {
-        const pitch = AudioPropsCalc.CalcPitch(this);
-        this.pbuffersource = g_WebAudioContext.createBufferSource();
-        this.pbuffersource.playbackRate.value = pitch;
-        this.playbackCheckpoint.contextTime = g_WebAudioContext.currentTime;
+        const playbackPosition = this.playbackCheckpoint.bufferTime;
+        const shouldLoop = (this.loop === true) && (playbackPosition < this.loopEnd);
 
-        this.pgainnode = g_WebAudioContext.createGain();
-
-        const sampleData = Audio_GetSound(this.soundid);
-
-        this.pgainnode.gain.value = AudioPropsCalc.CalcGain(this);
-
-        this.pbuffersource.connect(this.pgainnode);
-
+        const buffer = this.pbuffersource.buffer;
+    
+        this.pbuffersource = new AudioBufferSourceNode(g_WebAudioContext, {
+            buffer: buffer,
+            loop: shouldLoop,
+            loopStart: this.loopStart,
+            loopEnd: this.loopEnd,
+            playbackRate: AudioPropsCalc.CalcPitch(this)
+        });
+    
         this.pbuffersource.onended = (_event) => {
             this.bActive = false;
+            this.pbuffersource = null; // Release buffer source (holds the only ref to buffer for streamed sounds)
         };
-
-        if (this.pemitter !== null) 
-            this.pgainnode.connect(this.pemitter);
-        else
-            g_AudioBusMain.connectInput(this.pgainnode);
-
-        this.pbuffersource.buffer = sampleData.buffer;
-
-        //oddly enough, this seems to work for looped sounds also...suspicious (see original above )
-        if (this.loop === true)
-            this.pbuffersource.loop = true;
- 
-        const numloopsplayed = Math.floor(this.playbackCheckpoint.bufferTime / this.pbuffersource.buffer.duration);
-        const playpoint = this.playbackCheckpoint.bufferTime - numloopsplayed * this.pbuffersource.buffer.duration;
-        this.pbuffersource.start(0, playpoint);
+    
+        this.pbuffersource.connect(this.pgainnode);
+        this.pbuffersource.start(0, playbackPosition);
     }
 
     this.paused = false;
