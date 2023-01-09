@@ -541,9 +541,11 @@ audioSound.prototype.setLoopState = function(_state) {
     if (this.bActive === false || this.pbuffersource === null)
         return;
 
+    this.setPlaybackCheckpoint();
+
     this.loop = _state;
 
-    const playbackPosition = this.getPlaybackPosition();
+    const playbackPosition = this.playbackCheckpoint.bufferTime;
 
     this.pbuffersource.loop = (this.loop === true) && (playbackPosition < this.loopEnd);
 };
