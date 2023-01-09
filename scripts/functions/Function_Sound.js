@@ -289,6 +289,8 @@ audioSound.prototype.Init = function(_props)
     this.paused = false;
     this.soundid = _props.asset_index;
     this.loop = _props.loop;
+    this.loopStart = _props.loopStart;
+    this.loopEnd = _props.loopEnd;
     this.systempaused = false;
     this.priority = _props.priority;
 	this.bStreamed = false;
@@ -453,7 +455,7 @@ audioSound.prototype.setLoopState = function(_state) {
         return;
 
     this.loop = _state;
-    
+
     const playbackPosition = this.getPlaybackPosition();
 
     this.pbuffersource.loop = (this.loop === true) && (playbackPosition < this.loopEnd);
@@ -481,6 +483,7 @@ audioSound.prototype.setLoopStart = function(_offsetSecs) {
     this.setPlaybackCheckpoint();
     
     this.pbuffersource.loopStart = _offsetSecs;
+    this.loopStart = _offsetSecs;
 
     this.setPlaybackCheckpoint();
 };
@@ -511,6 +514,7 @@ audioSound.prototype.setLoopEnd = function(_offsetSecs) {
     */
     this.pbuffersource.loop = (playbackPosition < _offsetSecs);
     this.pbuffersource.loopEnd = _offsetSecs;
+    this.loopEnd = _offsetSecs;
     
     this.setPlaybackCheckpoint();
 };
@@ -519,33 +523,31 @@ audioSound.prototype.getLoopStart = function() {
     if (this.bActive === false || this.pbuffersource === null)
         return 0.0;
 
-    return this.pbuffersource.loopStart;
+    return this.loopStart;
 };
 
 audioSound.prototype.getLoopEnd = function() {
     if (this.bActive === false || this.pbuffersource === null)
         return 0.0;
 
-    return this.pbuffersource.loopEnd;
+    return this.loopEnd;
 };
 
 audioSound.prototype.getTrueLoopEnd = function() {
     if (this.bActive === false || this.pbuffersource === null)
         return 0.0;
 
-    const loopEnd = this.pbuffersource.loopEnd;
-
-    if (loopEnd <= 0.0)
+    if (this.loopEnd <= 0.0)
         return this.pbuffersource.buffer.duration;
 
-    return loopEnd;
+    return this.loopEnd;
 };
 
 audioSound.prototype.getLoopLength = function() {
     if (this.bActive === false || this.pbuffersource === null)
         return 0.0;
 
-    const loopStart = this.pbuffersource.loopStart;
+    const loopStart = this.loopStart;
     const trueLoopEnd = this.getTrueLoopEnd();
 
     return (trueLoopEnd - loopStart);
