@@ -329,7 +329,7 @@ audioSound.prototype.start = function(_buffer) {
         loop: shouldLoop,
         loopStart: this.loopStart,
         loopEnd: this.loopEnd,
-        playbackRate: AudioPropsCalc(this)
+        playbackRate: AudioPropsCalc.CalcPitch(this)
     });
 
     this.pbuffersource.onended = (_event) => {
@@ -601,7 +601,7 @@ audioSound.prototype.setLoopEnd = function(_offsetSecs) {
         in order to prevent the 'correction' of the playback position during the next render quantum.
         The voice-level attribute (i.e. this.loop) will still reflect the user's chosen loop status.
     */
-    this.pbuffersource.loop = (playbackPosition < _offsetSecs);
+    this.pbuffersource.loop = this.loop && (playbackPosition < _offsetSecs);
     this.pbuffersource.loopEnd = _offsetSecs;
     this.loopEnd = _offsetSecs;
     
