@@ -448,6 +448,24 @@ audioSound.prototype.isPaused = function() {
     return (_voice.paused === true);
 };
 
+audioSound.prototype.setLoopState = function(_state) {
+    if (this.bActive === false || this.pbuffersource === null)
+        return;
+
+    this.loop = _state;
+    
+    const playbackPosition = this.getPlaybackPosition();
+
+    this.pbuffersource.loop = (this.loop === true) && (playbackPosition < this.loopEnd);
+};
+
+audioSound.prototype.getLoopState = function() {
+    if (this.bActive === false)
+        return false;
+    
+    return (this.loop === true);
+};
+
 audioSound.prototype.setLoopStart = function(_offsetSecs) {
     if (this.bActive === false || this.pbuffersource === null || g_WebAudioContext === null)
         return;
@@ -1576,6 +1594,29 @@ function audio_sound_set_track_position(_soundid, _time)
 	        }
 	    }
     }
+}
+
+function audio_sound_loop(_voiceIndex, _state) {
+    _voiceIndex = yyGetInt32(_voiceIndex);
+    _state = yyGetBool(_state);
+
+    const voice = GetAudioSoundFromHandle(_voiceIndex);
+
+    if (voice === null)
+        return;
+    
+    voice.setLoopState(_state);
+}
+
+function audio_sound_get_loop(_voiceIndex) {
+    _voiceIndex = yyGetInt32(_voiceIndex);
+
+    const voice = GetAudioSoundFromHandle(_voiceIndex);
+
+    if (voice === null)
+        return false;
+        
+    return voice.getLoopState();
 }
 
 function audio_sound_loop_start(_index, _offsetSecs) {
