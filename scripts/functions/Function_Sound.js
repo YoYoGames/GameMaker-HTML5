@@ -1501,15 +1501,15 @@ function audio_sound_length(_soundid)
 		const voice = GetAudioSoundFromHandle(_soundid);
 
 		if (voice !== null) 
-		    assetIndex = sound.soundid;
+		    assetIndex = voice.soundid;
 	}
 
 	if (assetIndex !== -1) {
-		 if (IsSoundStreamed(sampleid))
+		 if (IsSoundStreamed(assetIndex))
 			// Streamed sounds have their duration recorded by the asset compiler
-			return audio_sampledata[sampleid].duration;
+			return audio_sampledata[assetIndex].duration;
 		 else
-			return audio_sampledata[sampleid].buffer.duration;
+			return audio_sampledata[assetIndex].buffer.duration;
 	}
 
 	return -1.0;
