@@ -2453,6 +2453,7 @@ function __internal__get_variable_names( _struct, glob )
     for (var n in _struct) {
         if (_struct.hasOwnProperty(n)) {
             if (n.startsWith("gml")) {
+                if (g_DebugMode && n.startsWith('gml___struct___')) continue;
                 ret.push(n.substring(3));
                 ret.push(n);
             } // end if
@@ -2487,6 +2488,7 @@ function __internal__get_variable_names( _struct, glob )
         } // end else
 
         if (!transname.startsWith("gml")) {
+            if (g_DebugMode && n.startsWith('gml___struct___')) continue;
             ret.push(transname);
             ret.push(prop);
         } // end if
