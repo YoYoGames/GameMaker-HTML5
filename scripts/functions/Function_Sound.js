@@ -320,9 +320,10 @@ audioSound.prototype.Init = function(_props)
 
 audioSound.prototype.start = function(_buffer) {
     const startOffset = AudioPropsCalc.CalcOffset(this);
+    const trueLoopEnd = (this.loopEnd > 0.0) ? this.loopEnd : _buffer.duration;
 
     // Is this workaround necessary if we start outside of the loop section?
-    const shouldLoop = (this.loop === true) && (startOffset < this.loopEnd);
+    const shouldLoop = (this.loop === true) && (startOffset < trueLoopEnd);
 
     this.pbuffersource = new AudioBufferSourceNode(g_WebAudioContext, {
         buffer: _buffer,
@@ -366,7 +367,6 @@ audioSound.prototype.play = function() {
 
         // This won't actually get processed without a TryDecode call though?
         asset.commands.push([AudioCommand.PLAY, _voice]);
-
         return;
     }
 
@@ -467,7 +467,7 @@ audioSound.prototype.resume = function() {
     }
     else {
         const playbackPosition = this.playbackCheckpoint.bufferTime;
-        const shouldLoop = (this.loop === true) && (playbackPosition < this.loopEnd);
+        const shouldLoop = (this.loop === true) && (playbackPosition < this.getTrueLoopEnd());
 
         const buffer = this.pbuffersource.buffer;
     
@@ -536,7 +536,7 @@ audioSound.prototype.setLoopState = function(_state) {
 
     const playbackPosition = this.playbackCheckpoint.bufferTime;
 
-    this.pbuffersource.loop = (this.loop === true) && (playbackPosition < this.loopEnd);
+    this.pbuffersource.loop = (this.loop === true) && (playbackPosition < this.getTrueLoopEnd());
 };
 
 audioSound.prototype.getLoopState = function() {
@@ -582,15 +582,16 @@ audioSound.prototype.setLoopEnd = function(_offsetSecs) {
     this.setPlaybackCheckpoint();
     const playbackPosition = this.playbackCheckpoint.bufferTime;
 
+    const trueLoopEnd = (_offsetSecs > 0.0) ? _offsetSecs : duration;
     /* 
         Once the loop section has been reached a single time, Web Audio
         considers the buffer source to be 'looping' and will constrain the playback
         position to the loop section. So, in case our new loop-end here leaves the current
         playback position outside of the new loop section, we need to preemptively disable looping
         in order to prevent the 'correction' of the playback position during the next render quantum.
-        The voice-level attribute (i.e. this.loop) will still reflect the user's chosen loop status.
+        The voice-level property (i.e. this.loop) will still reflect the user's chosen loop status.
     */
-    this.pbuffersource.loop = this.loop && (playbackPosition < _offsetSecs);
+    this.pbuffersource.loop = this.loop && (playbackPosition < trueLoopEnd);
     this.pbuffersource.loopEnd = _offsetSecs;
     this.loopEnd = _offsetSecs;
     
