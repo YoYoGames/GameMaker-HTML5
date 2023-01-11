@@ -3,8 +3,8 @@ class GainProcessor extends AudioWorkletProcessor
     static get parameterDescriptors() 
     {
         return [
-            { name: "bypass", automationRate: "a-rate", defaultValue: 0, minValue: 0, maxValue: 1 },
-            { name: "gain",   automationRate: "a-rate", defaultValue: 1, minValue: 0 }
+            { name: "bypass", automationRate: "a-rate", defaultValue: 0,   minValue: 0, maxValue: 1 },
+            { name: "gain",   automationRate: "a-rate", defaultValue: 0.5, minValue: 0.0 }
         ];
     }
 
