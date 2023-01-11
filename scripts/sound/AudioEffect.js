@@ -8,7 +8,8 @@ AudioEffect.Type = {
     Gain: 2,
     HPF2: 3,
     LPF2: 4,
-    Reverb1: 5
+    Reverb1: 5,
+    Tremolo: 6
 };
 
 AudioEffect.getWorkletName = function(_type) {
@@ -20,6 +21,7 @@ AudioEffect.getWorkletName = function(_type) {
         case AudioEffect.Type.HPF2:         return "hpf2-processor";
         case AudioEffect.Type.LPF2:         return "lpf2-processor";
         case AudioEffect.Type.Reverb1:      return "reverb1-processor";
+        case AudioEffect.Type.Tremolo:      return "tremolo-processor";
         default:                            return null;
     }
 };
@@ -71,6 +73,7 @@ AudioEffectStruct.Create = function(_type, _params) {
         case AudioEffect.Type.HPF2:         return new HPF2EffectStruct(_params);
         case AudioEffect.Type.LPF2:         return new LPF2EffectStruct(_params);
         case AudioEffect.Type.Reverb1:      return new Reverb1EffectStruct(_params);
+        case AudioEffect.Type.Tremolo:      return new TremoloEffectStruct(_params);
         default:                            return null;
     }
 };

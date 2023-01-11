@@ -682,27 +682,42 @@ function array_sort( _array, _typeofSort )
     } // end else
 } // end array_sort
 
-function array_shuffle( _array )
+const shuffleArray = (_array, _offset, _length) => {
+
+    _offset ??= 0;
+    _length ??= _array.length - _offset;
+
+    for (let i = _length - 1; i > 0; --i) {
+        const j = _offset + Math.floor(Math.random() * (i + 1));
+        const temp = _array[_offset + i];
+        _array[_offset + i] = _array[j];
+        _array[j] = temp;
+    }
+};
+
+function array_shuffle( _array, _offset, _length )
 {
+    // Check raw offset and length
+    _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
+    _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
+
     var ret = undefined;
     if (Array.isArray(_array)) {
 
-     ret = _array.slice();        
-     var currentIndex = ret.length, temporaryValue, randomIndex;
+        // Compute raw values into valid/clamped values
+        _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
+        _offset = _itValues[0];
+        var _loops = _itValues[1];
+        var _step = _itValues[2];
 
-      // While there remain elements to shuffle...
-      while (0 !== currentIndex) {
+        // Order doesn't matter here allways go up
+        if (_step < 0) _offset -= (_loops - 1);
 
-        // Pick a remaining element...
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex -= 1;
+        // Duplicate the array
+        ret = _array.slice(_offset, _offset + _loops);
 
-        // And swap it with the current element.
-        temporaryValue = ret[currentIndex];
-        ret[currentIndex] = ret[randomIndex];
-        ret[randomIndex] = temporaryValue;
-      }
-
+        // Shuffle the array
+        shuffleArray(ret);
 
     } // end if
     else {
@@ -711,33 +726,36 @@ function array_shuffle( _array )
     return ret;
 } // end array_shuffle
 
-function array_shuffle_ext( _array )
+function array_shuffle_ext(_array, _offset, _length)
 {
+    // Check raw offset and length
+    _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
+    _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
+
     var ret = undefined;
     if (Array.isArray(_array)) {
 
-     ret = _array;        
-     var currentIndex = ret.length, temporaryValue, randomIndex;
+        // Compute raw values into valid/clamped values
+        _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
+        _offset = _itValues[0];
+        var _loops = _itValues[1];
+        var _step = _itValues[2];
 
-      // While there remain elements to shuffle...
-      while (0 !== currentIndex) {
+        // Order doesn't matter here allways go up
+        if (_step < 0) _offset -= (_loops - 1);
 
-        // Pick a remaining element...
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex -= 1;
+        ret = _array;
 
-        // And swap it with the current element.
-        temporaryValue = ret[currentIndex];
-        ret[currentIndex] = ret[randomIndex];
-        ret[randomIndex] = temporaryValue;
-      }
+        if (_loops == 0) return ret;
 
+        // Shuffle the array
+        shuffleArray(ret, _offset, _loops);
 
     } // end if
     else {
         yyError( "argument0 is not an array");
     } // end else
-    return ret;
+    return _loops;
 } // end array_shuffle_ext
 
 
@@ -758,7 +776,6 @@ function array_last(_array) {
     var _length = _array.length;
     return _length == 0 ? undefined : _array[_length -1];
 }
-
 
 // #############################################################################################
 // Returns a function given a function or script index (used for array functions)
@@ -845,7 +862,130 @@ function array_find_index(_array, _func, _offset, _length) {
         _offset += _step;
         _loops--;
     }
+    return -1;
 } // end array_find_index
+
+function array_get_index(_array, _value, _offset, _length) {
+
+    // Check array argument
+    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+
+    // Check raw offset and length
+    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
+    _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
+
+    // Compute raw values into valid/clamped values
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
+    _offset = _itValues[0];
+    var _loops = _itValues[1];
+    var _step = _itValues[2];
+
+    // Loop through array range
+    while (_loops > 0) {
+
+        // If match found return offset (index)
+        if (yyCompareVal(_array[_offset], _value, g_GMLMathEpsilon, false) == 0) {
+            return _offset;
+        }
+
+        // Update index and loops
+        _offset += _step;
+        _loops--;
+    }
+
+    return -1;
+} // end array_get_index
+
+function array_contains(_array, _value, _offset, _length) {
+
+    // Check array argument
+    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+
+    // Check raw offset and length
+    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
+    _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
+
+    // Compute raw values into valid/clamped values
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
+    _offset = _itValues[0];
+    var _loops = _itValues[1];
+    var _step = _itValues[2];
+
+    // Loop through array range
+    while (_loops > 0) {
+
+        // If match found return offset (index)
+        if (yyCompareVal(_array[_offset], _value, g_GMLMathEpsilon, false) == 0) {
+            return true;
+        }
+
+        // Update index and loops
+        _offset += _step;
+        _loops--;
+    }
+
+    return false;
+} // end array_contains
+
+function array_contains_ext(_array, _values, _matchAll, _offset, _length) {
+
+    // Check array argument
+    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+
+    // Check values argument
+    if (!Array.isArray(_values)) yyError("argument1 is not an array");
+    
+    var subArrayLength = _values.length;
+
+    // Early exit if test subset size if zero (should return true)
+    if (subArrayLength == 0) return true;
+
+    // Check raw offset and length
+    _matchAll = _offset = arguments.length > 2 ? yyGetBool(_matchAll) : false;
+    _offset = arguments.length > 3 ? yyGetReal(_offset) : 0;
+    _length = arguments.length > 4 ? yyGetReal(_length) : _array.length; 
+
+    // Compute raw values into valid/clamped values
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
+    _offset = _itValues[0];
+    var _loops = _itValues[1];
+    var _step = _itValues[2];
+
+    var matchCount = 0;
+
+    // Loop through array range
+    while (_loops > 0) {
+
+		var matched = false;
+        var current = _array[_offset];
+		for (var i = 0; i < subArrayLength; ++i)
+		{
+			if (yyCompareVal(current, _values[i], g_GMLMathEpsilon, false) == 0)
+			{
+				matched = true;
+				matchCount += 1;
+				break;
+			}
+		}
+		// There was a match and any should match; return true
+		if (matched && !_matchAll)
+		{
+			return true;
+		}
+
+        // Update index and loops
+        _offset += _step;
+        _loops--;
+    }
+
+	// If match count matches the size of the sub array; return true
+	if (matchCount == subArrayLength)
+	{
+		return true;
+	}
+
+    return false;
+} // end array_contains_ext
 
 function array_any(_array, _func, _offset, _length) {
 

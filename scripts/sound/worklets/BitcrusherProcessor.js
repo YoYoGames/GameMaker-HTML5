@@ -3,11 +3,11 @@ class BitcrusherProcessor extends AudioWorkletProcessor
     static get parameterDescriptors() 
     {
         return [
-            { name: "bypass",     automationRate: "a-rate", defaultValue: 0,  minValue: 0, maxValue: 1 },
-            { name: "gain",       automationRate: "a-rate", defaultValue: 1,  minValue: 0 },
-            { name: "factor",     automationRate: "a-rate", defaultValue: 1,  minValue: 1, maxValue: 100 },
-            { name: "resolution", automationRate: "a-rate", defaultValue: 16, minValue: 2, maxValue: 16  },
-            { name: "mix",        automationRate: "a-rate", defaultValue: 0,  minValue: 0, maxValue: 1   }
+            { name: "bypass",     automationRate: "a-rate", defaultValue: 0,   minValue: 0,   maxValue: 1 },
+            { name: "gain",       automationRate: "a-rate", defaultValue: 1.0, minValue: 0.0 },
+            { name: "factor",     automationRate: "a-rate", defaultValue: 20,  minValue: 1,   maxValue: 100 },
+            { name: "resolution", automationRate: "a-rate", defaultValue: 8,   minValue: 2,   maxValue: 16  },
+            { name: "mix",        automationRate: "a-rate", defaultValue: 0.8, minValue: 0.0, maxValue: 1.0 }
         ];
     }
 

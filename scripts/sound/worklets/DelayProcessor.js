@@ -1,14 +1,14 @@
 class DelayProcessor extends AudioWorkletProcessor
 {
-    static MAX_DELAY_TIME = 5; // seconds
+    static MAX_DELAY_TIME = 5.0; // seconds
 
     static get parameterDescriptors() 
     {
         return [
-            { name: "bypass",   automationRate: "a-rate", defaultValue: 0,  minValue: 0, maxValue: 1 },
-            { name: "time",     automationRate: "a-rate", defaultValue: 0,  minValue: 0, maxValue: DelayProcessor.MAX_DELAY_TIME },
-            { name: "feedback", automationRate: "a-rate", defaultValue: 0,  minValue: 0, maxValue: 1 },
-            { name: "mix",      automationRate: "a-rate", defaultValue: 0,  minValue: 0, maxValue: 1 }
+            { name: "bypass",   automationRate: "a-rate", defaultValue: 0,    minValue: 0,   maxValue: 1 },
+            { name: "time",     automationRate: "a-rate", defaultValue: 0.2,  minValue: 0.0, maxValue: DelayProcessor.MAX_DELAY_TIME },
+            { name: "feedback", automationRate: "a-rate", defaultValue: 0.5,  minValue: 0.0, maxValue: 1.0 },
+            { name: "mix",      automationRate: "a-rate", defaultValue: 0.35, minValue: 0.0, maxValue: 1.0 }
         ];
     }
 
