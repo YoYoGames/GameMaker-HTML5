@@ -471,7 +471,7 @@ audioSound.prototype.resume = function() {
 
         const buffer = this.pbuffersource.buffer;
     
-        this.pbuffersource = new AudioBufferSourceNode(g_WebAudioContext, {
+        this.pbuffersource = new AudioBufferSourceNode(g_WebAudioContext, { // We could turn this into a call to this.start()
             buffer: buffer,
             loop: shouldLoop,
             loopStart: this.loopStart,
@@ -652,6 +652,7 @@ audioSound.prototype.setPlaybackCheckpoint = function() {
 };
 
 audioSound.prototype.getPlaybackPosition = function(_contextTime) {
+    // Could a loading streamed sound incorrectly return zero here (if the offset was set after playing but before decoding)?
     if (this.bActive === false || this.pbuffersource === null || g_WebAudioContext === null)
         return 0.0;
 
