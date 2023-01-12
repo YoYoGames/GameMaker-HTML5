@@ -438,8 +438,7 @@ audioSound.prototype.pause = function() {
 
     //remove ended handler which sets bActive to false - 
     //need to keep sound "active" while paused, so it is not replaced by new sound
-    if (this.soundid >= BASE_QUEUE_SOUND_INDEX 
-    && this.soundid < (BASE_QUEUE_SOUND_INDEX + g_queueSoundCount)) {
+    if (this.bQueued) {
         const queueSoundId = this.soundid - BASE_QUEUE_SOUND_INDEX;
         queue_sounds[queueSoundId].scriptNode.onended = null;
         queue_sounds[queueSoundId].scriptNode.disconnect(0);
@@ -447,6 +446,7 @@ audioSound.prototype.pause = function() {
     else {
         this.pbuffersource.onended = null;
         this.pbuffersource.stop(0);
+        this.pbuffersource.disconnect();
         this.setPlaybackCheckpoint();
     }
 
