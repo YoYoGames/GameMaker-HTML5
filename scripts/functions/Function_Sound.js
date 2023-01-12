@@ -708,6 +708,22 @@ audioSound.prototype.setPlaybackPosition = function(_offset) {
     }
 };
 
+audioSound.prototype.setPitch = function(_pitch) {
+    if (this.bActive === false)
+        return;
+
+    this.setPlaybackCheckpoint();
+    this.pitch = _pitch;
+    this.updatePitch();
+};
+
+audioSound.prototype.updatePitch = function() {
+    if (this.bActive === false || this.pbuffersource === null)
+        return;
+
+    this.pbuffersource.playbackRate.value = AudioPropsCalc.CalcPitch(this);
+};
+
 function GetAudioSoundFromHandle( _handle )
 {
 	//user might pass in any old rubbish so check here-
@@ -1248,10 +1264,10 @@ function audio_sound_get_pitch(_soundid)
     return 1.0;
 }
 
-function audio_sound_pitch(_soundid, pitch)
+function audio_sound_pitch(_soundid, _pitch)
 {
     _soundid = yyGetInt32(_soundid);
-    pitch = yyGetReal(pitch);
+    _pitch = yyGetReal(_pitch);
 
     if (_soundid < 0) 
         return;
@@ -1259,23 +1275,15 @@ function audio_sound_pitch(_soundid, pitch)
     if (g_AudioModel != Audio_WebAudio)
         return;
     
-	if (_soundid >= BASE_SOUND_INDEX) 
-	{
+	if (_soundid >= BASE_SOUND_INDEX) {
         const voice = GetAudioSoundFromHandle(_soundid);
 
-        if (voice != null && voice.bActive)
-		{
-            voice.setPlaybackCheckpoint();
+        if (voice === null)
+            return;
 
-            voice.pitch = pitch;
-
-            const new_pitch = AudioPropsCalc.CalcPitch(voice);
-
-			voice.pbuffersource.playbackRate.value = new_pitch;
-		}
+        voice.setPitch(_pitch);
     }
-    else
-    {
+    else {
         const sound_asset = Audio_GetSound(_soundid);
 
         // Queued sounds not currently supported
@@ -1283,22 +1291,11 @@ function audio_sound_pitch(_soundid, pitch)
             return;
 
         // Update the asset-level pitch
-        sound_asset.pitch = pitch;
+        sound_asset.pitch = _pitch;
 
-        // Update any playing sounds
-        for (let i = 0; i < g_audioSoundCount; ++i)
-        {
-            const voice = audio_sounds[i];
-
-            if (voice.bActive && voice.soundid == _soundid)		
-            {
-                voice.setPlaybackCheckpoint();
-
-                const new_pitch = AudioPropsCalc.CalcPitch(voice);
-
-                voice.pbuffersource.playbackRate.value = new_pitch;
-            }
-        }
+        // Update any voices playing this asset
+        audio_sounds.filter(_voice => _voice.soundid === _soundid)
+                    .forEach(_voice => _voice.updatePitch());
     }
 }
 
