@@ -827,7 +827,9 @@ var g_HandleStreamedAudioAsUnstreamed = false;
 
 function Audio_WebAudioPlaybackAllowed()
 {
-    return g_WebAudioContext && (g_WebAudioContext.state === WebAudioContextState.RUNNING);
+    return (g_WebAudioContext !== null)
+    && (g_WebAudioContext.state === WebAudioContextState.RUNNING) 
+    && (g_AudioBusMain instanceof AudioBus);
 }
 
 function Audio_WebAudioContextTryUnlock()
