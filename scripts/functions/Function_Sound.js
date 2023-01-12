@@ -527,12 +527,15 @@ audioSound.prototype.isPaused = function() {
 };
 
 audioSound.prototype.setLoopState = function(_state) {
-    if (this.bActive === false || this.pbuffersource === null)
+    if (this.bActive === false)
         return;
 
     this.setPlaybackCheckpoint();
 
     this.loop = _state;
+
+    if (this.pbuffersource === null)
+        return;
 
     const playbackPosition = this.playbackCheckpoint.bufferTime;
 
@@ -547,7 +550,7 @@ audioSound.prototype.getLoopState = function() {
 };
 
 audioSound.prototype.setLoopStart = function(_offsetSecs) {
-    if (this.bActive === false || this.pbuffersource === null || g_WebAudioContext === null)
+    if (this.bActive === false || g_WebAudioContext === null)
         return;
 
     const samplePeriod = 1.0 / g_WebAudioContext.sampleRate;
@@ -559,15 +562,17 @@ audioSound.prototype.setLoopStart = function(_offsetSecs) {
     _offsetSecs = Math.min(_offsetSecs, maxLoopStart);
 
     this.setPlaybackCheckpoint();
-    
-    this.pbuffersource.loopStart = _offsetSecs;
-    this.loopStart = _offsetSecs;
 
-    this.setPlaybackCheckpoint();
+    this.loopStart = _offsetSecs;
+    
+    if (this.pbuffersource === null)
+        return;
+
+    this.pbuffersource.loopStart = _offsetSecs;
 };
 
 audioSound.prototype.setLoopEnd = function(_offsetSecs) {
-    if (this.bActive === false || this.pbuffersource === null || g_WebAudioContext === null)
+    if (this.bActive === false || g_WebAudioContext === null)
         return;
 
     const samplePeriod = 1.0 / g_WebAudioContext.sampleRate;
@@ -580,8 +585,13 @@ audioSound.prototype.setLoopEnd = function(_offsetSecs) {
     _offsetSecs = Math.min(_offsetSecs, duration);      
     
     this.setPlaybackCheckpoint();
-    const playbackPosition = this.playbackCheckpoint.bufferTime;
 
+    this.loopEnd = _offsetSecs;
+
+    if (this.pbuffersource === null)
+        return;
+
+    const playbackPosition = this.playbackCheckpoint.bufferTime;
     const trueLoopEnd = (_offsetSecs > 0.0) ? _offsetSecs : duration;
     /* 
         Once the loop section has been reached a single time, Web Audio
@@ -593,37 +603,34 @@ audioSound.prototype.setLoopEnd = function(_offsetSecs) {
     */
     this.pbuffersource.loop = this.loop && (playbackPosition < trueLoopEnd);
     this.pbuffersource.loopEnd = _offsetSecs;
-    this.loopEnd = _offsetSecs;
-    
-    this.setPlaybackCheckpoint();
 };
 
 audioSound.prototype.getLoopStart = function() {
-    if (this.bActive === false || this.pbuffersource === null)
+    if (this.bActive === false)
         return 0.0;
 
     return this.loopStart;
 };
 
 audioSound.prototype.getLoopEnd = function() {
-    if (this.bActive === false || this.pbuffersource === null)
+    if (this.bActive === false)
         return 0.0;
 
     return this.loopEnd;
 };
 
 audioSound.prototype.getTrueLoopEnd = function() {
-    if (this.bActive === false || this.pbuffersource === null)
+    if (this.bActive === false)
         return 0.0;
 
     if (this.loopEnd <= 0.0)
-        return this.pbuffersource.buffer.duration;
+        return audio_sound_length(this.soundid);
 
     return this.loopEnd;
 };
 
 audioSound.prototype.getLoopLength = function() {
-    if (this.bActive === false || this.pbuffersource === null)
+    if (this.bActive === false)
         return 0.0;
 
     const loopStart = this.loopStart;
@@ -687,23 +694,27 @@ audioSound.prototype.getPlaybackPosition = function(_contextTime) {
 };
 
 audioSound.prototype.setPlaybackPosition = function(_offset) {
-    if (this.bActive === false || this.pbuffersource === null)
+    if (this.bActive === false)
         return;
 
-    const duration = this.pbuffersource.buffer.duration;
+    const duration = audio_sound_length(this.soundid);
 
     _offset = Math.max(0.0, _offset);
-    _offset = Math.min(_time, duration);
+    _offset = Math.min(_offset, duration);
 
     if (this.paused === true) {
         //simply need to resume at different offset
         this.playbackCheckpoint.bufferTime = _offset;
     }
     else {
+        this.startoffset = _offset;
+
+        if (this.pbuffersource === null)
+            return;
+        
         this.pbuffersource.onended = null;
         this.pbuffersource.stop();
         this.pbuffersource.disconnect();
-        this.startoffset = _time;
         this.start(this.pbuffersource.buffer);
     }
 };
