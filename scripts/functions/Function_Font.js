@@ -592,6 +592,16 @@ function font_delete(id)
 
 }
 
+function font_enable_sdf(id,enable)
+{
+
+}
+
+function font_get_sdf_enabled(id)
+{
+	return false;
+}
+
 
 // #############################################################################################
 /// Function:<summary>
