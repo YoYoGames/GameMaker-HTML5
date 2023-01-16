@@ -658,7 +658,7 @@ yySprite.prototype.LoadFromSpineAsync = function (_filename, _callback) {
 		// If true then next line read is a filename
 		var checkFilename = true;
 
-		var reSize = new RegExp(/^size\s*:\s*(\d+)\s*,\s*(\d+)$/);
+		var reSize = new RegExp('^size*:\\s*(\\d+)\\s*,\\s*(\\d+)$');
 
 		for (var i = 0; i < lines.length; ++i) {
 			var line = lines[i].trim();
