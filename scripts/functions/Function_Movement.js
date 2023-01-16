@@ -563,7 +563,8 @@ function move_and_collide(selfinst,dx,dy,xoff,yoff,ind)
 		}
 		else 
 		{
-			ret[ret.length]= res;
+			if(!ret.includes(res))
+				ret[ret.length]= res;
 			
 			//Walk along delta vector to find a safe place
 			var delta_length = Math.sqrt(xoff * xoff + yoff * yoff);
@@ -591,7 +592,8 @@ function move_and_collide(selfinst,dx,dy,xoff,yoff,ind)
 				}
 				else
 				{
-					ret[ret.length]= res;
+					if(!ret.includes(res))
+						ret[ret.length]= res;
 				}
 			}
 			
