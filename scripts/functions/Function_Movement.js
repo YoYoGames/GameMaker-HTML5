@@ -524,7 +524,7 @@ function Command_InstancePlace(_pInst,_x,_y,_obj)
 	return pInstance;
 };
 
-function move_and_collide(selfinst,dx,dy,xoff,yoff,ind)
+function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff)
 {
 	var ret =[];
 	if ((ind == OBJECT_SELF) && (selfinst != NULL)) ind = selfinst.id;
@@ -539,66 +539,109 @@ function move_and_collide(selfinst,dx,dy,xoff,yoff,ind)
 
 	if ((dx == 0) && (dy == 0))
 	{
-		
 		return ret;
 	}
 
+	var num_steps = 4;
+	if(_iterations !== undefined)
+		num_steps = _iterations;
+
+	var check_perp = false;
+	var delta_length = 0;
+	var lxoff =0;
+	var lyoff =0;
+	if(xoff === undefined || yoff ===undefined || (xoff ===0 && yoff===0))
+	{
+		check_perp = true;
+	}
+	else
+	{
+		delta_length = Math.sqrt(xoff*xoff + yoff *yoff);
+		lxoff = xoff/delta_length;
+		lyoff = yoff/delta_length;
+
+	}
 
 	var steps = Math.sqrt(dx * dx + dy * dy);
+	var ndx = dx/steps;
+	var ndy = dy/steps;
 	
-	
-	if (steps < 1)
-		steps = 1;
+	var step_dist = steps/num_steps;
 
-	dx /= steps;
-	dy /= steps;
-
-	for (var i = 0; i < steps; i++)
+	for (var i = 0; i < num_steps; i++)
 	{
-		res = Command_InstancePlace(selfinst, selfinst.x+dx, selfinst.y+dy, ind);
+		res = Command_InstancePlace(selfinst, selfinst.x+ndx* step_dist, selfinst.y+ndy* step_dist, ind);
 		if (res == OBJECT_NOONE)
 		{
-			selfinst.x += dx;
-			selfinst.y += dy;
+			selfinst.x += ndx* step_dist;
+			selfinst.y += ndy* step_dist;
 		}
 		else 
 		{
 			if(!ret.includes(res))
 				ret[ret.length]= res;
 			
-			//Walk along delta vector to find a safe place
-			var delta_length = Math.sqrt(xoff * xoff + yoff * yoff);
-			var dsteps = delta_length;
-
-			if (dsteps < 1)
-				dsteps = 1;
-
-			var lxoff = xoff/ dsteps;
-			var lyoff = yoff/ dsteps;
 			var has_moved = false;
-			for (var j = 1; j <= dsteps; j++)
-			{
-				res = Command_InstancePlace(selfinst, selfinst.x + dx + j * lxoff, selfinst.y + dy + j * lyoff, ind);
-				if (res==OBJECT_NOONE)
-				{
 
-					//Reduction of steps at this point to keep speed feeling right
-					var extradist = delta_length*j/dsteps;
-					steps -= extradist;
-					has_moved = true;
-					selfinst.x+= dx + j*lxoff;
-					selfinst.y += dy + j*lyoff;
-					break;
-				}
-				else
+			if(check_perp)
+			{
+				for (var j = 1; j <num_steps-i+1; j++)
 				{
-					if(!ret.includes(res))
-						ret[ret.length]= res;
+					res = Command_InstancePlace(selfinst, selfinst.x + (ndx + j * ndy)*step_dist, selfinst.y + (ndy - j * ndx)*step_dist, ind);
+					if (res==OBJECT_NOONE)
+					{
+						i++;
+						has_moved = true;
+						selfinst.x += (ndx + j * ndy)*step_dist;
+						selfinst.y += (ndy - j * ndx)*step_dist;
+						break;
+					}
+					else
+					{
+						if(!ret.includes(res))
+							ret[ret.length]= res;
+					}
+					res = Command_InstancePlace(selfinst, selfinst.x + (ndx - j * ndy)*step_dist, selfinst.y + (ndy + j * ndx)*step_dist, ind);
+					if (res==OBJECT_NOONE)
+					{
+						i++;
+						has_moved = true;
+						selfinst.x += (ndx - j * ndy)*step_dist;
+						selfinst.y += (ndy + j * ndx)*step_dist;
+						break;
+					}
+					else
+					{
+						if(!ret.includes(res))
+							ret[ret.length]= res;
+					}
+				}
+			}
+			else
+			{
+				for (var j = 1; j < num_steps - i + 1; j++)
+				{
+					res = Command_InstancePlace(selfinst, selfinst.x +(ndx + j * lxoff) * step_dist, selfinst.y + (ndy + j * lyoff) * step_dist, ind);
+					if (res==OBJECT_NOONE)
+					{
+
+						i++;
+						has_moved = true;
+						selfinst.x += (ndx + j * lxoff) * step_dist;
+						selfinst.y += (ndy + j * lyoff) * step_dist;
+						break;
+					}
+					else
+					{
+						if(!ret.includes(res))
+							ret[ret.length]= res;
+					}
 				}
 			}
 			
 			if(!has_moved)
 				return ret;
+		
 		}
 	}	
 	return ret;
