@@ -1068,13 +1068,9 @@ function device_mouse_raw_x(_dev) {
 
     _dev = yyGetInt32(_dev);
 
-	if (_dev == 0 && g_InputEvents[0])
+	if (g_InputEvents[_dev])
 	{
-		return g_InputEvents[0].x;
-	}
-	else if (g_TouchEvents[_dev])
-	{
-		return g_TouchEvents[_dev].x;
+		return g_InputEvents[_dev].x;
 	}
 	return 0;
 }
@@ -1118,13 +1114,9 @@ function device_mouse_raw_y(_dev) {
 
     _dev = yyGetInt32(_dev);
 
-	if (_dev == 0 && g_InputEvents[0])
+    if (g_InputEvents[_dev])
 	{
-		return g_InputEvents[0].y;
-	}
-	else if (g_TouchEvents[_dev])
-	{
-		return g_TouchEvents[_dev].y;
+		return g_InputEvents[_dev].y;
 	}
 	return 0;
 }
