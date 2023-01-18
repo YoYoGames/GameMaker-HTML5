@@ -733,6 +733,7 @@ audioSound.prototype.updatePitch = function() {
     if (this.bActive === false || this.pbuffersource === null)
         return;
 
+    this.setPlaybackCheckpoint();
     this.pbuffersource.playbackRate.value = AudioPropsCalc.CalcPitch(this);
 };
 
