@@ -303,7 +303,7 @@ audioSound.prototype.Init = function(_props)
 	    this.bBuffered = IsSoundBuffered(this.soundid);
 	    this.bQueued = IsSoundQueued(this.soundid);
 
-	    if (this.bBuffered === false && this.bQueued === false) {
+	    if (this.bQueued === false) {
 		      if (this.handle >= BASE_SOUND_INDEX) {
                     //re-using existing object - invalidate the handleMap for this soundid, as we are replacing with a new one
                     //otherwise, functions with previous handle argument, will affect this new sound (with different handle)
@@ -1327,7 +1327,7 @@ function audio_sound_get_gain(_index)
             return voice.gain.get();
     }
     else {
-        const asset = audio_sampledata[_index];
+        const asset = Audio_GetSound(_index);
 
         if (asset !== undefined)
             return asset.gain.get();
@@ -1363,7 +1363,7 @@ function audio_sound_gain(_index, _gain, _timeMs)
         }
     }
     else {
-        const asset = audio_sampledata[_index];
+        const asset = Audio_GetSound(_index);
 
         if (asset !== undefined) {
             asset.gain.set(_gain, _timeMs);
@@ -1441,7 +1441,11 @@ function audio_sound_length(_soundid)
 		 if (IsSoundStreamed(assetIndex))
 			// Streamed sounds have their duration recorded by the asset compiler
 			return audio_sampledata[assetIndex].duration;
-		 else
+         else if (IsSoundBuffered(assetIndex))
+            return buffer_sampledata[assetIndex - BASE_BUFFER_SOUND_INDEX].buffer.duration;
+		 else if (IsSoundQueued(assetIndex))
+            return 0.0;
+         else
 			return audio_sampledata[assetIndex].buffer.duration;
 	}
 
@@ -1466,7 +1470,7 @@ function audio_sound_get_track_position(_soundid)
 	}
 	else if (_soundid >= 0)
 	{
-	    const sound_asset = audio_sampledata[_soundid];
+	    const sound_asset = Audio_GetSound(_soundid);
 
 	    if (sound_asset != undefined)
 	    {
@@ -1501,7 +1505,7 @@ function audio_sound_set_track_position(_soundid, _time)
 
 	    if (_time < duration)
 	    {
-	        const sampleData = audio_sampledata[_soundid];
+	        const sampleData = Audio_GetSound(_soundid);
 
 	        if (sampleData != undefined)
 	        {
