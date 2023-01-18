@@ -1219,18 +1219,6 @@ function is_ptr(_x) {
     return (typeof(_x) == "object" && (_x instanceof ArrayBuffer)) ? 1 : 0;
 }
 
-function is_vec3(_x) {
-    return 0;
-}
-
-function is_vec4(_x) {
-    return 0;
-}
-
-function is_matrix(_x) {
-    return 0;
-}
-
 function is_struct(_x) {
     return ((typeof _x === "object") && (_x.__yyIsGMLObject)) ? 1 : 0;
 }
