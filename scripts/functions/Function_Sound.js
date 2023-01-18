@@ -843,7 +843,7 @@ function Audio_WebAudioPlaybackAllowed()
 {
     return (g_WebAudioContext !== null)
     && (g_WebAudioContext.state === WebAudioContextState.RUNNING) 
-    && (g_AudioBusMain instanceof AudioBus);
+    && (g_AudioBusMain instanceof AudioBus || g_AudioBusMain instanceof DummyAudioBus);
 }
 
 function Audio_WebAudioContextTryUnlock()
