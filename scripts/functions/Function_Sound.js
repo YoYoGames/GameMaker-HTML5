@@ -130,7 +130,8 @@ function Audio_Init()
     g_WebAudioContext.addEventListener("statechange", Audio_WebAudioContextOnStateChanged);
 
     g_HandleStreamedAudioAsUnstreamed = ( g_OSPlatform == BROWSER_IOS );
-    g_UseDummyAudioBus = (g_OSBrowser === BROWSER_SAFARI_MOBILE);
+    g_UseDummyAudioBus = (g_OSBrowser === BROWSER_SAFARI_MOBILE)
+                      || (g_WebAudioContext.audioWorklet === undefined);
 
     g_AudioMainVolumeNode = new GainNode(g_WebAudioContext);
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);

@@ -608,7 +608,8 @@ yySprite.prototype.BuildSkeletonData = function (_skeletonData) {
 		this.m_skeletonSprite.Load(
 			this.m_LoadedFromIncludedFiles ? '' : (this.pName + '/'),
 			this.pName, _skeletonData.json, _skeletonData.atlas,
-			_skeletonData.numTextures, _skeletonData.textureSizes);
+			_skeletonData.numTextures, _skeletonData.textureSizes,
+            this);
 	}
 
 	// Set simple draw routines to target the skeleton sprite
@@ -657,7 +658,7 @@ yySprite.prototype.LoadFromSpineAsync = function (_filename, _callback) {
 		// If true then next line read is a filename
 		var checkFilename = true;
 
-		var reSize = new RegExp(/^size\s*:\s*(\d+)\s*,\s*(\d+)$/);
+		var reSize = new RegExp('^size*:\\s*(\\d+)\\s*,\\s*(\\d+)$');
 
 		for (var i = 0; i < lines.length; ++i) {
 			var line = lines[i].trim();
@@ -891,13 +892,6 @@ function    CreateSpriteFromStorage( _pStore )
 		pSprite.m_LoadedFromChunk = true;
 	    pSprite.BuildSWFData(_pStore.swf, pSprite.xOrigin, pSprite.yOrigin);
 	}
-	
-	if (_pStore.skel !== undefined) {
-		var skeletonData = g_pSpriteManager.SkeletonData
-			? g_pSpriteManager.SkeletonData[_pStore.skel]
-			: undefined;
-	    pSprite.BuildSkeletonData(skeletonData);
-	}
 
 	if (_pStore.sequence !== undefined) {
 	    pSprite.BuildSequenceData(_pStore.sequence);
@@ -912,13 +906,12 @@ function    CreateSpriteFromStorage( _pStore )
 	pSprite.ppTPE = [];
     for(var i=_pStore.TPEntryIndex.length-1;i>=0;i--){
     	pSprite.ppTPE[i] =   _pStore.TPEntryIndex[i];       // Just use the storage data directly - it's never changed!
-    }
+    }	
+
     if (pSprite.numb == 0)
     {
         pSprite.numb = pSprite.ppTPE.length;
     }
-
-	pSprite.CalcCullRadius();    
 
 	// Copy actual entry, and set Crop width+height as it must be at least 1
 	for(var i=0;i<pSprite.ppTPE.length;i++)
@@ -928,7 +921,17 @@ function    CreateSpriteFromStorage( _pStore )
             if( pSprite.ppTPE[i].CropWidth==0 ) pSprite.ppTPE[i].CropWidth=1;
             if( pSprite.ppTPE[i].CropHeight==0 ) pSprite.ppTPE[i].CropHeight=1;
         } // end if
+	}	
+
+	// Do this after we've set up our TPEs
+	if (_pStore.skel !== undefined) {
+		var skeletonData = g_pSpriteManager.SkeletonData
+			? g_pSpriteManager.SkeletonData[_pStore.skel]
+			: undefined;
+	    pSprite.BuildSkeletonData(skeletonData);
 	}
+
+	pSprite.CalcCullRadius();    	
 
     // Expand masks
     if( pSprite.Masks )
