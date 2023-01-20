@@ -323,7 +323,6 @@ audioSound.prototype.start = function(_buffer) {
     const startOffset = AudioPropsCalc.CalcOffset(this);
     const trueLoopEnd = (this.loopEnd > 0.0) ? this.loopEnd : _buffer.duration;
 
-    // Is this workaround necessary if we start outside of the loop section?
     const shouldLoop = (this.loop === true) && (startOffset < trueLoopEnd);
 
     this.pbuffersource = new AudioBufferSourceNode(g_WebAudioContext, {
@@ -357,16 +356,15 @@ audioSound.prototype.play = function() {
 
     if (asset.state !== AudioSampleState.READY ) {
 		// Decode audio if it's been preloaded
-        const currentSound = g_pSoundManager.Get(_voice.soundid);
+        const currentSound = g_pSoundManager.Get(this.soundid);
 
-        if (asset.state == AudioSampleState.LOADED && !_voice.bStreamed && currentSound) {
+        if (asset.state == AudioSampleState.LOADED && !this.bStreamed && currentSound) {
             const rawData = g_RawSounds[currentSound.pName];
 
             if (rawData)
                 asset.TryDecode(rawData, true);
 		}
 
-        // This won't actually get processed without a TryDecode call though?
         asset.commands.push([AudioCommand.PLAY, _voice]);
         return;
     }
@@ -471,26 +469,8 @@ audioSound.prototype.resume = function() {
         };
     }
     else {
-        const playbackPosition = this.playbackCheckpoint.bufferTime;
-        const shouldLoop = (this.loop === true) && (playbackPosition < this.getTrueLoopEnd());
-
-        const buffer = this.pbuffersource.buffer;
-    
-        this.pbuffersource = new AudioBufferSourceNode(g_WebAudioContext, { // We could turn this into a call to this.start()
-            buffer: buffer,
-            loop: shouldLoop,
-            loopStart: this.loopStart,
-            loopEnd: this.loopEnd,
-            playbackRate: AudioPropsCalc.CalcPitch(this)
-        });
-    
-        this.pbuffersource.onended = (_event) => {
-            this.bActive = false;
-            this.pbuffersource = null; // Release buffer source (holds the only ref to buffer for streamed sounds)
-        };
-    
-        this.pbuffersource.connect(this.pgainnode);
-        this.pbuffersource.start(0, playbackPosition);
+        this.startoffset = this.playbackCheckpoint.bufferTime;
+        this.start();
     }
 
     this.paused = false;
@@ -606,7 +586,7 @@ audioSound.prototype.setLoopEnd = function(_offsetSecs) {
         in order to prevent the 'correction' of the playback position during the next render quantum.
         The voice-level property (i.e. this.loop) will still reflect the user's chosen loop status.
     */
-    this.pbuffersource.loop = this.loop && (playbackPosition < trueLoopEnd);
+    this.pbuffersource.loop = (this.loop === true) && (playbackPosition < trueLoopEnd);
     this.pbuffersource.loopEnd = _offsetSecs;
 };
 
