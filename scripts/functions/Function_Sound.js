@@ -372,6 +372,10 @@ audioSound.prototype.play = function() {
     }
 
     if (this.bStreamed) {
+        // Calc offset now so that asset-level changes while decoding
+        // are not taken into account when trying to play
+        this.startoffset = AudioPropsCalc.CalcOffset(this);
+
         const srcUrl = getUrlForSound(this.soundid);
 
         const request = new XMLHttpRequest();
