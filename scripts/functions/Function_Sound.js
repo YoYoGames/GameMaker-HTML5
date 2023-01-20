@@ -653,9 +653,12 @@ audioSound.prototype.setPlaybackCheckpoint = function() {
 };
 
 audioSound.prototype.getPlaybackPosition = function(_contextTime) {
-    // Could a loading streamed sound incorrectly return zero here (if the offset was set after playing but before decoding)?
-    if (this.bActive === false || this.pbuffersource === null || g_WebAudioContext === null)
+    if (this.bActive === false || g_WebAudioContext === null)
         return 0.0;
+
+    // If the sound is still decoding (active, but without a buffer) then return the start offset
+    if (this.pbuffersource === null)
+        return AudioPropsCalc.CalcOffset(this);
 
     const checkpoint = this.playbackCheckpoint;
 
