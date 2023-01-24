@@ -346,16 +346,16 @@ yyASyncManager.prototype.Process = function () {
 					ds_map_add(map, "status", pFile.m_Status);
 				}
 
-				if (pFile.m_Type == ASYNC_IMAGE) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_IMAGE_LOAD, 0); // Throw an event for the image
-				else if (pFile.m_Type == ASYNC_SPRITE) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_IMAGE_LOAD, 0); // Throw an event for the image
-				else if (pFile.m_Type == ASYNC_BACKGROUND) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_IMAGE_LOAD, 0); // Throw an event for the image
-				else if (pFile.m_Type == ASYNC_SOUND) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_SOUND_LOAD, 0);
-				else if (pFile.m_Type == ASYNC_WEB) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_ASYNC, 0);
-				else if (pFile.m_Type == ASYNC_USER) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_USER_INTERACTION, 0);
-				else if (pFile.m_Type == ASYNC_BINARY) g_pObjectManager.ThrowEvent(EVENT_OTHER_ASYNC_SAVE_LOAD, 0);
-				else if (pFile.m_Type == ASYNC_NETWORKING) g_pObjectManager.ThrowEvent(EVENT_OTHER_NETWORKING, 0);
-				else if (pFile.m_Type == ASYNC_AUDIO_PLAYBACK) g_pObjectManager.ThrowEvent(EVENT_OTHER_AUDIO_PLAYBACK, 0);
-				else if (pFile.m_Type == ASYNC_SYSTEM_EVENT) g_pObjectManager.ThrowEvent(EVENT_OTHER_SYSTEM_EVENT, 0);
+				if (pFile.m_Type == ASYNC_IMAGE) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_IMAGE_LOAD, 0, true); // Throw an event for the image
+				else if (pFile.m_Type == ASYNC_SPRITE) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_IMAGE_LOAD, 0, true); // Throw an event for the image
+				else if (pFile.m_Type == ASYNC_BACKGROUND) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_IMAGE_LOAD, 0, true); // Throw an event for the image
+				else if (pFile.m_Type == ASYNC_SOUND) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_SOUND_LOAD, 0, true);
+				else if (pFile.m_Type == ASYNC_WEB) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_ASYNC, 0, true);
+				else if (pFile.m_Type == ASYNC_USER) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_USER_INTERACTION, 0, true);
+				else if (pFile.m_Type == ASYNC_BINARY) g_pObjectManager.ThrowEvent(EVENT_OTHER_ASYNC_SAVE_LOAD, 0, true);
+				else if (pFile.m_Type == ASYNC_NETWORKING) g_pObjectManager.ThrowEvent(EVENT_OTHER_NETWORKING, 0, true);
+				else if (pFile.m_Type == ASYNC_AUDIO_PLAYBACK) g_pObjectManager.ThrowEvent(EVENT_OTHER_AUDIO_PLAYBACK, 0, true);
+				else if (pFile.m_Type == ASYNC_SYSTEM_EVENT) g_pObjectManager.ThrowEvent(EVENT_OTHER_SYSTEM_EVENT, 0, true);
 
 				// Done load, so delete handle.
 				this.queue[i] = null;
