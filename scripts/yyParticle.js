@@ -236,6 +236,149 @@ function ParticleSystem_ClearClass()
 	this.m_volatile = false;                 // whether the system should be destroyed on room exit (Zeus only)
 }
 
+/**
+ * A particle system resource, as created in the IDE using the Particle Editor.
+ * @constructor
+ */
+function CParticleSystem()
+{
+	this.name = "";
+	this.originX = 0;
+	this.originY = 0;
+	this.drawOrder = 0;
+
+	/**
+	 * The index within instances where the particle system is stored.
+	 * @type {Number}
+	 * @private
+	 */
+	this.index = -1;
+
+	/**
+	 * Indices of emitters that the particle system contains.
+	 * @type {Number[]}
+	 * @readonly
+	 */
+	this.emitters = [];
+}
+
+/**
+ * All existing particle systems.
+ * @type {CParticleSystem[]}
+ */
+CParticleSystem.instances = [];
+
+/** @returns {CParticleSystem} A new particle system. */
+CParticleSystem.Create = function ()
+{
+	var system = new CParticleSystem();
+	system.index = CParticleSystem.GetCount();
+	CParticleSystem.instances.push(system);
+	return system;
+};
+
+/**
+ * Creates a new particle system, loading its data from JSON.
+ * @param {Object} json A particle system entry from the JSON.
+ * @returns {CParticleSystem} The created particle system.
+ */
+CParticleSystem.CreateFromJSON = function (json)
+{
+	var system = CParticleSystem.Create();
+	system.name = json.pName;
+	system.originX = json.originX;
+	system.originY = json.originY;
+	system.drawOrder = json.drawOrder;
+	for (var i = 0; i < json.emitters.length; ++i)
+	{
+		system.AddEmitter(json.emitters[i]);
+	}
+	return system;
+};
+
+/** @returns {Number} Total number of existing particle system resources. */
+CParticleSystem.GetCount = function ()
+{
+	return CParticleSystem.instances.length;
+}
+
+/**
+ * Retrieves a particle system with given index.
+ * @param {Number} index The index of the particle system.
+ * @returns {CParticleSystem} The particle system resource or null if it doesn't
+ * exist.
+ */
+CParticleSystem.Get = function (index)
+{
+	if (index < 0 || index >= CParticleSystem.GetCount())
+	{
+		return null;
+	}
+	return CParticleSystem.instances[index];
+};
+
+/** @returns {Number} The index of the particle system. */
+CParticleSystem.prototype.GetIndex = function ()
+{
+	return this.index;
+};
+
+/**
+ * Adds an emitter to the particle system.
+ * @param {Number} emitter The emitter to add.
+ */
+CParticleSystem.prototype.AddEmitter = function (emitter)
+{
+	this.emitters.push(emitter);
+};
+
+/**
+ * Creates an instance of the particle system.
+ * @param {CLayerParticleElement} [_pParticleEl] The layer to use. A new one is
+ * created if not defined.
+ * @returns {Number} The index of the created instance.
+ */
+CParticleSystem.prototype.MakeInstance = function (_pParticleEl)
+{
+	var ps = (!_pParticleEl)
+		? ParticleSystem_Create()
+		: ParticleSystem_Create_OnLayer(-1, _pParticleEl);
+	
+	var system = g_ParticleSystems[ps];
+
+	for (var i = 0; i < this.emitters.length; ++i)
+	{
+		var emitterIndex = this.emitters[i];
+
+		var templateEmitter = g_PSEmitters[emitterIndex];
+
+		var em = ParticleSystem_Emitter_Create(ps);
+		var instanceEmitter = system.emitters[em];
+
+		//instanceEmitter.enabled = templateEmitter.enabled;
+		//instanceEmitter.mode = templateEmitter.mode;
+		//instanceEmitter.number = templateEmitter.number;
+		instanceEmitter.posdistr = templateEmitter.posdistr;
+		instanceEmitter.shape = templateEmitter.shape;
+		instanceEmitter.xmin = templateEmitter.xmin;
+		instanceEmitter.ymin = templateEmitter.ymin;
+		instanceEmitter.xmax = templateEmitter.xmax;
+		instanceEmitter.ymax = templateEmitter.ymax;
+		//instanceEmitter.rotation = templateEmitter.rotation;
+		//instanceEmitter.parttype = templateEmitter.parttype;
+
+		if (g_PSEmitterModes[emitterIndex] == 0)
+		{
+			ParticleSystem_Emitter_Stream(ps, em, templateEmitter.parttype, templateEmitter.number);
+		}
+		else
+		{
+			ParticleSystem_Emitter_Burst(ps, em, templateEmitter.parttype, templateEmitter.number);
+		}
+	}
+
+	return ps;
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -1081,6 +1224,100 @@ function	ParticleType_Blend(_ind, _additive)
 	pPar.additiveblend = yyGetReal(_additive);
 }
 
+var g_PSEmitters = [];
+var g_PSEmitterModes = [];
+
+// #############################################################################################
+/// Function:<summary>
+///				Loads a particle system emitters from JSON.
+///			 </summary>
+/// In:		 <param name="_json"></param>
+/// Out:	 <returns>
+/// 			Returns true on success.
+///			 </returns>
+// #############################################################################################
+function ParticleSystem_Emitters_Load(_json)
+{
+	for (var i = 0; i < _json.length; ++i)
+	{
+		var yypt = _json[i];
+		var yypse = _json[i];
+
+		////////////////////////////////////////////////////////////////////////
+		// Particle type
+		var ptInd = ParticleType_Create();
+		var type = g_ParticleTypes[ptInd];
+		
+		type.sprite = yypt.spriteId;
+		type.spriteanim = false;
+		type.spritestretch = false;
+		type.spriterandom = false;
+		type.shape = yypt.texture;
+		type.sizemin = yypt.sizeMin;
+		type.sizemax = yypt.sizeMax;
+		type.sizeincr = yypt.sizeIncrease;
+		type.sizerand = yypt.sizeWiggle;
+		type.xscale = yypt.scaleX;
+		type.yscale = yypt.scaleY;
+		type.lifemin = yypt.lifetimeMin;
+		type.lifemax = yypt.lifetimeMax;
+		type.deathtype = yypt.spawnOnDeath;
+		type.deathnumber = yypt.spawnOnDeathCount;
+		type.steptype = yypt.spawnOnUpdate;
+		type.stepnumber = yypt.spawnOnUpdateCount;
+		type.spmin = yypt.speedMin;
+		type.spmax = yypt.speedMax;
+		type.spincr = yypt.speedIncrease;
+		type.sprand = yypt.speedWiggle;
+		type.dirmin = yypt.directionMin;
+		type.dirmax = yypt.directionMax;
+		type.dirincr = yypt.directionIncrease;
+		type.dirrand = yypt.directionWiggle;
+		type.grav = yypt.gravityForce;
+		type.gravdir = yypt.gravityDirection;
+		type.angmin = yypt.orientationMin;
+		type.angmax = yypt.orientationMax;
+		type.angincr = yypt.orientationIncrease;
+		type.angrand = yypt.orientationWiggle;
+		type.angdir = yypt.orientationRelative;
+		type.colmode = COLMODE_THREE;
+		type.colpar[0] = yypt.startColour;
+		type.colpar[1] = yypt.midColour;
+		type.colpar[2] = yypt.endColour;
+		type.alphastart = ((yypt.startColour >> 24) & 0xFF) / 255.0;
+		type.alphamiddle = ((yypt.midColour >> 24) & 0xFF) / 255.0;
+		type.alphaend = ((yypt.endColour >> 24) & 0xFF) / 255.0;
+		type.additiveblend = yypt.additiveBlend;
+
+		var presetImagePath = yypt.presetImagePath;
+		if (presetImagePath !== undefined)
+		{
+			// TODO: Use particle preset image
+		}
+
+		////////////////////////////////////////////////////////////////////////
+		// Emitter
+		var emitter = new yyEmitter();
+		// TODO: Use emitter name from YYPSEmitter
+		//emitter.enabled = yypse.enabled;
+		//emitter.mode = yypse.mode;
+		emitter.number = yypse.emitCount;
+		emitter.posdistr = yypse.distribution;
+		emitter.shape = yypse.shape;
+		emitter.xmin = yypse.regionX;
+		emitter.ymin = yypse.regionY;
+		emitter.xmax = yypse.regionX + yypse.regionW;
+		emitter.ymax = yypse.regionY + yypse.regionH;
+		//emitter.rotation = yypse.rotation;
+		emitter.parttype = ptInd;
+
+		g_PSEmitters[i] = emitter;
+		g_PSEmitterModes[i] = yypse.mode;
+	}
+
+	return true;
+}
+
 // #############################################################################################
 /// Function:<summary>
 ///				Creates an emitter, returning its index
@@ -1459,6 +1696,85 @@ function	ParticleSystem_Particles_Count( _ps )
 }
 
 
+function ParticleSystem_Create_GetLayer(_layerID)
+{
+	var pPartEl = null;
+
+	if (g_isZeus)
+	{
+		if (_layerID == -1)
+		{
+			pPartEl = new CLayerParticleElement();
+			g_pLayerManager.AddNewElementAtDepth(g_RunRoom, 0, pPartEl, true, true);          
+		}
+		else
+		{
+			var room = g_pLayerManager.GetTargetRoomObj();
+
+			if (room != null)
+			{
+				layer = g_pLayerManager.GetLayerFromID(room, _layerID);
+				if (layer != null)
+				{
+					pPartEl = new CLayerParticleElement();
+
+					// Since particle systems are persistent and to maintain similar behaviour to 1.x we don't just want to add the new particle system to the target room
+					// but to the current room too
+					if (room == g_RunRoom)
+					{
+						var res = g_pLayerManager.AddNewElement(g_RunRoom, layer, pPartEl, true);
+						if (res == -1)
+						{
+							g_pLayerManager.RemoveElementById(g_RunRoom, pPartEl.m_id, true);
+							pPartEl = null;
+						}
+					}
+					else
+					{
+						// Since we're not in the target room add this particle system to the current room too
+						g_pLayerManager.AddNewElementAtDepth(g_RunRoom, 0, pPartEl, true, true);
+					}
+				}
+			}
+		}
+	}
+
+	return pPartEl;
+}
+
+function ParticleSystem_Create_OnLayer(_layerID, _pPartEl, _persistent)
+{
+	var layer = null;
+	var index = g_ParticleSystems.length;
+	g_ParticleSystems[index] = new yyParticleSystem();
+	g_ParticleSystems[index].id = index;                    // remember the ID
+
+	if (g_isZeus)
+	{
+		g_ParticleSystems[index].m_elementID = -1;
+		//g_ParticleSystems[index].m_origLayerID = -1;	
+	}
+
+	g_ParticleSystems[index].Clear();
+
+	if (g_isZeus)
+	{
+		_pPartEl.m_systemID = index;
+		g_ParticleSystems[index].m_elementID = _pPartEl.m_id;
+		g_ParticleSystems[index].m_volatile = !_persistent;
+
+		if (_layerID != -1)
+		{
+			layer = g_pLayerManager.GetLayerFromID(room, _layerID);
+
+			//g_ParticleSystems[index].m_origLayerID = _layerID;
+			g_ParticleSystems[index].depth = layer.depth;
+		}
+	}
+
+	return index;
+}
+
 // #############################################################################################
 /// Function:<summary>
 ///				Creates a new particle system and returns its index
@@ -1468,6 +1784,27 @@ function	ParticleSystem_Particles_Count( _ps )
 ///				ID of the new particle system
 ///			</returns>
 // #############################################################################################
+/*function	ParticleSystem_Create(_layerID,_persistent)
+{
+    if (_layerID == undefined)
+        _layerID = -1;
+    else
+        _layerID = yyGetInt32(_layerID);
+
+
+    if (_persistent == undefined)
+        _persistent = true;
+    else
+        _persistent = yyGetBool(_persistent);
+
+	var pPartEl = ParticleSystem_Create_GetLayer(_layerID);
+
+	if (pPartEl == null)
+		return -1;
+	
+	return ParticleSystem_Create_OnLayer(_layerID, pPartEl, _persistent);
+}*/
+
 function	ParticleSystem_Create(_layerID,_persistent)
 {
     if (_layerID == undefined)
@@ -1596,7 +1933,7 @@ function	ParticleSystem_Exists( _ps )
 // #############################################################################################
 function  ParticleSystem_Destroy( _ps )
 {
-    _ps = yyGetInt32(_ps);
+	_ps = yyGetInt32(_ps);
 
 	var pPartSys = g_ParticleSystems[_ps];
 	if (pPartSys == null || pPartSys == undefined) return;
@@ -2094,8 +2431,6 @@ function  ParticleSystem_UpdateAll()
 	}
 }
 
-
-
 // #############################################################################################
 /// Function:<summary>
 ///				Draws a particle
@@ -2121,7 +2456,7 @@ function	DrawParticle(_pParticle, _xoff, _yoff)
 	if( spr == null )
 	{
 		var shape = pParType.shape;
-		if ( (shape >= 0) && (shape < PART_SPRITE_NUMB) )
+		if ( (shape >= 0) && (shape < PART_SPRITE_NUMB/*g_ParticleTextures.length*/) )
 		{
 			pTexture = g_ParticleTextures[ shape ];		// get pTPE
 			if(pTexture==null)

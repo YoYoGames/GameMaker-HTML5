@@ -17,8 +17,7 @@ YYLayerType_Background=1,
 YYLayerType_Instance=2,
 YYLayerType_Asset=3,
 YYLayerType_Tile=4,
-YYLayerType_Particle=5,
-YYLayerType_Effect=6;
+YYLayerType_Effect=5;
 
 
 var	eLayerElementType_Undefined = 0,
@@ -238,6 +237,9 @@ function CLayerSequenceElement() {
     this.m_bRuntimeDataInitialised = false;
     this.m_layer = null;
     this.m_dirtyflags = 0;
+
+    this.m_trackIDToPS = {};
+    this.m_trackIDToLastKeyframe = {};
 };
 
 /** @constructor */
@@ -248,6 +250,16 @@ function CLayerParticleElement()
     this.m_name = "";
     this.m_id=0;
     this.m_bRuntimeDataInitialised = false;
+
+    // When loaded from WAD:
+    this.m_ps = -1;          // The id of the particle system resource
+    this.m_imageScaleX = 1;
+    this.m_imageScaleY = 1;
+    this.m_imageAngle = 0;
+    this.m_imageBlend = 0xFFFFFF;
+    this.m_imageAlpha = 1;
+    this.m_x = 0;
+    this.m_y = 0;
 };
 
 /** @constructor */
@@ -618,6 +630,11 @@ LayerManager.prototype.BuildTilemapElementRuntimeData = function( _room ,_layer,
 
 LayerManager.prototype.BuildParticleElementRuntimeData = function( _room ,_layer,_element)
 {
+    if (_element.m_ps != -1 && _element.m_systemID == 1)
+    {
+        CParticleSystem.Get(_element.m_ps).MakeInstance(_element);
+    }
+
     _element.m_bRuntimeDataInitialised=true;
 };
 
@@ -1888,6 +1905,29 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                     }
                 }
 
+                // Particles
+                var numparticles = 0;
+                if (pLayer.pcount != undefined) numparticles = pLayer.pcount;
+                if (numparticles > 0) {
+                    for (var i = numparticles - 1; i >= 0; --i)
+                    {
+                        var pParticle = pLayer.particles[i];
+                        var NewParticle = new CLayerParticleElement();
+
+                        NewParticle.m_systemID = -1;
+                        NewParticle.m_ps = pParticle.index;
+                        NewParticle.m_imageScaleX = pParticle.scalex;
+                        NewParticle.m_imageScaleY = pParticle.scaley;
+                        NewParticle.m_imageAngle = pParticle.angle;
+                        NewParticle.m_imageBlend = pParticle.colour & 0xffffff;
+                        NewParticle.m_imageAlpha = ((pParticle.colour >> 24) & 0xff) / 255.0;
+                        NewParticle.m_x = pParticle.x;
+                        NewParticle.m_y = pParticle.y;
+                        NewParticle.m_pName = pParticle.pName;
+
+                        this.AddNewElement(_room, NewLayer, NewParticle, false);
+                    }
+                }
             }
             else if(pLayer.type === YYLayerType_Tile)
             {

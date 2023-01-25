@@ -257,6 +257,7 @@ function sequence_track_new(_type)
 		case eSTT_Bool: pTrack = new yySequenceBoolTrack(); break;
 		case eSTT_String: pTrack = new yySequenceStringTrack(); break;
 		case eSTT_Sequence: pTrack = new yySequenceSequenceTrack(); break;		
+		case eSTT_Particle: pTrack = new yySequenceParticleTrack(); break;
 		case eSTT_ClipMask: pTrack = new yySequenceClipMaskTrack(); break;
 		case eSTT_ClipMask_Mask: pTrack = new yySequenceClipMask_MaskTrack(); break;
 		case eSTT_ClipMask_Subject: pTrack = new yySequenceClipMask_SubjectTrack(); break;

@@ -103,7 +103,8 @@ eSTT_Instance = 14;
 eSTT_Message = 15;
 eSTT_Moment = 16;
 eSTT_Text = 17;
-eSTT_Max = 18;
+eSTT_Particle = 18;
+eSTT_Max = 19;
 
 function TrackIsParameter(type) { return (type == eSTT_Real || type == eSTT_Color || type == eSTT_Bool || type == eSTT_String); }
 
@@ -276,6 +277,7 @@ function SequenceBaseTrack_Load(_pStorage) {
             case "GMRealTrack": newTrack = new yySequenceRealTrack(_pStorage); break;
             case "GMGraphicTrack": newTrack = new yySequenceGraphicTrack(_pStorage); break;
             case "GMInstanceTrack": newTrack = new yySequenceInstanceTrack(_pStorage); break;
+            case "GMParticleTrack": newTrack = new yySequenceParticleTrack(_pStorage); break;
             case "GMColourTrack": newTrack = new yySequenceColourTrack(_pStorage); break;
             case "GMSpriteFramesTrack": newTrack = new yySequenceSpriteFramesTrack(_pStorage); break;
             case "GMSequenceTrack": newTrack = new yySequenceSequenceTrack(_pStorage); break;
@@ -742,6 +744,18 @@ function yySequenceInstanceTrack(_pStorage) {
 
     yySequenceBaseTrack.call(this, _pStorage); //base constructor
     this.m_type = eSTT_Instance;
+}
+
+// #############################################################################################
+/// Function:<summary>
+///             Create a new Particle Track object
+///          </summary>
+// #############################################################################################
+/** @constructor */
+function yySequenceParticleTrack(_pStorage) {
+
+    yySequenceBaseTrack.call(this, _pStorage); //base constructor
+    this.m_type = eSTT_Particle;
 }
 
 // #############################################################################################
@@ -1775,6 +1789,33 @@ function yyGraphicTrackKey(_pStorage)
 
 // #############################################################################################
 /// Function:<summary>
+///             Create a new Particle Track Key object
+///          </summary>
+// #############################################################################################
+/** @constructor */
+function yyParticleTrackKey(_pStorage)
+{
+    yyTrackKeyBase.call(this); //base constructor
+
+    this.__type = "[ParticleTrackKey]";
+
+    this.particleSystemIndex = -1;
+
+    if ((_pStorage != null) && (_pStorage != undefined)) {
+        this.particleSystemIndex = _pStorage.index;
+    }
+
+    Object.defineProperties(this, {
+        gmlparticleSystemIndex: {
+            enumerable: true,
+            get: function () { return this.particleSystemIndex; },
+            set: function (_val) { this.particleSystemIndex = yyGetInt32(_val); }
+        },
+    });
+}
+
+// #############################################################################################
+/// Function:<summary>
 ///             Create a new Instance Track Key object
 ///          </summary>
 // #############################################################################################
@@ -2345,6 +2386,9 @@ function yyKeyframe(_type, _pStorage) {
                     break;
                 case eSTT_SpriteFrames:
                     newKeyframe = new yySpriteFramesTrackKey(data);
+                    break;
+                case eSTT_Particle:
+                    newKeyframe = new yyParticleTrackKey(data);
                     break;
             }
 
@@ -4353,6 +4397,10 @@ yySequenceManager.prototype.HandleUpdateTracks = function (_el, _sequence, _inst
                 case eSTT_Instance:
                     this.HandleInstanceTrackUpdate(_el, _sequence, _instance, node.value, _matrix, currentTrack, _headPosition, _lastHeadPosition);
                     break;
+
+                case eSTT_Particle:
+                    this.HandleParticleTrackUpdate(_el, _sequence, _instance, node.value, _matrix, currentTrack, _headPosition, _lastHeadPosition);
+                    break;
             }
 
             if (currentTrack.m_tracks.length > 0)
@@ -4931,10 +4979,39 @@ yySequenceManager.prototype.HandleInstanceTrackUpdate = function (_pEl, _pSeq, _
 	}
 };
 
+// #############################################################################################
+/// Function:<summary>
+///             Updates the given particle track
+///          </summary>
+// #############################################################################################
+yySequenceManager.prototype.HandleParticleTrackUpdate = function (_pEl, _pSeq, _pInst, _srcVars, _matrix, _pTrack, _headPos, _lastHeadPos)
+{
+    var keyframes = _pTrack.m_keyframeStore;
+    var keyframeCurrent = null;
 
+    // Find the current keyframe
+    var index = keyframes.GetKeyframeIndexAtFrame(_headPos, _pSeq.m_length);
+    if (index != -1)
+    {
+        var keyframe = keyframes.keyframes[index];
+        if (keyframe != null)
+        {
+            keyframeCurrent = keyframe.m_channels[0];
+        }
+    }
 
+    // Update particle system (if any)
+    if (keyframeCurrent)
+    {
+        var particleSystem = _pEl.m_trackIDToPS[_pTrack.id];
+        var ps = (particleSystem !== undefined) ? particleSystem : -1;
 
-
+        if (ps != -1)
+        {
+            ParticleSystem_Update(ps);
+        }
+    }
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -5633,6 +5710,7 @@ function TrackEval() {
 
     this.spriteIndex = -1;
     this.instanceID = OBJECT_NOONE;
+    this.particleSystemIndex = -1; // particle tracks
     this.emitterIndex = -1;
     this.soundIndex = -1;
     this.pSequence = null;
