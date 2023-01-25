@@ -9,12 +9,12 @@ on:
 jobs:
 
   CI:
-    name: "AC Debug + HTML5"
+    name: "CI"
     runs-on: windows-2022
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
         with:
           path: html
-      - run: npm start -- --platforms html5 --html5Runner ".\html5\scripts"
+      - run: npm start -- --platforms html5 --html5Runner ".\html\scripts"
         working-directory: html
