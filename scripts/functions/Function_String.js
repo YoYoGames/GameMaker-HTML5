@@ -1086,25 +1086,88 @@ function string_lettersdigits(_str)
     return s;  
 }
 
-function string_trim_start(_str) {
+var g_EscapeRegexRE = new RegExp('[.*+?^${}()|[\]\\]', 'g');
+
+function string_trim_start(_str, _substrs) {
 
     _str = yyGetString(_str);
 
-    return _str.trimStart();
+    // If there is only one argument return with the result right away
+    if (arguments.length == 1) return _str.trimStart();
+
+    if (!(_substrs instanceof Array)) {
+        yyError("string_trim_start() argument1 is not an array");
+    }
+
+    // Convert substrings to single string, escape the regex symbols, remove empty entries
+    _substrs = _substrs.map((val) => {
+    
+        // Ensure that the element is a string
+        if (typeof(val) != "string") {
+            yyError("string_trim_start() argument1 should be an array of string");
+        }
+        return yyGetString(val).replace(g_EscapeRegexRE, '\\$&')
+    
+    }).filter(elm => elm).join("|");
+
+    let _rg = new RegExp("^(?:" +_substrs+ ")*");
+
+    return _str.replace(_rg, "");
 }
 
-function string_trim_end(_str) {
+function string_trim_end(_str, _substrs) {
 
     _str = yyGetString(_str);
 
-    return _str.trimEnd();
+    // If there is only one argument return with the result right away
+    if (arguments.length == 1) return _str.trimEnd();
+
+    if (!(_substrs instanceof Array)) {
+        yyError("string_trim_end() argument1 is not an array");
+    }
+
+    // Convert substrings to single string, escape the regex symbols, remove empty entries
+    _substrs = _substrs.map((val) => {
+    
+        // Ensure that the element is a string
+        if (typeof(val) != "string") {
+            yyError("string_trim_end() argument1 should be an array of string");
+        }
+        return yyGetString(val).replace(g_EscapeRegexRE, '\\$&')
+    
+    }).filter(elm => elm).join("|");
+
+    let _rg = new RegExp("(?:" +_substrs+ ")*$");
+
+    return _str.replace(_rg, "");
 }
 
-function string_trim(_str) {
+function string_trim(_str, _substrs) {
 
     _str = yyGetString(_str);
 
-    return _str.trim();
+    // If there is only one argument return with the result right away
+    if (arguments.length == 1) return _str.trim();
+
+    if (!(_substrs instanceof Array)) {
+        yyError("string_trim() argument1 is not an array");
+    }
+
+    // Convert substrings to single string, escape the regex symbols, remove empty entries
+    _substrs = _substrs.map((val) => {
+    
+        // Ensure that the element is a string
+        if (typeof(val) != "string") {
+            yyError("string_trim() argument1 should be an array of string");
+        }
+        return yyGetString(val).replace(g_EscapeRegexRE, '\\$&')
+    
+    }).filter(elm => elm).join("|");
+
+    let _rgStart = new RegExp("^(?:" +_substrs+ ")*");
+    let _rgEnd = new RegExp("(?:" +_substrs+ ")*$");
+
+    return _str.replace(_rgStart, "").replace(_rgEnd, "");
 }
 
 function string_starts_with(_str, _val) {
@@ -1122,8 +1185,6 @@ function string_ends_with(_str, _val) {
 
     return _str.endsWith(_val);
 }
-
-var g_EscapeRegexRE = new RegExp('[.*+?^${}()|[\]\\]', 'g');
 
 function __yy_StringSplit(input, separator, limit) {
 
