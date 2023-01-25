@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches:
+      - 'develop'
+
+jobs:
+
+  CI:
+    name: "AC Debug + HTML5"
+    runs-on: windows-2022
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+        with:
+          path: html
+      - run: npm start -- --platforms html5 --html5Runner ".\html5\scripts"
+        working-directory: html
