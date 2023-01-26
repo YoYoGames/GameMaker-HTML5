@@ -44,7 +44,7 @@ AudioPropsCalc.GetAssetProps = function(_asset_index) {
     }
 
     return (() => ({
-        gain: AudioPropsCalc.default_gain,
+        gain: new TimeRampedParamLinear(AudioPropsCalc.default_gain),
         offset: AudioPropsCalc.default_offset,
         pitch: AudioPropsCalc.default_pitch
     }))();
@@ -78,6 +78,6 @@ AudioPropsCalc.GetGroupProps = function(_assetIndex) {
     }
 
     return (() => ({
-        gain: AudioPropsCalc.default_gain,
+        gain: new TimeRampedParamLinear(AudioPropsCalc.default_gain),
     }))();
 };
