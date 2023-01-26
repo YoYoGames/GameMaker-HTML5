@@ -414,7 +414,7 @@ function positionHandler(e)
         }
     } // end if
     
-    // Don't prevent default on first pointerdown event,
+    // Don't prevent default on pointerdown events,
     // otherwise pointerup events wont be triggered if the
     // user releases the mouse outside the game canvas.
     if (e.type != "pointerdown") {
