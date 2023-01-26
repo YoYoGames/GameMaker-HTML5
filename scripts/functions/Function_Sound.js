@@ -470,7 +470,7 @@ audioSound.prototype.resume = function() {
     }
     else {
         this.startoffset = this.playbackCheckpoint.bufferTime;
-        this.start();
+        this.start(this.pbuffersource.buffer);
     }
 
     this.paused = false;
