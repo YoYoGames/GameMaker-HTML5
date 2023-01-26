@@ -12,9 +12,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Repository Dispatch
-        uses: peter-evans/repository-dispatch@v2
-        with:
-          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }} 
-          repository: YoYoGames/YoYoPerformanceAndTestSuite
-          event-type: html5-pr
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+        uses: actions/checkout@v3
+      - run: |
+           curl -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}" --request POST --data "{\"event_type\":\"html5-pr\"}" https://api.github.com/repos/YoYoGames/${{ secrets.HF_Repo }}/dispatches
+
