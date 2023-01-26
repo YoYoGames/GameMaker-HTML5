@@ -2578,7 +2578,7 @@ yyRoom.prototype.DrawTrackList = function (_rect, _layer, _pSequenceEl, _evalTre
                     this.HandleSequenceText(_rect, _layer, _pSequenceEl, currNode, track, _headPosition, _lastHeadPosition, _headDirection, _sequence);
                     break;
 				case eSTT_Particle:
-					this.handleSequenceParticle(_rect, _layer, _pSequenceEl, currNode, track, _headPosition, _lastHeadPosition, _headDirection, _sequence);
+					this.HandleSequenceParticle(_rect, _layer, _pSequenceEl, currNode, track, _headPosition, _lastHeadPosition, _headDirection, _sequence);
 					break;
             }
         }
@@ -3139,7 +3139,7 @@ yyRoom.prototype.HandleSequenceInstance = function (_rect, _layer, _pSequenceEl,
 	}	
 };
 
-yyRoom.prototype.handleSequenceParticle = function (_rect, _layer, _pSequenceEl, _node, _track, _headPosition, _lastHeadPosition, _headDirection, _sequence) {
+yyRoom.prototype.HandleSequenceParticle = function (_rect, _layer, _pSequenceEl, _node, _track, _headPosition, _lastHeadPosition, _headDirection, _sequence) {
 
 	var keyframes = _track.m_keyframeStore;
 	var keyframeCurrent = null;

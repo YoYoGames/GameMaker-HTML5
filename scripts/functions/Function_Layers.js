@@ -630,7 +630,7 @@ LayerManager.prototype.BuildTilemapElementRuntimeData = function( _room ,_layer,
 
 LayerManager.prototype.BuildParticleElementRuntimeData = function( _room ,_layer,_element)
 {
-    if (_element.m_ps != -1 && _element.m_systemID == 1)
+    if (_element.m_ps != -1 && _element.m_systemID == -1)
     {
         CParticleSystem.Get(_element.m_ps).MakeInstance(_element);
     }
@@ -1908,6 +1908,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                 // Particles
                 var numparticles = 0;
                 if (pLayer.pcount != undefined) numparticles = pLayer.pcount;
+
                 if (numparticles > 0) {
                     for (var i = numparticles - 1; i >= 0; --i)
                     {
@@ -1915,15 +1916,15 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                         var NewParticle = new CLayerParticleElement();
 
                         NewParticle.m_systemID = -1;
-                        NewParticle.m_ps = pParticle.index;
-                        NewParticle.m_imageScaleX = pParticle.scalex;
-                        NewParticle.m_imageScaleY = pParticle.scaley;
-                        NewParticle.m_imageAngle = pParticle.angle;
-                        NewParticle.m_imageBlend = pParticle.colour & 0xffffff;
-                        NewParticle.m_imageAlpha = ((pParticle.colour >> 24) & 0xff) / 255.0;
-                        NewParticle.m_x = pParticle.x;
-                        NewParticle.m_y = pParticle.y;
-                        NewParticle.m_pName = pParticle.pName;
+                        NewParticle.m_ps = pParticle.sIndex;
+                        NewParticle.m_imageScaleX = pParticle.sXScale;
+                        NewParticle.m_imageScaleY = pParticle.sYScale;
+                        NewParticle.m_imageAngle = pParticle.sRotation;
+                        NewParticle.m_imageBlend = pParticle.sBlend & 0xffffff;
+                        NewParticle.m_imageAlpha = ((pParticle.sBlend >> 24) & 0xff) / 255.0;
+                        NewParticle.m_x = pParticle.sX;
+                        NewParticle.m_y = pParticle.sY;
+                        NewParticle.m_pName = pParticle.sName;
 
                         this.AddNewElement(_room, NewLayer, NewParticle, false);
                     }
