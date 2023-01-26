@@ -314,13 +314,19 @@ CParticleSystem.prototype.GetIndex = function ()
 /// <summary>
 /// Creates an instance of the particle system.
 /// </summary>
+/// <param name="_layerID"></param>
 /// <param name="_pParticleEl">The layer to use. A new one is created if not defined.</param>
+/// <param name="_persistent"></param>
 /// <returns>The index of the created instance.</returns>
-CParticleSystem.prototype.MakeInstance = function (_pParticleEl)
+CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pParticleEl)
 {
-	var ps = (!_pParticleEl)
-		? ParticleSystem_Create()
-		: ParticleSystem_Create_OnLayer(-1, _pParticleEl);
+	if (_layerID === undefined) _layerID = -1;
+	if (_persistent === undefined) _persistent = false;
+	if (_pParticleEl === undefined) _persistent = null;
+
+	var ps = (_pParticleEl == null)
+		? ParticleSystem_Create(_layerID, _persistent)
+		: ParticleSystem_Create_OnLayer(-1, _persistent, _pParticleEl);
 	
 	var system = g_ParticleSystems[ps];
 
@@ -1733,7 +1739,7 @@ function ParticleSystem_Create_GetLayer(_layerID)
 	return pPartEl;
 }
 
-function ParticleSystem_Create_OnLayer(_layerID, _pPartEl, _persistent)
+function ParticleSystem_Create_OnLayer(_layerID, _persistent, _pPartEl)
 {
 	var layer = null;
 	var index = g_ParticleSystems.length;

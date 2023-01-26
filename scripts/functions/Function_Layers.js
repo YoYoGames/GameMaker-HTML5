@@ -632,7 +632,7 @@ LayerManager.prototype.BuildParticleElementRuntimeData = function( _room ,_layer
 {
     if (_element.m_ps != -1 && _element.m_systemID == -1)
     {
-        CParticleSystem.Get(_element.m_ps).MakeInstance(_element);
+        CParticleSystem.Get(_element.m_ps).MakeInstance(-1, false, _element);
     }
 
     _element.m_bRuntimeDataInitialised=true;
