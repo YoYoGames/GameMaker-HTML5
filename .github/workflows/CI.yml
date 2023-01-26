@@ -14,8 +14,8 @@ jobs:
       - name: Repository Dispatch
         uses: actions/checkout@v3
       - run: |
-            curl -H "Accept: application/vnd.github.everest-preview+json" \
-               -H "Authorization: token ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}" \
+            curl -H "Accept: application/vnd.github.v3+json" \
+               -H "Authorization: Bearer ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}" \
                --request POST \
                --data '{"event_type": "html5-pr"}' \
                https://api.github.com/repos/${{ secrets.Repo }}/${{ secrets.HF_Repo }}/dispatches
