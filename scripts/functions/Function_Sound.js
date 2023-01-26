@@ -319,6 +319,20 @@ audioSound.prototype.Init = function(_props)
     }
 };
 
+audioSound.prototype.getAsset = function() {
+    if (this.bActive === false)
+        return null;
+
+    return Audio_GetSound(this.soundid);
+};
+
+audioSound.prototype.getAssetIndex = function() {
+    if (this.bActive === false)
+        return -1;
+
+    return this.soundid;
+};
+
 function GetAudioSoundFromHandle( _handle )
 {
 	//user might pass in any old rubbish so check here-
@@ -3214,6 +3228,39 @@ function audio_group_get_gain(_groupId)
         return group.getGain();
 
     return 1;
+}
+
+function audio_group_get_assets(_groupIndex)
+{
+    _groupIndex = yyGetInt32(_groupIndex);
+
+    const group = g_AudioGroups[_groupIndex];
+    
+    if (group === undefined)
+        return [];
+
+    return group.soundList;
+}
+
+function audio_sound_get_audio_group(_soundIndex)
+{
+    _soundIndex = yyGetInt32(_soundIndex);
+
+    if (_soundIndex >= BASE_SOUND_INDEX) {
+        const voice = GetAudioSoundFromHandle(_soundIndex);
+
+        if (voice === null)
+            return -1;
+
+        _soundIndex = voice.getAssetIndex();
+    }
+
+    const asset = Audio_GetSound(_soundIndex);
+
+    if (asset === null)
+        return -1;
+
+    return asset.groupId;
 }
 
 function audio_create_stream(_filename)
