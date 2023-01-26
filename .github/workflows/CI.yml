@@ -14,5 +14,5 @@ jobs:
       - name: Repository Dispatch
         uses: actions/checkout@v3
       - run: |
-           curl -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}" --request POST --data "{\"event_type\":\"html5-pr\"}" https://api.github.com/repos/YoYoGames/${{ secrets.HF_Repo }}/dispatches
+           curl -H "Accept: application/vnd.github+json" -H "Authorization: token ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}" --request POST --data "{\"event_type\":\"html5-pr\"}" https://api.github.com/repos/YoYoGames/${{ secrets.HF_Repo }}/dispatches
 
