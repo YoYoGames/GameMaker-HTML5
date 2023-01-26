@@ -236,10 +236,9 @@ function ParticleSystem_ClearClass()
 	this.m_volatile = false;                 // whether the system should be destroyed on room exit (Zeus only)
 }
 
-/**
- * A particle system resource, as created in the IDE using the Particle Editor.
- * @constructor
- */
+/// <summary>
+/// A particle system resource, as created in the IDE using the Particle Editor.
+/// </summary>
 function CParticleSystem()
 {
 	this.name = "";
@@ -247,28 +246,17 @@ function CParticleSystem()
 	this.originY = 0;
 	this.drawOrder = 0;
 
-	/**
-	 * The index within instances where the particle system is stored.
-	 * @type {Number}
-	 * @private
-	 */
+	/// The index within instances where the particle system is stored.
 	this.index = -1;
 
-	/**
-	 * Indices of emitters that the particle system contains.
-	 * @type {Number[]}
-	 * @readonly
-	 */
+	/// Indices of emitters that the particle system contains.
 	this.emitters = [];
 }
 
-/**
- * All existing particle systems.
- * @type {CParticleSystem[]}
- */
+/// All existing particle systems.
 CParticleSystem.instances = [];
 
-/** @returns {CParticleSystem} A new particle system. */
+/// <returns>A new particle system.</returns>
 CParticleSystem.Create = function ()
 {
 	var system = new CParticleSystem();
@@ -277,11 +265,11 @@ CParticleSystem.Create = function ()
 	return system;
 };
 
-/**
- * Creates a new particle system, loading its data from JSON.
- * @param {Object} json A particle system entry from the JSON.
- * @returns {CParticleSystem} The created particle system.
- */
+/// <summary>
+/// Creates a new particle system, loading its data from JSON.
+/// </summary>
+/// <param name="json">A particle system entry from the JSON.</param>
+/// <returns>The created particle system.</returns>
 CParticleSystem.CreateFromJSON = function (json)
 {
 	var system = CParticleSystem.Create();
@@ -291,23 +279,22 @@ CParticleSystem.CreateFromJSON = function (json)
 	system.drawOrder = json.drawOrder;
 	for (var i = 0; i < json.emitters.length; ++i)
 	{
-		system.AddEmitter(json.emitters[i]);
+		system.emitters.push(json.emitters[i]);
 	}
 	return system;
 };
 
-/** @returns {Number} Total number of existing particle system resources. */
+/// <returns>Total number of existing particle system resources.</returns>
 CParticleSystem.GetCount = function ()
 {
 	return CParticleSystem.instances.length;
-}
+};
 
-/**
- * Retrieves a particle system with given index.
- * @param {Number} index The index of the particle system.
- * @returns {CParticleSystem} The particle system resource or null if it doesn't
- * exist.
- */
+/// <summary>
+/// Retrieves a particle system with given index.
+/// </summary>
+/// <param name="index">The index of the particle system.</param>
+/// <returns>The particle system resource or NULL if it doesn't exist.</returns>
 CParticleSystem.Get = function (index)
 {
 	if (index < 0 || index >= CParticleSystem.GetCount())
@@ -317,27 +304,18 @@ CParticleSystem.Get = function (index)
 	return CParticleSystem.instances[index];
 };
 
-/** @returns {Number} The index of the particle system. */
+/// <returns>The index of the particle system.</returns>
 CParticleSystem.prototype.GetIndex = function ()
 {
 	return this.index;
 };
 
-/**
- * Adds an emitter to the particle system.
- * @param {Number} emitter The emitter to add.
- */
-CParticleSystem.prototype.AddEmitter = function (emitter)
-{
-	this.emitters.push(emitter);
-};
 
-/**
- * Creates an instance of the particle system.
- * @param {CLayerParticleElement} [_pParticleEl] The layer to use. A new one is
- * created if not defined.
- * @returns {Number} The index of the created instance.
- */
+/// <summary>
+/// Creates an instance of the particle system.
+/// </summary>
+/// <param name="_pParticleEl">The layer to use. A new one is created if not defined.</param>
+/// <returns>The index of the created instance.</returns>
 CParticleSystem.prototype.MakeInstance = function (_pParticleEl)
 {
 	var ps = (!_pParticleEl)
