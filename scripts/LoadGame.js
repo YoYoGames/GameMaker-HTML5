@@ -855,7 +855,7 @@ function LoadGame(_GameFile)
 
 	// Load Particle System Emitters
     if (_GameFile.PSEmitters !== undefined) {
-		ParticleSystem_Emitters_Load(_GameFile.PSEmitters);
+		ParticleSystem_Emitters_Load(_GameFile);
     }
 
 	// Load Particle Systems

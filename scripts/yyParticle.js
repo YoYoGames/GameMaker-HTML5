@@ -1205,17 +1205,22 @@ function	ParticleType_Blend(_ind, _additive)
 var g_PSEmitters = [];
 var g_PSEmitterModes = [];
 
+var g_presetToIndex = {};
+var g_presetIndexNext = PART_SPRITE_NUMB;
+
 // #############################################################################################
 /// Function:<summary>
 ///				Loads a particle system emitters from JSON.
 ///			 </summary>
-/// In:		 <param name="_json"></param>
+/// In:		 <param name="_GameFile"></param>
 /// Out:	 <returns>
 /// 			Returns true on success.
 ///			 </returns>
 // #############################################################################################
-function ParticleSystem_Emitters_Load(_json)
+function ParticleSystem_Emitters_Load(_GameFile)
 {
+	var _json = _GameFile.PSEmitters;
+
 	for (var i = 0; i < _json.length; ++i)
 	{
 		var yypt = _json[i];
@@ -1270,7 +1275,15 @@ function ParticleSystem_Emitters_Load(_json)
 		var presetImagePath = yypt.presetImagePath;
 		if (presetImagePath !== undefined)
 		{
-			// TODO: Use particle preset image
+			var entry = _GameFile.EmbeddedEntries[presetImagePath];
+			var tpage = _GameFile.TPageEntries[entry];
+			var index = g_presetToIndex[presetImagePath];
+			if (index === undefined)
+			{
+				index = g_presetIndexNext++;
+				g_ParticleTextures[index] = tpage;
+			}
+			type.shape = index;
 		}
 
 		////////////////////////////////////////////////////////////////////////
@@ -2434,7 +2447,7 @@ function	DrawParticle(_pParticle, _xoff, _yoff)
 	if( spr == null )
 	{
 		var shape = pParType.shape;
-		if ( (shape >= 0) && (shape < PART_SPRITE_NUMB/*g_ParticleTextures.length*/) )
+		if ( (shape >= 0) && (shape < g_ParticleTextures.length) )
 		{
 			pTexture = g_ParticleTextures[ shape ];		// get pTPE
 			if(pTexture==null)
