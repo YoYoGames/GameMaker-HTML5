@@ -22,5 +22,6 @@ jobs:
           repository: YoYoGames/YoYoPerformanceAndTestSuite
           path: YoYoPerformanceAndTestSuite      
           token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}   
+          ref: develop
       - run: npm start -- --platforms html5 --html5Runner ".\GameMaker-HTML5\scripts"
         working-directory: YoYoPerformanceAndTestSuite
