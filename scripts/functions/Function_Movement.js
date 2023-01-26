@@ -524,7 +524,7 @@ function Command_InstancePlace(_pInst,_x,_y,_obj)
 	return pInstance;
 };
 
-function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff)
+function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint,_y_constraint)
 {
 	var ret =[];
 	if ((ind == OBJECT_SELF) && (selfinst != NULL)) ind = selfinst.id;
@@ -541,6 +541,32 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff)
 	{
 		return ret;
 	}
+
+	var apply_x_constraints = false;
+	var apply_y_constraints = false;
+	var x_constraint = -1.0;
+	var y_constraint = -1.0;
+	
+	if(_x_constraint!==undefined)
+	{
+		x_constraint = _x_constraint;
+		if(x_constraint>0)
+			apply_x_constraints = true;
+	}
+	if(_y_constraint!==undefined)
+	{
+		y_constraint = _y_constraint;
+		if(y_constraint>0)
+			apply_y_constraints = true;
+	}
+
+	var clamp_minx = selfinst.x; 
+	var clamp_miny = selfinst.y; 
+
+	var clamp_maxx = clamp_minx + x_constraint; 
+	var clamp_maxy = clamp_miny + y_constraint; 
+	clamp_minx -= x_constraint; 
+	clamp_miny -= y_constraint; 
 
 	var num_steps = 4;
 	if(_iterations !== undefined)
@@ -565,16 +591,38 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff)
 	var steps = Math.sqrt(dx * dx + dy * dy);
 	var ndx = dx/steps;
 	var ndy = dy/steps;
-	
+	var root2over2 = 0.70710678118654; 
 	var step_dist = steps/num_steps;
+	var dist_to_travel = steps; 
 
 	for (var i = 0; i < num_steps; i++)
 	{
-		res = Command_InstancePlace(selfinst, selfinst.x+ndx* step_dist, selfinst.y+ndy* step_dist, ind);
+		var this_step_dist = step_dist; 
+		if (dist_to_travel < this_step_dist) 
+		{ 
+			this_step_dist = dist_to_travel; 
+			if(this_step_dist<=0)
+				break;
+		} 
+ 
+		var tx = selfinst.x + ndx * this_step_dist; 
+		var ty = selfinst.y + ndy * this_step_dist; 
+ 
+		if (apply_x_constraints) 
+		{ 
+			tx = clamp(tx, clamp_minx, clamp_maxx); 
+		} 
+		if(apply_y_constraints) 
+		{ 
+			ty = clamp(ty, clamp_miny, clamp_maxy); 
+		} 
+ 
+		res = Command_InstancePlace(selfinst, tx, ty, ind);
 		if (res == OBJECT_NOONE)
 		{
-			selfinst.x += ndx* step_dist;
-			selfinst.y += ndy* step_dist;
+			selfinst.x =tx;
+			selfinst.y =ty;
+			dist_to_travel -= this_step_dist; 
 		}
 		else 
 		{
@@ -587,13 +635,25 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff)
 			{
 				for (var j = 1; j <num_steps-i+1; j++)
 				{
-					res = Command_InstancePlace(selfinst, selfinst.x + (ndx + j * ndy)*step_dist, selfinst.y + (ndy - j * ndx)*step_dist, ind);
+					tx = selfinst.x + root2over2 * (ndx + j * ndy) * this_step_dist; 
+					ty = selfinst.y + root2over2 * (ndy - j * ndx) * this_step_dist; 
+ 
+					if (apply_x_constraints) 
+					{ 
+						tx = clamp(tx, clamp_minx, clamp_maxx); 
+					} 
+					if (apply_y_constraints) 
+					{ 
+						ty = clamp(ty, clamp_miny, clamp_maxy); 
+					} 
+ 
+					res = Command_InstancePlace(selfinst, tx, ty, ind);
 					if (res==OBJECT_NOONE)
 					{
-						i++;
+						dist_to_travel -= this_step_dist*j; 
 						has_moved = true;
-						selfinst.x += (ndx + j * ndy)*step_dist;
-						selfinst.y += (ndy - j * ndx)*step_dist;
+						selfinst.x = tx;
+						selfinst.y = ty;
 						break;
 					}
 					else
@@ -601,13 +661,27 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff)
 						if(!ret.includes(res))
 							ret[ret.length]= res;
 					}
-					res = Command_InstancePlace(selfinst, selfinst.x + (ndx - j * ndy)*step_dist, selfinst.y + (ndy + j * ndx)*step_dist, ind);
+
+					tx = selfinst.x + root2over2 * (ndx - j * ndy) * this_step_dist; 
+					ty = selfinst.y + root2over2 * (ndy + j * ndx) * this_step_dist; 
+ 
+					if (apply_x_constraints) 
+					{ 
+						tx = clamp(tx, clamp_minx, clamp_maxx); 
+					} 
+					if (apply_y_constraints) 
+					{ 
+						ty = clamp(ty, clamp_miny, clamp_maxy); 
+					} 
+ 
+					
+					res = Command_InstancePlace(selfinst, tx, ty, ind);
 					if (res==OBJECT_NOONE)
 					{
-						i++;
+						dist_to_travel -= this_step_dist*j; 
 						has_moved = true;
-						selfinst.x += (ndx - j * ndy)*step_dist;
-						selfinst.y += (ndy + j * ndx)*step_dist;
+						selfinst.x = tx;
+						selfinst.y = ty;
 						break;
 					}
 					else
@@ -621,14 +695,27 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff)
 			{
 				for (var j = 1; j < num_steps - i + 1; j++)
 				{
-					res = Command_InstancePlace(selfinst, selfinst.x +(ndx + j * lxoff) * step_dist, selfinst.y + (ndy + j * lyoff) * step_dist, ind);
+
+					tx = selfinst.x + root2over2 * (ndx + j * lxoff) * this_step_dist; 
+					ty = selfinst.y + root2over2 * (ndy + j * lyoff) * this_step_dist; 
+ 
+					if (apply_x_constraints) 
+					{ 
+						tx = clamp(tx, clamp_minx, clamp_maxx); 
+					} 
+					if (apply_y_constraints) 
+					{ 
+						ty = clamp(ty, clamp_miny, clamp_maxy); 
+					} 
+					
+					res = Command_InstancePlace(selfinst, tx, ty, ind);
 					if (res==OBJECT_NOONE)
 					{
 
-						i++;
+						dist_to_travel -= this_step_dist*j; 
 						has_moved = true;
-						selfinst.x += (ndx + j * lxoff) * step_dist;
-						selfinst.y += (ndy + j * lyoff) * step_dist;
+						selfinst.x = tx;
+						selfinst.y = ty;
 						break;
 					}
 					else
