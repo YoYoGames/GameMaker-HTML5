@@ -12,16 +12,10 @@ jobs:
     name: "CI"
     runs-on: windows-2022
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v3
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v2
         with:
-          path: GameMaker-HTML5
-      - name: Check out the HF repo
-        uses: actions/checkout@v3
-        with:
+          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }} 
           repository: YoYoGames/YoYoPerformanceAndTestSuite
-          path: YoYoPerformanceAndTestSuite      
-          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}   
-          ref: develop
-      - run: npm start -- --platforms html5 --html5Runner ".\GameMaker-HTML5\scripts"
-        working-directory: YoYoPerformanceAndTestSuite
+          event-type: html5-pr
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
