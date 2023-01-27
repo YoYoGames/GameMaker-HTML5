@@ -365,7 +365,7 @@ audioSound.prototype.play = function() {
                 asset.TryDecode(rawData, true);
 		}
 
-        asset.commands.push([AudioCommand.PLAY, _voice]);
+        asset.commands.push([AudioCommand.PLAY, this]);
         return;
     }
 
@@ -508,7 +508,7 @@ audioSound.prototype.isPaused = function() {
     if (this.bActive === false)
         return false; 
     
-    return (_voice.paused === true);
+    return (this.paused === true);
 };
 
 audioSound.prototype.setLoopState = function(_state) {
