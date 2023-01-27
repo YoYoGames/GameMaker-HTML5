@@ -304,6 +304,23 @@ CParticleSystem.Get = function (index)
 	return CParticleSystem.instances[index];
 };
 
+/// <summary>
+/// Retrieves an index of a particle system with given name.
+/// </summary>
+/// <param name="name">The name of the particle system.</param>
+/// <returns>The index or -1 on fail.</returns>
+CParticleSystem.Find = function (name)
+{
+	for (var i = CParticleSystem.GetCount() - 1; i >= 0; --i)
+	{
+		if (name == CParticleSystem.instances[i].name)
+		{
+			return i;
+		}
+	}
+	return -1;
+};
+
 /// <returns>The index of the particle system.</returns>
 CParticleSystem.prototype.GetIndex = function ()
 {
