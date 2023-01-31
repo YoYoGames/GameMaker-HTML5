@@ -253,11 +253,11 @@ function CLayerParticleElement()
 
     // When loaded from WAD:
     this.m_ps = -1;          // The id of the particle system resource
-    this.m_imageScaleX = 1;
-    this.m_imageScaleY = 1;
-    this.m_imageAngle = 0;
-    this.m_imageBlend = 0xFFFFFF;
-    this.m_imageAlpha = 1;
+    this.m_imageScaleX = 1.0;
+    this.m_imageScaleY = 1.0;
+    this.m_imageAngle = 0.0;
+    this.m_imageBlend = 0xffffffff;
+    this.m_imageAlpha = 1.0;
     this.m_x = 0;
     this.m_y = 0;
 };
@@ -1903,7 +1903,9 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                         NewSequence.m_sequenceIndex = pLayer.sequences[i].sIndex;
                         //NewSequence.m_imageSpeed = pLayer.sequences[i].sImageSpeed;
                         NewSequence.m_headPosition = pLayer.sequences[i].sHeadPosition;
-                        NewSequence.m_blend = pLayer.sequences[i].sBlend;
+                        // NewSequence.m_blend = pLayer.sequences[i].sBlend;
+                        NewSequence.m_imageBlend = ConvertGMColour(pLayer.sequences[i].sBlend & 0xffffff);
+                        NewSequence.m_imageAlpha = ((pLayer.sequences[i].sBlend>>24)&0xff) / 255.0;
                         NewSequence.m_scaleX = pLayer.sequences[i].sXScale;
                         NewSequence.m_scaleY = pLayer.sequences[i].sYScale;
                         NewSequence.m_x = pLayer.sequences[i].sX;
@@ -1932,8 +1934,8 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                         NewParticle.m_imageScaleX = pParticle.sXScale;
                         NewParticle.m_imageScaleY = pParticle.sYScale;
                         NewParticle.m_imageAngle = pParticle.sRotation;
-                        NewParticle.m_imageBlend = pParticle.sBlend & 0xffffff;
-                        NewParticle.m_imageAlpha = ((pParticle.sBlend >> 24) & 0xff) / 255.0;
+                        NewParticle.m_imageBlend = ConvertGMColour(pParticle.sBlend & 0xffffff);
+                        NewParticle.m_imageAlpha = ((pParticle.sBlend>>24)&0xff) / 255.0;
                         NewParticle.m_x = pParticle.sX;
                         NewParticle.m_y = pParticle.sY;
                         NewParticle.m_pName = pParticle.sName;

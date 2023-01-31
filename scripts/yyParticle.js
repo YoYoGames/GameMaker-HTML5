@@ -2450,15 +2450,20 @@ function  ParticleSystem_UpdateAll()
 ///				Draws a particle
 ///          </summary>
 ///
-/// In:		 <param name="part"></param>
-///			 <param name="xoff"></param>
-///			 <param name="yoff"></param>
+/// In:		 <param name="_pParticle"></param>
+///			 <param name="_xoff"></param>
+///			 <param name="_yoff"></param>
+///			 <param name="_color"></param>
+///			 <param name="_alpha"></param>
 /// Out:	 <returns>
 ///				
 ///			 </returns>
 // #############################################################################################
-function	DrawParticle(_pParticle, _xoff, _yoff)
+function	DrawParticle(_pParticle, _xoff, _yoff, _color, _alpha)
 {
+	_color = (_color === undefined) ? 0xffffff : _color;
+	_alpha = (_alpha === undefined) ? 1.0 : _alpha;
+
 	var spr= null;
 	var pTexture=null;
 
@@ -2532,8 +2537,14 @@ function	DrawParticle(_pParticle, _xoff, _yoff)
 
 	var s = _pParticle.size + r*pParType.sizerand;   
 
+	var mulColor = make_color_rgb(
+		(color_get_red(_pParticle.color) * color_get_red(_color)) / 255.0,
+		(color_get_green(_pParticle.color) * color_get_green(_color)) / 255.0,
+		(color_get_blue(_pParticle.color) * color_get_blue(_color)) / 255.0
+	);
+	var mulAlpha = _pParticle.alpha * _alpha;
+
 	// If a built in particle, make it right here...
-	var c = _pParticle.color;
 	if (pTexture != null)
 	{
 		var xscale,yscale,ang;
@@ -2544,20 +2555,20 @@ function	DrawParticle(_pParticle, _xoff, _yoff)
 		var _X = ~~(_pParticle.x+_xoff);
 		var _Y = ~~(_pParticle.y+_yoff);
 
-		if( xsc==1 && ysc==1 && rot == 0 && _pParticle.color==0xffffff ){
-			Graphics_TextureDrawSimple( pTexture, _X, _Y, _pParticle.alpha);
+		if( xsc==1 && ysc==1 && rot == 0 && mulColor==0xffffff ){
+			Graphics_TextureDrawSimple( pTexture, _X, _Y, mulAlpha);
 		} else
 		{
-			//debug("X=" + _X + ",Y=" + _Y + ",  xsc=" + xsc + ",ysc=" + ysc + ",  rot=" + rot + ",  col=" + _pParticle.color + ",  a=" + _pParticle.alpha);
-			Graphics_TextureDraw(pTexture, 0, 0, _X, _Y, xsc, ysc, rot * 0.017453293, c, c,c,c, _pParticle.alpha);
+			//debug("X=" + _X + ",Y=" + _Y + ",  xsc=" + xsc + ",ysc=" + ysc + ",  rot=" + rot + ",  col=" + mulColor + ",  a=" + mulAlpha);
+			Graphics_TextureDraw(pTexture, 0, 0, _X, _Y, xsc, ysc, rot * 0.017453293, mulColor, mulColor, mulColor, mulColor, mulAlpha);
 		}
 	}else{
 		// If a user supplied particle, call via sprite handler to draw it.
 		spr.Draw( n,	_pParticle.x+_xoff,_pParticle.y+_yoff, 
 						g_ParticleTypes[_pParticle.parttype].xscale*s, g_ParticleTypes[_pParticle.parttype].yscale*s,
 						aa,
-						c,
-						_pParticle.alpha
+						mulColor,
+						mulAlpha
 				);		
 	}
 }
@@ -2570,11 +2581,16 @@ function	DrawParticle(_pParticle, _xoff, _yoff)
 ///				Draws the particles on the canvas at the indicated offset
 ///          </summary>
 ///
-/// In:		 <param name="ps"></param>
+/// In:		 <param name="_ps"></param>
+/// 		 <param name="_color"></param>
+/// 		 <param name="_alpha"></param>
 ///
 // #############################################################################################
-function ParticleSystem_Draw( _ps )
+function ParticleSystem_Draw( _ps, _color, _alpha )
 {
+	_color = (_color === undefined) ? 0xffffff : _color;
+	_alpha = (_alpha === undefined) ? 1.0 : _alpha;
+
     var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
 	if (pPartSys == null || pPartSys == undefined) return;
 
@@ -2590,14 +2606,14 @@ function ParticleSystem_Draw( _ps )
 	{
 		for (var i = 0; i < pPartSys.particles.length; i++)
 		{            	
-			DrawParticle( pParticles[i], pPartSys.xdraw, pPartSys.ydraw );
+			DrawParticle( pParticles[i], pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
 		}
 	}
 	else
 	{
 		for(var i=pPartSys.particles.length-1 ; i >= 0 ; i-- )
 		{
-			DrawParticle( pParticles[i], pPartSys.xdraw, pPartSys.ydraw );
+			DrawParticle( pParticles[i], pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
 		}
 	}
 

@@ -2338,6 +2338,13 @@ yyRoom.prototype.DrawLayerTilemapElement = function(_rect,_layer,_el,_xpos,_ypos
 
 yyRoom.prototype.DrawLayerParticleSystem = function(_rect,_layer,_el)
 {
+	var ps = _el.m_systemID;
+
+	if (!ParticleSystem_Exists(ps) || !g_ParticleSystems[ps].automaticdraw)
+	{
+		return;
+	}
+
 	var matWorldOld = WebGL_GetMatrix(MATRIX_WORLD);
 
 	var matRot = new Matrix();
@@ -2348,20 +2355,9 @@ yyRoom.prototype.DrawLayerParticleSystem = function(_rect,_layer,_el)
 	matWorldNew.Multiply(matScale, matRot);
 	matWorldNew.Translation(_el.m_x, _el.m_y, 0.0);
 
-	// TODO: Handle CLayerParticleElement color and alpha
-
-	// var colorOld = draw_get_color();
-	// colorOld &= 0xffffff;
-	// var alphaOld = draw_get_alpha();
-	// draw_set_colour(_el.m_imageBlend);
-	// draw_set_alpha(_el.m_imageAlpha);
-
 	WebGL_SetMatrix(MATRIX_WORLD, matWorldNew);
-	ParticleSystem_AutoDraw(_el.m_systemID);
+	ParticleSystem_Draw(ps, _el.m_imageBlend, _el.m_imageAlpha);
 	WebGL_SetMatrix(MATRIX_WORLD, matWorldOld);
-
-	// draw_set_colour(colorOld);
-	// draw_set_alpha(alphaOld);
 };
 
 yyRoom.prototype.DrawLayerTileElement = function (_rect, _layer, _el) {
@@ -3160,7 +3156,10 @@ yyRoom.prototype.HandleSequenceParticle = function (_rect, _layer, _pSequenceEl,
 	if (keyframeLast !== undefined && keyframeLast !== keyframeCurrent)
 	{
 		var psLast = _pSequenceEl.m_trackIDToPS[_track.id];
-		ParticleSystem_Destroy(psLast);
+		if (psLast !== undefined && psLast != -1)
+		{
+			ParticleSystem_Destroy(psLast);
+		}
 		_pSequenceEl.m_trackIDToPS[_track.id] = -1;
 	}
 
@@ -3186,8 +3185,17 @@ yyRoom.prototype.HandleSequenceParticle = function (_rect, _layer, _pSequenceEl,
 	// Draw the particles
 	if (ps != -1)
 	{
-		// TODO: HandleSequenceParticle color and alpha
-		ParticleSystem_Draw(ps);
+		var mul = _node.value.colorMultiply;
+		var add = _node.value.colorAdd;
+		var r = Math.min(255, ((mul[0] + add[0]) * (_pSequenceEl.m_imageBlend & 0xff)));
+		var g = Math.min(255, ((mul[1] + add[1]) * ((_pSequenceEl.m_imageBlend >> 8) & 0xff)));
+		var b = Math.min(255, ((mul[2] + add[2]) * ((_pSequenceEl.m_imageBlend >> 16) & 0xff)));
+		var drawcol = (Math.max(0, r))
+					| (Math.max(0, g) << 8)
+					| (Math.max(0, b) << 16);
+		var a = Math.min(1, (mul[3] + add[3]) * _pSequenceEl.m_imageAlpha);
+
+		ParticleSystem_Draw(ps, drawcol, a);
 	}
 
 	// Keep track of the last keyframe played
