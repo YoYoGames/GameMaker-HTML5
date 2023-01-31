@@ -4755,7 +4755,7 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
                             {
                                 timefromstart /= (_pSeq.m_playbackSpeed * _pInst.speedScale);;
                             }
-                            Audio_SetTrackPos(pAudioInfo.soundindex, timefromstart);
+                            audio_sound_set_track_position(pAudioInfo.soundindex, timefromstart);
                         }
 
                         if (pAudioInfo.soundindex != -1)

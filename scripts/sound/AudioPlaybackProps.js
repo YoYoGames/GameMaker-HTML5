@@ -5,8 +5,14 @@ var AudioPlaybackType = {
 };
 
 function AudioPlaybackProps(_props) {
-    if (this.getProp(_props, "sound", this, "asset_index", true, yyGetInt32, AudioPropsCalc.invalid_index))
+    if (this.getProp(_props, "sound", this, "asset_index", true, yyGetInt32, AudioPropsCalc.invalid_index)) {
         this.asset = Audio_GetSound(this.asset_index);
+
+        if (this.asset !== null) {
+            this.loopStart = this.asset.loopStart;
+            this.loopEnd = this.asset.loopEnd;
+        }
+    }
 
     if (this.getProp(_props, "emitter", this, "emitter_index", true, yyGetInt32, AudioPropsCalc.invalid_index)) {
         this.type = AudioPlaybackType.POSITIONAL_EMITTER;
@@ -14,7 +20,7 @@ function AudioPlaybackProps(_props) {
     }
     
     this.getProp(_props, "priority", this, "priority", true, yyGetReal, AudioPropsCalc.default_priority);
-    this.getProp(_props, "loop", this, "loop", true, yyGetReal, AudioPropsCalc.default_loop);
+    this.getProp(_props, "loop", this, "loop", true, yyGetBool, AudioPropsCalc.default_loop);
     this.getProp(_props, "gain", this, "gain", true, yyGetReal, AudioPropsCalc.default_gain);
     this.getProp(_props, "offset", this, "offset", true, yyGetReal, AudioPropsCalc.not_specified);
     this.getProp(_props, "pitch", this, "pitch", true, yyGetReal, AudioPropsCalc.default_pitch);

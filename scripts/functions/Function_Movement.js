@@ -505,7 +505,147 @@ function move_contact(_inst, _dir, _maxdist, _useall)
 		    return;
     }
 }
+function Command_InstancePlace(_pInst,_x,_y,_obj)
+{
+	var xx = _pInst.x;
+	var yy = _pInst.y;
+	_pInst.SetPosition(_x,_y);
 
+
+	var pInstance = Instance_SearchLoop(_pInst, yyGetInt32(_obj), false, OBJECT_NOONE,
+		function (_pInstance) {
+			if (_pInstance.Collision_Instance(_pInst, true)) {
+			    return _pInstance.id;
+			}
+			return OBJECT_NOONE;
+		}
+	);
+	_pInst.SetPosition(xx, yy);
+	return pInstance;
+};
+
+function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff)
+{
+	var ret =[];
+	if ((ind == OBJECT_SELF) && (selfinst != NULL)) ind = selfinst.id;
+	if (ind == OBJECT_NOONE)
+	{
+		return ret;
+	}
+
+	var res = Command_InstancePlace(selfinst,selfinst.x,selfinst.y,ind);
+	if(res!=OBJECT_NOONE)
+		return ret;
+
+	if ((dx == 0) && (dy == 0))
+	{
+		return ret;
+	}
+
+	var num_steps = 4;
+	if(_iterations !== undefined)
+		num_steps = _iterations;
+
+	var check_perp = false;
+	var delta_length = 0;
+	var lxoff =0;
+	var lyoff =0;
+	if(xoff === undefined || yoff ===undefined || (xoff ===0 && yoff===0))
+	{
+		check_perp = true;
+	}
+	else
+	{
+		delta_length = Math.sqrt(xoff*xoff + yoff *yoff);
+		lxoff = xoff/delta_length;
+		lyoff = yoff/delta_length;
+
+	}
+
+	var steps = Math.sqrt(dx * dx + dy * dy);
+	var ndx = dx/steps;
+	var ndy = dy/steps;
+	
+	var step_dist = steps/num_steps;
+
+	for (var i = 0; i < num_steps; i++)
+	{
+		res = Command_InstancePlace(selfinst, selfinst.x+ndx* step_dist, selfinst.y+ndy* step_dist, ind);
+		if (res == OBJECT_NOONE)
+		{
+			selfinst.x += ndx* step_dist;
+			selfinst.y += ndy* step_dist;
+		}
+		else 
+		{
+			if(!ret.includes(res))
+				ret[ret.length]= res;
+			
+			var has_moved = false;
+
+			if(check_perp)
+			{
+				for (var j = 1; j <num_steps-i+1; j++)
+				{
+					res = Command_InstancePlace(selfinst, selfinst.x + (ndx + j * ndy)*step_dist, selfinst.y + (ndy - j * ndx)*step_dist, ind);
+					if (res==OBJECT_NOONE)
+					{
+						i++;
+						has_moved = true;
+						selfinst.x += (ndx + j * ndy)*step_dist;
+						selfinst.y += (ndy - j * ndx)*step_dist;
+						break;
+					}
+					else
+					{
+						if(!ret.includes(res))
+							ret[ret.length]= res;
+					}
+					res = Command_InstancePlace(selfinst, selfinst.x + (ndx - j * ndy)*step_dist, selfinst.y + (ndy + j * ndx)*step_dist, ind);
+					if (res==OBJECT_NOONE)
+					{
+						i++;
+						has_moved = true;
+						selfinst.x += (ndx - j * ndy)*step_dist;
+						selfinst.y += (ndy + j * ndx)*step_dist;
+						break;
+					}
+					else
+					{
+						if(!ret.includes(res))
+							ret[ret.length]= res;
+					}
+				}
+			}
+			else
+			{
+				for (var j = 1; j < num_steps - i + 1; j++)
+				{
+					res = Command_InstancePlace(selfinst, selfinst.x +(ndx + j * lxoff) * step_dist, selfinst.y + (ndy + j * lyoff) * step_dist, ind);
+					if (res==OBJECT_NOONE)
+					{
+
+						i++;
+						has_moved = true;
+						selfinst.x += (ndx + j * lxoff) * step_dist;
+						selfinst.y += (ndy + j * lyoff) * step_dist;
+						break;
+					}
+					else
+					{
+						if(!ret.includes(res))
+							ret[ret.length]= res;
+					}
+				}
+			}
+			
+			if(!has_moved)
+				return ret;
+		
+		}
+	}	
+	return ret;
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -617,6 +757,11 @@ function move_outside_all(_inst, _dir,_maxdist)
 {
     move_outside(_inst, yyGetReal(_dir), yyGetReal(_maxdist), true);
 }
+
+
+
+
+
 
 // #############################################################################################
 /// Function:<summary>

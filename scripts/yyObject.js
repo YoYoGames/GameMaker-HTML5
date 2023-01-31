@@ -659,10 +659,10 @@ yyObject.prototype.HasEvent = function (_event, _subevent) {
 /// In:		 <param name="_pInst">this object</param>
 ///			 <param name="_pother">other object</param>
 // #############################################################################################
-yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther) {
+yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_async) {
     // Stop when room has changed or an error occured
     //+allow certain events when room or instance is persistent (as native runner)
-    if ((_event != EVENT_CLEAN_UP) && New_Room != -1  && !((_pInst.persistent || g_RunRoom.m_persistent) && ((_event==EVENT_CREATE) || (_event == EVENT_PRE_CREATE) || (_event==EVENT_DESTROY) || (_event==EVENT_ALARM) || (_event == EVENT_OTHER)))){
+    if (!_is_async && (_event != EVENT_CLEAN_UP) && New_Room != -1  && !((_pInst.persistent || g_RunRoom.m_persistent) && ((_event==EVENT_CREATE) || (_event == EVENT_PRE_CREATE) || (_event==EVENT_DESTROY) || (_event==EVENT_ALARM) || (_event == EVENT_OTHER) || (_event == EVENT_OTHER_NETWORKING) || (_event == EVENT_OTHER_WEB_ASYNC)))){
         return;
     }
 
@@ -1234,7 +1234,7 @@ yyObject.prototype.RemoveInstance = function (_pInstance) {
 /// In:		 <param name="_event"></param>
 /// In:		 <param name="_index"></param>
 // #############################################################################################
-yyObject.prototype.PerformInstanceEvent = function (_event, _index) {
+yyObject.prototype.PerformInstanceEvent = function (_event, _index, _is_async) {
 
 	// If we don't do this event, then return...
 	if (!this.Event[_event | _index]) return;
@@ -1244,7 +1244,7 @@ yyObject.prototype.PerformInstanceEvent = function (_event, _index) {
 	for (var i = 0; i < pool.length; i++)
 	{
 		var pInst = pool[i];
-		this.PerformEvent(_event, _index, pInst, pInst);
+		this.PerformEvent(_event, _index, pInst, pInst, _is_async);
 	}
 };
 
@@ -1379,8 +1379,7 @@ yyObjectManager.prototype.Object_Find = function (_name) {
 ///           	Throw a global event.
 ///           </summary>
 // #############################################################################################
-yyObjectManager.prototype.ThrowEvent = function(_event, _index) {
-
+yyObjectManager.prototype.ThrowEvent = function(_event, _index, _is_async) {
 	// for (var o in g_pObjectManager.objidlist)
 	for (var o = 0; o < g_pObjectManager.objidlist.length; o++)
 	{	    
@@ -1389,7 +1388,7 @@ yyObjectManager.prototype.ThrowEvent = function(_event, _index) {
 		// IF this object wants the event... then perform the event on ALL its instances.
 		if (pObj.Event[_event | _index])
 		{
-			pObj.PerformInstanceEvent(_event | _index);
+			pObj.PerformInstanceEvent(_event, _index, _is_async);
 		}
 	}
 };
