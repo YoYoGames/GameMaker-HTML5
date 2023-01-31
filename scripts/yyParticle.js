@@ -14,7 +14,11 @@
 // 12/07/2011
 //
 // **********************************************************************************************************************
-var PT_SHAPE_PIXEL		=  0,
+var PT_MODE_UNDEFINED	= -1,
+	PT_MODE_STREAM		= 0,
+	PT_MODE_BURST		= 1,
+
+	PT_SHAPE_PIXEL		=  0,
 	PT_SHAPE_DISK		=  1,
 	PT_SHAPE_SQUARE		=  2,
 	PT_SHAPE_LINE		=  3,
@@ -160,6 +164,8 @@ function Emitter_Reset()
 
 	this.shape = PART_ESHAPE_RECTANGLE;         // shape of the region
 	this.posdistr = PART_EDISTR_LINEAR;			// position distribution type
+
+	this.mode = PT_MODE_UNDEFINED;				// stream or burst
 }
 
 
@@ -357,7 +363,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 		var instanceEmitter = system.emitters[em];
 
 		//instanceEmitter.enabled = templateEmitter.enabled;
-		//instanceEmitter.mode = templateEmitter.mode;
+		instanceEmitter.mode = templateEmitter.mode;
 		//instanceEmitter.number = templateEmitter.number;
 		instanceEmitter.posdistr = templateEmitter.posdistr;
 		instanceEmitter.shape = templateEmitter.shape;
@@ -368,7 +374,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 		//instanceEmitter.rotation = templateEmitter.rotation;
 		//instanceEmitter.parttype = templateEmitter.parttype;
 
-		if (g_PSEmitterModes[emitterIndex] == 0)
+		if (instanceEmitter.mode == PT_MODE_STREAM)
 		{
 			ParticleSystem_Emitter_Stream(ps, em, templateEmitter.parttype, templateEmitter.number);
 		}
@@ -1226,7 +1232,6 @@ function	ParticleType_Blend(_ind, _additive)
 }
 
 var g_PSEmitters = [];
-var g_PSEmitterModes = [];
 
 var g_presetToIndex = {};
 var g_presetIndexNext = PART_SPRITE_NUMB;
@@ -1314,19 +1319,18 @@ function ParticleSystem_Emitters_Load(_GameFile)
 		var emitter = new yyEmitter();
 		// TODO: Use emitter name from YYPSEmitter
 		//emitter.enabled = yypse.enabled;
-		//emitter.mode = yypse.mode;
+		emitter.mode = yypse.mode;
 		emitter.number = yypse.emitCount;
 		emitter.posdistr = yypse.distribution;
 		emitter.shape = yypse.shape;
-		emitter.xmin = yypse.regionX;
-		emitter.ymin = yypse.regionY;
-		emitter.xmax = yypse.regionX + yypse.regionW;
-		emitter.ymax = yypse.regionY + yypse.regionH;
+		emitter.xmin = yypse.regionX - yypse.regionW * 0.5;
+		emitter.ymin = yypse.regionY - yypse.regionH * 0.5;
+		emitter.xmax = yypse.regionX + yypse.regionW * 0.5;
+		emitter.ymax = yypse.regionY + yypse.regionH * 0.5;
 		//emitter.rotation = yypse.rotation;
 		emitter.parttype = ptInd;
 
 		g_PSEmitters[i] = emitter;
-		g_PSEmitterModes[i] = yypse.mode;
 	}
 
 	return true;
@@ -1517,6 +1521,7 @@ function	ParticleSystem_Emitter_Burst(_ps, _ind, _ptype, _numb)
 	var pEmitter = pPartSys.emitters[yyGetInt32(_ind)];
 	if( pEmitter==null || pEmitter==undefined ) return;
 
+	pEmitter.mode = PT_MODE_BURST;
 
 	for (var i = 0; i <= _numb - 1; i++)
 	{
@@ -1589,6 +1594,7 @@ function	ParticleSystem_Emitter_Stream( _ps, _ind, _ptype, _numb)
 
 	pEmitter.number = yyGetInt32(_numb);
 	pEmitter.parttype = yyGetInt32(_ptype);
+	pEmitter.mode = PT_MODE_STREAM;
 }
 
 
