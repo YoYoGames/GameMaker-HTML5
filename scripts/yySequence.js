@@ -5008,6 +5008,25 @@ yySequenceManager.prototype.HandleParticleTrackUpdate = function (_pEl, _pSeq, _
 
         if (ps != -1)
         {
+            // Re-burst emitters when the sequence loops
+			if (_pInst.m_wrapped)
+			{
+                var pPartSys = g_ParticleSystems[ps];
+                var pEmitters = pPartSys.emitters;
+                if (pEmitters)
+                {
+                    for (var i = 0; i < pEmitters.length; i++)
+                    {
+                        if( pEmitters[i]!=null
+                            && pEmitters[i].mode == PT_MODE_BURST
+                            && pEmitters[i].number != 0)
+                        {
+                            ParticleSystem_Emitter_Burst(ps, i, pEmitters[i].parttype, pEmitters[i].number);
+                        }
+                    }
+                }
+			}
+
             ParticleSystem_Update(ps);
         }
     }

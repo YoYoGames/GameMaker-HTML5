@@ -155,7 +155,9 @@ function Emitter_Reset()
 {
 	this.created = true;		// whether created
 
-	this.number = 0;			// number of particles per step
+	this.mode = PT_MODE_UNDEFINED;	// stream or burst
+	this.number = 0;				// number of particles to create
+
 	this.parttype = 0;			// type of particles	
 	this.xmin = 0.0;			// the region in which to create particles
 	this.xmax = 0.0; 
@@ -164,8 +166,6 @@ function Emitter_Reset()
 
 	this.shape = PART_ESHAPE_RECTANGLE;         // shape of the region
 	this.posdistr = PART_EDISTR_LINEAR;			// position distribution type
-
-	this.mode = PT_MODE_UNDEFINED;				// stream or burst
 }
 
 
@@ -364,7 +364,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 
 		//instanceEmitter.enabled = templateEmitter.enabled;
 		instanceEmitter.mode = templateEmitter.mode;
-		//instanceEmitter.number = templateEmitter.number;
+		instanceEmitter.number = templateEmitter.number;
 		instanceEmitter.posdistr = templateEmitter.posdistr;
 		instanceEmitter.shape = templateEmitter.shape;
 		instanceEmitter.xmin = templateEmitter.xmin;
@@ -372,7 +372,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 		instanceEmitter.xmax = templateEmitter.xmax;
 		instanceEmitter.ymax = templateEmitter.ymax;
 		//instanceEmitter.rotation = templateEmitter.rotation;
-		//instanceEmitter.parttype = templateEmitter.parttype;
+		instanceEmitter.parttype = templateEmitter.parttype;
 
 		if (instanceEmitter.mode == PT_MODE_STREAM)
 		{
@@ -1521,8 +1521,6 @@ function	ParticleSystem_Emitter_Burst(_ps, _ind, _ptype, _numb)
 	var pEmitter = pPartSys.emitters[yyGetInt32(_ind)];
 	if( pEmitter==null || pEmitter==undefined ) return;
 
-	pEmitter.mode = PT_MODE_BURST;
-
 	for (var i = 0; i <= _numb - 1; i++)
 	{
 		var	xx,yy;
@@ -1594,7 +1592,6 @@ function	ParticleSystem_Emitter_Stream( _ps, _ind, _ptype, _numb)
 
 	pEmitter.number = yyGetInt32(_numb);
 	pEmitter.parttype = yyGetInt32(_ptype);
-	pEmitter.mode = PT_MODE_STREAM;
 }
 
 
@@ -2418,7 +2415,9 @@ function ParticleSystem_Update(_ps)
 	{
 		for (var i = 0; i < pEmitters.length; i++)
 		{
-			if( pEmitters[i]!=null && pEmitters[i].number != 0)
+			if( pEmitters[i]!=null
+				&& pEmitters[i].mode != PT_MODE_BURST
+				&& pEmitters[i].number != 0)
 			{
 				ParticleSystem_Emitter_Burst(_ps, i, pEmitters[i].parttype, pEmitters[i].number);
 			}
