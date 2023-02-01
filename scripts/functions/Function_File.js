@@ -1014,39 +1014,49 @@ function filename_ext(_filename) {
 	return _filename.substr(dot, _filename.length);
 }
 
-function _json_get_value(_o) {
-    var ret;
-    switch (typeof (_o)) {
+const _regexp_int64_parse = new RegExp("@i64@([0-9a-f]+?)\\$i64\\$", "i");
+
+function _json_decode_value(value) {
+  
+    switch (typeof (value)) {
         case "object":
-        	if (_o == null)
-        		ret = null;
-        	else
-            if (_o instanceof Array) {
-                ret = new yy_MapListContainer(LIST_TYPE, _json_decode_array(_o));
-            } // end if
-            else {
-                ret = new yy_MapListContainer(MAP_TYPE, _json_decode_object(_o));
-            } // end else
-            break;
+
+			// The value is null
+			if (value == null) return g_pBuiltIn.pointer_null;
+
+			// It's an array process it into a list
+            if (value instanceof Array) return new yy_MapListContainer(LIST_TYPE, _json_decode_array(value));
+
+			// Process it as a map
+            return new yy_MapListContainer(MAP_TYPE, _json_decode_object(value));
+
         case "boolean":
-            ret = _o ? 1 : 0;
-            break;
+            return value ? 1 : 0;
+
         case "number":
+			return value;
+
         case "string":
-            ret = _o;
-            break;
+			if (value == "@@infinity$$") return Infinity;
+			if (value == "@@-infinity$$") return -Infinity;
+			if (value == "@@nan$$") return NaN;
+            
+			// Check if we can parse an int64 value
+			var match = value.match(_regexp_int64_parse);
+			if (match) {
+				return parseInt(match[1], 16);
+			}
+			return value;
         default:
-            ret = _o.toString();
-            break;
+            return value.toString();
     } // end switch
-    return ret;
-} // end _json_get_value
+} // end _json_decode_value
 
 function _json_decode_array(_obj) {
     var ret = ds_list_create();
 
     for (var i = 0; i < _obj.length; ++i) {
-        var v = _json_get_value( _obj[i] );
+        var v = _json_decode_value( _obj[i] );
         ds_list_add(ret, v);
     } // end for
 
@@ -1061,14 +1071,14 @@ function _json_decode_object(_obj) {
     for (var o in _obj) {
         var a = _obj[o];
         
-        var v = _json_get_value(a);
+        var v = _json_decode_value(a);
         ds_map_add(ret, o, v);
 
     } // end for
 
     // return the ds_map
     return ret;
-}
+} // end _json_decode_object
 
 function json_decode(_string) {
 
@@ -1117,72 +1127,69 @@ function json_decode(_string) {
         } 
     } 
     return _json_decode_object(pObj);
-}
+} // end json_decode
 
-function _json_encode_array(_o)
-{
-	var ret = "[";
-	for( var i=0; i<_o.length; ++i) {
-		if (i > 0) ret += ", ";
-		ret += _json_encode_value(_o[i]);
-	} // end for
-	ret += "]";
-	return ret;
-} // end _json_encode_array
+var g_ENCODE_VISITED_LIST = new Map(); 
 
-function _json_encode_value(_o) {
-    var ret;
-    if (_o === null) return null;
-    switch (typeof (_o)) {
+function _json_encode_value(value) {
+
+	if (value == undefined) return null;
+
+    switch (typeof (value)) {
+
         case "object":
-            switch (_o.ObjType) {
+			// It's null just return null
+			if (value === null) return null;
+
+			// It's an long value return it's number format
+			if (value instanceof Long) {
+				return "@i64@" + value.toString(16) + "$i64$";
+			}
+
+			// The value is a pointer_null
+			if (value == g_pBuiltIn.pointer_null) return null;
+
+			// It's an array just return it
+			if (value instanceof Array) {
+				return _json_encode_array(value);
+			}
+
+			// Check the ObjType of the object being converted
+            switch (value.ObjType) {
                 case LIST_TYPE:
-		            if (!(_o._yyvisited) || (_o._yyvisited < g_comparisonARRAY_RValue)) {
-		                g_comparisonARRAY_RValue = ++g_countSTRING_RValue;
-		                _o._yyvisited = g_countSTRING_RValue;
-                    	ret = _json_encode_list(_o.Object); 
-		                g_comparisonARRAY_RValue = ++g_countSTRING_RValue;
-                	} // end if
-                    break;
+                    return _json_encode_list(value.Object);
                 case MAP_TYPE:
-		            if (!(_o._yyvisited) || (_o._yyvisited < g_comparisonSTRUCT_RValue)) {
-		                g_comparisonSTRUCT_RValue = ++g_countSTRING_RValue;
-		                _o._yyvisited = g_countSTRING_RValue;
-                    	ret = _json_encode_map(_o.Object); 
-		                g_comparisonSTRUCT_RValue = ++g_countSTRING_RValue;
-                	} // end if
-                    break;
+					return _json_encode_map(value.Object);
                 default:
-                    if (_o.constructor === Array) {
-                    	if  (!(_o._yyvisited) || (_o._yyvisited < g_comparisonARRAY_RValue)) {
-			                g_comparisonARRAY_RValue = ++g_countSTRING_RValue;
-			                _o._yyvisited = g_countSTRING_RValue;
-	                        ret = _json_encode_array(_o);
-			                g_comparisonARRAY_RValue = ++g_countSTRING_RValue;
-                    	} // end if
-                    } else {
-                        ret = _o.toString();
-                    }
-                    break;
+                    return value.toString();
             } // end switch
-            break;
+
         case "number":
+			if (isNaN(value)) return "@@nan$$";
+			if (!isFinite(value)) return value > 0 ? "@@infinity$$" : "@@-infinity$$";
+			return value;
+
         case "string":
 		case "boolean":
-            ret = _o;
-            break;
-        default:
-            ret = _o.toString();
-            break;
+            return value;
 
-    } // end switch
-    return ret;    
+        default:
+            return value.toString();
+
+
+    } // end switch 
 } // end _json_encode_value
 
 function _json_encode_list(_list) {
-    var ret = [];
-
+    
+	var ret = [];
     var pList = g_ListCollection.Get(_list);
+
+	let count = g_ENCODE_VISITED_LIST.get(pList) | 0;
+	if (count > 1) return null;
+
+	g_ENCODE_VISITED_LIST.set(pList, count + 1);
+
     if (pList) {
         for (var i = 0; i < pList.pool.length; ++i) {
             if (pList.pool[i] != undefined) ret.push( _json_encode_value(pList.pool[i]) );
@@ -1196,6 +1203,12 @@ function _json_encode_map(_map) {
 
     var ret = {};
     var pMap = g_ActiveMaps.Get(_map);
+
+	let count = g_ENCODE_VISITED_LIST.get(pMap) | 0;
+	if (count > 1) return null;
+
+	g_ENCODE_VISITED_LIST.set(pMap, count + 1);
+
     if (pMap) {
         for (const [key, val] of pMap) {
             var v = key;
@@ -1208,185 +1221,198 @@ function _json_encode_map(_map) {
     return ret;
 } // end _json_encode_map
 
+function _json_encode_array(_array)
+{
+	let count = g_ENCODE_VISITED_LIST.get(_array) | 0;
+	if (count > 1) return null;
+
+	g_ENCODE_VISITED_LIST.set(_array, count + 1);
+
+	var ret = "[";
+	for( var i=0; i<_array.length; ++i) {
+		if (i > 0) ret += ", ";
+		ret += _json_encode_value(_array[i]);
+	} // end for
+	ret += "]";
+	return ret;
+} // end _json_encode_array
+
 function json_encode(_map) {
 
     var obj = _json_encode_map(yyGetInt32(_map));
 
     return JSON.stringify(obj);
-}
+} // end json_encode
 
-var g_STRING_VISITED_LIST = new Map();
-
-function STRING_HasBeenVisited( _v )
+// This is an any to JSON helper function (to be used with JSON.stringify)
+function _get_json_replacer() 
 {
-	return g_STRING_VISITED_LIST.has(_v);
-} // end STRING_HasBeenVisited
+	// This will help finding recursive references!
+	const seen = new WeakSet();
+	return (name, value) => {
 
-function STRING_AddVisited( _v )
-{
-	g_STRING_VISITED_LIST.set( _v, _v);
-}
+		if (value == undefined) return null;
 
-function STRING_RemoveVisited( _v )
-{
-	g_STRING_VISITED_LIST.delete(_v);
-}
+		switch (typeof value) {
+			case "string":
+				return value;
+			case "number":
+				if (isNaN(value)) return "@@nan$$";
+				if (!isFinite(value)) return value > 0 ? "@@infinity$$" : "@@-infinity$$";
+				return value;
+			case "object":
+				// It's null just return null
+				if (value == null) return null;
 
-function json_stringify_value(_v)
-{
-    if (typeof _v === "string") {
-        return _v;
-    } // end if
-    else if(_v === null) {
-        return null;
-    } // end if
-    else if (_v === undefined) {
-        return null;
-    } // end if
-    else if (typeof _v === "number") {
-        return _v;
-    } // end if
-    else if (typeof _v === "boolean") {
-        return  _v;
-    } // end if
-    else if (typeof _v === "object") {
-        if (_v instanceof Long) {
-            return _v.toNumber();
-        }
-        else if (_v instanceof Array  && !STRING_HasBeenVisited(_v)) {
-        	STRING_AddVisited(_v);
-            var ret = [];
-            for(var i = 0; i < _v.length; i++)
-            {
-                ret.push(json_stringify_value(_v[i]));
-            }
-            STRING_RemoveVisited(_v);
-            return ret;
-        } // end if
-        else if (_v.__yyIsGMLObject && !STRING_HasBeenVisited(_v)) {
+				// It's an long value return it's number format
+				if (value instanceof Long) {
+					return "@i64@" + value.toString(16) + "$i64$";
+				}
 
-        	STRING_AddVisited(_v);
-            var ret = {};
+				// The value is a pointer_null
+				if (value == g_pBuiltIn.pointer_null) return null;
 
-            for (var n in _v) {
-                if (_v.hasOwnProperty(n)) {
+				// It's an array just return it
+				if (value instanceof Array) {
 
-                    // Translate to unobfuscated name (if possible)
-                    var transname = n;
+					// This will clean out recursive references
+					if (seen.has(value)) return null;
+					seen.add(value);
 
-                    if (typeof g_obf2var != "undefined" && g_obf2var.hasOwnProperty(n)) {
-                        transname = "gml"+g_obf2var[n];
-                    } // end if
+					return value;
+				}
 
-                    if (transname.startsWith("gml") || g_instance_names[transname] != undefined) {
-                        var name = transname.startsWith("gml") ? transname.substring(3) : transname;
-                        var entry = g_instance_names[transname];
-                        if ((entry==undefined) || (entry[0]|entry[1]) ) {
-                            Object.defineProperty( ret, name, { 
-                                value : json_stringify_value(_v[n]),
-                                configurable : true,
-                                writable : true,
-                                enumerable : true
-                            });
-                        } // end if
-                    } // end if
-                } // end if
-            } // end for
-            STRING_RemoveVisited(_v);
-            return ret;
-        } // end else
-        else  if (STRING_HasBeenVisited(_v)) {
-        	return "Cycle found"
-        }
-    } // end else
-    return undefined;
-}
+				// It's an object prepare to set internal values
+				if (value.__yyIsGMLObject) 
+				{
+					// This will clean out recursive references
+					if (seen.has(value)) return null;
+					seen.add(value);
 
+					var ret = {};
+					// Go through all the property names in parsed value
+					for (var oName in value) {
+						// Continue if it is not a property
+						if (!value.hasOwnProperty(oName)) continue;
+
+						// Translate to unobfuscated name (if possible)
+						var nName = oName;
+
+						if (typeof g_obf2var != "undefined" && g_obf2var.hasOwnProperty(oName)) {
+							nName = "gml" + g_obf2var[oName];
+						} // end if
+
+
+						if (nName.startsWith("gml") || g_instance_names[nName] != undefined) {
+
+							var name = nName.startsWith("gml") ? nName.substring(3) : nName;
+							var entry = g_instance_names[nName];
+
+							if ((entry == undefined) || (entry[0] | entry[1])) {
+								Object.defineProperty( ret, name, { 
+									value : value[oName],
+									configurable : true,
+									writable : true,
+									enumerable : true
+								});
+							} // end if
+
+						} // end if
+					}
+					return ret;
+				}
+
+			default: 
+				return undefined;
+		}
+	}
+} // end _get_json_replacer
 
 function json_stringify( _v )
 {
-	var a = json_stringify_value(_v);
-	return JSON.stringify(a);
-}
+	try {
+		return JSON.stringify(_v, _get_json_replacer());
+	}
+	catch( e ) {
+		// do nothing
+		yyError( "JSON stringify error" );
+	}
+} // end json_stringify
 
-function _json_parse_array(_obj) {
-    var ret = [];
-
-    for (var i = 0; i < _obj.length; ++i) {
-        var v = json_parse_value( _obj[i] );
-        ret.push( v );
-    } // end for
-
-    return ret;
-} // end _json_decode_array
-
-function json_parse_value( _v )
+// This is a JSON to any helper function (to be used with JSON.parse)
+function _json_reviver(_, value) 
 {
-    if (typeof _v === "string") {
-        return _v;
-    } // end if
-    else if(_v === null) {
-        return null;
-    } // end if
-    else if (_v === undefined) {
-        return undefined;
-    } // end if
-    else if (typeof _v === "number") {
-    	return _v;
-    } // end if
-    else if (typeof _v === "boolean") {
-        return  _v;
-    } // end if
-    else if (typeof _v === "object") {
-        if (_v instanceof Array) {
-        	return _json_parse_array(_v);
-        } // end if
-        else {
-        	var ret = {};
-        	ret.__type = "Object";
-        	ret.__yyIsGMLObject = true;
-            for (var n in _v) {
-                if (_v.hasOwnProperty(n)) {
-                    // RK :: TODO need to look up built in names to see if we add "gml"
-                    var name;
-                    if (g_instance_names[n] != undefined) {
-                        name = n;
-                    }
-                    else if (typeof g_var2obf !== "undefined" && g_var2obf[n] != undefined) {
-                        name = g_var2obf[n];
-                    }
-                    else {
-                        name = "gml" + n;
-                    }
-                	
-                	var val = json_parse_value(_v[n]);
-                    Object.defineProperty( ret, name, { 
-                    	value : val,
-                    	configurable : true,
-                    	writable : true,
-                    	enumerable : true
-                    });
-                } // end if
-            } // end if
-            return ret;
-        } // end else
-    } // end else	
-}
+	switch (typeof value) {
+		case "string":
+			if (value == "@@nan$$") return NaN;
+			if (value == "@@infinity$$") return Infinity;
+			if (value == "@@-infinity$$") return -Infinity;
+
+			// Check if we can parse an int64 value
+			var match = value.match(_regexp_int64_parse);
+			if (match) {
+				return parseInt(match[1], 16);
+			}
+			
+			return value;
+		case "number":
+			return value;
+		case "object":
+
+			// The value is null (make it pointer_null)
+			if (value == null) return g_pBuiltIn.pointer_null;
+
+			// It's an array just return it
+			if (value instanceof Array) {
+				return value;
+			}
+			// It's an object prepare to set internal values
+			var obj = {};
+			obj.__type = "Object";
+			obj.__yyIsGMLObject = true;
+			// Go through all the property names in parsed value
+			for (var oName in value) {
+				// Continue if it is not a property
+				if (!value.hasOwnProperty(oName)) continue;
+
+				// Change the name to match the gml standards
+				var nName;
+				if (g_instance_names[oName] != undefined) {
+					nName = oName;
+				}
+				else if (typeof g_var2obf !== "undefined" && g_var2obf[oName] != undefined) {
+					nName = g_var2obf[oName];
+				}
+				else {
+					nName = "gml" + oName;
+				}
+
+				// Define a property in the new object (proper name and attributes)
+				Object.defineProperty( obj, nName, { 
+					value : value[oName],
+					configurable : true,
+					writable : true,
+					enumerable : true
+				});
+			}
+			return obj;
+		default:
+			return value;
+	}
+} // end _json_encode_array
 
 function json_parse( _v )
 {
 	var ret = undefined;
 	try {
-		var a  = JSON.parse(_v);	
-		ret = json_parse_value(a);
-	} catch( e )
-	{
+		return JSON.parse(_v, _json_reviver);	
+	} 
+	catch( e ) {
 		// do nothing
 		yyError( "JSON parse error" );
 	}
 	return ret;
-}
-
+} // end json_parse
 
 function load_csv_decode(pText) {
     // RFC 4180 compliant https://tools.ietf.org/html/rfc4180
@@ -1443,6 +1469,7 @@ function load_csv_decode(pText) {
     }
     return rows;
 }
+
 function load_csv(_fname) {
 
     _fname = yyGetString(_fname);
