@@ -1166,7 +1166,7 @@ function _json_encode_value(value) {
 
         case "number":
 			if (isNaN(value)) return "@@nan$$";
-			if (!isFinite(value)) return value > 0 ? "@@infinity$$" : "@@-infinity$$"
+			if (!isFinite(value)) return value > 0 ? "@@infinity$$" : "@@-infinity$$";
 			return value;
 
         case "string":
@@ -1335,7 +1335,9 @@ function json_stringify( _v )
 	}
 	catch( e ) {
 		// do nothing
-		yyError( "JSON stringify error" );
+		console.log(e);
+		// yyError(e);
+		// yyError( "JSON stringify error" );
 	}
 } // end json_stringify
 
