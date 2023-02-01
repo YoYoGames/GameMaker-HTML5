@@ -1335,9 +1335,7 @@ function json_stringify( _v )
 	}
 	catch( e ) {
 		// do nothing
-		console.log(e);
-		// yyError(e);
-		// yyError( "JSON stringify error" );
+		yyError( "JSON stringify error" );
 	}
 } // end json_stringify
 
