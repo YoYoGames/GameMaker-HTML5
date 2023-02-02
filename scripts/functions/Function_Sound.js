@@ -81,9 +81,9 @@ const WebAudioContextState =  {
 
 const AudioEngineState = {
     LOADING: "Loading",
-	SUSPENDED: "Suspended",
-	RUNNING: "Running",
-	CLOSED: "Closed",
+    SUSPENDED: "Suspended",
+    RUNNING: "Running",
+    CLOSED: "Closed",
     UNKNOWN: "Unknown"
 };
 
@@ -136,7 +136,7 @@ function Audio_Init()
         return;
 
     g_WebAudioContext = new AudioContext();
-    g_WebAudioContext.addEventListener("statechange", Audio_WebAudioEngineReportStatus);
+    g_WebAudioContext.addEventListener("statechange", Audio_EngineReportState);
 
     g_HandleStreamedAudioAsUnstreamed = ( g_OSPlatform == BROWSER_IOS );
     g_UseDummyAudioBus = (g_OSBrowser === BROWSER_SAFARI_MOBILE)
@@ -196,7 +196,7 @@ function Audio_Quit()
 	if (g_WebAudioContext.closing == true) return;
 
 	g_WebAudioContext.closing = true;
-	g_WebAudioContext.removeEventListener("statechange", Audio_WebAudioEngineReportStatus);
+	g_WebAudioContext.removeEventListener("statechange", Audio_EngineReportState);
 	g_WebAudioContext.close().then(() => {
 		g_WebAudioContext = null;
 	});
@@ -222,7 +222,7 @@ function Audio_CreateMainBus() {
     g_AudioBusMain.connectOutput(g_AudioMainVolumeNode);
     g_pBuiltIn.audio_bus_main = g_AudioBusMain;
 
-	Audio_WebAudioEngineReportStatus();
+    Audio_EngineReportState();
 }
 
 function Audio_IsMainBusInitialised() {
@@ -934,9 +934,9 @@ function Audio_WebAudioContextTryUnlock()
     document.body.addEventListener( eventTypeEnd, unlockWebAudioContext, false );
 }
 
-function Audio_WebAudioEngineReportStatus()
+function Audio_EngineReportState()
 {
-	const currentState = Audio_GetEngineState();
+    const currentState = Audio_GetEngineState();
 
     if (currentState !== AudioEngineState.previousState) {
         debug("Audio Engine => " + currentState);
@@ -945,20 +945,20 @@ function Audio_WebAudioEngineReportStatus()
 
     const isPlaybackAllowed = Audio_IsPlaybackAllowedInState(currentState);
 
-	const map = ds_map_create();
-	g_pBuiltIn.async_load = map;
+    const map = ds_map_create();
+    g_pBuiltIn.async_load = map;
 
-	ds_map_add(map, "event_type", "audio_system_status");
-	ds_map_add(map, "status", isPlaybackAllowed ? "available" : "unavailable");
-	g_pObjectManager.ThrowEvent(EVENT_OTHER_SYSTEM_EVENT, 0);
+    ds_map_add(map, "event_type", "audio_system_status");
+    ds_map_add(map, "status", isPlaybackAllowed ? "available" : "unavailable");
+    g_pObjectManager.ThrowEvent(EVENT_OTHER_SYSTEM_EVENT, 0);
 
-	ds_map_destroy(map);
-	g_pBuiltIn.async_load = -1;
+    ds_map_destroy(map);
+    g_pBuiltIn.async_load = -1;
 }
 
 function audio_system_is_available()
 {
-	return Audio_IsPlaybackAllowed() === true;
+    return Audio_IsPlaybackAllowed() === true;
 }
 
 function audio_sound_is_playable(_soundId)

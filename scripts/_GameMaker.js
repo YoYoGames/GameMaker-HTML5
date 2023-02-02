@@ -1427,7 +1427,7 @@ function    StartGame()
     if(g_AudioModel == Audio_WebAudio)
     {
         // Audio: Report current device status to the newly created room
-        Audio_WebAudioEngineReportStatus();
+        Audio_EngineReportState();
     }
 }
 
