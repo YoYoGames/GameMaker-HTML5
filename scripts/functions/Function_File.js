@@ -1282,7 +1282,7 @@ function _json_replacer(value)
 				var ret = [];
 				value.forEach(item => {
 					ret.push(_json_replacer(item));
-				})
+				});
 
 				// Remove the flag
 				g_ENCODE_VISITED_LIST.delete(value);
