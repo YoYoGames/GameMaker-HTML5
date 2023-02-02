@@ -3666,3 +3666,22 @@ function audio_bus_get_emitters(_bus)
 
     return emitterIds;
 }
+
+/* Relinks all of the emitters attached to the given bus back to the main bus. */
+function audio_bus_clear_emitters(_bus)
+{
+    const busType = g_UseDummyAudioBus ? DummyAudioBus : AudioBus;
+
+    if (g_AudioBusMain === null || (_bus instanceof busType) == false || _bus === g_AudioBusMain)
+        return;
+
+    for (const index in audio_emitters) {
+        const emitter = audio_emitters[index];
+
+        if (emitter.bus === _bus) {
+            emitter.gainnode.disconnect();
+            g_AudioBusMain.connectInput(emitter.gainnode);
+            emitter.bus = g_AudioBusMain;
+        }
+    }
+}
