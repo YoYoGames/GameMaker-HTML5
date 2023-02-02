@@ -1219,18 +1219,6 @@ function is_ptr(_x) {
     return (typeof(_x) == "object" && (_x instanceof ArrayBuffer)) ? 1 : 0;
 }
 
-function is_vec3(_x) {
-    return 0;
-}
-
-function is_vec4(_x) {
-    return 0;
-}
-
-function is_matrix(_x) {
-    return 0;
-}
-
 function is_struct(_x) {
     return ((typeof _x === "object") && (_x.__yyIsGMLObject)) ? 1 : 0;
 }
@@ -1242,6 +1230,62 @@ function is_nan(_x) {
 function is_infinity(_x) {
     _x = yyGetReal(_x);
     return !Number.isFinite(_x) && !Number.isNaN(_x);
+}
+
+function static_get( s )
+{
+    var ret = undefined;
+    switch( typeof(s) ) {
+        case "number":
+            var funcId = yyGetInt32(s);
+            if (funcId >= 100000) {
+                func = JSON_game.Scripts[ funcId - 100000];
+                ret = func.prototype;
+            } // end if
+            break;
+        case "function":
+            ret = s.prototype;
+            break;
+        case "object":
+            ret = Object.getPrototypeOf(s);
+            break;
+    } // end switch
+    return ret;
+} // end static_get
+
+function static_set( d, s )
+{
+    if ((typeof(s) == "object") && (typeof(d) == "object")) {
+        Object.setPrototypeOf(d, s);
+    } // end if
+} // end static_set
+
+function YYIsInstanceof(_x,_v)
+{
+    var ret = false;
+    if ((typeof(_x) == "object") && (_x.__yyIsGMLObject === true)) {
+        var func = undefined;
+        var funcId = yyGetInt32(_v);
+        if (funcId >= 100000)
+            func = JSON_game.Scripts[ funcId - 100000];
+
+        if (func) {
+
+            var c = Object.getPrototypeOf(_x);
+            var funcProto  = func.prototype;
+            while( c && !ret ) {
+                if (c === funcProto) {
+                    ret = true;
+                    break;
+                } // end if
+
+                c =Object.getPrototypeOf(c);
+            } // end while
+
+        } // end if
+    } // end if
+
+    return ret;
 }
 
 function YYInstanceof(_x) {

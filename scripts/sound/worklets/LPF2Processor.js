@@ -1,19 +1,20 @@
-class LPF2Processor extends KillableWorkletProcessor
+class LPF2Processor extends AudioWorkletProcessor
 {
     static get parameterDescriptors() 
     {
-        const maxCutoff = Math.min(sampleRate / 2, 20000);
+        const maxCutoff = Math.min(sampleRate / 2.0, 20000.0);
 
         return [
-            { name: "bypass", automationRate: "a-rate", defaultValue: 0,         minValue: 0,  maxValue: 1 },
-            { name: "cutoff", automationRate: "a-rate", defaultValue: maxCutoff, minValue: 10, maxValue: maxCutoff },
-            { name: "q",      automationRate: "a-rate", defaultValue: 1,         minValue: 1,  maxValue: 100 }
+            { name: "bypass", automationRate: "a-rate", defaultValue: 0,                          minValue: 0,    maxValue: 1 },
+            { name: "cutoff", automationRate: "a-rate", defaultValue: Math.min(500.0, maxCutoff), minValue: 10.0, maxValue: maxCutoff },
+            { name: "q",      automationRate: "a-rate", defaultValue: 1.5,                        minValue: 1.0,  maxValue: 100.0 }
         ];
     }
 
     constructor(_options)
     {
         super();
+        this.makeMortal();
 
         const maxChannels = _options.outputChannelCount[0];
 

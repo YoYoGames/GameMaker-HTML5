@@ -1,8 +1,8 @@
-function GainEffectStruct() {
+function GainEffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.Gain);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
 
-    this.params.gain = 1.0;
+    this.initParams(_params, GainEffectStruct.paramDescriptors());
 
     // Define user-facing properties
     Object.defineProperties(this, {
@@ -12,7 +12,7 @@ function GainEffectStruct() {
                 return this.params.gain;
             },
             set: (_gain) => {
-                this.params.gain = max(0.0, _gain);
+                this.setParam(GainEffectStruct.paramDescriptors().gain, _gain);
 
                 this.nodes.forEach((_node) => {
                     const gain = _node.parameters.get("gain");
@@ -22,3 +22,8 @@ function GainEffectStruct() {
         }
     });
 }
+
+GainEffectStruct.paramDescriptors = () => ({
+    bypass: AudioEffectStruct.paramDescriptors().bypass,
+    gain:   { name: "gain", integer: false, defaultValue: 0.5, minValue: 0.0, maxValue: Number.MAX_VALUE }
+});

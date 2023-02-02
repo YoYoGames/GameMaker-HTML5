@@ -890,7 +890,6 @@ function onMouseMove(_evt) {
 	g_CurrentInputEvents[_evt.button].x = g_EventMouseX;
 	g_CurrentInputEvents[_evt.button].y = g_EventMouseY;
 }
-var audioCheck = false;
 // #############################################################################################
 /// Function:<summary>
 ///             Process Mouse DOWN events...
@@ -903,13 +902,6 @@ function onMouseDown(_evt) {
 	if (!g_GameFocus)
 	{
 		SetGameFocus();
-	}
-
-    //(#28089)-desktop safari autoplay policy - play silent streamed audio on first click
-	if (!audioCheck) {
-	    if (g_OSBrowser == BROWSER_SAFARI)
-	        Audio_PlaySilentStreamed();
-	    audioCheck = true;
 	}
 
 	g_ButtonButton = _evt.button;

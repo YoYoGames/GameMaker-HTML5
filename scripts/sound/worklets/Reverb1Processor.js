@@ -73,7 +73,7 @@ class AllPassFilter
     }
 }
 
-class Reverb1Processor extends KillableWorkletProcessor
+class Reverb1Processor extends AudioWorkletProcessor
 {
     static NUM_LPFCFS = 8;
     static NUM_APFS = 4;
@@ -122,16 +122,17 @@ class Reverb1Processor extends KillableWorkletProcessor
     static get parameterDescriptors() 
     {
         return [
-            { name: "bypass", automationRate: "a-rate", defaultValue: 0,    minValue: 0, maxValue: 1 },
-            { name: "size",   automationRate: "a-rate", defaultValue: 0.5,  minValue: 0, maxValue: 1 },
-            { name: "damp",   automationRate: "a-rate", defaultValue: 0.5,  minValue: 0, maxValue: 1 },
-            { name: "mix",    automationRate: "a-rate", defaultValue: 0,    minValue: 0, maxValue: 1 }
+            { name: "bypass", automationRate: "a-rate", defaultValue: 0,    minValue: 0,   maxValue: 1 },
+            { name: "size",   automationRate: "a-rate", defaultValue: 0.7,  minValue: 0.0, maxValue: 1.0 },
+            { name: "damp",   automationRate: "a-rate", defaultValue: 0.1,  minValue: 0.0, maxValue: 1.0 },
+            { name: "mix",    automationRate: "a-rate", defaultValue: 0.35, minValue: 0.0, maxValue: 1.0 }
         ];
     }
 
     constructor(_options)
     {
         super();
+        this.makeMortal();
 
         const maxChannels = _options.outputChannelCount[0];
 

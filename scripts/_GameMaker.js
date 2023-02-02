@@ -611,35 +611,7 @@ function GameMaker_Init()
         g_AudioModel = Audio_WebAudio;
     }
 
-    if (g_AudioModel==Audio_WebAudio)
-    {
-        try
-        {
-        	g_WebAudioContext = new AudioContext(); // gotta love Safari...
-
-         //   if (!g_WebAudioContext.createGainNode) {
-                // Sigh, deprecated APIs on the web...
-         //       g_WebAudioContext.createGainNode = g_WebAudioContext.createGain;
-          //  }
-        }
-        catch (e)
-        {
-            try{
-                g_WebAudioContext = new webkitAudioContext();
-                }
-            catch(e)
-                {
-                    debug('Web Audio API not supported in this browser');
-                    g_AudioModel = Audio_Sound;
-                }
-        }
-
-        if ((g_AudioModel == Audio_WebAudio) && (g_WebAudioContext != null))
-        {
-            g_WebAudioContext.addEventListener("statechange", Audio_WebAudioContextOnStateChanged);
-        }
-        audio_init();        
-    }
+    
 
     document.body.style.overflow = "hidden";
 
@@ -714,11 +686,7 @@ function GameMaker_Init()
     	debug("Max Texture Size=" + g_webGL.GetMaxTextureSize());
     }
     InitAboyne();                               // Init the "runtime" engine
-    YoYo_Init();                                // Init the YoYo GML functions
-
-    // BETA
-    //debug("\nGameMaker:Studio BETA\nDEBUG only\nNot for SALE\n");
-
+    YoYo_Init();                                // Init the YoYo GML functions       
 
 	// IF we required WebGL and it's not available, ignore everything and abort.
 	if (g_OpenGLRequired)

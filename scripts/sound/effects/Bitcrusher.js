@@ -1,11 +1,8 @@
-function BitcrusherEffectStruct() {
+function BitcrusherEffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.Bitcrusher);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
 
-    this.params.gain = 1.0;
-    this.params.factor = 1;
-    this.params.resolution = 16;
-    this.params.mix = 0.0;
+    this.initParams(_params, BitcrusherEffectStruct.paramDescriptors());
 
     // Define user-facing properties
     Object.defineProperties(this, {
@@ -15,7 +12,7 @@ function BitcrusherEffectStruct() {
                 return this.params.gain;
             },
             set: (_gain) => {
-                this.params.gain = max(0.0, _gain);
+                this.setParam(BitcrusherEffectStruct.paramDescriptors().gain, _gain);
 
                 this.nodes.forEach((_node) => {
                     const gain = _node.parameters.get("gain");
@@ -29,7 +26,7 @@ function BitcrusherEffectStruct() {
                 return this.params.factor;
             },
             set: (_factor) => {
-                this.params.factor = ~~clamp(_factor, 1, 100);
+                this.setParam(BitcrusherEffectStruct.paramDescriptors().factor, _factor);
 
                 this.nodes.forEach((_node) => {
                     const factor = _node.parameters.get("factor");
@@ -43,7 +40,7 @@ function BitcrusherEffectStruct() {
                 return this.params.resolution;
             },
             set: (_resolution) => {
-                this.params.resolution = ~~clamp(_resolution, 2, 16);
+                this.setParam(BitcrusherEffectStruct.paramDescriptors().resolution, _resolution);
 
                 this.nodes.forEach((_node) => {
                     const resolution = _node.parameters.get("resolution");
@@ -57,7 +54,7 @@ function BitcrusherEffectStruct() {
                 return this.params.mix;
             },
             set: (_mix) => {
-                this.params.mix = clamp(_mix, 0.0, 1.0);
+                this.setParam(BitcrusherEffectStruct.paramDescriptors().mix, _mix);
 
                 this.nodes.forEach((_node) => {
                     const mix = _node.parameters.get("mix");
@@ -67,3 +64,11 @@ function BitcrusherEffectStruct() {
         }
     });
 }
+
+BitcrusherEffectStruct.paramDescriptors = () => ({
+    bypass:     AudioEffectStruct.paramDescriptors().bypass,
+    gain:       { name: "gain",       integer: false, defaultValue: 1.0, minValue: 0.0, maxValue: Number.MAX_VALUE },
+    factor:     { name: "factor",     integer: true,  defaultValue: 20,  minValue: 1,   maxValue: 100 },
+    resolution: { name: "resolution", integer: true,  defaultValue: 8,   minValue: 2,   maxValue: 16  },
+    mix:        { name: "mix",        integer: false, defaultValue: 0.8, minValue: 0.0, maxValue: 1.0 }
+});

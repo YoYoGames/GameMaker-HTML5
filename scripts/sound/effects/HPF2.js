@@ -1,9 +1,8 @@
-function HPF2EffectStruct() {
+function HPF2EffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.HPF2);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
 
-    this.params.cutoff = 10.0;
-    this.params.q = 1.0;
+    this.initParams(_params, HPF2EffectStruct.paramDescriptors());
 
     // Define user-facing properties
     Object.defineProperties(this, {
@@ -13,9 +12,7 @@ function HPF2EffectStruct() {
                 return this.params.cutoff;
             },
             set: (_cutoff) => {
-                const max = Math.min(g_WebAudioContext.sampleRate / 2.0, 20000.0);
-
-                this.params.cutoff = clamp(_cutoff, 10.0, max);
+                this.setParam(HPF2EffectStruct.paramDescriptors().cutoff, _cutoff);
 
                 this.nodes.forEach((_node) => {
                     const cutoff = _node.parameters.get("cutoff");
@@ -29,7 +26,7 @@ function HPF2EffectStruct() {
                 return this.params.q;
             },
             set: (_q) => {
-                this.params.q = clamp(_q, 1.0, 100.0);
+                this.setParam(HPF2EffectStruct.paramDescriptors().q, _q);
 
                 this.nodes.forEach((_node) => {
                     const q = _node.parameters.get("q");
@@ -39,3 +36,15 @@ function HPF2EffectStruct() {
         }
     });
 }
+
+HPF2EffectStruct.paramDescriptors = () => ({
+    bypass: AudioEffectStruct.paramDescriptors().bypass,
+    freq:   { name: "cutoff", integer: false, defaultValue: 1500.0, minValue: 10.0, maxValue: 20000.0 },
+    q:      { name: "q",      integer: false, defaultValue: 1.5,    minValue: 1.0,  maxValue: 100.0 },
+
+    get cutoff() {
+        this.freq.maxValue = g_WebAudioContext ? Math.min(g_WebAudioContext.sampleRate / 2.0, this.freq.maxValue) : this.freq.maxValue;
+        this.freq.defaultValue = Math.min(this.freq.defaultValue, this.freq.maxValue);
+        return this.freq;
+    } 
+});

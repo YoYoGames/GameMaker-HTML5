@@ -1,24 +1,24 @@
-class KillableWorkletProcessor extends AudioWorkletProcessor
-{
-    constructor()
-    {
-        super();
+AudioWorkletProcessor.prototype.makeMortal = function() {
+    this.keepAlive = true;
+    this.port.onmessage = (_msg) => {
+        if (_msg.data === "kill")
+            this.keepAlive = false;
+    };
+};
 
-        this.keepAlive = true;
-        this.port.onmessage = (_msg) => {
-            if (_msg.data === "kill")
-                this.keepAlive = false;
-        };
-    }
-}
-
-class AudioBusInput extends KillableWorkletProcessor
+class AudioBusInput extends AudioWorkletProcessor
 {
     static get parameterDescriptors() 
     {
         return [
             { name: "bypass", automationRate: "a-rate", defaultValue: 0, minValue: 0, maxValue: 1 }
         ];
+    }
+
+    constructor()
+    {
+        super();
+        this.makeMortal();
     }
 
     process(inputs, outputs, parameters) 
@@ -40,13 +40,19 @@ class AudioBusInput extends KillableWorkletProcessor
     }
 }
 
-class AudioBusOutput extends KillableWorkletProcessor
+class AudioBusOutput extends AudioWorkletProcessor
 {
     static get parameterDescriptors() 
     {
         return [
             { name: "gain", automationRate: "a-rate", defaultValue: 1, minValue: 0 }
         ];
+    }
+
+    constructor()
+    {
+        super();
+        this.makeMortal();
     }
 
     process(inputs, outputs, parameters) 
