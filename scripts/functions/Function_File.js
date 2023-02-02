@@ -1016,6 +1016,8 @@ function filename_ext(_filename) {
 
 const _regexp_int64_parse = new RegExp("@i64@([0-9a-f]+?)\\$i64\\$", "i");
 
+// ########### JSON_ENCODE & JSON_DECODE ###########
+
 function _json_decode_value(value) {
   
     switch (typeof (value)) {
@@ -1244,94 +1246,108 @@ function json_encode(_map) {
     return JSON.stringify(obj);
 } // end json_encode
 
-// This is an any to JSON helper function (to be used with JSON.stringify)
-function _get_json_replacer() 
+// ########### JSON_STRINGIFY & JSON_PARSE ###########
+
+// This is an any to JSON helper function (to be used before JSON.stringify)
+function _json_replacer(value) 
 {
-	// This will help finding recursive references!
-	const seen = new WeakSet();
-	return (name, value) => {
+	if (value == undefined) return null;
 
-		if (value == undefined) return null;
+	switch (typeof value) {
+		case "string":
+			return value;
+		case "number":
+			if (isNaN(value)) return "@@nan$$";
+			if (!isFinite(value)) return value > 0 ? "@@infinity$$" : "@@-infinity$$";
+			return value;
+		case "object":
+			// It's null just return null
+			if (value == null) return null;
 
-		switch (typeof value) {
-			case "string":
+			// It's an long value return it's number format
+			if (value instanceof Long) {
+				return "@i64@" + value.toString(16) + "$i64$";
+			}
+
+			// The value is a pointer_null
+			if (value == g_pBuiltIn.pointer_null) return null;
+
+			// It's an array just return it
+			if (value instanceof Array) {
+
+				// This will clean out recursive references
+				if (g_ENCODE_VISITED_LIST.has(value)) return null;
+				g_ENCODE_VISITED_LIST.set(value, 1);
+
+				var ret = [];
+				value.forEach(item => {
+					ret.push(_json_replacer(item));
+				})
+
+				// Remove the flag
+				g_ENCODE_VISITED_LIST.delete(value);
 				return value;
-			case "number":
-				if (isNaN(value)) return "@@nan$$";
-				if (!isFinite(value)) return value > 0 ? "@@infinity$$" : "@@-infinity$$";
-				return value;
-			case "object":
-				// It's null just return null
-				if (value == null) return null;
+			}
 
-				// It's an long value return it's number format
-				if (value instanceof Long) {
-					return "@i64@" + value.toString(16) + "$i64$";
-				}
+			// It's an object prepare to set internal values
+			if (value.__yyIsGMLObject) 
+			{
+				// This will clean out recursive references
+				if (g_ENCODE_VISITED_LIST.has(value)) return null;
+				g_ENCODE_VISITED_LIST.set(value, 1);
 
-				// The value is a pointer_null
-				if (value == g_pBuiltIn.pointer_null) return null;
+				var ret = {};
+				// Go through all the property names in parsed value
+				for (var oName in value) {
 
-				// It's an array just return it
-				if (value instanceof Array) {
+					// Continue if it is not a property
+					if (!value.hasOwnProperty(oName)) continue;
 
-					// This will clean out recursive references
-					if (seen.has(value)) return null;
-					seen.add(value);
+					// Translate to unobfuscated name (if possible)
+					var nName = oName;
 
-					return value;
-				}
+					if (typeof g_obf2var != "undefined" && g_obf2var.hasOwnProperty(oName)) {
+						nName = "gml" + g_obf2var[oName];
+					} // end if
 
-				// It's an object prepare to set internal values
-				if (value.__yyIsGMLObject) 
-				{
-					// This will clean out recursive references
-					if (seen.has(value)) return null;
-					seen.add(value);
 
-					var ret = {};
-					// Go through all the property names in parsed value
-					for (var oName in value) {
-						// Continue if it is not a property
-						if (!value.hasOwnProperty(oName)) continue;
+					if (nName.startsWith("gml") || g_instance_names[nName] != undefined) {
 
-						// Translate to unobfuscated name (if possible)
-						var nName = oName;
+						var name = nName.startsWith("gml") ? nName.substring(3) : nName;
+						var entry = g_instance_names[nName];
 
-						if (typeof g_obf2var != "undefined" && g_obf2var.hasOwnProperty(oName)) {
-							nName = "gml" + g_obf2var[oName];
+						if ((entry == undefined) || (entry[0] | entry[1])) {
+							Object.defineProperty( ret, name, { 
+								value : _json_replacer(value[oName]),
+								configurable : true,
+								writable : true,
+								enumerable : true
+							});
 						} // end if
 
-
-						if (nName.startsWith("gml") || g_instance_names[nName] != undefined) {
-
-							var name = nName.startsWith("gml") ? nName.substring(3) : nName;
-							var entry = g_instance_names[nName];
-
-							if ((entry == undefined) || (entry[0] | entry[1])) {
-								Object.defineProperty( ret, name, { 
-									value : value[oName],
-									configurable : true,
-									writable : true,
-									enumerable : true
-								});
-							} // end if
-
-						} // end if
-					}
-					return ret;
+					} // end if
 				}
 
-			default: 
-				return undefined;
-		}
+				// Remove the flag
+				g_ENCODE_VISITED_LIST.delete(value);
+
+				return ret;
+			}
+
+		default: 
+			return undefined;
 	}
-} // end _get_json_replacer
+} // end _json_replacer
 
 function json_stringify( _v )
 {
 	try {
-		return JSON.stringify(_v, _get_json_replacer());
+		// This function needs to be called previously to properly handle
+		// the recursive reference. We want it to be replaced by NULL only
+		// if the duplicated reference is actually recursive (the builtin
+		// 'replacer' callback of the stringify method doesn't meet our needs).
+		var _struct = _json_replacer(_v);
+		return JSON.stringify(_struct);
 	}
 	catch( e ) {
 		// do nothing
@@ -1399,7 +1415,7 @@ function _json_reviver(_, value)
 		default:
 			return value;
 	}
-} // end _json_encode_array
+} // end _json_reviver
 
 function json_parse( _v )
 {
@@ -1413,6 +1429,8 @@ function json_parse( _v )
 	}
 	return ret;
 } // end json_parse
+
+// ########### CSV_LOAD ###########
 
 function load_csv_decode(pText) {
     // RFC 4180 compliant https://tools.ietf.org/html/rfc4180
