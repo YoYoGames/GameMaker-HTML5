@@ -1345,7 +1345,6 @@ function _json_replacer(value)
 function json_stringify( _v, _prettify )
 {
 	try {
-
 		// Check if we want to prettify the output string
 		_prettify = _prettify == undefined ? false : yyGetReal(_prettify);
 
@@ -1353,6 +1352,7 @@ function json_stringify( _v, _prettify )
 		// the recursive reference. We want it to be replaced by NULL only
 		// if the duplicated reference is actually recursive (the builtin
 		// 'replacer' callback of the stringify method doesn't meet our needs).
+
 		var _struct = _json_replacer(_v);		
 		return JSON.stringify(_struct, null, _prettify ? 2 : 0);
 	}
