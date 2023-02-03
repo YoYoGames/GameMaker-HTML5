@@ -2535,10 +2535,7 @@ function	DrawParticle(_pParticle, _xoff, _yoff, _color, _alpha)
 	
 	// Set the blend mode to additive if the particles is set to be additive.
 	// This is reset in ParticleSystem_Draw after all particles have been drawn.
-	if(_pParticle.additiveblend)
-	{
-		draw_set_blend_mode(1);
-	}
+	draw_set_blend_mode(_pParticle.additiveblend ? 1 : 0);
 
 	var s = _pParticle.size + r*pParType.sizerand;   
 
