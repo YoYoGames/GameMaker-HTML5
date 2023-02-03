@@ -211,7 +211,7 @@ function Audio_CreateBus() {
         return new (Audio_GetBusType())();
     }
     catch(_exception) {
-        console.error("Cannot create audio buses until audio engine is running - check audio_system_is_available()");
+        console.error("Cannot create audio buses until audio engine is running - check audio_system_is_initialised()");
         console.log("Note: exception thrown => " + _exception);
         return null;
     }
@@ -959,6 +959,11 @@ function Audio_EngineReportState()
 function audio_system_is_available()
 {
     return Audio_IsPlaybackAllowed() === true;
+}
+
+function audio_system_is_initialised()
+{
+    return Audio_IsMainBusInitialised() === true;
 }
 
 function audio_sound_is_playable(_soundId)
@@ -2177,7 +2182,7 @@ function audio_emitter_get_vz( _emitterId )
 function create_emitter()
 {
     if (Audio_IsMainBusInitialised() === false) {
-        console.error("Cannot create audio emitters until audio engine is running - check audio_system_is_available()");
+        console.error("Cannot create audio emitters until audio engine is running - check audio_system_is_initialised()");
         return null;
     }
 
