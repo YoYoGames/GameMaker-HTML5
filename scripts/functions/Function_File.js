@@ -1239,11 +1239,14 @@ function _json_encode_array(_array)
 	return ret;
 } // end _json_encode_array
 
-function json_encode(_map) {
+function json_encode(_map, _prettify) {
+
+	// Check if we want to prettify the output string
+	_prettify = _prettify == undefined ? false : yyGetReal(_prettify);
 
     var obj = _json_encode_map(yyGetInt32(_map));
 
-    return JSON.stringify(obj);
+    return JSON.stringify(obj, null, _prettify ? 2 : 0);
 } // end json_encode
 
 // ########### JSON_STRINGIFY & JSON_PARSE ###########
@@ -1339,18 +1342,23 @@ function _json_replacer(value)
 	}
 } // end _json_replacer
 
-function json_stringify( _v )
+function json_stringify( _v, _prettify )
 {
 	try {
+		// Check if we want to prettify the output string
+		_prettify = _prettify == undefined ? false : yyGetReal(_prettify);
+
 		// This function needs to be called previously to properly handle
 		// the recursive reference. We want it to be replaced by NULL only
 		// if the duplicated reference is actually recursive (the builtin
 		// 'replacer' callback of the stringify method doesn't meet our needs).
-		var _struct = _json_replacer(_v);
-		return JSON.stringify(_struct);
+
+		var _struct = _json_replacer(_v);		
+		return JSON.stringify(_struct, null, _prettify ? 2 : 0);
 	}
 	catch( e ) {
 		// do nothing
+		console.log(e);
 		yyError( "JSON stringify error" );
 	}
 } // end json_stringify
