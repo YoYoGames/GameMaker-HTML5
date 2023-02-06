@@ -62,7 +62,8 @@ yyRoom.prototype.Init = function () {
 	this.m_enableviews = false; 				// whether views are enabled
 	this.m_code = null; 						// Creation code for the room
 
-	this.m_Active = new yyOList(); 		        // the ACTIVE instance list (ordered by DEPTH)
+	this.m_Active = new yyList(); 		        // the ACTIVE instance list (ordered by DEPTH)
+	this.m_Active.packing = true;
 	this.m_Deactive = new yyList(); 		    // the DEACTIVE instance list
 	this.m_Deactive.packing = true;
 	this.m_DepthSorting = []; 				    // When the depth is changed, we need to remember it so we can "change" it at a safe point. 
@@ -642,7 +643,7 @@ yyRoom.prototype.CreateInstance = function (_x, _y, _id, _objindex, _scaleX, _sc
 {
     
     var pinst = new yyInstance(_x, _y, _id, _objindex, true);
-    this.m_Active.AddUnsorted(pinst);
+    this.m_Active.Add(pinst);
     g_pInstanceManager.Add(pinst);
 
 
@@ -698,7 +699,7 @@ yyRoom.prototype.CreateInstance = function (_x, _y, _id, _objindex, _scaleX, _sc
 yyRoom.prototype.AddInstance = function (_x, _y, _id, _objindex, _overridedepth, _depth)
 {
     var pinst = new yyInstance(_x, _y, _id, _objindex, true);
-    this.m_Active.AddUnsorted(pinst);
+    this.m_Active.Add(pinst);
     g_pInstanceManager.Add(pinst);
 
     if (_overridedepth)
@@ -749,7 +750,7 @@ yyRoom.prototype.AddLayerInstance = function (_x, _y, _layer, _id, _objindex)
     
     pinst.depth = _layer.depth;
     
-    this.m_Active.AddUnsorted(pinst);
+    this.m_Active.Add(pinst);
     g_pInstanceManager.Add(pinst);
 
     pinst.BuildPhysicsBody();
@@ -769,7 +770,7 @@ yyRoom.prototype.AddLayerInstance = function (_x, _y, _layer, _id, _objindex)
 /// In:		 <param name="_inst">Instance to add</param>
 // #############################################################################################
 yyRoom.prototype.AddInstanceToRoom = function (_pInst) {
-	this.m_Active.AddUnsorted(_pInst);
+	this.m_Active.Add(_pInst);
 	g_pInstanceManager.Add(_pInst);
 
 	if (g_isZeus)
@@ -1062,308 +1063,6 @@ yyRoom.prototype.UpdateViews = function () {
 	
 	
 };
-
-var g_can = false;
-
-// #############################################################################################
-/// Function:<summary>
-///             There are NO tiles OR particles, so just loop through all the instances...
-///          </summary>
-///
-/// In:		 <param name="r">Rect to "fit" in</param>
-// #############################################################################################
-yyRoom.prototype.DrawInstancesTiles = function (_rect) 
-{
-    var pPlayfield = this.m_PlayfieldManager.GetFirst();
-    var part_depth = pPlayfield.depth;
-	
-	for( var i = this.m_Active.length-1; i>=0; i-- )
-	{
-		var pInst = this.m_Active.Get(i);
-
-		// If this instance has been "marked", move to the next one - should really be a WHILE loop here instead of "continue"
-		if( pInst.marked || pInst.visible == 0 ) continue;
-
-        while( part_depth>pInst.depth){
-            pPlayfield.Draw(_rect);
-            pPlayfield = this.m_PlayfieldManager.GetNext();
-            if( pPlayfield ){
-                part_depth = pPlayfield.depth;
-            }else{
-                part_depth=-1000000000000;
-            }
-        }        
-        
-        // Perform drawing event, if we couldn't, then draw it "simply"
-        //if (!pInst.PerformEvent(EVENT_DRAW, 0, pInst, pInst))
-        if( !pInst.REvent[EVENT_DRAW] )
-        {
-	        // Otherwise just DRAW it..
-	        var pSprite = g_pSpriteManager.Get(pInst.sprite_index);
-	        if (pSprite)
-	        {
-		        if ((pInst.image_xscale == 1.0) && (pInst.image_yscale == 1.0) && (pInst.image_angle == 0.0) && (pInst.image_blend == 0xffffff)) // &&  (pInst.image_alpha == 1.0))
-		        {
-		        	pSprite.DrawSimple(pInst.image_index, pInst.x, pInst.y, pInst.image_alpha * g_GlobalAlpha);
-		        }
-		        else
-		        {
-			        pSprite.Draw(pInst.image_index,
-							        pInst.x, pInst.y,
-							        pInst.image_xscale, pInst.image_yscale,
-							        pInst.image_angle,
-							        ConvertGMColour(pInst.image_blend),
-							        pInst.image_alpha * g_GlobalAlpha
-						        );
-		        }
-	        }
-        }else{
-            g_skeletonDrawInstance = pInst;
-            pInst.PerformEvent(EVENT_DRAW, 0, pInst, pInst);
-            g_skeletonDrawInstance = null;
-        }
-	}	
-
-    // Make sure we've drawn all the playfields...	
-	while(pPlayfield){
-        pPlayfield.Draw(_rect);
-        pPlayfield = this.m_PlayfieldManager.GetNext();
-	}
-};
-
-
-// #############################################################################################
-/// Function:<summary>
-///             There are NO tiles OR particles, so just loop through all the instances...
-///          </summary>
-///
-/// In:		 <param name="r">Rect to "fit" in</param>
-// #############################################################################################
-yyRoom.prototype.DrawInstancesOnly = function (_rect) {
-	var pSprite, pInst, i, pool, pSprites;
-	
-	pool = this.m_Active.pool;
-	pSprites = g_pSpriteManager.Sprites;
-
-	for (i = pool.length - 1; i >= 0; i--)
-	{
-		pInst = pool[i];
-
-		// If this instance has been "marked", move to the next one - should really be a WHILE loop here instead of "continue"
-		if (pInst.marked || !pInst.visible) continue;
-
-
-		// Perform drawing event, if we couldn't, then draw it "simply"
-		if (!pInst.REvent[EVENT_DRAW])
-		{
-			// Otherwise just DRAW it..
-			pSprite = pSprites[pInst.sprite_index];
-			if (pSprite)
-			{
-			    g_skeletonDrawInstance = pInst;
-				if ((pInst.image_xscale == 1.0) && (pInst.image_yscale == 1.0) && (pInst.image_angle == 0.0) && (pInst.image_blend == 0xffffff)) // &&  (pInst.image_alpha == 1.0))
-				{
-					pSprite.DrawSimple(pInst.image_index, pInst.x, pInst.y, pInst.image_alpha * g_GlobalAlpha);
-				}
-				else
-				{
-					pSprite.Draw(	pInst.image_index,
-									pInst.x, pInst.y,
-									pInst.image_xscale, pInst.image_yscale,
-									pInst.image_angle,
-									ConvertGMColour(pInst.image_blend),
-									pInst.image_alpha * g_GlobalAlpha
-					);
-				}
-				g_skeletonDrawInstance = null;
-			}
-		}
-		else
-		{
-		    g_skeletonDrawInstance = pInst;
-			pInst.PerformEvent(EVENT_DRAW, 0, pInst, pInst);
-			g_skeletonDrawInstance = null;
-		}
-	}
-};
-
-
-// #############################################################################################
-/// Function:<summary>
-///             There are NO tiles OR particles, so just loop through all the instances...
-///          </summary>
-///
-/// In:		 <param name="r">Rect to "fit" in</param>
-// #############################################################################################
-yyRoom.prototype.DrawInstancesParticles = function (_rect) {
-
-	var partdepth = ParticleSystem_LargestDepth();
-
-	for (var i = this.m_Active.length - 1; i >= 0; i--)
-	{
-		var pInst = this.m_Active.Get(i);
-
-
-		// If this instance has been "marked", move to the next one - should really be a WHILE loop here instead of "continue"
-		if (pInst.marked || pInst.visible == 0) continue;
-
-
-        // stop ultimate loops if they've got an asinine instance depth
-        var prevPartDepth = partdepth;
-		while (partdepth > pInst.depth)
-		{
-			ParticleSystem_DrawDepth(partdepth);
-			partdepth = ParticleSystem_NextDepth(partdepth);
-			
-			if (partdepth == prevPartDepth) {
-			    break;
-			}
-			prevPartDepth = partdepth;
-		}
-
-		// Perform drawing event, if we couldn't, then draw it "simply"
-		if (!pInst.REvent[EVENT_DRAW])
-		{
-			// Otherwise just DRAW it..
-			var pSprite = g_pSpriteManager.Get(pInst.sprite_index);
-			if (pSprite)
-			{
-				if ((pInst.image_xscale == 1.0) && (pInst.image_yscale == 1.0) && (pInst.image_angle == 0.0) && (pInst.image_blend == 0xffffff)) // &&  (pInst.image_alpha == 1.0))
-				{
-					pSprite.DrawSimple(pInst.image_index, pInst.x, pInst.y, pInst.image_alpha * g_GlobalAlpha);
-				}
-				else
-				{
-					pSprite.Draw(pInst.image_index,
-									pInst.x, pInst.y,
-									pInst.image_xscale, pInst.image_yscale,
-									pInst.image_angle,
-									ConvertGMColour(pInst.image_blend),
-									pInst.image_alpha * g_GlobalAlpha
-								);
-				}
-			}
-		} else
-		{
-		    g_skeletonDrawInstance = pInst;
-			pInst.PerformEvent(EVENT_DRAW, 0, pInst, pInst);
-			g_skeletonDrawInstance = null;
-		}
-	}
-
-	// Render any particles that are left...
-	while (partdepth > -1000000000)
-	{
-		ParticleSystem_DrawDepth(partdepth);
-		partdepth = ParticleSystem_NextDepth(partdepth);
-	}
-};
-
-
-// #############################################################################################
-/// Function:<summary>
-///             There are instances, particles and tiles to draw
-///          </summary>
-///
-/// In:		 <param name="r">Rect to "fit" in</param>
-// #############################################################################################
-yyRoom.prototype.DrawInstancesParticlesTiles = function (_rect) 
-{	
-    // Draw instances and particles
-	var partdepth = ParticleSystem_LargestDepth();
-    var pPlayfield = this.m_PlayfieldManager.GetFirst();
-    var playfield_depth = pPlayfield.depth;
-	for (var i = this.m_Active.length - 1; i >= 0; i--)
-	{
-		var pInst = this.m_Active.Get(i);
-
-
-		// If this instance has been "marked", move to the next one - should really be a WHILE loop here instead of "continue"
-		if (pInst.marked || pInst.visible == 0) continue;
-
-        // higher numbers are further back, neg are higher up
-        while( true )
-        {
-            // playfield UNDER the instance?
-            if( playfield_depth>pInst.depth )
-            {
-                // playfield UNDER particles?
-                if( playfield_depth>partdepth )
-                {
-                    // If so, draw PLAYFIELDS.
-                    pPlayfield.Draw(_rect);
-                    pPlayfield = this.m_PlayfieldManager.GetNext();
-                    if( pPlayfield ){
-                        playfield_depth = pPlayfield.depth;
-                    }else{
-                        playfield_depth = -1000000000000;
-                    }
-                }else{
-			        ParticleSystem_DrawDepth(partdepth);
-			        partdepth = ParticleSystem_NextDepth(partdepth);
-                }
-            }else if( partdepth>pInst.depth ){
-			    ParticleSystem_DrawDepth(partdepth);
-			    partdepth = ParticleSystem_NextDepth(partdepth);
-            }else{
-                break;
-            }
-        }
-
-
-		// Perform drawing event, if we couldn't, then draw it "simply"
-		if (!pInst.REvent[EVENT_DRAW])
-		{
-			// Otherwise just DRAW it..
-			var pSprite = g_pSpriteManager.Get(pInst.sprite_index);
-			if (pSprite)
-			{
-				if ((pInst.image_xscale == 1.0) && (pInst.image_yscale == 1.0) && (pInst.image_angle == 0.0) && (pInst.image_blend == 0xffffff)) // &&  (pInst.image_alpha == 1.0))
-				{
-					pSprite.DrawSimple(pInst.image_index, pInst.x, pInst.y, pInst.image_alpha * g_GlobalAlpha);
-				}
-				else
-				{
-					pSprite.Draw(pInst.image_index,
-									pInst.x, pInst.y,
-									pInst.image_xscale, pInst.image_yscale,
-									pInst.image_angle,
-									ConvertGMColour(pInst.image_blend),
-									pInst.image_alpha * g_GlobalAlpha
-								);
-				}
-			}
-		} else
-		{
-		    g_skeletonDrawInstance = pInst;
-			pInst.PerformEvent(EVENT_DRAW, 0, pInst, pInst);
-			g_skeletonDrawInstance = null;
-		}
-	}
-
-	// Render any particles or tiles that are left...
-    while( true )
-    {
-        // If plafields are below particles draw them
-        if( playfield_depth>partdepth ){
-            // If so, draw PLAYFIELDS.
-            pPlayfield.Draw(_rect);
-            pPlayfield = this.m_PlayfieldManager.GetNext();
-            if( pPlayfield ){
-                playfield_depth = pPlayfield.depth;
-            }else{
-                playfield_depth = -1000000000000;
-            }
-        }else{
-            if( partdepth <= -1000000000 ) break;
-	        ParticleSystem_DrawDepth(partdepth);
-	        partdepth = ParticleSystem_NextDepth(partdepth);
-        }
-    }
-
-};
-
-
 
 
 
@@ -3457,87 +3156,7 @@ yyRoom.prototype.DrawTheRoom = function (_rect) {
         //Drawing as layers
         this.DrawRoomLayers(_rect);
     }
-    else
-    {
-
-	    // Draw the backgrounds
-	    for (var i = 0; i < g_pBackgroundManager.background.length; i++)
-	    {
-		    var pBack = g_pBackgroundManager.Get(i);
-		    if (pBack)
-		    {
-			    pBack.visible = g_pBuiltIn.background_visible[i];
-			    pBack.foreground = g_pBuiltIn.background_foreground[i];
-			    pBack.x = g_pBuiltIn.background_x[i];
-			    pBack.y = g_pBuiltIn.background_y[i];
-			    pBack.index = g_pBuiltIn.background_index[i];
-			    pBack.hTiled = g_pBuiltIn.background_htiled[i];
-			    pBack.vTiled = g_pBuiltIn.background_vtiled[i];
-			    pBack.alpha = g_pBuiltIn.background_alpha[i];
-			    pBack.blend = g_pBuiltIn.background_blend[i];
-			    pBack.hspeed = g_pBuiltIn.background_hspeed[i];
-			    pBack.vspeed = g_pBuiltIn.background_vspeed[i];
-			    pBack.xscale = g_pBuiltIn.background_xscale[i];
-			    pBack.yscale = g_pBuiltIn.background_yscale[i];
-
-			    if (pBack != null && pBack.visible && !pBack.foreground)
-			    {
-				    var pImage = g_pBackgroundManager.GetImage(pBack.index);
-				    if (pImage != null)
-				    {
-					    if (pBack.stretch)
-					    {
-						    Graphics_DrawStretchedExt(pImage.TPEntry, pBack.x,pBack.y, this.m_width,this.m_height, pBack.blend,pBack.alpha);
-					    } else
-					    {
-						    Graphics_TextureDrawTiled(pImage.TPEntry, pBack.x,pBack.y, pBack.xscale,pBack.yscale, pBack.vTiled,pBack.hTiled, pBack.blend,pBack.alpha);
-					    }
-				    }
-			    }
-		    }
-	    }
-	    //float partdepth = ParticleSystem_LargestDepth();	
-
-	    if (this.m_PlayfieldManager.m_Playfields.count > 0)
-	    {
-		    if (g_ParticleSystems.length != 0)
-		    {
-			    this.DrawInstancesParticlesTiles(_rect);
-		    }
-		    else
-		    {
-			    this.DrawInstancesTiles(_rect);
-		    }
-	    } else if (g_ParticleSystems.length != 0)
-	    {
-		    this.DrawInstancesParticles(_rect);
-	    } else
-	    {
-		    this.DrawInstancesOnly(_rect);
-	    }
-
-
-	    // Draw the foregrounds
-	    //GR_3D_Set_Depth(-12000);
-	    for (var i = 0; i < g_pBackgroundManager.background.length; i++)
-	    {
-		    var pBack = g_pBackgroundManager.Get(i);
-		    if (pBack != null && pBack.visible && pBack.foreground)
-		    {
-			    var pImage = g_pBackgroundManager.GetImage(pBack.index);
-			    if (pImage != null)
-			    {
-				    if (pBack.stretch)
-				    {
-					    Graphics_DrawStretchedExt(pImage.TPEntry, pBack.x,pBack.y, this.m_width,this.m_height, pBack.blend,pBack.alpha);
-				    } else
-				    {
-					    Graphics_TextureDrawTiled(pImage.TPEntry, pBack.x,pBack.y, pBack.xscale,pBack.yscale, pBack.vTiled,pBack.hTiled,  pBack.blend,pBack.alpha);
-				    }
-			    }			
-		    }
-        }
-    }
+   
     this.ExecuteDrawEvent(_rect, EVENT_DRAW_END);
 	
 };
@@ -4288,7 +3907,7 @@ yyRoom.prototype.DeleteInstance = function (pInst) {
     }
     g_pLayerManager.RemoveInstance(this, pInst);
     g_pInstanceManager.Remove(pInst);
-	this.m_Active.Delete(pInst);
+	this.m_Active.DeleteItem(pInst);
 	this.m_Deactive.DeleteItem(pInst);
 	pInst.pObject.RemoveInstance(pInst);
 };
@@ -4301,7 +3920,7 @@ yyRoom.prototype.DeleteInstance = function (pInst) {
 yyRoom.prototype.DeactivateInstance = function (_pInst) {
 	if (_pInst.active)
 	{
-		this.m_Active.Delete(_pInst); 		// Remove from active list
+		this.m_Active.DeleteItem(_pInst); 		// Remove from active list
 		_pInst.pObject.RemoveInstance(_pInst); 	// remove instance from the object list/rlist
 
 		// Now add to deactve list
@@ -4321,7 +3940,7 @@ yyRoom.prototype.ActivateInstance = function (_pInst) {
 	{
 		this.m_Deactive.DeleteItem(_pInst); 		// move it into active list
 
-		this.m_Active.AddUnsorted(_pInst); 			// Remove from active list
+		this.m_Active.Add(_pInst); 			// Remove from active list
 		_pInst.pObject.AddInstance(_pInst); 			// remove instance from the object list/rlist
 
 		// Now add to deactve list
@@ -4408,109 +4027,38 @@ yyRoom.prototype.ClearTilesFromStorage = function () {
 
 
 
-// #############################################################################################
-/// Function:<summary>
-///             Process DEPTH list
-///          </summary>
-///
-/// In:		 <param name="_depth">New depth of the instance</param>
-// #############################################################################################
-/*yyRoom.prototype.ProcessDepthList = function () {
-	if (this.m_DepthSorting.length == 0) return;
 
-	var list = this.m_DepthSorting;
-	//Problem- when there are multiple unsorted entries, add will not insert into correct place ( as it may compare against unsorted entry depths )
-	//for (var i = 0; i < this.m_DepthSorting.length; i++)
-	//{
-	//	var pInst = list[i];
-	//	this.m_Active.Delete(pInst);
-	//	this.m_Active.Add(pInst, pInst.depth);
-	//}
-	//instead, remove all the unsorted entries first
-	for (var i = 0; i < this.m_DepthSorting.length; i++)
-	{
-		var pInst = list[i];
-		this.m_Active.Delete(pInst);
-	}
-    //and then add them back in ( all existing entries are sorted so will insert in correct place )
-    for (var i = 0; i < this.m_DepthSorting.length; i++)
-	{
-		var pInst = list[i];
-		this.m_Active.Add(pInst, pInst.depth);
-    }
-	//BUT- this does not work correctly either , as the Sort step is done before this, and insert compares against unsorted entries
-	
-	// Now we've processed it... Clear the list
-	this.m_DepthSorting = [];
-};*/
 
 yyRoom.prototype.ProcessDepthList2 = function () {
     if (this.m_DepthSorting.length == 0) return;
 	var list = this.m_DepthSorting;
-	var active = this.m_Active;
-	var activeLen;
-	var sortedLen;
-	if( active.unsorted < 0 )
-	{
-	    sortedLen = active.pool.length;
-	} else {
-	    sortedLen = active.unsorted;
-	}
+
 
 	//remove all the unsorted entries in SORTED section, and move to end of list
-	var count = 0;
 	for (var i = 0; i < list.length; i++)
 	{
 		var pInst = list[i];
-		for (var j = 0; j < sortedLen; j++)
-	    {
-    		if (pInst == active.pool[j])
-	    	{
-                active.pool.splice(j,1);	
-		        //now add to end in unsorted section (for subsequent sorting )
-		        active.pool[active.pool.length] = pInst;
-		        count += 1;
-		        sortedLen -=1;   
-		        break;
-		    }
+
+		//Have a look see if we need to move its layer
+		var room = g_RunRoom;
+		if (room != null) {
+			var pLayer = g_pLayerManager.GetLayerFromID(room, pInst.m_nLayerID);
+
+			if (pLayer != null) {
+				if (floor(pLayer.depth) != floor(pInst.depth)) {
+					if (pLayer.m_dynamic && pLayer.m_elements.length == 1) {
+						//We're the only thing on the layer, we can just change it's depth
+						g_pLayerManager.ChangeLayerDepth(room, pLayer, pInst.depth, true);
+					}
+					else {
+						g_pLayerManager.RemoveInstanceFromLayer(room, pLayer, pInst);
+						//Move to a new layer
+						g_pLayerManager.AddInstance(room, pInst);
+
+					}
+				}
+			}
 		}
-
-        // On Zeus try and move the layer
-		if (g_isZeus) {
-		    //Have a look see if we need to move its layer
-		    var room = g_RunRoom;
-		    if (room != null) {
-		        var pLayer = g_pLayerManager.GetLayerFromID(room, pInst.m_nLayerID);
-
-		        if (pLayer != null) {
-		            if (floor(pLayer.depth) != floor(pInst.depth)) {
-		                if (pLayer.m_dynamic && pLayer.m_elements.length == 1) {
-		                    //We're the only thing on the layer, we can just change it's depth
-		                    g_pLayerManager.ChangeLayerDepth(room, pLayer, pInst.depth, true);
-		                }
-		                else {
-		                    g_pLayerManager.RemoveInstanceFromLayer(room, pLayer, pInst);
-		                    //Move to a new layer
-		                    g_pLayerManager.AddInstance(room, pInst);
-
-		                }
-		            }
-		        }
-		    }
-		}
-	}
-	
-	//shift up the unsorted start point(active list length is unchanged)
-	if(count > 0 )
-	{
-	    if (active.unsorted < 0)
-	    {
-		    active.unsorted = active.pool.length-count;
-	    }
-	    else
-	    {
-	        active.unsorted -= count;
-	    }
 	}
 	
 	// Now we've processed it... Clear the list
