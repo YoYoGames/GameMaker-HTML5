@@ -350,7 +350,13 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 	var ps = (_pParticleEl == null)
 		? ParticleSystem_Create(_layerID, _persistent)
 		: ParticleSystem_Create_OnLayer(-1, _persistent, _pParticleEl);
-	
+
+	if (ps == -1)
+	{
+		// Instance was not created
+		return ps;
+	}
+
 	var system = g_ParticleSystems[ps];
 
 	for (var i = 0; i < this.emitters.length; ++i)
@@ -1717,40 +1723,37 @@ function ParticleSystem_Create_GetLayer(_layerID)
 {
 	var pPartEl = null;
 
-	if (g_isZeus)
+	if (_layerID == -1)
 	{
-		if (_layerID == -1)
-		{
-			pPartEl = new CLayerParticleElement();
-			g_pLayerManager.AddNewElementAtDepth(g_RunRoom, 0, pPartEl, true, true);          
-		}
-		else
-		{
-			var room = g_pLayerManager.GetTargetRoomObj();
+		pPartEl = new CLayerParticleElement();
+		g_pLayerManager.AddNewElementAtDepth(g_RunRoom, 0, pPartEl, true, true);          
+	}
+	else
+	{
+		var room = g_pLayerManager.GetTargetRoomObj();
 
-			if (room != null)
+		if (room != null)
+		{
+			layer = g_pLayerManager.GetLayerFromID(room, _layerID);
+			if (layer != null)
 			{
-				layer = g_pLayerManager.GetLayerFromID(room, _layerID);
-				if (layer != null)
-				{
-					pPartEl = new CLayerParticleElement();
+				pPartEl = new CLayerParticleElement();
 
-					// Since particle systems are persistent and to maintain similar behaviour to 1.x we don't just want to add the new particle system to the target room
-					// but to the current room too
-					if (room == g_RunRoom)
+				// Since particle systems are persistent and to maintain similar behaviour to 1.x we don't just want to add the new particle system to the target room
+				// but to the current room too
+				if (room == g_RunRoom)
+				{
+					var res = g_pLayerManager.AddNewElement(g_RunRoom, layer, pPartEl, true);
+					if (res == -1)
 					{
-						var res = g_pLayerManager.AddNewElement(g_RunRoom, layer, pPartEl, true);
-						if (res == -1)
-						{
-							g_pLayerManager.RemoveElementById(g_RunRoom, pPartEl.m_id, true);
-							pPartEl = null;
-						}
+						g_pLayerManager.RemoveElementById(g_RunRoom, pPartEl.m_id, true);
+						pPartEl = null;
 					}
-					else
-					{
-						// Since we're not in the target room add this particle system to the current room too
-						g_pLayerManager.AddNewElementAtDepth(g_RunRoom, 0, pPartEl, true, true);
-					}
+				}
+				else
+				{
+					// Since we're not in the target room add this particle system to the current room too
+					g_pLayerManager.AddNewElementAtDepth(g_RunRoom, 0, pPartEl, true, true);
 				}
 			}
 		}
@@ -1765,28 +1768,18 @@ function ParticleSystem_Create_OnLayer(_layerID, _persistent, _pPartEl)
 	var index = g_ParticleSystems.length;
 	g_ParticleSystems[index] = new yyParticleSystem();
 	g_ParticleSystems[index].id = index;                    // remember the ID
-
-	if (g_isZeus)
-	{
-		g_ParticleSystems[index].m_elementID = -1;
-		//g_ParticleSystems[index].m_origLayerID = -1;	
-	}
-
+	g_ParticleSystems[index].m_elementID = -1;
 	g_ParticleSystems[index].Clear();
+	_pPartEl.m_systemID = index;
+	g_ParticleSystems[index].m_elementID = _pPartEl.m_id;
+	g_ParticleSystems[index].m_volatile = !_persistent;
 
-	if (g_isZeus)
+	if (_layerID != -1)
 	{
-		_pPartEl.m_systemID = index;
-		g_ParticleSystems[index].m_elementID = _pPartEl.m_id;
-		g_ParticleSystems[index].m_volatile = !_persistent;
+		layer = g_pLayerManager.GetLayerFromID(room, _layerID);
 
-		if (_layerID != -1)
-		{
-			layer = g_pLayerManager.GetLayerFromID(room, _layerID);
-
-			//g_ParticleSystems[index].m_origLayerID = _layerID;
-			g_ParticleSystems[index].depth = layer.depth;
-		}
+		//g_ParticleSystems[index].m_origLayerID = _layerID;
+		g_ParticleSystems[index].depth = layer.depth;
 	}
 
 	return index;
@@ -1801,7 +1794,7 @@ function ParticleSystem_Create_OnLayer(_layerID, _persistent, _pPartEl)
 ///				ID of the new particle system
 ///			</returns>
 // #############################################################################################
-/*function	ParticleSystem_Create(_layerID,_persistent)
+function	ParticleSystem_Create(_layerID,_persistent)
 {
     if (_layerID == undefined)
         _layerID = -1;
@@ -1820,104 +1813,7 @@ function ParticleSystem_Create_OnLayer(_layerID, _persistent, _pPartEl)
 		return -1;
 	
 	return ParticleSystem_Create_OnLayer(_layerID, pPartEl, _persistent);
-}*/
-
-function	ParticleSystem_Create(_layerID,_persistent)
-{
-    if (_layerID == undefined)
-        _layerID = -1;
-    else
-        _layerID = yyGetInt32(_layerID);
-
-
-    if (_persistent == undefined)
-        _persistent = true;
-    else
-        _persistent = yyGetBool(_persistent);
-
-
- if (g_isZeus)
-  {
-      var pPartEl = null;      
-
-      if (_layerID == -1) {
-          pPartEl = new CLayerParticleElement();
-          g_pLayerManager.AddNewElementAtDepth(g_RunRoom, 0, pPartEl, true, true);          
-      }
-      else
-      {
-          var room = g_pLayerManager.GetTargetRoomObj();
-
-          if (room != null)
-          {
-              layer = g_pLayerManager.GetLayerFromID(room, _layerID);
-              if (layer != null)
-              {
-                  pPartEl = new CLayerParticleElement();
-
-                  // Since particle systems are persistent and to maintain similar behaviour to 1.x we don't just want to add the new particle system to the target room
-                  // but to the current room too
-                  if (room == g_RunRoom)
-                  {
-                      var res = g_pLayerManager.AddNewElement(g_RunRoom, layer, pPartEl, true);
-                      if (res == -1)
-                      {
-                          g_pLayerManager.RemoveElementById(g_RunRoom, pPartEl.m_id, true);
-                          pPartEl = null;
-                      }
-                  }
-                  else
-                  {
-                      // Since we're not in the target room add this particle system to the current room too
-                      g_pLayerManager.AddNewElementAtDepth(g_RunRoom, 0, pPartEl, true, true);
-                  }
-              }
-          }
-      }
-
-      if (pPartEl == null)
-          return -1;
-  }
-
-
-    var layer = null;
-    var index = g_ParticleSystems.length;
-    g_ParticleSystems[index] = new yyParticleSystem();
-    g_ParticleSystems[index].id = index;                    // remember the ID
-
-
- 
-
-  if (g_isZeus)
-  {
-      g_ParticleSystems[index].m_elementID = -1;
-      //g_ParticleSystems[index].m_origLayerID = -1;	
-  }
-
-  g_ParticleSystems[index].Clear();
-
- 
-
-
-  if (g_isZeus)
-  {
-      pPartEl.m_systemID = index;
-      g_ParticleSystems[index].m_elementID = pPartEl.m_id;
-      g_ParticleSystems[index].m_volatile = !_persistent;
-
-      if (_layerID != -1)
-      {
-          layer = g_pLayerManager.GetLayerFromID(room, _layerID);
-
-          //g_ParticleSystems[index].m_origLayerID = _layerID;
-          g_ParticleSystems[index].depth = layer.depth;
-      }
-  }
-
-  
-  return index;
 }
-
 
 // #############################################################################################
 /// Function:<summary>
