@@ -73,12 +73,21 @@ var AudioSampleState =
 	READY: 'ready'
 };
 
-var WebAudioContextState =
-{
+const WebAudioContextState =  {
 	SUSPENDED: 'suspended',
 	RUNNING: 'running',
 	CLOSED: 'closed'
 };
+
+const AudioEngineState = {
+    LOADING: "Loading",
+    SUSPENDED: "Suspended",
+    RUNNING: "Running",
+    CLOSED: "Closed",
+    UNKNOWN: "Unknown"
+};
+
+AudioEngineState.previousState = AudioEngineState.UNKNOWN;
 
 var AudioCommand =
 {
@@ -127,7 +136,7 @@ function Audio_Init()
         return;
 
     g_WebAudioContext = new AudioContext();
-    g_WebAudioContext.addEventListener("statechange", Audio_WebAudioContextOnStateChanged);
+    g_WebAudioContext.addEventListener("statechange", Audio_EngineReportState);
 
     g_HandleStreamedAudioAsUnstreamed = ( g_OSPlatform == BROWSER_IOS );
     g_UseDummyAudioBus = (g_OSBrowser === BROWSER_SAFARI_MOBILE)
@@ -187,18 +196,37 @@ function Audio_Quit()
 	if (g_WebAudioContext.closing == true) return;
 
 	g_WebAudioContext.closing = true;
-	g_WebAudioContext.removeEventListener("statechange", Audio_WebAudioContextOnStateChanged);
+	g_WebAudioContext.removeEventListener("statechange", Audio_EngineReportState);
 	g_WebAudioContext.close().then(() => {
 		g_WebAudioContext = null;
 	});
 }
 
-function Audio_CreateMainBus() {
-    const busType = g_UseDummyAudioBus ? DummyAudioBus : AudioBus;
+function Audio_GetBusType() {
+    return (g_UseDummyAudioBus === true) ? DummyAudioBus : AudioBus; 
+}
 
-    g_AudioBusMain = new busType();
+function Audio_CreateBus() {
+    try {
+        return new (Audio_GetBusType())();
+    }
+    catch(_exception) {
+        console.error("Cannot create audio buses until audio engine is running - check audio_system_is_initialised()");
+        console.log("Note: exception thrown => " + _exception);
+        return null;
+    }
+}
+
+function Audio_CreateMainBus() {
+    g_AudioBusMain = Audio_CreateBus();
     g_AudioBusMain.connectOutput(g_AudioMainVolumeNode);
     g_pBuiltIn.audio_bus_main = g_AudioBusMain;
+
+    Audio_EngineReportState();
+}
+
+function Audio_IsMainBusInitialised() {
+    return g_AudioBusMain instanceof AudioBus || g_AudioBusMain instanceof DummyAudioBus;
 }
 
 /** @constructor */
@@ -840,11 +868,30 @@ function getUrlForSound( _soundid )
 var g_WaitingForWebAudioTouchUnlock = false;
 var g_HandleStreamedAudioAsUnstreamed = false;
 
-function Audio_WebAudioPlaybackAllowed()
-{
-    return (g_WebAudioContext !== null)
-    && (g_WebAudioContext.state === WebAudioContextState.RUNNING) 
-    && (g_AudioBusMain instanceof AudioBus || g_AudioBusMain instanceof DummyAudioBus);
+function Audio_IsPlaybackAllowed() {
+    currentState = Audio_GetEngineState();
+
+    return Audio_IsPlaybackAllowedInState(currentState) === true;
+}
+
+function Audio_IsPlaybackAllowedInState(_audioEngineState) {
+    return _audioEngineState === AudioEngineState.RUNNING;
+}
+
+function Audio_GetEngineState() {
+    if (Audio_IsMainBusInitialised() === false)
+        return AudioEngineState.LOADING;
+
+    if (g_WebAudioContext instanceof AudioContext === false || g_WebAudioContext.state === WebAudioContextState.CLOSED)
+        return AudioEngineState.CLOSED;
+
+    if (g_WebAudioContext.state === WebAudioContextState.SUSPENDED)
+        return AudioEngineState.SUSPENDED;
+
+    if (g_WebAudioContext.state === WebAudioContextState.RUNNING)
+        return AudioEngineState.RUNNING;
+
+    return AudioEngineState.UNKNOWN;
 }
 
 function Audio_WebAudioContextTryUnlock()
@@ -876,8 +923,6 @@ function Audio_WebAudioContextTryUnlock()
 			document.body.removeEventListener( eventTypeStart, unlockWebAudioContext );
 			document.body.removeEventListener( eventTypeEnd, unlockWebAudioContext );
 			g_WaitingForWebAudioTouchUnlock = false;
-
-			debug( "WebAudio Context unlocked." );
 		},
 		function ( reason )
 		{
@@ -889,33 +934,36 @@ function Audio_WebAudioContextTryUnlock()
     document.body.addEventListener( eventTypeEnd, unlockWebAudioContext, false );
 }
 
-function Audio_WebAudioContextOnStateChanged()
+function Audio_EngineReportState()
 {
-	debug( "WebAudio Context state updated to: " + g_WebAudioContext.state );
+    const currentState = Audio_GetEngineState();
 
-	Audio_WebAudioContextReportStatus();
-}
+    if (currentState !== AudioEngineState.previousState) {
+        debug("Audio Engine => " + currentState);
+        AudioEngineState.previousState = currentState;
+    }
 
-function Audio_WebAudioContextReportStatus()
-{
-	var isCtxAvailable = Audio_WebAudioPlaybackAllowed( );
-	var map = ds_map_create();
-	g_pBuiltIn.async_load = map;
+    const isPlaybackAllowed = Audio_IsPlaybackAllowedInState(currentState);
 
-	ds_map_add( map, "event_type", "audio_system_status" );
-	ds_map_add( map, "status", isCtxAvailable ? "available" : "unavailable" );
-	g_pObjectManager.ThrowEvent( EVENT_OTHER_SYSTEM_EVENT, 0 );
+    const map = ds_map_create();
+    g_pBuiltIn.async_load = map;
 
-	ds_map_destroy( map );
-	g_pBuiltIn.async_load = -1;
+    ds_map_add(map, "event_type", "audio_system_status");
+    ds_map_add(map, "status", isPlaybackAllowed ? "available" : "unavailable");
+    g_pObjectManager.ThrowEvent(EVENT_OTHER_SYSTEM_EVENT, 0);
+
+    ds_map_destroy(map);
+    g_pBuiltIn.async_load = -1;
 }
 
 function audio_system_is_available()
 {
-	if ( !g_WebAudioContext )
-		return false;
+    return Audio_IsPlaybackAllowed() === true;
+}
 
-	return Audio_WebAudioPlaybackAllowed( );
+function audio_system_is_initialised()
+{
+    return Audio_IsMainBusInitialised() === true;
 }
 
 function audio_sound_is_playable(_soundId)
@@ -2133,6 +2181,11 @@ function audio_emitter_get_vz( _emitterId )
 //creates a new web audio panner and returns it
 function create_emitter()
 {
+    if (Audio_IsMainBusInitialised() === false) {
+        console.error("Cannot create audio emitters until audio engine is running - check audio_system_is_initialised()");
+        return null;
+    }
+
     const emitter = g_WebAudioContext.createPanner();			// also clears to defaults.
     emitter.gainnode = g_WebAudioContext.createGain();
     emitter.gainnode.gain.value = 1.0;
@@ -2159,15 +2212,21 @@ function create_emitter()
     return emitter;
 }
 
-function audio_emitter_create(  )
+function audio_emitter_create()
 {
-    if(g_AudioModel!= Audio_WebAudio)
+    if (g_AudioModel !== Audio_WebAudio)
         return;
+
+    const emitter = create_emitter();
+
+    if (emitter === null)
+        return undefined;
         
-    var ind = audio_emitters_index;
-    audio_emitters_index++;
-    audio_emitters[ind] = create_emitter();
-    return ind;
+    const emitterIndex = audio_emitters_index;
+    audio_emitters[emitterIndex] = emitter;
+    ++audio_emitters_index;
+
+    return emitterIndex;
 }
 
 function audio_emitter_free(_emitterid)
@@ -3607,9 +3666,11 @@ function audio_stop_recording(_deviceNum)
 
 function audio_bus_create()
 {
-    const busType = g_UseDummyAudioBus ? DummyAudioBus : AudioBus;
+    const bus = Audio_CreateBus();
 
-    const bus = new busType();
+    if (bus === null)
+        return undefined;
+
     g_AudioBusMain.connectInput(bus.outputNode);
 
     return bus;
@@ -3630,9 +3691,7 @@ function audio_emitter_bus(_emitterIdx, _bus)
     if (emitter === undefined)
         return;
 
-    const busType = g_UseDummyAudioBus ? DummyAudioBus : AudioBus;
-
-    if (!(_bus instanceof busType))
+    if (_bus instanceof Audio_GetBusType() === false)
         yyError("audio_emitter_bus() - argument 'bus' should be a Struct.AudioBus");
 
     emitter.gainnode.disconnect();
@@ -3652,9 +3711,7 @@ function audio_emitter_get_bus(_emitterIdx)
 
 function audio_bus_get_emitters(_bus)
 {
-    const busType = g_UseDummyAudioBus ? DummyAudioBus : AudioBus;
-
-    if (!(_bus instanceof busType))
+    if (_bus instanceof Audio_GetBusType() === false)
         yyError("audio_bus_get_emitters() - argument 'bus' should be a Struct.AudioBus");
 
     const emitterIds = [];
@@ -3670,9 +3727,7 @@ function audio_bus_get_emitters(_bus)
 /* Relinks all of the emitters attached to the given bus back to the main bus. */
 function audio_bus_clear_emitters(_bus)
 {
-    const busType = g_UseDummyAudioBus ? DummyAudioBus : AudioBus;
-
-    if (g_AudioBusMain === null || (_bus instanceof busType) == false || _bus === g_AudioBusMain)
+    if (Audio_IsMainBusInitialised() === false || _bus instanceof Audio_GetBusType() === false || _bus === g_AudioBusMain)
         return;
 
     for (const index in audio_emitters) {
