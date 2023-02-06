@@ -363,6 +363,11 @@ audioSound.prototype.start = function(_buffer) {
     this.pbuffersource.onended = (_event) => {
         this.bActive = false;
         this.pbuffersource = null; // Release buffer source (holds the only ref to buffer for streamed sounds)
+
+        if (this.pgainnode !== null)
+            this.pgainnode.disconnect();
+
+        this.pemitter = null;
     };
 
     this.pbuffersource.connect(this.pgainnode);
@@ -2284,9 +2289,10 @@ function audio_channel_num( _num_channels)
    provides a single listener. Given that AudioContext automatically attaches
    to the default device, it is therefore not possible to support more than one listener.
 
-   However, it seems that each AudioContext now allows a sinkId (i.e. device) to be specified.
-   This now opens up the possibility of supporting multiple listeners on HTML5.
-   Of course, browser support needs to catch up first - see https://caniuse.com/?search=audiocontext.sinkid
+   However, it seems that the Web Audio spec now specifies that each AudioContext should
+   allow a sinkId (i.e. device) to be specified. This now opens up the possibility of 
+   supporting multiple listeners on HTML5. Of course, browser support will need to catch up first.
+   See https://caniuse.com/?search=audiocontext.sinkid
 */
 function audio_sound_get_listener_mask(_voiceIndex)         { return 1; }
 function audio_emitter_get_listener_mask(_emitterIndex)     { return 1; }
