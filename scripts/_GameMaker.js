@@ -1138,7 +1138,7 @@ function StartRoom( _numb, _starting )
         
         // Now remove the copied instances from the active list...
         for (var i=persistent.length-1; i >= 0; i--) {
-            g_CurrentRoom.m_Active.Delete(persistent[i]);
+            g_CurrentRoom.m_Active.DeleteItem(persistent[i]);
         }
 
         // Finally, remove all NON-persistent instances (clean up OLD room)
@@ -1523,22 +1523,12 @@ function UpdateActiveLists() {
 	//-so Sort can insert in the wrong place
 	//-need to remove unsorted entries first, before doing insertion sort
 	if (g_RunRoom.m_DepthSorting.length > 0) g_RunRoom.ProcessDepthList2();
-	if( g_RunRoom.m_Active.unsorted>=0 ) g_RunRoom.m_Active.Sort();
+	//if( g_RunRoom.m_Active.unsorted>=0 ) g_RunRoom.m_Active.Sort();
     //if (g_RunRoom.m_DepthSorting.length > 0) g_RunRoom.ProcessDepthList();
 	//if (g_RunRoom.m_NewInstances.length > 0) g_RunRoom.ProcessNewInstanceList();
 	if (g_ParticleChanges.length > 0) g_RunRoom.ProcessParticleDepthChange();
 	
-	//TEST-verify list sorted correctly; +ve depth at end of list
-	/*var iDepth = 0;
-	for (var i = 0; i < g_RunRoom.m_Active.pool.length; i++)
-	{
-	    var nextDepth = g_RunRoom.m_Active.pool[i].depth;
-	    if( i >0 && nextDepth < iDepth ) 
-	    {
-	        console.log("ERROR depth list: " + (i-1) + ":" + g_RunRoom.m_Active.pool[i-1].depth + " , " + i + ":" + g_RunRoom.m_Active.pool[i].depth );
-	    }
-	    iDepth = nextDepth;
-	}*/
+
 }
 
 // #############################################################################################
