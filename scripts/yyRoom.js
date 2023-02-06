@@ -3436,7 +3436,7 @@ yyRoom.prototype.SetApplicationSurface = function () {
         //Create Application Surface?
         if( g_ApplicationSurface < 0 )
         {
-            g_ApplicationSurface = surface_create( g_ApplicationWidth, g_ApplicationHeight );
+            g_ApplicationSurface = surface_create( g_ApplicationWidth, g_ApplicationHeight, eTextureFormat_A8R8G8B8 );
             g_pBuiltIn.application_surface = g_ApplicationSurface;
             debug("Application Surface created: w="+g_ApplicationWidth + ", h=" + g_ApplicationHeight );
         }
@@ -3445,7 +3445,7 @@ yyRoom.prototype.SetApplicationSurface = function () {
         {
             g_NewApplicationSize = false;
             //surface_resize( g_ApplicationSurface, g_NewApplicationWidth, g_NewApplicationHeight );
-            surface_create(g_NewApplicationWidth, g_NewApplicationHeight, g_ApplicationSurface );
+            surface_create(g_NewApplicationWidth, g_NewApplicationHeight, eTextureFormat_A8R8G8B8, g_ApplicationSurface );
             g_ApplicationWidth = g_NewApplicationWidth;
 		    g_ApplicationHeight = g_NewApplicationHeight;
 		    debug("Application Surface resized: w=" + g_ApplicationWidth + ", h="+ g_ApplicationHeight );
