@@ -600,6 +600,15 @@ function array_pop( _array )
     } // end else
 } // end array_pop
 
+function array_shift( _array )
+{
+    if (Array.isArray(_array)) {
+        return _array.shift();
+    } // end if
+    else {
+        yyError( "argument0 is not an array");
+    } // end else
+} // end array_shift
 
 function array_insert( _array, _index )
 {
