@@ -444,6 +444,27 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
 							};
         				}
 
+						// Particles
+						newLayer.pcount = sourceLayer.pcount;
+						newLayer.particles = new Array(sourceLayer.particles.length);
+
+						for (assetIdx = 0; i < sourceLayer.particles.length; assetIdx++)
+						{
+							var srcParticle = sourceLayer.particles[assetIdx];
+
+							newLayer.particles[assetIdx] =
+							{
+								sName: srcParticle.sName,
+								sIndex: srcParticle.sIndex,
+								sX: srcParticle.sX,
+								sY: srcParticle.sY,
+								sXScale: srcParticle.sXScale,
+								sYScale: srcParticle.sYScale,
+								sBlend: srcParticle.sBlend,
+								sRotation: srcParticle.sRotation,
+							};
+						}
+
         				break;
 					case YYLayerType_Effect:
 						newLayer.m_pInitialEffectInfo = sourceLayer.m_pInitialEffectInfo;
@@ -2016,7 +2037,26 @@ yyRoom.prototype.DrawLayerTilemapElement = function(_rect,_layer,_el,_xpos,_ypos
 
 yyRoom.prototype.DrawLayerParticleSystem = function(_rect,_layer,_el)
 {
-	ParticleSystem_AutoDraw(_el.m_systemID);
+	var ps = _el.m_systemID;
+
+	if (!ParticleSystem_Exists(ps) || !g_ParticleSystems[ps].automaticdraw)
+	{
+		return;
+	}
+
+	var matWorldOld = WebGL_GetMatrix(MATRIX_WORLD);
+
+	var matRot = new Matrix();
+	var matScale = new Matrix();
+	matRot.SetZRotation(_el.m_imageAngle);
+	matScale.SetScale(_el.m_imageScaleX, _el.m_imageScaleY, 1.0);
+	var matWorldNew = new Matrix();
+	matWorldNew.Multiply(matScale, matRot);
+	matWorldNew.Translation(_el.m_x, _el.m_y, 0.0);
+
+	WebGL_SetMatrix(MATRIX_WORLD, matWorldNew);
+	ParticleSystem_Draw(ps, _el.m_imageBlend, _el.m_imageAlpha);
+	WebGL_SetMatrix(MATRIX_WORLD, matWorldOld);
 };
 
 yyRoom.prototype.DrawLayerTileElement = function (_rect, _layer, _el) {
@@ -2232,6 +2272,9 @@ yyRoom.prototype.DrawTrackList = function (_rect, _layer, _pSequenceEl, _evalTre
 				case eSTT_Text:
                     this.HandleSequenceText(_rect, _layer, _pSequenceEl, currNode, track, _headPosition, _lastHeadPosition, _headDirection, _sequence);
                     break;
+				case eSTT_Particle:
+					this.HandleSequenceParticle(_rect, _layer, _pSequenceEl, currNode, track, _headPosition, _lastHeadPosition, _headDirection, _sequence);
+					break;
             }
         }
 		
@@ -2789,6 +2832,77 @@ yyRoom.prototype.HandleSequenceInstance = function (_rect, _layer, _pSequenceEl,
 
 		g_SeqStack.pop();
 	}	
+};
+
+yyRoom.prototype.HandleSequenceParticle = function (_rect, _layer, _pSequenceEl, _node, _track, _headPosition, _lastHeadPosition, _headDirection, _sequence) {
+
+	var keyframes = _track.m_keyframeStore;
+	var keyframeCurrent = null;
+
+	// Find the current keyframe
+	var index = keyframes.GetKeyframeIndexAtFrame(_headPosition, _sequence.m_length);
+	if (index != -1)
+	{
+		var keyframe = keyframes.keyframes[index];
+		if (keyframe != null)
+		{
+			keyframeCurrent = keyframe.m_channels[0];
+		}
+	}
+	
+	if (_pSequenceEl.m_instanceIndex == -1) return;
+
+	var _pInst = g_pSequenceManager.GetInstanceFromID(_pSequenceEl.m_instanceIndex);
+
+	// If keyframe changed, destroy the old particle system
+	var keyframeLast = _pInst.m_trackIDToLastKeyframe[_track.id];
+	if (keyframeLast !== undefined && keyframeLast !== keyframeCurrent)
+	{
+		var psLast = _pInst.m_trackIDToPS[_track.id];
+		if (psLast !== undefined && psLast != -1)
+		{
+			ParticleSystem_Destroy(psLast);
+		}
+		_pInst.m_trackIDToPS[_track.id] = -1;
+	}
+
+	var ps = -1;
+	var particleSystem = _pInst.m_trackIDToPS[_track.id];
+	if (particleSystem === undefined || particleSystem === -1)
+	{
+		// Create a new particle system from the current key
+		if (keyframeCurrent && keyframeCurrent.particleSystemIndex != -1)
+		{
+			ps = CParticleSystem.Get(keyframeCurrent.particleSystemIndex).MakeInstance();
+			ParticleSystem_AutomaticDraw(ps, false);
+			ParticleSystem_AutomaticUpdate(ps, false);
+			_pInst.m_trackIDToPS[_track.id] = ps;
+		}
+	}
+	else
+	{
+		// The particle system already exists
+		ps = particleSystem;
+	}
+
+	// Draw the particles
+	if (ps != -1)
+	{
+		var mul = _node.value.colorMultiply;
+		var add = _node.value.colorAdd;
+		var r = Math.min(255, ((mul[0] + add[0]) * (_pSequenceEl.m_imageBlend & 0xff)));
+		var g = Math.min(255, ((mul[1] + add[1]) * ((_pSequenceEl.m_imageBlend >> 8) & 0xff)));
+		var b = Math.min(255, ((mul[2] + add[2]) * ((_pSequenceEl.m_imageBlend >> 16) & 0xff)));
+		var drawcol = (Math.max(0, r))
+					| (Math.max(0, g) << 8)
+					| (Math.max(0, b) << 16);
+		var a = Math.min(1, (mul[3] + add[3]) * _pSequenceEl.m_imageAlpha);
+
+		ParticleSystem_Draw(ps, drawcol, a);
+	}
+
+	// Keep track of the last keyframe played
+	_pInst.m_trackIDToLastKeyframe[_track.id] = keyframeCurrent;
 };
 
 yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _node, _track, _headPosition, _lastHeadPosition, _headDirection, _sequence) {

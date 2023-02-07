@@ -27,6 +27,7 @@ var AT_Object = 0,
 	AT_Shader = 10,
     AT_Sequence = 11,
     AT_AnimCurve = 12;
+    AT_ParticleSystem = 13;
 
 var TimingMethod = 1;       //tm_countvsyncs=1, tm_sleep=0
 
@@ -1668,6 +1669,7 @@ function ResourceGetTypeIndex(_name )
 	if ((ret = Resource_Find(_name, g_pGMFile.Shaders)) >= 0)                  { typeId.type=AT_Shader;     typeId.id = ret; return typeId; }
     if ((ret = Resource_Find(_name, g_pGMFile.Sequences)) >= 0)                { typeId.type=AT_Sequence;   typeId.id = ret; return typeId; }
     if ((ret = Resource_Find(_name, g_pGMFile.AnimCurves)) >= 0)               { typeId.type=AT_AnimCurve;  typeId.id = ret; return typeId; }
+    if ((ret = CParticleSystem.Find(_name)) >= 0)                              { typeId.type=AT_ParticleSystem;  typeId.id = ret; return typeId; }
     
     return typeId;
 }
