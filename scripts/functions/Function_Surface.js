@@ -1103,7 +1103,12 @@ function SurfaceFormatSupported(_format)
 	{
 		case eTextureFormat_A8R8G8B8: return true;
 		case eTextureFormat_Float16: return true;
+        case eTextureFormat_Float32: return true;
+        case eTextureFormat_A4R4G4B4: return true; 
+        case eTextureFormat_R8: return true;
+        case eTextureFormat_R8G8: return true;
 		case eTextureFormat_R16G16B16A16_Float: return true;
+        case eTextureFormat_R32G32B32A32_Float: return true;
 		default: return false;
 	}
 }
