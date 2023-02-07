@@ -876,7 +876,8 @@ function arcsin(_val)
         yyError("Value " + val + " is not within valid range [-1.0, 1.0]: arcsin()");
     }
 
-    return Math.asin(val);
+    var ret = Math.asin(val);
+    return (Math.abs(ret) < g_GMLMathEpsilon) ? 0.0 : ret;
 }
 
 function darcsin(_x) 
@@ -911,7 +912,8 @@ function arccos(_val)
         yyError("Value " + val + " is not within valid range [-1.0, 1.0]: arccos()");
     }
 
-    return Math.acos(val);
+    var ret = Math.acos(val);
+    return (Math.abs(ret) < g_GMLMathEpsilon) ? 0.0 : ret;
 }
 
 function darccos(_x) 
@@ -931,12 +933,13 @@ function darccos(_x)
 // #############################################################################################
 function arctan(_val)
 {
-    return Math.atan(yyGetReal(_val));
+    var ret = Math.atan(yyGetReal(_val));
+    return (Math.abs(ret) < g_GMLMathEpsilon) ? 0.0 : ret;
 }
 
 function darctan(_x) 
 {
-    return Math.atan(yyGetReal(_x)) * 57.2957795;
+    return arctan(_x) * 57.2957795;
 }
 
 // #############################################################################################
@@ -950,10 +953,15 @@ function darctan(_x)
 ///				
 ///			</returns>
 // #############################################################################################
-var arctan2 = Math.atan2;
+function arctan2(_y, _x)
+{
+    var ret = Math.atan2(yyGetReal(_y), yyGetReal(_x));
+    return (Math.abs(ret) < g_GMLMathEpsilon) ? 0.0 : ret;
+}
+
 function darctan2(_y,_x) 
 {
-    return Math.atan2(yyGetReal(_y), yyGetReal(_x)) * 57.2957795;
+    return arctan2(_y, _x) * 57.2957795;
 }
 
 // #############################################################################################
