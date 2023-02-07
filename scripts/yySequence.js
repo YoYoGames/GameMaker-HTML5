@@ -3523,6 +3523,7 @@ yySequenceManager.prototype.FreeInstance = function (_pInst)
 
     _pInst.CleanupInstances();
     _pInst.CleanupAudioEmitters();
+    _pInst.CleanupParticles();
 
     this.FreeInstanceFromID(_pInst.m_instanceIndex);    
 };
@@ -5003,7 +5004,7 @@ yySequenceManager.prototype.HandleParticleTrackUpdate = function (_pEl, _pSeq, _
     // Update particle system (if any)
     if (keyframeCurrent)
     {
-        var particleSystem = _pEl.m_trackIDToPS[_pTrack.id];
+        var particleSystem = _pInst.m_trackIDToPS[_pTrack.id];
         var ps = (particleSystem !== undefined) ? particleSystem : -1;
 
         if (ps != -1)
@@ -5066,6 +5067,9 @@ function CSequenceInstance(_id)
     this.trackAudio = {}; //CSeqTrackAudioInfo
     this.trackInstances = {}; //CSeqTrackInstanceInfo
 
+    this.m_trackIDToPS = {};
+    this.m_trackIDToLastKeyframe = {};
+    
     this.cachedElementID = -1;
 
     Object.defineProperties(this, {
@@ -5638,6 +5642,21 @@ CSequenceInstance.prototype.CleanupAudioEmitters = function ()
         }
 
     }
+};
+
+CSequenceInstance.prototype.CleanupParticles = function ()
+{
+    // Destroy particle systems created by the layer
+    for (var k in _seqEl.m_trackIDToPS)
+    {
+        var ps = _seqEl.m_trackIDToPS[k];
+        if (ps != -1)
+        {
+            ParticleSystem_Destroy(ps);
+        }
+    }
+    _seqEl.m_trackIDToPS = {};
+    _seqEl.m_trackIDToLastKeyframe = {};
 };
 
 CSequenceInstance.prototype.SetInstanceInSequenceStatus = function (_inSequence)

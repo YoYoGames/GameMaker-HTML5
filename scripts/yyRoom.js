@@ -3150,21 +3150,25 @@ yyRoom.prototype.HandleSequenceParticle = function (_rect, _layer, _pSequenceEl,
 			keyframeCurrent = keyframe.m_channels[0];
 		}
 	}
+	
+	if (_pSequenceEl.m_instanceIndex == -1) return;
+
+	var _pInst = g_pSequenceManager.GetInstanceFromID(_pSequenceEl.m_instanceIndex);
 
 	// If keyframe changed, destroy the old particle system
-	var keyframeLast = _pSequenceEl.m_trackIDToLastKeyframe[_track.id];
+	var keyframeLast = _pInst.m_trackIDToLastKeyframe[_track.id];
 	if (keyframeLast !== undefined && keyframeLast !== keyframeCurrent)
 	{
-		var psLast = _pSequenceEl.m_trackIDToPS[_track.id];
+		var psLast = _pInst.m_trackIDToPS[_track.id];
 		if (psLast !== undefined && psLast != -1)
 		{
 			ParticleSystem_Destroy(psLast);
 		}
-		_pSequenceEl.m_trackIDToPS[_track.id] = -1;
+		_pInst.m_trackIDToPS[_track.id] = -1;
 	}
 
 	var ps = -1;
-	var particleSystem = _pSequenceEl.m_trackIDToPS[_track.id];
+	var particleSystem = _pInst.m_trackIDToPS[_track.id];
 	if (particleSystem === undefined || particleSystem === -1)
 	{
 		// Create a new particle system from the current key
@@ -3173,7 +3177,7 @@ yyRoom.prototype.HandleSequenceParticle = function (_rect, _layer, _pSequenceEl,
 			ps = CParticleSystem.Get(keyframeCurrent.particleSystemIndex).MakeInstance();
 			ParticleSystem_AutomaticDraw(ps, false);
 			ParticleSystem_AutomaticUpdate(ps, false);
-			_pSequenceEl.m_trackIDToPS[_track.id] = ps;
+			_pInst.m_trackIDToPS[_track.id] = ps;
 		}
 	}
 	else
@@ -3199,7 +3203,7 @@ yyRoom.prototype.HandleSequenceParticle = function (_rect, _layer, _pSequenceEl,
 	}
 
 	// Keep track of the last keyframe played
-	_pSequenceEl.m_trackIDToLastKeyframe[_track.id] = keyframeCurrent;
+	_pInst.m_trackIDToLastKeyframe[_track.id] = keyframeCurrent;
 };
 
 yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _node, _track, _headPosition, _lastHeadPosition, _headDirection, _sequence) {

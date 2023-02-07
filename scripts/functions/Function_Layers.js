@@ -237,9 +237,6 @@ function CLayerSequenceElement() {
     this.m_bRuntimeDataInitialised = false;
     this.m_layer = null;
     this.m_dirtyflags = 0;
-
-    this.m_trackIDToPS = {};
-    this.m_trackIDToLastKeyframe = {};
 };
 
 /** @constructor */
@@ -949,18 +946,6 @@ LayerManager.prototype.CleanSequenceElementRuntimeData = function(_seqEl)
 
     // Delete the instance associated with this element
     g_pSequenceManager.FreeInstance(sequenceInstance);    
-
-    // Destroy particle systems created by the layer
-    for (var k in _seqEl.m_trackIDToPS)
-    {
-        var ps = _seqEl.m_trackIDToPS[k];
-        if (ps != -1)
-        {
-            ParticleSystem_Destroy(ps);
-        }
-    }
-    _seqEl.m_trackIDToPS = {};
-    _seqEl.m_trackIDToLastKeyframe = {};
 };
 
 LayerManager.prototype.AddDynamicLayer = function(_room, _depth)
