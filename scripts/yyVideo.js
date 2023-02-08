@@ -357,7 +357,7 @@ function video_draw()
             VideoPlayer_w = 1;
             VideoPlayer_h = 1;
 
-            VideoPlayer_surface = surface_create(1, 1);
+            VideoPlayer_surface = surface_create(1, 1, eTextureFormat_A8R8G8B8);
             //dbg_csol.Output("Surface Created!!! %d", (int)VideoPlayer_surface);
 			
             if (VideoPlayer_buffer >= 0 )
@@ -393,7 +393,7 @@ function video_draw()
                     buffer_delete(VideoPlayer_buffer);
                 }
                 
-                VideoPlayer_surface = surface_create(VideoPlayer_w, VideoPlayer_h);
+                VideoPlayer_surface = surface_create(VideoPlayer_w, VideoPlayer_h, eTextureFormat_A8R8G8B8);
       
                 VideoPlayer_buffer = buffer_create(VideoPlayer_w * VideoPlayer_h * 4, eBuffer_Format_Fixed, 1);
                 //dbg_csol.Output("Surface Created!!! %d; W: %d H: %d\n", (int)VideoPlayer_surface, (int)VideoPlayer_w, (int)VideoPlayer_h);

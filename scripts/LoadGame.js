@@ -853,6 +853,18 @@ function LoadGame(_GameFile)
         }
     }
 
+	// Load Particle System Emitters
+    if (_GameFile.PSEmitters !== undefined) {
+		ParticleSystem_Emitters_Load(_GameFile);
+    }
+
+	// Load Particle Systems
+    if (_GameFile.ParticleSystems !== undefined) {
+        for (index = 0; index < _GameFile.ParticleSystems.length; index++) {
+			CParticleSystem.CreateFromJSON(_GameFile.ParticleSystems[index]);
+        }
+    }
+
 	// Load Effect Defs
 	if (_GameFile.FiltersAndEffectDefs !== undefined) {
 		for (index = 0; index < _GameFile.FiltersAndEffectDefs.length; index++) {

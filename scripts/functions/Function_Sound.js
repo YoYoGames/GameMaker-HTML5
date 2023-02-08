@@ -17,8 +17,7 @@
 var audio_sounds = [];
 var BASE_SOUND_INDEX = 300000;
 var audio_sounds_index = BASE_SOUND_INDEX;
-var audio_emitters = {};
-var audio_emitters_index = 0;
+var audio_emitters = [];
 var audio_sampledata = [];
 var audio_global_paused = false;
 
@@ -364,6 +363,11 @@ audioSound.prototype.start = function(_buffer) {
     this.pbuffersource.onended = (_event) => {
         this.bActive = false;
         this.pbuffersource = null; // Release buffer source (holds the only ref to buffer for streamed sounds)
+
+        if (this.pgainnode !== null)
+            this.pgainnode.disconnect();
+
+        this.pemitter = null;
     };
 
     this.pbuffersource.connect(this.pgainnode);
@@ -868,6 +872,10 @@ function getUrlForSound( _soundid )
 var g_WaitingForWebAudioTouchUnlock = false;
 var g_HandleStreamedAudioAsUnstreamed = false;
 
+function Audio_ContextExists() {
+    return g_WebAudioContext instanceof AudioContext;
+}
+
 function Audio_IsPlaybackAllowed() {
     currentState = Audio_GetEngineState();
 
@@ -882,7 +890,7 @@ function Audio_GetEngineState() {
     if (Audio_IsMainBusInitialised() === false)
         return AudioEngineState.LOADING;
 
-    if (g_WebAudioContext instanceof AudioContext === false || g_WebAudioContext.state === WebAudioContextState.CLOSED)
+    if (Audio_ContextExists() === false || g_WebAudioContext.state === WebAudioContextState.CLOSED)
         return AudioEngineState.CLOSED;
 
     if (g_WebAudioContext.state === WebAudioContextState.SUSPENDED)
@@ -1091,6 +1099,17 @@ function Audio_GetSound(soundid)
 	return pSound;
 }
 
+function Audio_GetEmitterOrThrow(_emitterIndex) {
+    const emitterExists = audio_emitter_exists(_emitterIndex);
+
+    if (emitterExists === false) {
+        yyError("Emitter with index " + _emitterIndex + " does not exist!");
+        return undefined;
+    }
+
+    return audio_emitters[_emitterIndex];
+}
+
 function audio_play_sound_common(_props) {
     if (_props.invalid())
         return -1;
@@ -1107,9 +1126,9 @@ function audio_play_sound_common(_props) {
         case AudioPlaybackType.POSITIONAL_SPECIFIED:
             const pos = _props.position;
             // Create a temporary emitter
-            _props.emitter = create_emitter();
+            _props.emitter = new AudioEmitter();
             _props.emitter.setPosition(pos.x, pos.y, pos.z);
-            emitter_set_falloff(_props.emitter, pos.falloff_ref, pos.falloff_max, pos.falloff_factor);
+            _props.emitter.setFalloff(pos.falloff_ref, pos.falloff_max, pos.falloff_factor);
             // Intentional fall-through
         case AudioPlaybackType.POSITIONAL_EMITTER:
             voice.pemitter = _props.emitter;
@@ -1712,12 +1731,14 @@ function audio_system() {
         return 0;
 }
 
-function audio_emitter_exists(_emitterid)
+/* Returns true if the an emitter both exists and is active. */
+function audio_emitter_exists(_emitterIndex)
 {
-    if(audio_emitters[yyGetInt32(_emitterid)]!=undefined)
-        return true;
-        
-    return false;
+    _emitterIndex = yyGetInt32(_emitterIndex);
+
+    const emitter = audio_emitters[_emitterIndex];
+
+    return emitter instanceof AudioEmitter && emitter.isActive() === true;
 }
 
 function audio_get_type(_soundid)
@@ -1815,27 +1836,20 @@ function audio_falloff_set_model(_model)
 			break;
     }
 
-    //update existing emitters (falloff model actually a property of emitter )
-    for (var key in audio_emitters)
-    {
-        if( !audio_emitters.hasOwnProperty(key))
-            continue;
-        var emitter = audio_emitters[key];
-        emitter.distanceModel = falloff_model;
-        
-        //set/restore rolloff factor
-        if (g_AudioFalloffModel == DistanceModels.AUDIO_FALLOFF_NONE)
-        {
-            emitter.original_rolloffFactor = emitter.rolloffFactor;
-            emitter.rolloffFactor = 0;
-        }
-        else if (typeof emitter.original_rolloffFactor !== 'undefined')
-        {
-            emitter.rolloffFactor = emitter.original_rolloffFactor;
-            emitter.original_rolloffFactor = undefined;
-        }
-    }
-    
+    audio_emitters.filter(_emitter => _emitter.isActive() === true)
+                  .forEach(_emitter => {
+                      _emitter.distanceModel = falloff_model;
+
+                      //set/restore rolloff factor
+                      if (g_AudioFalloffModel == DistanceModels.AUDIO_FALLOFF_NONE) {
+                          _emitter.original_rolloffFactor = _emitter.rolloffFactor;
+                          _emitter.rolloffFactor = 0;
+                      }
+                      else if (_emitter.original_rolloffFactor !== undefined) {
+                          _emitter.rolloffFactor = _emitter.original_rolloffFactor;
+                          _emitter.original_rolloffFactor = undefined;
+                      }
+                });
 }
 
 //TODO - used for both system pause & audio_pause_all - check logic...
@@ -2082,171 +2096,81 @@ function audio_listener_get_data( _listenerId )
     return -1;
 }
 
-function audio_emitter_position( _one,_two,_three,_four)
-{
-    if(g_AudioModel==Audio_WebAudio)
-    {
-        var emitter = audio_emitters[yyGetInt32(_one)];
-        if( emitter != undefined )
-        {
-            _two = yyGetReal(_two);
-            _three = yyGetReal(_three);
-            _four = yyGetReal(_four);
+/* Sets an emitter's 3D position. */
+function audio_emitter_position(_emitterIndex, _x, _y, _z) {
+    const emitter = Audio_GetEmitterOrThrow(_emitterIndex);
 
-            emitter.setPosition(_two,_three,_four);
-            emitter.pos.X = _two;
-            emitter.pos.Y = _three;
-            emitter.pos.Z = _four;
-        }
-    }
-}
-
-
-function audio_emitter_get_x( _emitterId )
-{
-    var emitter = audio_emitters[yyGetInt32(_emitterId)];
-    if( emitter != undefined )
-    {
-        return emitter.pos.X;
-    }
-    return 0;
-}
-
-function audio_emitter_get_y( _emitterId )
-{
-    var emitter = audio_emitters[yyGetInt32(_emitterId)];
-    if( emitter != undefined )
-    {
-        return emitter.pos.Y;
-    }
-    return 0;
-}
-
-function audio_emitter_get_z( _emitterId )
-{
-    var emitter = audio_emitters[yyGetInt32(_emitterId)];
-    if( emitter != undefined )
-    {
-        return emitter.pos.Z;
-    }
-    return 0;
-}
-
-function audio_emitter_velocity( _one,_two,_three,_four)
-{
-//html5 panner doesn't have a velocity element
-   // if(g_AudioModel==Audio_WebAudio)
-   // {
-  //      var emitter = audio_emitters[_one];
-  //      if( emitter != undefined )
-  //      {
-           // emitter.setVelocity(_two,_three,_four);
-  //          emitter.velocity.X = _two;
-  //          emitter.velocity.Y = _three;
-  //          emitter.velocity.Z = _four;
-  //      }
-  //  }
-}
-
-function audio_emitter_get_vx( _emitterId )
-{
-    var emitter = audio_emitters[yyGetInt32(_emitterId)];
-    if( emitter != undefined )
-    {
-        return emitter.velocity.X;
-    }
-    return 0;
-}
-
-function audio_emitter_get_vy( _emitterId )
-{
-    var emitter = audio_emitters[yyGetInt32(_emitterId)];
-    if( emitter != undefined )
-    {
-        return emitter.velocity.Y;
-    }
-    return 0;
-}
-
-function audio_emitter_get_vz( _emitterId )
-{
-    var emitter = audio_emitters[yyGetInt32(_emitterId)];
-    if( emitter != undefined )
-    {
-        return emitter.velocity.Z;
-    }
-    return 0;
-}
-
-//creates a new web audio panner and returns it
-function create_emitter()
-{
-    if (Audio_IsMainBusInitialised() === false) {
-        console.error("Cannot create audio emitters until audio engine is running - check audio_system_is_initialised()");
-        return null;
-    }
-
-    const emitter = g_WebAudioContext.createPanner();			// also clears to defaults.
-    emitter.gainnode = g_WebAudioContext.createGain();
-    emitter.gainnode.gain.value = 1.0;
-    g_AudioBusMain.connectInput(emitter.gainnode);
-    emitter.connect(emitter.gainnode);
-    emitter.bus = g_AudioBusMain;
-    emitter.maxDistance = 100000;
-    emitter.refDistance = 100;  //to match native    
-    emitter.pitch = 1.0;
-    emitter.rolloffFactor = 1;
-    if (g_AudioFalloffModel == DistanceModels.AUDIO_FALLOFF_NONE) {
-        emitter.rolloffFactor = 0;   //no falloff
-        emitter.original_rolloffFactor = 1;
-    }
-
-    emitter.coneInnerAngle = 360;
-    emitter.coneOuterAngle = 0;
-    emitter.coneOuterGain = 0;
-    emitter.distanceModel = falloff_model;
-    emitter.panningModel = 'equalpower';
-    //store position/velocity for getters
-    emitter.setPosition(0, 0, 0.01);
-    emitter.pos = new Vector3(0, 0, 0.01);
-    return emitter;
-}
-
-function audio_emitter_create()
-{
-    if (g_AudioModel !== Audio_WebAudio)
+    if (emitter === undefined)
         return;
 
-    const emitter = create_emitter();
+    _x = yyGetReal(_x);
+    _y = yyGetReal(_y);
+    _z = yyGetReal(_z);
+
+    emitter.setPosition(_x, _y, _z);
+}
+
+/* Retrieves an emitter's x-coordinate. */
+function audio_emitter_get_x(_emitterIndex) {
+    const emitter = Audio_GetEmitterOrThrow(_emitterIndex);
+
+    if (emitter === undefined)
+        return 0.0;
+
+    return emitter.getPositionX();
+}
+
+/* Retrieves an emitter's y-coordinate. */
+function audio_emitter_get_y(_emitterIndex) {
+    const emitter = Audio_GetEmitterOrThrow(_emitterIndex);
+
+    if (emitter === undefined)
+        return 0.0;
+
+    return emitter.getPositionY();
+}
+
+/* Retrieves an emitter's z-coordinate. */
+function audio_emitter_get_z(_emitterIndex) {
+    const emitter = Audio_GetEmitterOrThrow(_emitterIndex);
+
+    if (emitter === undefined)
+        return 0.0;
+
+    return emitter.getPositionZ();
+}
+
+/* Creates a new emitter or reuses an inactive one. Returns its index. */
+function audio_emitter_create() {
+    /* Try to reuse an inactive emitter */
+    const inactiveIndex = audio_emitters.findIndex(_emitter => _emitter.active === false);
+
+    if (inactiveIndex !== -1) {
+        audio_emitters[inactiveIndex].reset();
+        return inactiveIndex;
+    }
+
+    /* Otherwise create a new one */
+    const emitter = new AudioEmitter();
 
     if (emitter === null)
         return undefined;
-        
-    const emitterIndex = audio_emitters_index;
-    audio_emitters[emitterIndex] = emitter;
-    ++audio_emitters_index;
 
-    return emitterIndex;
+    return audio_emitters.push(emitter) - 1;
 }
 
-function audio_emitter_free(_emitterid)
-{
-    if (g_AudioModel !== Audio_WebAudio)
-        return;
-
-    _emitterid = yyGetInt32(_emitterid);
-
-    const emitter = audio_emitters[_emitterid];
+/* Stops all voices on an emitter and marks the emitter for reuse. */
+function audio_emitter_free(_emitterIndex) {
+    const emitter = Audio_GetEmitterOrThrow(_emitterIndex);
 
     if (emitter === undefined)
         return;
 
     audio_sounds.filter(_voice => _voice.pemitter === emitter)
                 .forEach(_voice => _voice.stop());
-        
-    emitter.disconnect();
+
     emitter.gainnode.disconnect();
-    delete audio_emitters[_emitterid];
+    emitter.active = false;
 }
 
 function audio_master_gain( _one)
@@ -2274,107 +2198,69 @@ function audio_get_master_gain( _listenerId )
     return 0;
 }
 
+/* Sets the gain of an emitter. Also updates any voices playing on the emitter. */
+function audio_emitter_gain(_emitterIndex, _gain) {
+    const emitter = Audio_GetEmitterOrThrow(_emitterIndex);
 
-function audio_emitter_gain(_emitter_index, _gain)
-{
-    if (g_AudioModel != Audio_WebAudio)
-        return;
-        
-    const emitter = audio_emitters[yyGetInt32(_emitter_index)];
-
-    if (emitter != undefined)
-    {
-        // This will also update any voices using this emitter
-        emitter.gainnode.gain.value = yyGetReal(_gain);
-    }
-}
-
-function audio_emitter_get_gain(_emitter_index)
-{
-    if (g_AudioModel == Audio_WebAudio)
-    {
-        const emitter = audio_emitters[yyGetInt32(_emitter_index)];
-
-        if (emitter != undefined)
-        {
-            return emitter.gainnode.gain.value;
-        }
-    }
-
-    return 0.0;
-}
-
-function audio_emitter_pitch(index, pitch)
-{
-    if (g_AudioModel != Audio_WebAudio)
+    if (emitter === undefined)
         return;
 
-    index = yyGetInt32(index);
+    _gain = yyGetReal(_gain);
+    _gain = Math.max(0.0, _gain);
 
-    const emitter = audio_emitters[index];
+    /* Voice gain is updated in audio_update() */
+    emitter.gainnode.gain.value = _gain;
+}
 
-    if (emitter == undefined)
+/* Retrieves the gain of an emitter. */
+function audio_emitter_get_gain(_emitterIndex) {
+    const emitter = Audio_GetEmitterOrThrow(_emitterIndex);
+
+    if (emitter === undefined)
+        return 0.0;
+
+    return emitter.gainnode.gain.value;
+}
+
+/* Sets the pitch of an emitter. Also updates any voices playing on the emitter. */
+function audio_emitter_pitch(_emitterIndex, _pitch) {
+    const emitter = Audio_GetEmitterOrThrow(_emitterIndex);
+
+    if (emitter === undefined)
         return;
 
-    pitch = yyGetReal(pitch);
+    _pitch = yyGetReal(_pitch);
+    _pitch = Math.max(0.0, _pitch);
 
-    emitter.pitch = pitch;
+    emitter.pitch = _pitch;
 
-    // Apply pitch change to all voices playing on this emitter
-    for (let i = 0; i < g_audioSoundCount; ++i)
-	{
-        const voice = audio_sounds[i];
-
-        if (voice.bActive) 
-		{
-            if (voice.pemitter === emitter) 
-            {
-                voice.setPlaybackCheckpoint();
-
-                const new_pitch = AudioPropsCalc.CalcPitch(voice);
-
-                voice.pbuffersource.playbackRate.value = new_pitch;
-            }
-		}
-    } 
+    /* Update voices playing on this emitter */
+    audio_sounds.filter(_voice => _voice.pemitter === emitter)
+                .forEach(_voice => _voice.updatePitch());
 }
 
-function audio_emitter_get_pitch(_emitterId)
-{
-    if (g_AudioModel == Audio_WebAudio)
-    {
-        const emitter = audio_emitters[yyGetInt32(_emitterId)];
+/* Retrieves the pitch of an emitter. */
+function audio_emitter_get_pitch(_emitterIndex) {
+    const emitter = Audio_GetEmitterOrThrow(_emitterIndex);
 
-        if (emitter != undefined)
-        {
-            return emitter.pitch;
-        }
-    }
+    if (emitter === undefined)
+        return 1.0;
 
-    return 1.0;
+    return emitter.pitch;
 }
 
-function audio_emitter_falloff(_one,_two,_three,_four)
-{
-    if(g_AudioModel!= Audio_WebAudio)
+/* Sets the falloff attributes of an emitter. */
+function audio_emitter_falloff(_emitterIndex, _falloffRef, _falloffMax, _falloffFactor) {
+    const emitter = Audio_GetEmitterOrThrow(_emitterIndex);
+
+    if (emitter === undefined)
         return;
-        
-    var emitter = audio_emitters[yyGetInt32(_one)];
-    if (emitter != undefined) {
-        emitter_set_falloff(emitter, yyGetReal(_two), yyGetReal(_three), yyGetReal(_four));
-    }
-}
 
-function emitter_set_falloff(emitter, falloff_ref, falloff_max, falloff_fac)
-{
-    emitter.refDistance = falloff_ref;
-    emitter.maxDistance = falloff_max;
-    emitter.rolloffFactor = falloff_fac;
-    emitter.distanceModel = falloff_model;
-    if (g_AudioFalloffModel == DistanceModels.AUDIO_FALLOFF_NONE) {
-        emitter.original_rolloffFactor = emitter.rolloffFactor;
-        emitter.rolloffFactor = 0;
-    }
+    _falloffRef = yyGetReal(_falloffRef);
+    _falloffMax = yyGetReal(_falloffMax);
+    _falloffFactor = yyGetReal(_falloffFactor);
+
+    emitter.setFalloff(_falloffRef, _falloffMax, _falloffFactor);
 }
 
 function audio_channel_num( _num_channels)
@@ -2399,14 +2285,20 @@ function audio_channel_num( _num_channels)
 	audio_max_playing_sounds = _num_channels;
 }
 
-//multiple listener support - stub functions since only 1 web audio listener
-function audio_sound_get_listener_mask(soundid)             { return 1; }
-function audio_sound_set_listener_mask(soundid,mask)        {}
-function audio_emitter_get_listener_mask(emitterid)         { return 1;}
-function audio_emitter_set_listener_mask(emitterid,mask)    {}
-function audio_get_listener_mask()                          { return 1;}
-function audio_set_listener_mask(mask)                      {}
-function audio_get_listener_count()                         { return 1;}
+/* These functions return the global listener mask as AudioContext only 
+   provides a single listener. Given that AudioContext automatically attaches
+   to the default device, it is therefore not possible to support more than one listener.
+
+   However, it seems that the Web Audio spec now specifies that each AudioContext should
+   allow a sinkId (i.e. device) to be specified. This now opens up the possibility of 
+   supporting multiple listeners on HTML5. Of course, browser support will need to catch up first.
+   See https://caniuse.com/?search=audiocontext.sinkid
+*/
+function audio_sound_get_listener_mask(_voiceIndex)         { return 1; }
+function audio_emitter_get_listener_mask(_emitterIndex)     { return 1; }
+function audio_get_listener_mask()                          { return 1; }
+function audio_get_listener_count()                         { return 1; }
+
 function audio_get_listener_info(index)                     
 {
     if(g_AudioModel== Audio_WebAudio)
@@ -3678,65 +3570,65 @@ function audio_bus_create()
 
 function audio_effect_create(_type, _params)
 {
-    if (_params && typeof _params !== "object")
+    if (_params && typeof _params !== "object") {
         yyError("Error: Audio effect parameters must be a struct");
+        return undefined;
+    }
 
     return AudioEffectStruct.Create(_type, _params);
 }
 
-function audio_emitter_bus(_emitterIdx, _bus)
-{
-    const emitter = audio_emitters[yyGetInt32(_emitterIdx)];
+/* Sets an emitter's linked bus. Also updates any voices playing on the emitter. */
+function audio_emitter_bus(_emitterIndex, _bus) {
+    const emitter = Audio_GetEmitterOrThrow(_emitterIndex);
 
     if (emitter === undefined)
         return;
 
-    if (_bus instanceof Audio_GetBusType() === false)
+    if (_bus instanceof Audio_GetBusType() === false) {
         yyError("audio_emitter_bus() - argument 'bus' should be a Struct.AudioBus");
+        return;
+    }
 
-    emitter.gainnode.disconnect();
-    _bus.connectInput(emitter.gainnode);
-    emitter.bus = _bus;
+    emitter.setBus(_bus);
 }
 
-function audio_emitter_get_bus(_emitterIdx)
-{
-    const emitter = audio_emitters[yyGetInt32(_emitterIdx)];
+/* Retrieves an emitter's linked bus. */
+function audio_emitter_get_bus(_emitterIndex) {
+    const emitter = Audio_GetEmitterOrThrow(_emitterIndex);
 
     if (emitter === undefined)
         return undefined;
 
-    return emitter.bus;
+    return emitter.getBus();
 }
 
-function audio_bus_get_emitters(_bus)
-{
-    if (_bus instanceof Audio_GetBusType() === false)
+function audio_bus_get_emitters(_bus) {
+    if (_bus instanceof Audio_GetBusType() === false) {
         yyError("audio_bus_get_emitters() - argument 'bus' should be a Struct.AudioBus");
-
-    const emitterIds = [];
-
-    for (const id in audio_emitters) {
-        if (audio_emitters[id].bus === _bus)
-            emitterIds.push(Number(id));
+        return undefined;
     }
 
-    return emitterIds;
+    const emitterIndices = [];
+
+    audio_emitters.forEach((_emitter, _index) => {
+        if (_emitter.bus === _bus && _emitter.isActive() === true)
+            emitterIndices.push(_index);
+    });
+
+    return emitterIndices;
 }
 
 /* Relinks all of the emitters attached to the given bus back to the main bus. */
-function audio_bus_clear_emitters(_bus)
-{
+function audio_bus_clear_emitters(_bus) {
     if (Audio_IsMainBusInitialised() === false || _bus instanceof Audio_GetBusType() === false || _bus === g_AudioBusMain)
         return;
 
-    for (const index in audio_emitters) {
-        const emitter = audio_emitters[index];
-
-        if (emitter.bus === _bus) {
-            emitter.gainnode.disconnect();
-            g_AudioBusMain.connectInput(emitter.gainnode);
-            emitter.bus = g_AudioBusMain;
-        }
-    }
+    audio_emitters.filter(_emitter => _emitter.bus === _bus)
+                  .filter(_emitter => _emitter.isActive() === true)
+                  .forEach(_emitter => {
+                      _emitter.gainnode.disconnect();
+                      g_AudioBusMain.connectInput(_emitter.gainnode);
+                      _emitter.bus = g_AudioBusMain;
+                  });
 }
