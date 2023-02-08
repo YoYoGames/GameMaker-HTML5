@@ -421,6 +421,23 @@ Matrix.prototype.SetTranslation = function(_x, _y, _z) {
 
 // #############################################################################################
 /// Function:<summary>
+///             Translate the matrix
+///          </summary>
+///
+/// In:		 <param name="_x">X offset</param>
+///			 <param name="_y">Y offset</param>
+///			 <param name="_z">Z offset</param>
+///
+// #############################################################################################
+Matrix.prototype.Translation = function (_x, _y, _z) {
+
+	this.m[_41] += _x;
+	this.m[_42] += _y;
+	this.m[_43] += _z;
+};
+
+// #############################################################################################
+/// Function:<summary>
 ///             Build a scale matrix
 ///          </summary>
 // #############################################################################################

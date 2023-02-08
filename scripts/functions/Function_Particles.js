@@ -24,11 +24,27 @@
 ///             This index must be used in all calls below to set the properties of the particle system.
 ///          </summary>
 ///
+/// In:		<param name="_partsys"></param>
 /// Out:	<returns>
 ///				
 ///			</returns>
 // #############################################################################################
-var part_system_create = ParticleSystem_Create;
+var part_system_create = function (_partsys)
+{
+    if (_partsys === undefined)
+    {
+        return ParticleSystem_Create();
+    }
+
+    _partsys = yyGetInt32(_partsys);
+
+    var _system = CParticleSystem.Get(_partsys);
+    if (_system == null)
+    {
+        return -1;
+    }
+    return _system.MakeInstance();
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -822,7 +838,7 @@ function effect_clear()
 	}
 }
 
-function part_system_create_layer(_layerid, _persistent)
+function part_system_create_layer(_layerid, _persistent, _partsys)
 {
     var room = g_pLayerManager.GetTargetRoomObj();
     
@@ -847,8 +863,19 @@ function part_system_create_layer(_layerid, _persistent)
         _persistent = yyGetBool(_persistent);
     }
 
-    var ret = ParticleSystem_Create(layer.m_id, _persistent);
-    return ret;
+    if (_partsys === undefined)
+    {
+        return ParticleSystem_Create(layer.m_id, _persistent);
+    }
+
+    _partsys = yyGetInt32(_partsys);
+
+    var _system = CParticleSystem.Get(_partsys);
+    if (_system == null)
+    {
+        return -1;
+    }
+    return _system.MakeInstance(layer.m_id, _persistent);
 }
 
 function part_system_get_layer(_ind)

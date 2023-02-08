@@ -1772,6 +1772,11 @@ function gif_add_surface(gif, surface, delaytime, xoffset, yoffset, quantquality
 	var pSurf = g_Surfaces.Get(yyGetInt32(surface));
     if (pSurf != null) {
 
+		if (pSurf.FrameBufferData.Texture.Format != eTextureFormat_A8R8G8B8)
+        {
+            debug("Surface " + yyGetInt32(_id) + " can't be used as a gif source as it uses unsupported format " + g_webGL.GetSurfaceFormatName(pSurf.FrameBufferData.Texture.Format));
+            return -1;
+        }
         var encoder = g_Gifs[yyGetInt32(gif)];
 
         if (encoder == null)
