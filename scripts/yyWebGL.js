@@ -87,6 +87,7 @@ var g_extColourBufferHalfFloat = null;
 var g_extTextureFloat = null;
 var g_extTextureFloatLinear = null;
 var g_extColourBufferFloat = null;
+var g_extStandardDerivatives = null;
 
 var g_SupportHalfFloatSurfs = false;
 var g_SupportFloatSurfs = false;
@@ -96,6 +97,9 @@ var g_SupportSubFourChannelIntSurfs = false;
 var g_HalfFloatSurfsUseSizedFormats = false;		
 var g_FloatSurfsUseSizedFormats = false;
 var g_IntSurfsUseSizedFormats = false;
+
+var g_SupportGLSLDerivatives = false;
+var g_AppendDerivativesExtToShader = false;
 
 // #############################################################################################
 /// Function:<summary>

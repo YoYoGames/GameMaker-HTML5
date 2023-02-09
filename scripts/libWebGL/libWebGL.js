@@ -214,6 +214,17 @@ function yyWebGL(_canvas, _options) {
                 }
             }
         }
+
+        g_extStandardDerivatives = gl.getExtension('OES_standard_derivatives');
+        if (g_isWebGL2 || g_extStandardDerivatives)
+        {
+            g_SupportGLSLDerivatives = true;
+
+            if (g_extStandardDerivatives)
+            {
+                g_AppendDerivativesExtToShader = true;
+            }
+        }
     }
             
     // #############################################################################################
@@ -275,8 +286,8 @@ function yyWebGL(_canvas, _options) {
 
 	    var glcontext = null;
 	    //f=M.getContext(           "experimental-webgl",{antialias:l})))
-	    //var contextNames = ["webgl","experimental-webgl","moz-webgl","webkit-3d"];
-        var contextNames = ["webgl2", "webgl","experimental-webgl","moz-webgl","webkit-3d"];
+	    var contextNames = ["webgl","experimental-webgl","moz-webgl","webkit-3d"];      // unfortunately we need to drop back to WebGL1 in order to support OES_standard_derivatives
+        //var contextNames = ["webgl2", "webgl","experimental-webgl","moz-webgl","webkit-3d"];
 	    //if (window.WebGLRenderingContext)
 	    {
 		    for (var i = 0; i < contextNames.length; i++)
@@ -418,14 +429,21 @@ function yyWebGL(_canvas, _options) {
     // #############################################################################################
     function addshader(prog, type, source) {
 
+        var glShadType = (type == 'vertex') ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER;
 	    var s = gl.createShader((type == 'vertex') ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER);	
-	    gl.shaderSource(s, source);
+        var shadsource = source;
+        if ((glShadType == gl.FRAGMENT_SHADER) && g_AppendDerivativesExtToShader)
+        {
+            shadsource = "#extension GL_OES_standard_derivatives : enable\n" + source;
+        }
+	    gl.shaderSource(s, shadsource);
 	    gl.compileShader(s);
 	    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
 	    {
-	        alert("Could not compile " + type + " shader:\n\n" + gl.getShaderInfoLog(s));
+	        //alert("Could not compile " + type + " shader:\n\n" + gl.getShaderInfoLog(s));
+            console.log("Could not compile " + type + " shader:\n\n" + gl.getShaderInfoLog(s));
 	        console.log("----------------Shader Begin----------------");
-	        console.log(source);
+	        console.log(shadsource);
 	        console.log("-----------------Shader END----------------");
 		    return;
 	    }
