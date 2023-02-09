@@ -1226,7 +1226,7 @@ yyFontManager.prototype.Start_Rendering_SDF = function()
 
 		this.SDF_State.usingSDFShader = true;
 	}
-}
+};
 
 yyFontManager.prototype.End_Rendering_SDF = function()
 {
@@ -1241,7 +1241,7 @@ yyFontManager.prototype.End_Rendering_SDF = function()
 			this.SDF_State.usingSDFShader = false;
 		}
 	}
-}
+};
 
 // #############################################################################################
 /// Function:<summary>
