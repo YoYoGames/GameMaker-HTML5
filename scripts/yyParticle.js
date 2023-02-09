@@ -1306,20 +1306,6 @@ function ParticleSystem_Emitters_Load(_GameFile)
 		type.alphaend = ((yypt.endColour >> 24) & 0xFF) / 255.0;
 		type.additiveblend = yypt.additiveBlend;
 
-		var presetImagePath = yypt.presetImagePath;
-		if (presetImagePath !== undefined)
-		{
-			var entry = _GameFile.EmbeddedEntries[presetImagePath];
-			var tpage = _GameFile.TPageEntries[entry];
-			var index = g_presetToIndex[presetImagePath];
-			if (index === undefined)
-			{
-				index = g_presetIndexNext++;
-				g_ParticleTextures[index] = tpage;
-			}
-			type.shape = index;
-		}
-
 		////////////////////////////////////////////////////////////////////////
 		// Emitter
 		var emitter = new yyEmitter();
