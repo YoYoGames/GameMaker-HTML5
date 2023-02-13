@@ -4759,7 +4759,7 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
                             audio_sound_set_track_position(pAudioInfo.soundindex, timefromstart);
                         }
 
-                        if (pAudioInfo.soundindex != -1)
+                        if (pAudioInfo.soundindex != -1 && audio_emitter_exists(pAudioInfo.emitterindex) === true)
                         {
                             audio_emitter_gain(pAudioInfo.emitterindex, gain);
                             audio_emitter_pitch(pAudioInfo.emitterindex, pitch);
@@ -5525,7 +5525,7 @@ CSequenceInstance.prototype.SetupAudioEmitters = function (_tracks)
                             {
                                 // Create an audio emitter
                                 var emitter = audio_emitter_create();
-                                if ((emitter != undefined) && (emitter != -1))
+                                if (audio_emitter_exists(emitter) === true)
                                 {
                                     var newAudioInfo = new CSeqTrackAudioInfo();
                                     newAudioInfo.emitterindex = emitter;
@@ -5632,7 +5632,7 @@ CSequenceInstance.prototype.CleanupAudioEmitters = function ()
         {
             var pInfo = this.trackAudio[key];
 
-            if ((pInfo.emitterindex != undefined) && (pInfo.emitterindex >= 0))
+            if (audio_emitter_exists(pInfo.emitterindex) === true)
             {
                 audio_stop_sound(pInfo.soundindex);
                 audio_emitter_free(pInfo.emitterindex);
