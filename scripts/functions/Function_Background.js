@@ -118,7 +118,7 @@ function background_get_height(_resourceindex)
 // #############################################################################################
 function background_create_from_screen(_x,_y,_w,_h,_removeback,_smooth)
 {
-    var surfid = surface_create(_w,_h);
+    var surfid = surface_create(_w,_h, eTextureFormat_A8R8G8B8);
     var pDest = g_Surfaces.Get(surfid);
 
     // Fill the surface with the colour
@@ -173,7 +173,7 @@ function background_create_from_screen(_x,_y,_w,_h,_removeback,_smooth)
 function background_create_from_surface(_id,_x,_y,_w,_h,_removeback,_smooth)
 {
     var pSrc = g_Surfaces.Get(_id);
-    var surfid = surface_create(_w,_h);
+    var surfid = surface_create(_w,_h, eTextureFormat_A8R8G8B8);
     var pDest = g_Surfaces.Get(surfid);
 
     // Fill the surface with the colour
@@ -217,7 +217,7 @@ function background_create_from_surface(_id,_x,_y,_w,_h,_removeback,_smooth)
 // #############################################################################################
 function background_create_color(_w,_h,_colour)
 {
-    var surf = surface_create(_w,_h);
+    var surf = surface_create(_w,_h, eTextureFormat_A8R8G8B8);
     var pSurf = g_Surfaces.Get(surf);
 
     // Fill the surface with the colour
@@ -265,7 +265,7 @@ var background_create_colour = background_create_color;
 // #############################################################################################
 function    background_create_gradient(_w,_h,_col1,_col2,_kind) 
 {
-    var surf = surface_create(_w,_h);
+    var surf = surface_create(_w,_h, eTextureFormat_A8R8G8B8);
     var pSurf = g_Surfaces.Get(surf);
 
     // Fill the surface with the colour

@@ -1549,7 +1549,7 @@ yyEffectsManager.prototype.AcquireTempSurface = function (_width, _height)
 	pSurf.width = _width;
 	pSurf.height = _height;
 	pSurf.inUse = true;
-	pSurf.surfaceID = surface_create(_width, _height);
+	pSurf.surfaceID = surface_create(_width, _height, eTextureFormat_A8R8G8B8);
 	pSurf.frameLastUsed = -1;		// irrelevant just now
 
 	this.m_TempSurfaces[this.m_TempSurfaces.length] = pSurf;	

@@ -69,7 +69,7 @@ AudioPlaybackProps.prototype.invalid = function() {
         return true;
     }
 
-    if (!Audio_WebAudioPlaybackAllowed()) {
+    if (Audio_IsPlaybackAllowed() === false) {
         debug("Audio playback failed. WebAudio Context suspended (user must interact with the page before audio can be played).");
         return true;
     }
