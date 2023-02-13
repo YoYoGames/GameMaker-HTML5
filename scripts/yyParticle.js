@@ -153,6 +153,8 @@ function yyEmitter()
 /**@constructor*/
 function Emitter_Reset()
 {
+	this.particles = [];							// the particles
+
 	this.created = true;		// whether created
 
 	this.mode = PT_MODE_UNDEFINED;	// stream or burst
@@ -227,7 +229,6 @@ function ParticleSystem_ClearClass()
 {
 	this.created = false;					// whether created
 	
-	this.particles = [];							// the particles
 	this.emitters = []; 						// the emitters
 	
 	this.oldtonew = true;					// whether drawing from old to new
@@ -359,7 +360,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 
 	var system = g_ParticleSystems[ps];
 
-	for (var i = 0; i < this.emitters.length; ++i)
+	for (var i = this.emitters.length - 1; i >= 0; --i)
 	{
 		var emitterIndex = this.emitters[i];
 
@@ -1476,6 +1477,33 @@ function	ParticleSystem_Emitter_Region(_ps, _ind, _xmin, _xmax, _ymin, _ymax, _s
     pEmitter.posdistr = yyGetInt32(_posdistr);
 }
 
+function EmitParticles(_ps, _em, _x, _y, _parttype, _numb, _applyColor, _col)
+{
+	_applyColor = (_applyColor === undefined) ? false : _applyColor;
+	_col = (_col === undefined) ? 0xFFFFFF : _col;
+
+	if (_applyColor)
+		_col = ConvertGMColour(yyGetInt32(_col));
+
+	_numb = yyGetInt32(_numb);
+	_parttype = yyGetInt32(_parttype);
+
+	var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
+	if( pPartSys ==null || pPartSys==undefined ) return;
+	
+	var pParType = g_ParticleTypes[_parttype];
+	if( pParType == null || pParType==undefined ) return false;
+
+	for(var i = 0; i < _numb; i++)
+	{
+		var particles = pPartSys.emitters[_em].particles;
+		var index = particles.length;
+		particles[index] = CreateParticle(yyGetReal(_x), yyGetReal(_y), _parttype);
+
+		if (_applyColor)
+			particles[index].color = _col;
+	}
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -1552,11 +1580,11 @@ function	ParticleSystem_Emitter_Burst(_ps, _ind, _ptype, _numb)
 
 		if ( pEmitter.shape==PART_ESHAPE_LINE )
 		{
-			ParticleSystem_Particles_Create(_ps,pEmitter.xmin + (pEmitter.xmax-pEmitter.xmin)*xx,pEmitter.ymin + (pEmitter.ymax-pEmitter.ymin)*xx,_ptype,1);
+			EmitParticles(_ps, _ind, pEmitter.xmin + (pEmitter.xmax-pEmitter.xmin)*xx,pEmitter.ymin + (pEmitter.ymax-pEmitter.ymin)*xx,_ptype,1);
 		}
 		else
 		{
-			ParticleSystem_Particles_Create(_ps,pEmitter.xmin + (pEmitter.xmax-pEmitter.xmin)*xx,pEmitter.ymin + (pEmitter.ymax-pEmitter.ymin)*yy,_ptype,1);
+			EmitParticles(_ps, _ind, pEmitter.xmin + (pEmitter.xmax-pEmitter.xmin)*xx,pEmitter.ymin + (pEmitter.ymax-pEmitter.ymin)*yy,_ptype,1);
 		}
 	}
 }
@@ -1603,20 +1631,11 @@ function	ParticleSystem_Emitter_Stream( _ps, _ind, _ptype, _numb)
 // #############################################################################################
 function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 {
-	_numb = yyGetInt32(_numb);
-	_parttype = yyGetInt32(_parttype);
+	var em = (partsystems.arr[ps].emitters.length == 0)
+		? ParticleSystem_Emitter_Create(ps)
+		: 0;
 
-	var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
-	if( pPartSys ==null || pPartSys==undefined ) return;
-	
-	var pParType = g_ParticleTypes[_parttype];
-	if( pParType == null || pParType==undefined ) return false;
-
-	for(var i = 0; i < _numb; i++)
-	{
-		var index = pPartSys.particles.length;
-		pPartSys.particles[index] = CreateParticle(yyGetReal(_x), yyGetReal(_y), _parttype);
-	}
+	EmitParticles(_ps, em, _x, _y, _parttype, _numb);
 }
 
 // #############################################################################################
@@ -1635,21 +1654,11 @@ function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 // #############################################################################################
 function	ParticleSystem_Particles_Create_Color( _ps, _x, _y, _parttype, _col, _numb)
 {
-    _numb = yyGetInt32(_numb);
-    _parttype = yyGetInt32(_parttype);
+    var em = (partsystems.arr[ps].emitters.length == 0)
+		? ParticleSystem_Emitter_Create(ps)
+		: 0;
 
-	var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
-	if( pPartSys ==null || pPartSys==undefined ) return;
-	
-	var pParType = g_ParticleTypes[_parttype];
-	if( pParType == null || pParType==undefined ) return false;
-
-	for(var i = 1; i <= _numb; i++)
-	{
-		var index = pPartSys.particles.length;
-		pPartSys.particles[index] =  CreateParticle( yyGetReal(_x), yyGetReal(_y), _parttype );
-		pPartSys.particles[index].color = ConvertGMColour(yyGetInt32(_col));
-	}
+	EmitParticles(_ps, em, _x, _y, _parttype, _numb, true, _col);
 }
 
 
@@ -1666,7 +1675,9 @@ function	ParticleSystem_Particles_Clear(_ps)
 	var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
 	if( pPartSys ==null || pPartSys==undefined ) return false;
 
-	pPartSys.particles = [];
+	for (var i = pPartSys.emitters.length - 1; i >= 0; --i)
+		pPartSys.emitters[i].particles = [];
+
 	return true;
 }
 
@@ -1701,7 +1712,11 @@ function	ParticleSystem_Particles_Count( _ps )
 	var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
 	if( pPartSys ==null || pPartSys==undefined ) return 0 ;
 
-	return pPartSys.particles.length;
+	var count = 0;
+	for (var i = pPartSys.emitters.length - 1; i >= 0; --i)
+		count += pPartSys.emitters[i].particles.length;
+
+	return count;
 }
 
 
@@ -2095,19 +2110,20 @@ function ParticleSystem_AutomaticDraw(_ps, _automatic)
 ///          	
 ///          </summary>
 ///
-/// In:		<param name="ps"></param>
+/// In:		<param name="_ps"></param>
+/// 		<param name="_em"></param>
 /// Out:	<returns>
 ///				
 ///			</returns>
 // #############################################################################################
-function HandleLife( _ps )
+function HandleLife( _ps, _em )
 {
 	var i = 0;
 	var numb = 0;
 	var ind = 0;
 
 	var pPartSys = g_ParticleSystems[_ps];
-	var pParticles = pPartSys.particles;	
+	var pParticles = pPartSys.emitters[_em].particles;	
 	i = 0;
 	while( i<pParticles.length )
 	{
@@ -2150,10 +2166,11 @@ function HandleLife( _ps )
 ///             
 ///          </summary>
 ///
-/// In:		 <param name="_ps"></param>
+/// In:		<param name="_ps"></param>
+/// 		<param name="_em"></param>
 ///				
 // #############################################################################################
-function HandleMotion( _ps )
+function HandleMotion( _ps, _em )
 {
 	var i = 0;
 	var j = 0;
@@ -2170,7 +2187,7 @@ function HandleMotion( _ps )
 	var rs = 0.0;
 
 	var pPartSys = g_ParticleSystems[_ps];
-	var pParticles = pPartSys.particles;	
+	var pParticles = pPartSys.emitters[_em].particles;	
 	for( i=0; i<pParticles.length; i++)
 	{
 		var pParticle = pParticles[i];
@@ -2227,15 +2244,16 @@ function HandleMotion( _ps )
 ///             
 ///          </summary>
 ///
-/// In:		 <param name="ps"></param>
+/// In:		<param name="_ps"></param>
+/// 		<param name="_em"></param>
 /// Out:	 <returns>
 ///				
 ///			 </returns>
 // #############################################################################################
-function  HandleShape(_ps)
+function  HandleShape(_ps, _em)
 {
 	var pPartSys = g_ParticleSystems[_ps];
-	var pParticles = pPartSys.particles;	
+	var pParticles = pPartSys.emitters[_em].particles;	
 	
 	for(var i=0 ; i<pParticles.length; i++ )
 	{
@@ -2287,16 +2305,15 @@ function ParticleSystem_Update(_ps)
 	var pPartSys = g_ParticleSystems[_ps];
 	if( pPartSys ==null || pPartSys==undefined ) return 0 ;
 
-	HandleLife(_ps);
-	HandleMotion(_ps);
-	HandleShape(_ps);
-
-  // Create new particles
 	var pEmitters = pPartSys.emitters;
 	if (pEmitters)
 	{
 		for (var i = 0; i < pEmitters.length; i++)
 		{
+			HandleLife(_ps, i);
+			HandleMotion(_ps, i);
+			HandleShape(_ps, i);
+
 			if( pEmitters[i]!=null
 				&& pEmitters[i].mode != PT_MODE_BURST
 				&& pEmitters[i].number != 0)
@@ -2485,19 +2502,22 @@ function ParticleSystem_Draw( _ps, _color, _alpha )
 	    dest = GR_BlendDest;
 	}
     
-	var pParticles = pPartSys.particles;
-	if ( pPartSys.oldtonew )
+	for (var e = 0; e < pPartSys.emitters.length; ++e)
 	{
-		for (var i = 0; i < pPartSys.particles.length; i++)
-		{            	
-			DrawParticle( pParticles[i], pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
-		}
-	}
-	else
-	{
-		for(var i=pPartSys.particles.length-1 ; i >= 0 ; i-- )
+		var pParticles = pPartSys.emitters[e].particles;
+		if ( pPartSys.oldtonew )
 		{
-			DrawParticle( pParticles[i], pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
+			for (var i = 0; i < pParticles.length; i++)
+			{            	
+				DrawParticle( pParticles[i], pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
+			}
+		}
+		else
+		{
+			for(var i=pParticles.length-1 ; i >= 0 ; i-- )
+			{
+				DrawParticle( pParticles[i], pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
+			}
 		}
 	}
 
