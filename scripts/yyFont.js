@@ -55,6 +55,9 @@ function    yyFont( )
     this.pSprites = null;
     this.spriteIndex = -1;
 	this.max_glyph_height = 0;
+
+	this.sdf = false;
+	this.sdfSpread = 0;
     
 }
 
@@ -76,6 +79,8 @@ yyFont.prototype.CreateFromStorage = function (_pStorage) {
 	this.runtime_created = false;
 	this.ascenderOffset = _pStorage.ascenderOffset;
 	this.ascender = _pStorage.ascender;
+	this.sdfSpread = _pStorage.sdfSpread;
+	this.sdf = this.sdfSpread > 0 ? true : false;
 
 	this.antialias = 0;
 	this.charset = 0;
@@ -132,6 +137,8 @@ yyFont.prototype.CreateFromSprite = function (_spr, _first, _prop, _sep, _string
 	this.prop = _prop;
 	this.last = _first + this.pSprites.numb;
 	this.m_sep = _sep;	
+	this.sdf = false;
+	this.sdfSpread = 0;
 
 	this.antialias = 0;
 	this.charset =10;
@@ -495,18 +502,22 @@ yyFont.prototype.Draw_String_GL_Full = function (_x, _y, _pStr, _xscale, _yscale
 				} // end if
 			} // end if
 			pPrev = pGlyph;
-		    var xs = pGlyph.x;
-		    var ys = pGlyph.y;
-		    var ws = pGlyph.w;
-		    var hs = pGlyph.h;
 
-		    // use a matrix to rotate and position it..
-		    if (Math.abs(_angle) < 0.001) {
-		        graphics._drawImage(TP, xs + TP.x, ys + TP.y, ws, hs, _x + (pGlyph.offset * _xscale), _y, ws * this.scalex * _xscale, hs * this.scaley * _yscale, _col1, _col2, _col3, _col4);
-		    }
-		    else {
-		        graphics._drawImage(TP, xs + TP.x, ys + TP.y, ws, hs, _x + (pGlyph.offset * _xscale), _y, ws, hs, _col1, _col2, _col3, _col4);
-		    }
+			if ((pGlyph.w * pGlyph.h) > 0)			// don't draw zero-size glyphs (like spaces)
+			{
+				var xs = pGlyph.x;
+				var ys = pGlyph.y;
+				var ws = pGlyph.w;
+				var hs = pGlyph.h;
+
+				// use a matrix to rotate and position it..
+				if (Math.abs(_angle) < 0.001) {
+					graphics._drawImage(TP, xs + TP.x, ys + TP.y, ws, hs, _x + (pGlyph.offset * _xscale), _y, ws * this.scalex * _xscale, hs * this.scaley * _yscale, _col1, _col2, _col3, _col4);
+				}
+				else {
+					graphics._drawImage(TP, xs + TP.x, ys + TP.y, ws, hs, _x + (pGlyph.offset * _xscale), _y, ws, hs, _col1, _col2, _col3, _col4);
+				}
+			}
 		    _x += _xscale  * this.scalex * this.GetShift(ch);
 			_x += charSpacing;
 
@@ -637,6 +648,13 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
         bLerp = true;
     }
 
+	var spreadoffset = 0;
+	if (this.sdf)
+	{
+		g_pFontManager.Start_Rendering_SDF();
+		spreadoffset = this.sdfSpread;
+	}
+
     var pPrev = null;
     for (var i = 0; i < len; i++)
 	{
@@ -652,52 +670,61 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
 				} // end if
 			} // end if
 			pPrev = pGlyph;
-			var ws = pGlyph.w + 2,
-			    hs = pGlyph.h + 2;
 
-		    var x = _x + (pGlyph.offset * _xscale);
-		    pCoords[v0 + 0] = pCoords[v4 + 0] = pCoords[v5 + 0] = x - s_growth;
-		    pCoords[v0 + 1] = pCoords[v1 + 1] = pCoords[v5 + 1] = _y - s_growth;
-		    pCoords[v1 + 0] = pCoords[v2 + 0] = pCoords[v3 + 0] = x + s_growth + (ws * scaleX);
-		    pCoords[v2 + 1] = pCoords[v3 + 1] = pCoords[v4 + 1] = _y + s_growth + (hs * scaleY);
-		    pCoords[v0 + 2] = pCoords[v1 + 2] = pCoords[v2 + 2] = pCoords[v3 + 2] = pCoords[v4 + 2] = pCoords[v5 + 2] = GR_Depth;
+			if ((pGlyph.w * pGlyph.h) > 0)			// don't draw zero-size glyphs (like spaces)
+			{
+				var ws = pGlyph.w + 2,
+					hs = pGlyph.h + 2;
+				
+				var x = _x + (((pGlyph.offset - 1) - spreadoffset) * _xscale);
+				var y = _y - ((1 + spreadoffset) * _yscale);
+				pCoords[v0 + 0] = pCoords[v4 + 0] = pCoords[v5 + 0] = x - s_growth;
+				pCoords[v0 + 1] = pCoords[v1 + 1] = pCoords[v5 + 1] = y - s_growth;
+				pCoords[v1 + 0] = pCoords[v2 + 0] = pCoords[v3 + 0] = x + s_growth + (ws * scaleX);
+				pCoords[v2 + 1] = pCoords[v3 + 1] = pCoords[v4 + 1] = y + s_growth + (hs * scaleY);
+				pCoords[v0 + 2] = pCoords[v1 + 2] = pCoords[v2 + 2] = pCoords[v3 + 2] = pCoords[v4 + 2] = pCoords[v5 + 2] = GR_Depth;
 
-		    var xs = pGlyph.x - 1,
-		        ys = pGlyph.y - 1;
+				var xs = pGlyph.x - 1,
+					ys = pGlyph.y - 1;
 
-		    pUVs[v0 + 0] = pUVs[v4 + 0] = pUVs[v5 + 0] = (TP.x + xs - s_growth) * invWidth;
-		    pUVs[v0 + 1] = pUVs[v1 + 1] = pUVs[v5 + 1] = (TP.y + ys - s_growth) * invHeight;
-		    pUVs[v1 + 0] = pUVs[v2 + 0] = pUVs[v3 + 0] = (TP.x + xs + ws + s_growth) * invWidth;
-		    pUVs[v2 + 1] = pUVs[v3 + 1] = pUVs[v4 + 1] = (TP.y + ys + hs + s_growth) * invHeight;
+				pUVs[v0 + 0] = pUVs[v4 + 0] = pUVs[v5 + 0] = (TP.x + xs - s_growth) * invWidth;
+				pUVs[v0 + 1] = pUVs[v1 + 1] = pUVs[v5 + 1] = (TP.y + ys - s_growth) * invHeight;
+				pUVs[v1 + 0] = pUVs[v2 + 0] = pUVs[v3 + 0] = (TP.x + xs + ws + s_growth) * invWidth;
+				pUVs[v2 + 1] = pUVs[v3 + 1] = pUVs[v4 + 1] = (TP.y + ys + hs + s_growth) * invHeight;
 
-		    //#0029653 interpolate corner colours for each character vertex
-		    if (bLerp) {
-		        var x0 = pCoords[index];
-		        var r1 = Math.min( Math.abs((pCoords[v0] - x0)) * invStrWidth, 1);
-		        var r2 = Math.min( Math.abs((pCoords[v1] - x0)) * invStrWidth, 1);
-		        var c1 = merge_color(_col1, _col2, r1) | alpha;
-		        var c2 = merge_color(_col1, _col2, r2) | alpha;
-		        var c3 = merge_color(_col4, _col3, r2) | alpha;
-		        var c4 = merge_color(_col4, _col3, r1) | alpha;
+				//#0029653 interpolate corner colours for each character vertex
+				if (bLerp) {
+					var x0 = pCoords[index];
+					var r1 = Math.min( Math.abs((pCoords[v0] - x0)) * invStrWidth, 1);
+					var r2 = Math.min( Math.abs((pCoords[v1] - x0)) * invStrWidth, 1);
+					var c1 = merge_color(_col1, _col2, r1) | alpha;
+					var c2 = merge_color(_col1, _col2, r2) | alpha;
+					var c3 = merge_color(_col4, _col3, r2) | alpha;
+					var c4 = merge_color(_col4, _col3, r1) | alpha;
 
-		        pColours[v0] = pColours[v5] = c1;
-		        pColours[v1] = c2;
-		        pColours[v2] = pColours[v3] = c3;
-		        pColours[v4] = c4;
+					pColours[v0] = pColours[v5] = c1;
+					pColours[v1] = c2;
+					pColours[v2] = pColours[v3] = c3;
+					pColours[v4] = c4;
 
-		    } else {
-		        pColours[v0] = pColours[v5] = _col1;
-		        pColours[v1] = _col2;
-		        pColours[v2] = pColours[v3] = _col3;
-		        pColours[v4] = _col4;
-		    }
+				} else {
+					pColours[v0] = pColours[v5] = _col1;
+					pColours[v1] = _col2;
+					pColours[v2] = pColours[v3] = _col3;
+					pColours[v4] = _col4;
+				}
 
-		    v0 += (stride * 6);
-		    v1 += (stride * 6);
-		    v2 += (stride * 6);
-		    v3 += (stride * 6);
-		    v4 += (stride * 6);
-		    v5 += (stride * 6);
+				v0 += (stride * 6);
+				v1 += (stride * 6);
+				v2 += (stride * 6);
+				v3 += (stride * 6);
+				v4 += (stride * 6);
+				v5 += (stride * 6);
+			}
+			else
+			{
+				skip++;		// need to increment this so we can reclaim the vertex space after
+			}
 
 		    _x += scaleX * pGlyph.shift;
 		} else {
@@ -710,6 +737,11 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
 			_x += wordSpacing;
     }
     pBuff.Current -= skip*6;  // claim back unused space
+
+	if (this.sdf)
+	{
+		g_pFontManager.End_Rendering_SDF();
+	}
     
 
     // Reset the world matrix    
@@ -1158,8 +1190,58 @@ function    yyFontManager( )
     this.halign = 0;
 
     g_DefaultFont = -1;
-    this.fontid = g_DefaultFont;    
+    this.fontid = g_DefaultFont;   
+	
+	this.SDF_State = new Object();
+	this.SDF_State.SDFShader = -1;
+	this.SDF_State.usingSDFShader = false;
+	this.SDF_State.currTexFilter = -1;	
+
+	if (g_webGL)
+	{
+		this.SDF_State.SDFShader = asset_get_index("__yy_sdf_shader");
+	}
 }
+
+yyFontManager.prototype.Start_Rendering_SDF = function()
+{
+	if (g_webGL)
+	{
+		if (shader_current() != -1)
+			return;							// don't override existing user shader
+
+		if ((this.SDF_State.SDFShader == -1) || (shader_is_compiled(this.SDF_State.SDFShader) == false))
+			return;							// our SDF shader either doesn't exist or hasn't been compiled
+
+		if (this.SDF_State.usingSDFShader)
+			return;							// already enabled
+
+		shader_set(this.SDF_State.SDFShader);
+
+		var sdfshaderprog = g_shaderPrograms[this.SDF_State.SDFShader];		// urk
+		var basetexstage = sdfshaderprog.fragmentTextureAttribute;
+
+		this.SDF_State.currTexFilter = gpu_get_texfilter_ext(basetexstage);
+		gpu_set_texfilter_ext(basetexstage, true);
+
+		this.SDF_State.usingSDFShader = true;
+	}
+};
+
+yyFontManager.prototype.End_Rendering_SDF = function()
+{
+	if (g_webGL)
+	{
+		if (this.SDF_State.usingSDFShader)	
+		{
+			shader_reset();
+
+			gpu_set_texfilter_ext(basetexstage, this.SDF_State.currTexFilter);
+
+			this.SDF_State.usingSDFShader = false;
+		}
+	}
+};
 
 // #############################################################################################
 /// Function:<summary>

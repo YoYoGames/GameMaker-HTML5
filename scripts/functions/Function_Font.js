@@ -594,12 +594,45 @@ function font_delete(id)
 
 function font_enable_sdf(id,enable)
 {
-
+	// SDF rendering can't be dynamically toggled for fonts on HTML5
+	console.log("font_enable_sdf() - SDF font rendering can't be dynamically toggled for fonts on HTML5");
 }
 
 function font_get_sdf_enabled(id)
 {
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			return font.sdf;
+		}		
+	}
 	return false;
+}
+
+function font_sdf_spread(id,enable)
+{
+	// SDF spread value is fixed for fonts on HTML5
+	console.log("font_enable_sdf() - SDF spread value is fixed for fonts on HTML5");
+}
+
+function font_get_sdf_spread(id)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			if (font.sdf)
+			{
+				return font.sdfSpread;
+			}			
+		}		
+	}
+	return 0;
 }
 
 
@@ -814,6 +847,7 @@ function font_get_info( _ind )
     ret = new GMLObject();
 	variable_struct_set(ret, "ascenderOffset", pFont.ascenderOffset); //ret.gmlascenderOffset = pFont.ascenderOffset;
 	variable_struct_set(ret, "ascender", pFont.ascender); //ret.gmlascender = pFont.ascender;
+	variable_struct_set(ret, "sdfSpread", pFont.sdfSpread); //ret.gmlsdfSpread = pFont.sdfSpread;
     variable_struct_set(ret, "size", pFont.size); //ret.gmlsize = pFont.size;
     variable_struct_set(ret, "spriteIndex", pFont.spriteIndex); //ret.gmlspriteIndex = pFont.spriteIndex;
     variable_struct_set(ret, "texture", pTPE != null ? pTPE.tp : -1); //ret.gmltexture = pTPE != null ? pTPE.tp : -1;
