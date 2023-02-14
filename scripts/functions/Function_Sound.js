@@ -148,7 +148,7 @@ function Audio_Init()
         Audio_CreateMainBus();
     }
     else {
-        g_WebAudioContext.audioWorklet.addModule(g_pGMFile.Options.GameDir + "/sound/worklets/audio-worklet.js")
+        g_WebAudioContext.audioWorklet.addModule(g_RootDir + "/sound/worklets/audio-worklet.js")
         .then(() => {
             Audio_CreateMainBus();
         }).catch((_err) => {
