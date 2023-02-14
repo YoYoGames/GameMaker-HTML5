@@ -146,6 +146,74 @@ function yyWebGL(_canvas, _options) {
             gl.getExtension('MOZ_EXT_texture_filter_anisotropic') ||
             gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic')
             );
+
+        g_extTextureHalfFloat = gl.getExtension('OES_texture_half_float');
+        g_extTextureHalfFloatLinear = gl.getExtension('OES_texture_half_float_linear');
+        g_extColourBufferHalfFloat = gl.getExtension('EXT_color_buffer_half_float');
+        g_extTextureFloat = gl.getExtension('OES_texture_float');
+        g_extTextureFloatLinear = gl.getExtension('OES_texture_float_linear');
+        g_extColourBufferFloat = gl.getExtension('EXT_color_buffer_float');
+        
+        if (gl instanceof WebGL2RenderingContext)
+        {
+            g_isWebGL2 = true;
+        }
+        
+        if (g_isWebGL2)
+        {
+            g_HalfFloatSurfsUseSizedFormats = true;
+			g_FloatSurfsUseSizedFormats = true;
+
+			g_SupportSubFourChannelIntSurfs = true;
+			g_IntSurfsUseSizedFormats = true;
+        }
+        else
+        {
+            g_HalfFloatSurfsUseSizedFormats = false;
+			g_FloatSurfsUseSizedFormats = false;
+			
+			g_SupportSubFourChannelIntSurfs = false;
+			g_IntSurfsUseSizedFormats = false;					
+        }
+
+        // This can probably be simplified
+        if (g_extColourBufferHalfFloat || g_extColourBufferFloat)
+        {
+            if (g_isWebGL2)
+            {                
+                g_SupportHalfFloatSurfs = true;                                
+                g_SupportSubFourChannelHalfFloatSurfs = true;
+            }
+            else
+            {
+                if ((g_extTextureHalfFloat && g_extTextureHalfFloatLinear) ||
+                    (g_extTextureFloat && g_extTextureFloatLinear))
+                {
+                    g_SupportHalfFloatSurfs = true;                                        
+                    g_SupportSubFourChannelHalfFloatSurfs = false;
+                }
+            }
+        }
+
+        if (g_extColourBufferFloat)
+        {
+            if (g_isWebGL2)
+            {                
+                if (g_extTextureFloatLinear)
+                {
+                    g_SupportFloatSurfs = true;                                
+                    g_SupportSubFourChannelFloatSurfs = true;
+                }
+            }
+            else
+            {
+                if (g_extTextureFloat && g_extTextureFloatLinear)
+                {
+                    g_SupportFloatSurfs = true;                                        
+                    g_SupportSubFourChannelFloatSurfs = true;
+                }
+            }
+        }
     }
             
     // #############################################################################################
@@ -207,7 +275,8 @@ function yyWebGL(_canvas, _options) {
 
 	    var glcontext = null;
 	    //f=M.getContext(           "experimental-webgl",{antialias:l})))
-	    var contextNames = ["webgl","experimental-webgl","moz-webgl","webkit-3d"];
+	    //var contextNames = ["webgl","experimental-webgl","moz-webgl","webkit-3d"];
+        var contextNames = ["webgl2", "webgl","experimental-webgl","moz-webgl","webkit-3d"];
 	    //if (window.WebGLRenderingContext)
 	    {
 		    for (var i = 0; i < contextNames.length; i++)
@@ -1118,10 +1187,10 @@ function yyWebGL(_canvas, _options) {
     ///          </summary>
     // ############################################################################################# 
     /** @this {yyWebGL} */
-    this.UpdateTexture = function (_texture, _x, _y, _w,_h,_canvas) {
+    this.UpdateTexture = function (_texture, _x, _y, _w,_h,_canvas, _format) {
     
         // TODO: Not sure I like this being part of the command chain, should it be handled like pixel/screen/surface gets?
-        m_CommandBuilder.UpdateTexture( _texture, _x, _y, _w,_h,_canvas );
+        m_CommandBuilder.UpdateTexture( _texture, _x, _y, _w,_h,_canvas, _format );
     };
     
     // #############################################################################################
@@ -1188,7 +1257,7 @@ function yyWebGL(_canvas, _options) {
 	    //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, _image);
 	    
 	    // Extend the image passed in to allow us to track sampler states for it	    	    
-	    var ret = new yyGLTexture(undefined/*glTexture*/, _image.width, _image.height, isPowerOfTwo(_image.width) && isPowerOfTwo(_image.height), _image, _image.m_mipsToGenerate);
+	    var ret = new yyGLTexture(undefined/*glTexture*/, _image.width, _image.height, isPowerOfTwo(_image.width) && isPowerOfTwo(_image.height), _image, _image.m_mipsToGenerate, 0, eTextureFormat_A8R8G8B8);
     	
     	// Bind back to the original texture
 	    //gl.bindTexture(gl.TEXTURE_2D, storedTexture);
@@ -1196,17 +1265,81 @@ function yyWebGL(_canvas, _options) {
 	    return ret;
     };
 
+    this.GetSurfaceFormatName = function( _format)
+    {
+        switch (_format)
+        {
+            case	eTextureFormat_UnknownFormat:		return "surface_unknown";
+            case	eTextureFormat_A8R8G8B8:			return "surface_rgba8unorm";
+                //case	eTextureFormat_DXT1:				return "surface_unknown";		// block compressed formats are not valid for surfaces
+                //case	eTextureFormat_DXT2:				return "surface_unknown";
+                //case	eTextureFormat_DXT3:				return "surface_unknown";
+                //case	eTextureFormat_DXT4:				return "surface_unknown";
+                //case	eTextureFormat_DXT5:				return "surface_unknown";
+            case	eTextureFormat_Float16:				return "surface_r16float";
+            case	eTextureFormat_Float32:				return "surface_r32float";
+            case	eTextureFormat_A4R4G4B4:			return "surface_rgba4unorm";
+            case	eTextureFormat_R8:					return "surface_r8unorm";
+            case	eTextureFormat_R8G8:				return "surface_rg8unorm";
+            case	eTextureFormat_R16G16B16A16_Float:	return "surface_rgba16float";
+            case	eTextureFormat_R32G32B32A32_Float:	return "surface_rgba32float";
+            default:	return "surface_unknown";
+        }
+    };
+
+    this.ConvertTexFormat = function(_format)
+    {
+        // This still needs fixing for all formats
+
+        // Set some reasonable defaults in case an unsupported format is specified
+        var texFormatData = {
+            internalFormat: gl.RGBA,
+            format: gl.RGBA, 
+            type: gl.UNSIGNED_BYTE 
+        };
+
+        switch (_format) 
+        { 
+            case	eTextureFormat_UnknownFormat:		return texFormatData;
+            case	eTextureFormat_A8R8G8B8:			texFormatData.internalFormat = gl.RGBA; texFormatData.format = gl.RGBA; texFormatData.type = gl.UNSIGNED_BYTE; return texFormatData;
+            case	eTextureFormat_A4R4G4B4:			texFormatData.internalFormat = gl.RGBA; texFormatData.format = gl.RGBA; texFormatData.type = gl.UNSIGNED_SHORT_4_4_4_4; return texFormatData;
+            case	eTextureFormat_DXT1:				return texFormatData;
+            case	eTextureFormat_DXT2:				return texFormatData;
+            case	eTextureFormat_DXT3:				return texFormatData;
+            case	eTextureFormat_DXT4:				return texFormatData;
+            case	eTextureFormat_DXT5:				return texFormatData;
+            case	eTextureFormat_Depth:				return texFormatData;
+            case	eTextureFormat_DepthStencil:		return texFormatData;
+            case	eTextureFormat_Float16:				if (!g_SupportHalfFloatSurfs || !g_SupportSubFourChannelHalfFloatSurfs) return texFormatData; texFormatData.internalFormat = g_HalfFloatSurfsUseSizedFormats ? gl.R16F : gl.RED; texFormatData.format = gl.RED; texFormatData.type = g_HalfFloatSurfsUseSizedFormats ? gl.HALF_FLOAT : gl.HALF_FLOAT_OES; return texFormatData;
+            case	eTextureFormat_Float32:				if (!g_SupportFloatSurfs || !g_SupportSubFourChannelFloatSurfs) return texFormatData; texFormatData.internalFormat = g_FloatSurfsUseSizedFormats ? gl.R32F : gl.RED; texFormatData.format = gl.RED; texFormatData.type = gl.FLOAT; return texFormatData;
+            case	eTextureFormat_R8:					if (!g_SupportSubFourChannelIntSurfs) return texFormatData; texFormatData.internalFormat = g_IntSurfsUseSizedFormats ? gl.R8 : gl.RED; texFormatData.format = gl.RED; texFormatData.type = gl.UNSIGNED_BYTE; return texFormatData;
+            case	eTextureFormat_R8G8:				if (!g_SupportSubFourChannelIntSurfs) return texFormatData; texFormatData.internalFormat = g_IntSurfsUseSizedFormats ? gl.RG8 : gl.RG; texFormatData.format = gl.RG; texFormatData.type = gl.UNSIGNED_BYTE; return texFormatData;
+            case	eTextureFormat_R16G16B16A16_Float:	if (!g_SupportHalfFloatSurfs) return texFormatData; texFormatData.internalFormat = g_isWebGL2 ? gl.RGBA16F : gl.RGBA; texFormatData.format = gl.RGBA; texFormatData.type = g_isWebGL2 ? gl.HALF_FLOAT : g_extTextureHalfFloat.HALF_FLOAT_OES; return texFormatData;
+            case	eTextureFormat_R32G32B32A32_Float:	if (!g_SupportFloatSurfs) return texFormatData; texFormatData.internalFormat = g_FloatSurfsUseSizedFormats ? gl.RGBA32F : gl.RGBA; texFormatData.format = gl.RGBA; texFormatData.type = gl.FLOAT; return texFormatData;
+            default:	texFormatData.internalFormat = gl.RGBA; texFormatData.format = gl.RGBA; texFormatData.type = gl.UNSIGNED_BYTE; return true;
+        } 
+
+        return texFormatData;
+    };
+
     this.RecreateTexture = function(_gltexture, _mipoptions)
     {
         // Store the current texture before rebinding the texture unit
         var storedTexture = gl.getParameter(gl.TEXTURE_BINDING_2D);
+
+        // Get format info
+        var texFormatData = this.ConvertTexFormat(_gltexture.Format);
     
 	    var glTexture = gl.createTexture();    		
 	    gl.bindTexture(gl.TEXTURE_2D, glTexture);	
-        if (_gltexture.Image instanceof Uint8Array)
+        if (_gltexture.Image == null)
+        {
+            gl.texImage2D(gl.TEXTURE_2D, 0, texFormatData.internalFormat, _gltexture.Width, _gltexture.Height, 0, texFormatData.format, texFormatData.type, null);
+        }
+        else if (_gltexture.Image instanceof Uint8Array)
         {
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, _gltexture.Width, _gltexture.Height, 0, gl.RGBA, gl.UNSIGNED_BYTE, _gltexture.Image);
-        }   
+        }            
         else
         { 
 	        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, _gltexture.Image);
@@ -1229,6 +1362,22 @@ function yyWebGL(_canvas, _options) {
         gl.bindTexture(gl.TEXTURE_2D, storedTexture);
         
         _gltexture.IsDirty = true;
+    };
+
+    this.IsTextureFormatSupported = function(_format)
+    {
+        switch (_format) 
+        { 
+            case eTextureFormat_A8R8G8B8: return true; 
+            case eTextureFormat_Float16: if (g_SupportHalfFloatSurfs && g_SupportSubFourChannelHalfFloatSurfs) return true; else return false; 
+            case eTextureFormat_Float32: if (g_SupportFloatSurfs && g_SupportSubFourChannelFloatSurfs) return true; else return false; 
+            case eTextureFormat_A4R4G4B4: return true; 
+            case eTextureFormat_R8: if (g_SupportSubFourChannelIntSurfs) return true; else return false;
+            case eTextureFormat_R8G8: if (g_SupportSubFourChannelIntSurfs) return true; else return false;
+            case eTextureFormat_R16G16B16A16_Float: if (g_SupportHalfFloatSurfs) return true; else return false; 
+            case eTextureFormat_R32G32B32A32_Float: if (g_SupportFloatSurfs) return true; else return false; 
+            default: return false; 
+        } 
     };
 
     // #############################################################################################
@@ -1581,6 +1730,149 @@ function yyWebGL(_canvas, _options) {
 
         return ret;
     };
+
+    /** @this {yyWebGL} */
+    this.ReadPixels = function(_x, _y, _w, _h, _format) { 
+        
+        var pPixels = null;
+
+        // Get format info
+        var texFormatData = this.ConvertTexFormat(_format);
+
+        // See texImage2D section in https://registry.khronos.org/webgl/specs/2.0.0/
+        // for details of which array types are valid for which formats
+        switch(_format)
+        {
+            case eTextureFormat_A8R8G8B8: pPixels = new Uint8Array( _w*_h*4 ); break;
+            case eTextureFormat_A4R4G4B4: pPixels = new Uint16Array( _w*_h); break;
+            case eTextureFormat_Float16: pPixels = new Uint16Array( _w*_h); break;
+            case eTextureFormat_Float32: pPixels = new Float32Array( _w*_h); break;
+            case eTextureFormat_R8: pPixels = new Uint8Array( _w*_h); break;
+            case eTextureFormat_R8G8: pPixels = new Uint8Array( _w*_h*2); break;
+            case eTextureFormat_R16G16B16A16_Float: pPixels = new Uint16Array( _w*_h*4); break;
+            case eTextureFormat_R32G32B32A32_Float: pPixels = new Float32Array( _w*_h*4); break;
+            default: return null;   // unhandled format            
+        }
+
+        gl.readPixels(_x, _y, _w, _h, texFormatData.format, texFormatData.type, pPixels);
+
+        return pPixels;
+    };
+
+    function half_to_float(_uint16val) {
+
+        // See https://en.wikipedia.org/wiki/Half-precision_floating-point_format for details
+        
+        var ret = 0.0;
+        var exponent = (_uint16val & 0x7C00) >> 10;
+        var fraction = _uint16val & 0x03FF;
+        var sign = 1.0;
+        if ((_uint16val >> 15) != 0)
+        {
+            sign = -1.0;
+        }
+        if (exponent != 0)
+        {
+            if (exponent === 0x1f)
+            {
+                if (fraction != 0)
+                    ret = NaN;
+                else
+                    ret = Infinity;
+            }
+            else
+            {
+                ret = sign * (Math.pow(2, exponent - 15) * (1 + (fraction / 0x400)));
+            }
+        }
+        else
+        {
+            ret = sign * (0.00006103515625 * (fraction / 0x400));           // 0.00006103515625 is the minimum exponent value (2 to the power -14)
+        }
+
+        return ret;
+    }
+
+    /** @this {yyWebGL} */
+    this.ConvertSurfColToRValue = function(_pBuffer, _format) { 
+        
+        var ret = 0;
+
+        if (_pBuffer == null)
+            return 0;
+
+        // The expectation is that _pBuffer is in the correct format for the particular sort of data
+        // we're wanting to unpack (i.e. eTextureFormat_A8R8G8B8 will expect a Uint8Array, while
+        // eTextureFormat_A4R4G4B4 will expect a Uint16Array )
+        switch(_format)
+        {
+            case eTextureFormat_A8R8G8B8:
+                {                    
+                    ret = (_pBuffer[0]) | (_pBuffer[1] << 8) | (_pBuffer[2] << 16) | (_pBuffer[3] << 24);
+                } break;
+            case eTextureFormat_A4R4G4B4:
+                {
+                    var r,g,b,a;
+                    var col16 = _pBuffer[0];
+
+                    r = (((col16 & 0xf000) >> 12) / 15.0) * 255.0; 
+                    g = (((col16 & 0xf00) >> 8) / 15.0) * 255.0; 
+                    b = (((col16 & 0xf0) >> 4) / 15.0) * 255.0; 
+                    a = ((col16 & 0xf) / 15.0) * 255.0;                     
+            
+                    r = yymin(r, 255); 
+                    g = yymin(g, 255); 
+                    b = yymin(b, 255); 
+                    a = yymin(a, 255); 
+                                
+                    ret = r | (g << 8) | (b << 16) | (a << 24); 
+                } break;                
+            case eTextureFormat_Float16:
+                {
+                    var r = half_to_float(_pBuffer[0]);                    
+
+                    ret = new Array(r, 0.0, 0.0, 0.0);
+                } break;
+            case eTextureFormat_Float32:
+                {
+                    var r = _pBuffer[0];
+
+                    ret = new Array(r, 0.0, 0.0, 0.0)  ;
+                } break;
+            case eTextureFormat_R8:
+                {
+                    ret = _pBuffer[0];
+                } break;
+            case eTextureFormat_R8G8:
+                {                    
+                    ret = (_pBuffer[0]) | (_pBuffer[1] << 8);
+                } break;
+            case eTextureFormat_R16G16B16A16_Float:
+                {
+                    var r,g,b,a;
+
+                    r = half_to_float(_pBuffer[0]);
+                    g = half_to_float(_pBuffer[1]);
+                    b = half_to_float(_pBuffer[2]);
+                    a = half_to_float(_pBuffer[3]);
+
+                    ret = new Array(r, g, b, a);
+                } break;
+            case eTextureFormat_R32G32B32A32_Float:
+                {
+                    var r,g,b,a;
+
+                    r = _pBuffer[0];
+                    g = _pBuffer[1];
+                    b = _pBuffer[2];
+                    a = _pBuffer[3];
+
+                    ret = new Array(r, g, b, a);
+                } break;
+        }
+
+        return ret;
+    };
     
     // #############################################################################################
     /// Function:<summary>
@@ -1588,15 +1880,18 @@ function yyWebGL(_canvas, _options) {
     ///          </summary>
     // #############################################################################################
     /** @this {yyWebGL} */
-    this.GetPixel = function(_x, _y) {    
+    this.GetPixel = function(_x, _y, _format) {    
     
         // Execute current list to ensure what we grab is actually what should've been drawn now
-        this.Flush();    
+        //this.Flush();    
+        this.FlushAll();    
 
         // Now read the pixel
-        var pPixels = new Uint8Array(16);
-        gl.readPixels(_x, m_deviceHeight-_y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pPixels);
-        var col = (pPixels[0]) + (pPixels[1] << 8) + (pPixels[2] << 16) + (pPixels[3] * 0x01000000);
+        //var pPixels = new Uint8Array(16);
+        //gl.readPixels(_x, m_deviceHeight-_y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pPixels);        
+        //var col = (pPixels[0]) + (pPixels[1] << 8) + (pPixels[2] << 16) + (pPixels[3] * 0x01000000);
+        var pPixels = this.ReadPixels(_x, m_deviceHeight-_y, 1, 1, _format);
+        var col = this.ConvertSurfColToRValue(pPixels, _format);
 
         // Clear the command builder state
         m_CommandBuilder.Reset();
@@ -1608,7 +1903,7 @@ function yyWebGL(_canvas, _options) {
     ///          </summary>
     // #############################################################################################
     /** @this {yyWebGL} */
-    this.GetPixelFromFramebuffer = function ( _frameBuffer, _x, _y )
+    this.GetPixelFromFramebuffer = function ( _frameBuffer, _x, _y, _format )
     {
         // Execute current list to ensure what we grab is actually what should've been drawn now
 	    this.FlushAll();
@@ -1619,8 +1914,10 @@ function yyWebGL(_canvas, _options) {
 	    // Now set the surface, read the pixel, and change it back.
 	    var pPixels = new Uint8Array(16);
 	    gl.bindFramebuffer(gl.FRAMEBUFFER, _frameBuffer);
-	    gl.readPixels(_x, _y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pPixels);	    
-	    var col = (pPixels[0]) + (pPixels[1] << 8) + (pPixels[2] << 16) + (pPixels[3] * 0x01000000);
+	    //gl.readPixels(_x, _y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pPixels);	    
+	    //var col = (pPixels[0]) + (pPixels[1] << 8) + (pPixels[2] << 16) + (pPixels[3] * 0x01000000);
+        var pPixels = this.ReadPixels(_x, _y, 1, 1, _format);
+        var col = this.ConvertSurfColToRValue(pPixels, _format);
 	    
 	    // Re-bind the original framebuffer
 	    gl.bindFramebuffer(gl.FRAMEBUFFER, storedFrameBuffer);	    
@@ -1644,7 +1941,7 @@ function yyWebGL(_canvas, _options) {
     ///			</returns>
     // #############################################################################################
     /** @this {yyWebGL} */
-    this.GetRectFromFramebuffer = function (_frameBuffer, _x, _y, _w, _h)
+    this.GetRectFromFramebuffer = function (_frameBuffer, _x, _y, _w, _h, _format)
     {
 
         // Execute current list to ensure what we grab is actually what should've been drawn now
@@ -1654,9 +1951,17 @@ function yyWebGL(_canvas, _options) {
         var storedFrameBuffer = gl.getParameter(gl.FRAMEBUFFER_BINDING);
 
         // Now set the surface, read the pixel, and change it back.
-        var pPixels = new Uint8Array( _w*_h*4 );
+        //var pPixels = new Uint8Array( _w*_h*4 );
         gl.bindFramebuffer(gl.FRAMEBUFFER, _frameBuffer);
-        gl.readPixels(_x, _y, _w, _h, gl.RGBA, gl.UNSIGNED_BYTE, pPixels);
+        //gl.readPixels(_x, _y, _w, _h, gl.RGBA, gl.UNSIGNED_BYTE, pPixels);
+        var pPixels = this.ReadPixels(_x, _y, _w, _h, _format);
+
+        // The result of this function is always expected to be a Uint8Array
+        if (!(pPixels instanceof Uint8Array))
+        {
+            var temparray = new Uint8Array(pPixels.buffer);
+            pPixels = temparray;
+        }
         
         // Re-bind the original framebuffer
         gl.bindFramebuffer(gl.FRAMEBUFFER, storedFrameBuffer);
@@ -1671,7 +1976,7 @@ function yyWebGL(_canvas, _options) {
     ///          </summary>
     // #############################################################################################
     /** @this {yyWebGL} */
-    this.CreateFramebuffer = function(_w, _h) {
+    this.CreateFramebuffer = function(_w, _h, _format) {
     
         // Grab the current state that we're going to alter
         var storedTexture = gl.getParameter(gl.TEXTURE_BINDING_2D);
@@ -1684,17 +1989,20 @@ function yyWebGL(_canvas, _options) {
             
             gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
 
-            var rttTexture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, rttTexture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, _w, _h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);        
+            //var rttTexture = gl.createTexture();
+            //gl.bindTexture(gl.TEXTURE_2D, rttTexture);
+            //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, _w, _h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);        
             
             // Create the texture wrapper for the texture whilst it is bound
-            var textureInternal = new yyGLTexture(rttTexture, _w, _h, isPowerOfTwo(_w) && isPowerOfTwo(_h), null); 
+            //var textureInternal = new yyGLTexture(rttTexture, _w, _h, isPowerOfTwo(_w) && isPowerOfTwo(_h), null); 
+            var textureInternal = new yyGLTexture(undefined, _w, _h, isPowerOfTwo(_w) && isPowerOfTwo(_h), null, 0, 0, _format); 
+            this.RecreateTexture(textureInternal);
             
             // Create depth/stencil buffer
             var rttRenderbuffer = gl.createRenderbuffer();
             gl.bindRenderbuffer(gl.RENDERBUFFER, rttRenderbuffer);            
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rttTexture, 0);
+            //gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rttTexture, 0);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, textureInternal.Texture, 0);
 
             if (g_createsurfacedepthbuffers)
             {

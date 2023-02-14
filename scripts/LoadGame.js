@@ -44,7 +44,6 @@ function InitAboyne()
 	g_pBuiltIn.infinity = Number.POSITIVE_INFINITY;	
 	
 	Graphics_Init(canvas);
-	Audio_Init(); 
 
     g_pInstanceManager = new yyInstanceManager();
 	g_pObjectManager = new yyObjectManager();
@@ -65,6 +64,8 @@ function InitAboyne()
 	g_pEffectsManager = new yyEffectsManager();
     g_pCameraManager = new CameraManager();
     InitAboyneGlobals();
+
+    Audio_Init(); 
 
 	if (g_isZeus)
 	{
@@ -850,6 +851,18 @@ function LoadGame(_GameFile)
     if (_GameFile.Sequences !== undefined) {
         for (index = 0; index < _GameFile.Sequences.length; index++) {
             g_pSequenceManager.Add(_GameFile.Sequences[index]);
+        }
+    }
+
+	// Load Particle System Emitters
+    if (_GameFile.PSEmitters !== undefined) {
+		ParticleSystem_Emitters_Load(_GameFile);
+    }
+
+	// Load Particle Systems
+    if (_GameFile.ParticleSystems !== undefined) {
+        for (index = 0; index < _GameFile.ParticleSystems.length; index++) {
+			CParticleSystem.CreateFromJSON(_GameFile.ParticleSystems[index]);
         }
     }
 

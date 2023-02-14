@@ -147,7 +147,6 @@ function allocateMouseDevice(touchEventId) {
     return mouseDevice;
 }
 
-var audioCheck = false;
 function touchHandler(event) {
 
 
@@ -172,12 +171,6 @@ function touchHandler(event) {
                 //debug("Allocated mouseDevice: " + mouseDevice + " for event: " + touchEvent.identifier);
                 break;
             case "touchend":
-              // RK :: This fixes audio on iOS - if we play a silent sample on the first touch event then everything works! (nice one Apple, thanks for no documentation)
-                if (!audioCheck && (g_AudioModel== Audio_WebAudio)) {
-                    Audio_PlaySilent();
-                    audioCheck = true;
-                } // end if    
-    
                 mouseDevice = getExistingMouseDevice(touchEvent["identifier"]);
                 g_activeInputEventIDs[mouseDevice] = -1;
                 //console.log("Ending mouseDevice: " + mouseDevice);

@@ -39,12 +39,12 @@ function LPF2EffectStruct(_params) {
 
 LPF2EffectStruct.paramDescriptors = () => ({
     bypass: AudioEffectStruct.paramDescriptors().bypass,
-    freq:   { name: "cutoff", integer: false, defaultValue: 20000, minValue: 10, maxValue: 20000 },
-    q:      { name: "q",      integer: false, defaultValue: 1,     minValue: 1,  maxValue: 100 },
+    freq:   { name: "cutoff", integer: false, defaultValue: 500.0, minValue: 10.0, maxValue: 20000.0 },
+    q:      { name: "q",      integer: false, defaultValue: 1.5,   minValue: 1.0,  maxValue: 100.0 },
 
     get cutoff() {
-        this.freq.maxValue = g_WebAudioContext ? Math.min(g_WebAudioContext.sampleRate / 2, this.freq.maxValue) : this.freq.maxValue;
-        this.freq.defaultValue = this.freq.maxValue;
+        this.freq.maxValue = g_WebAudioContext ? Math.min(g_WebAudioContext.sampleRate / 2.0, this.freq.maxValue) : this.freq.maxValue;
+        this.freq.defaultValue = Math.min(this.freq.defaultValue, this.freq.maxValue);
         return this.freq;
     } 
 });

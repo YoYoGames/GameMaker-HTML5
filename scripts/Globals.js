@@ -796,6 +796,25 @@ MAXTIMER = 12,
 Audio_NoAudio = -1,
 Audio_Sound =0,
 Audio_WebAudio=1,
+
+// Surface formats (ensure these match the surface format constants defined in GameMaker\Runner\GMAssetCompiler\GMAssetCompiler\Output\GMLCompile.cs)
+	eTextureFormat_UnknownFormat = 0,
+	eTextureFormat_DXT1 = 1,
+	eTextureFormat_DXT2 = 2,
+	eTextureFormat_DXT3 = 3,
+	eTextureFormat_DXT4 = 4,
+	eTextureFormat_DXT5 = 5,
+	eTextureFormat_A8R8G8B8 = 6,
+	eTextureFormat_Depth = 7,
+	eTextureFormat_DepthStencil = 8,
+	eTextureFormat_Float16 = 9,
+	eTextureFormat_Float32 = 10,
+	eTextureFormat_A4R4G4B4 = 11,
+	eTextureFormat_R8 = 12,
+	eTextureFormat_R8G8 = 13,
+	eTextureFormat_R16G16B16A16_Float = 14,
+	eTextureFormat_R32G32B32A32_Float = 15,
+
 //***************************************************************************************************************************
 //***************************************************************************************************************************
 //
