@@ -1734,6 +1734,9 @@ function audio_system() {
 /* Returns true if the an emitter both exists and is active. */
 function audio_emitter_exists(_emitterIndex)
 {
+    if (_emitterIndex === undefined)
+        return false;
+
     _emitterIndex = yyGetInt32(_emitterIndex);
 
     const emitter = audio_emitters[_emitterIndex];
