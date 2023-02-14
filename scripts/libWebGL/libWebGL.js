@@ -430,7 +430,7 @@ function yyWebGL(_canvas, _options) {
     function addshader(prog, type, source) {
 
         var glShadType = (type == 'vertex') ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER;
-	    var s = gl.createShader((type == 'vertex') ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER);	
+	    var s = gl.createShader(glShadType);	
         var shadsource = source;
         if ((glShadType == gl.FRAGMENT_SHADER) && g_AppendDerivativesExtToShader)
         {
