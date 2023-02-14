@@ -5647,16 +5647,16 @@ CSequenceInstance.prototype.CleanupAudioEmitters = function ()
 CSequenceInstance.prototype.CleanupParticles = function ()
 {
     // Destroy particle systems created by the layer
-    for (var k in _seqEl.m_trackIDToPS)
+    for (var k in this.m_trackIDToPS)
     {
-        var ps = _seqEl.m_trackIDToPS[k];
+        var ps = this.m_trackIDToPS[k];
         if (ps != -1)
         {
             ParticleSystem_Destroy(ps);
         }
     }
-    _seqEl.m_trackIDToPS = {};
-    _seqEl.m_trackIDToLastKeyframe = {};
+    this.m_trackIDToPS = {};
+    this.m_trackIDToLastKeyframe = {};
 };
 
 CSequenceInstance.prototype.SetInstanceInSequenceStatus = function (_inSequence)
