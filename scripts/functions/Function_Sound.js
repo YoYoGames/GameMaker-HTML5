@@ -1935,7 +1935,7 @@ function audio_is_paused(_soundid)
 		if (voice === null)
             return false;
 
-		return sound.isPaused();
+		return voice.isPaused();
 	}
         
     return audio_sounds.filter(_voice => _voice.soundid === _soundid)
@@ -1959,7 +1959,7 @@ function audio_is_playing(_soundid)
 		if (voice === null)
             return false;
 
-		return sound.isPlaying();
+		return voice.isPlaying();
 	}	
         
     return audio_sounds.filter(_voice => _voice.soundid === _soundid)
