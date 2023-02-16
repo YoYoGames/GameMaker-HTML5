@@ -219,6 +219,10 @@ function yyCommandBuilder(_interpolatePixels) {
     /** @this {yyCommandBuilder} */
     this.SetTexture = function (_stage, _texture) {
 
+        // Update state manager here
+        // Although the state isn't actually *set* at this point from the game's perspective this is the current state
+        g_webGL.RSMan.SetTexture(_stage, _texture);
+        
 	    // Track texture setting so we don't have redundant texture setting.
 	    if (m_lastTexture[_stage] == _texture) {
 	        return;

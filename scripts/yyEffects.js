@@ -427,7 +427,7 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 	var scratchSurface = -1;
 	if (this.tempSurfaceID != -1)
 	{
-		g_webGL.RSMan.RestoreStates();
+		g_webGL.RSMan.RestoreStates(true);
 		surface_reset_target();
 	}
 	else
@@ -621,7 +621,7 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 	}
 
 	// Restore state
-    g_webGL.RSMan.RestoreStates();
+    g_webGL.RSMan.RestoreStates(true);
 	shader_set(BackupUserShader);
 	//g_webGL.FlushAll();  //FlushShader();
 	GR_Depth = olddepth;
