@@ -96,10 +96,10 @@ function draw_text_color(_x, _y, _text, _c1, _c2, _c3, _c4, _alpha)
 	    _alpha = 0.0;
 
 	var a = ((yyGetReal(_alpha) * 255) << 24)&0xff000000;
-	_c1 = (yyGetInt32(_c1) & 0xffffff) | a;
-	_c2 = (yyGetInt32(_c2) & 0xffffff) | a;
-	_c3 = (yyGetInt32(_c3) & 0xffffff) | a;
-	_c4 = (yyGetInt32(_c4) & 0xffffff) | a;
+	_c1 = ConvertGMColour(yyGetInt32(_c1) & 0xffffff) | a;
+	_c2 = ConvertGMColour(yyGetInt32(_c2) & 0xffffff) | a;
+	_c3 = ConvertGMColour(yyGetInt32(_c3) & 0xffffff) | a;
+	_c4 = ConvertGMColour(yyGetInt32(_c4) & 0xffffff) | a;
 
 	g_pFontManager.GR_Text_Draw(yyGetString(_text), yyGetReal(_x), yyGetReal(_y), -1, -1, 0, 1, 1, _c1, _c2, _c3, _c4);
 	
@@ -141,10 +141,10 @@ function draw_text_ext_color(_x, _y, _text, _sep, _w, _c1, _c2, _c3, _c4, _alpha
 	    _alpha = 0.0;
 
 	var a = (yyGetReal(_alpha) * 255)<<24;
-	_c1 = (yyGetInt32(_c1) & 0xffffff) | a;
-	_c2 = (yyGetInt32(_c2) & 0xffffff) | a;
-	_c3 = (yyGetInt32(_c3) & 0xffffff) | a;
-	_c4 = (yyGetInt32(_c4) & 0xffffff) | a;
+	_c1 = ConvertGMColour(yyGetInt32(_c1) & 0xffffff) | a;
+	_c2 = ConvertGMColour(yyGetInt32(_c2) & 0xffffff) | a;
+	_c3 = ConvertGMColour(yyGetInt32(_c3) & 0xffffff) | a;
+	_c4 = ConvertGMColour(yyGetInt32(_c4) & 0xffffff) | a;
 
 	g_pFontManager.GR_Text_Draw(yyGetString(_text), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_sep), yyGetInt32(_w), 0, 1, 1, _c1, _c2, _c3, _c4);
 
