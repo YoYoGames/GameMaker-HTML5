@@ -461,6 +461,41 @@ function __yy_gml_errCheck( _a )
     return _a;
 }
 
+// #############################################################################################
+// Returns a function given a function or script index (used for array functions)
+// #############################################################################################
+function getFunction(_function_or_script, _argn) {
+
+    switch( typeof _function_or_script )
+    {
+        case "function": return _function_or_script;
+        case "number": return JSON_game.Scripts[_function_or_script - 100000];
+        default: yyError("argument" + _argn + " is not a method or script");
+    }
+
+}
+
+// #############################################################################################
+// Returns [offset, loops, step] given raw offset and raw length (used for string/array functions)
+// #############################################################################################
+function computeIterationValues(_maxLength, _rawOffset, _rawLength) {
+    
+    var _offset = Math.min(Math.max(_rawOffset, -_maxLength), _maxLength - 1);
+    if (_offset < 0) _offset = _maxLength + _offset;
+
+    var _step = 0, _loops = 0;
+    if (_rawLength < 0) {
+        _step = -1;
+        _loops = Math.min(_offset + 1, Math.abs(_rawLength));
+    }
+    else {
+        _step = 1;
+        _loops = Math.min(_offset + _rawLength, _maxLength) - _offset;
+    }
+
+    return [_offset, _loops, _step];
+}
+
 
 // #############################################################################################
 /// Function:<summary>
@@ -526,37 +561,46 @@ function array_create( _size, _val )
 
 function array_copy( _dest, _dest_index, _src, _src_index, _length)
 {
-    if (_src_index < 0)
-    {
-        _length += _src_index;      /* Negative _src_index decrements _length... */
-        _dest_index -= _src_index;  /* ...increments _dest_index... */
-        _src_index = 0;             /* ...and finally gets clamped to zero. */
-    }
-
-    if (_length < 0) {
-        _length = 0; /* Negative _length gets clamped to zero. */
-    }
-
     if (Array.isArray(_dest) && Array.isArray(_src)) {
 
         _dest_index = yyGetInt32(_dest_index);
-        _src_index = yyGetInt32(_src_index);
-        _length = yyGetInt32( _length );
+        _src_index = isFinite(_src_index) ? yyGetInt32(_src_index) : yyGetReal(_src_index);
+        _length = isFinite(_length) ? yyGetInt32(_length) : yyGetReal(_length);
 
-        // fill any null elements prior to the copy with 0 (real) values.
-        // This mimics the initialisation flow of array data on VM/YYC when MemoryManager::SetLength is called.
-        if (_dest.length < _dest_index) {
-            for (var index = _dest.length; index < _dest_index + min(_src.length - _src_index, _length) ; ++index) {
-                if (_dest[index] == null) {
-                    _dest[index] = 0;
+        // Compute the correct values for offset, loops and step (direction)
+        [ _src_index, _length, _step ] = computeIterationValues(_src.length, _src_index, _length);
+
+        if (_length == 0) return;
+        
+        // Converts negative offset to positive value and clamps between allowed values
+        _dest_index = Math.max(_dest_index, -_dest.length);
+        if (_dest_index < 0) _dest_index = _dest.length + _dest_index;
+
+        // Fill any null elements prior to the copy with 0 (real) values. 
+        // This mimics the initialisation flow of array data on VM/YYC when MemoryManager::SetLength is called. 
+        if (_dest.length < _dest_index) { 
+            for (var index = _dest.length; index < _dest_index + min(_src.length - _src_index, _length) ; ++index) { 
+                if (_dest[index] == null) { 
+                    _dest[index] = 0; 
                 }
-            } // end for 
-        } // end if
+            } // end for  
+        } // end if 
 
-        for (var n = 0; n < _length && (_src_index + n) < _src.length; ++n) {
-            _dest[_dest_index + n] = _src[_src_index + n];
-        } // end for 
+        // Reverse indices we want to start at the end and go towards the beginning
+        _src_index = _src_index + ((_length - 1) * _step);
+        _dest_index += _length;
+        _step = -_step;
+
+        // Iterate over the input array range
+        while (_length > 0) {
+            _dest[--_dest_index] = _src[_src_index];
+            _src_index += _step;
+            _length -= 1;
+        }
     } // endif
+    else {
+        yyError( "argument0 and argument2 are not arrays");
+    } // end else
 }
 
 function array_resize( _array, _newSize )
@@ -614,25 +658,14 @@ function array_insert( _array, _index )
 {
     if (Array.isArray(_array)) {
         _index = yyGetInt32(_index);
-        if(_index > _array.length)
-        {
-            var currLen = _array.length;
-            var n;
-            for(n = 2; n < arguments.length; ++n) {
-                _array[_index+n-2] = arguments[n];
-            }
-            // zero fill back to original length
-            for(n = _index - 1; n >= currLen; --n)
-            {
-                _array[n] = 0;
-            }
+
+        // Fill any null elements prior to the copy with 0 (real) values. 
+        // This mimics the initialisation flow of array data on VM/YYC when MemoryManager::SetLength is called. 
+        for(n = _index - 1; n >= _array.length; --n) { 
+            _array[n] = 0; 
         }
-        else
-        {
-            for( var n=2; n<arguments.length; ++n) {
-                _array.splice( _index+n-2, 0, arguments[n] );
-            } // end for
-        }
+
+        _array.splice(_index, 0, ...Array.prototype.slice.call(arguments, 2));
     } // end if
     else {
         yyError( "argument0 is not an array");
@@ -642,14 +675,15 @@ function array_insert( _array, _index )
 function array_delete( _array, _index, _number )
 {
     if (Array.isArray(_array)) {
-        _index = yyGetInt32(_index); 
-        if (_index < 0) {
-            yyError("argument1 cannot be negative");
-        } // end if      
-        _number = yyGetInt32(_number);
+        _index = yyGetReal(_index);
+        _number = yyGetReal(_number);
+
+        // If number is negative shift the index back and make number positive again
         if (_number < 0) {
-            yyError("argument2 cannot be negative");
-        } // end if        
+            _index += _number + 1;
+            _number = -_number;
+        }
+
         _array.splice( _index, _number );
     } // end if
     else {
@@ -784,41 +818,6 @@ function array_last(_array) {
 
     var _length = _array.length;
     return _length == 0 ? undefined : _array[_length -1];
-}
-
-// #############################################################################################
-// Returns a function given a function or script index (used for array functions)
-// #############################################################################################
-function getFunction(_function_or_script, _argn) {
-
-    switch( typeof _function_or_script )
-    {
-        case "function": return _function_or_script;
-        case "number": return JSON_game.Scripts[_function_or_script - 100000];
-        default: yyError("argument" + _argn + " is not a method or script");
-    }
-
-}
-
-// #############################################################################################
-// Returns [offset, loops, step] given raw offset and raw length (used for string/array functions)
-// #############################################################################################
-function computeIterationValues(_maxLength, _rawOffset, _rawLength) {
-    
-    var _offset = Math.min(Math.max(_rawOffset, -_maxLength), _maxLength - 1);
-    if (_offset < 0) _offset = _maxLength + _offset;
-
-    var _step = 0, _loops = 0;
-    if (_rawLength < 0) {
-        _step = -1;
-        _loops = Math.min(_offset + 1, Math.abs(_rawLength));
-    }
-    else {
-        _step = 1;
-        _loops = Math.min(_offset + _rawLength, _maxLength) - _offset;
-    }
-
-    return [_offset, _loops, _step];
 }
 
 function array_create_ext(_size, _func) {
