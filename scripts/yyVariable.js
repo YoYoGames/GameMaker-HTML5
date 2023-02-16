@@ -513,7 +513,7 @@ function array_equals(_a, _b)
 {
     // Both arguments must be arrays
     if (!Array.isArray(_a) || !Array.isArray(_b)) {
-        ELine("array_equals():  both arguments must be arrays");
+        ELine("array_equals :  both arguments must be arrays");
         return false;
     }
     // Both must match in size and dimensions
@@ -534,7 +534,7 @@ function array_equals(_a, _b)
         }
     }
     return true;
-}
+} // end array_equals
 
 function array_create( _size, _val )
 {
@@ -561,47 +561,47 @@ function array_create( _size, _val )
 
 function array_copy( _dest, _dest_index, _src, _src_index, _length)
 {
-    if (Array.isArray(_dest) && Array.isArray(_src)) {
+    // Check array argument
+    if (!Array.isArray(_dest)) yyError("array_copy : argument0 is not an array");
 
-        _dest_index = yyGetInt32(_dest_index);
-        _src_index = isFinite(_src_index) ? yyGetInt32(_src_index) : yyGetReal(_src_index);
-        _length = isFinite(_length) ? yyGetInt32(_length) : yyGetReal(_length);
+    // Check values argument
+    if (!Array.isArray(_src)) yyError("array_copy : argument2 is not an array");
 
-        // Compute the correct values for offset, loops and step (direction)
-        [ _src_index, _length, _step ] = computeIterationValues(_src.length, _src_index, _length);
+    _dest_index = yyGetInt32(_dest_index);
+    _src_index = isFinite(_src_index) ? yyGetInt32(_src_index) : yyGetReal(_src_index);
+    _length = isFinite(_length) ? yyGetInt32(_length) : yyGetReal(_length);
 
-        if (_length == 0) return;
-        
-        // Converts negative offset to positive value and clamps between allowed values
-        _dest_index = Math.max(_dest_index, -_dest.length);
-        if (_dest_index < 0) _dest_index = _dest.length + _dest_index;
+    // Compute the correct values for offset, loops and step (direction)
+    [ _src_index, _length, _step ] = computeIterationValues(_src.length, _src_index, _length);
 
-        // Fill any null elements prior to the copy with 0 (real) values. 
-        // This mimics the initialisation flow of array data on VM/YYC when MemoryManager::SetLength is called. 
-        if (_dest.length < _dest_index) { 
-            for (var index = _dest.length; index < _dest_index + min(_src.length - _src_index, _length) ; ++index) { 
-                if (_dest[index] == null) { 
-                    _dest[index] = 0; 
-                }
-            } // end for  
-        } // end if 
+    if (_length == 0) return;
+    
+    // Converts negative offset to positive value and clamps between allowed values
+    _dest_index = Math.max(_dest_index, -_dest.length);
+    if (_dest_index < 0) _dest_index = _dest.length + _dest_index;
 
-        // Reverse indices we want to start at the end and go towards the beginning
-        _src_index = _src_index + ((_length - 1) * _step);
-        _dest_index += _length;
-        _step = -_step;
+    // Fill any null elements prior to the copy with 0 (real) values. 
+    // This mimics the initialisation flow of array data on VM/YYC when MemoryManager::SetLength is called. 
+    if (_dest.length < _dest_index) { 
+        for (var index = _dest.length; index < _dest_index + min(_src.length - _src_index, _length) ; ++index) { 
+            if (_dest[index] == null) { 
+                _dest[index] = 0; 
+            }
+        } // end for  
+    } // end if 
 
-        // Iterate over the input array range
-        while (_length > 0) {
-            _dest[--_dest_index] = _src[_src_index];
-            _src_index += _step;
-            _length -= 1;
-        }
-    } // endif
-    else {
-        yyError( "argument0 and argument2 are not arrays");
-    } // end else
-}
+    // Reverse indices we want to start at the end and go towards the beginning
+    _src_index = _src_index + ((_length - 1) * _step);
+    _dest_index += _length;
+    _step = -_step;
+
+    // Iterate over the input array range
+    while (_length > 0) {
+        _dest[--_dest_index] = _src[_src_index];
+        _src_index += _step;
+        _length -= 1;
+    }
+} // end array_copy
 
 function array_resize( _array, _newSize )
 {
@@ -618,9 +618,9 @@ function array_resize( _array, _newSize )
 
     } // end if
     else {
-        yyError( "argument0 is not an array");
+        yyError( "array_resize : argument0 is not an array");
     } // end else
-}
+} // end array_resize
 
 function array_push( _array )
 {
@@ -630,7 +630,7 @@ function array_push( _array )
         } // end for
     } // end if
     else {
-        yyError( "argument0 is not an array");
+        yyError( "array_push : argument0 is not an array");
     } // end else
 } // end array_push
 
@@ -640,7 +640,7 @@ function array_pop( _array )
         return _array.pop();
     } // end if
     else {
-        yyError( "argument0 is not an array");
+        yyError( "array_pop : argument0 is not an array");
     } // end else
 } // end array_pop
 
@@ -650,7 +650,7 @@ function array_shift( _array )
         return _array.shift();
     } // end if
     else {
-        yyError( "argument0 is not an array");
+        yyError( "array_shift : argument0 is not an array");
     } // end else
 } // end array_shift
 
@@ -665,10 +665,11 @@ function array_insert( _array, _index )
             _array[n] = 0; 
         }
 
-        _array.splice(_index, 0, ...Array.prototype.slice.call(arguments, 2));
+        _values = Array.prototype.slice.call(arguments, 2);
+        Array.prototype.splice.apply(_array, [_index, 0].concat(_values));
     } // end if
     else {
-        yyError( "argument0 is not an array");
+        yyError( "array_insert : argument0 is not an array");
     } // end else
 } // end array_insert
 
@@ -687,10 +688,9 @@ function array_delete( _array, _index, _number )
         _array.splice( _index, _number );
     } // end if
     else {
-        yyError( "argument0 is not an array");
+        yyError( "array_delete : argument0 is not an array");
     } // end else
 } // end array_delete
-
 
 function array_sort( _array, _typeofSort )
 {
@@ -721,7 +721,7 @@ function array_sort( _array, _typeofSort )
         }
     } // end if
     else {
-        yyError( "argument0 is not an array");
+        yyError( "array_sort : argument0 is not an array");
     } // end else
 } // end array_sort
 
@@ -736,7 +736,7 @@ const shuffleArray = (_array, _offset, _length) => {
         _array[_offset + i] = _array[j];
         _array[j] = temp;
     }
-};
+} // end shuffleArray
 
 function array_shuffle( _array, _offset, _length )
 {
@@ -764,7 +764,7 @@ function array_shuffle( _array, _offset, _length )
 
     } // end if
     else {
-        yyError( "argument0 is not an array");
+        yyError( "array_shuffle : argument0 is not an array");
     } // end else
     return ret;
 } // end array_shuffle
@@ -796,29 +796,28 @@ function array_shuffle_ext(_array, _offset, _length)
 
     } // end if
     else {
-        yyError( "argument0 is not an array");
+        yyError( "array_shuffle_ext : argument0 is not an array");
     } // end else
     return _loops;
 } // end array_shuffle_ext
 
-
 function array_first(_array) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_first : argument0 is not an array");
 
     var _length = _array.length;
     return _length == 0 ? undefined : _array[0];
-}
+} // end array_first
 
 function array_last(_array) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_last : argument0 is not an array");
 
     var _length = _array.length;
     return _length == 0 ? undefined : _array[_length -1];
-}
+} // end array_last
 
 function array_create_ext(_size, _func) {
 
@@ -842,7 +841,7 @@ function array_create_ext(_size, _func) {
 function array_find_index(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_find_index : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -876,7 +875,7 @@ function array_find_index(_array, _func, _offset, _length) {
 function array_get_index(_array, _value, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_get_index : argument0 is not an array");
 
     // Check raw offset and length
     _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
@@ -907,7 +906,7 @@ function array_get_index(_array, _value, _offset, _length) {
 function array_contains(_array, _value, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_contains : argument0 is not an array");
 
     // Check raw offset and length
     _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
@@ -938,10 +937,10 @@ function array_contains(_array, _value, _offset, _length) {
 function array_contains_ext(_array, _values, _matchAll, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_contains_ext : argument0 is not an array");
 
     // Check values argument
-    if (!Array.isArray(_values)) yyError("argument1 is not an array");
+    if (!Array.isArray(_values)) yyError("array_contains_ext : argument1 is not an array");
     
     var subArrayLength = _values.length;
 
@@ -998,7 +997,7 @@ function array_contains_ext(_array, _values, _matchAll, _offset, _length) {
 function array_any(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_any : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -1034,7 +1033,7 @@ function array_any(_array, _func, _offset, _length) {
 function array_all(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_all : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -1070,7 +1069,7 @@ function array_all(_array, _func, _offset, _length) {
 function array_foreach(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_foreach : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -1101,7 +1100,7 @@ function array_foreach(_array, _func, _offset, _length) {
 function array_reduce(_array, _func, _init, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_reduce : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -1142,7 +1141,7 @@ function array_reduce(_array, _func, _init, _offset, _length) {
 function array_filter(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_filter : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -1181,7 +1180,7 @@ function array_filter(_array, _func, _offset, _length) {
 function array_filter_ext(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_filter_ext : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -1221,7 +1220,7 @@ function array_filter_ext(_array, _func, _offset, _length) {
 function array_map(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_map : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -1258,7 +1257,7 @@ function array_map(_array, _func, _offset, _length) {
 function array_map_ext(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_map_ext : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -1295,7 +1294,7 @@ function array_map_ext(_array, _func, _offset, _length) {
 function array_copy_while(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_copy_while : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -1335,7 +1334,7 @@ function array_copy_while(_array, _func, _offset, _length) {
 function array_unique(_array, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_unique : argument0 is not an array");
 
     // Check raw offset and length
     _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
@@ -1369,7 +1368,7 @@ function array_unique(_array, _offset, _length) {
 function array_unique_ext(_array, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_unique_ext : argument0 is not an array");
 
     // Check raw offset and length
     _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
@@ -1406,7 +1405,7 @@ function array_unique_ext(_array, _offset, _length) {
 function array_reverse(_array, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_reverse : argument0 is not an array");
 
     // Check raw offset and length
     _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
@@ -1439,7 +1438,7 @@ function array_reverse(_array, _offset, _length) {
 function array_reverse_ext(_array, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_reverse_ext : argument0 is not an array");
 
     // Check raw offset and length
     _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
@@ -1475,7 +1474,7 @@ function array_reverse_ext(_array, _offset, _length) {
 function array_join(_array) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_join : argument0 is not an array");
 
     var _ret = _array;
 
@@ -1483,7 +1482,7 @@ function array_join(_array) {
     for (var _idx = 1; _idx < arguments.length; _idx++) {
 
         // Check array argument
-        if (!Array.isArray(arguments[_idx])) yyError("argument" + _idx + " is not an array");
+        if (!Array.isArray(arguments[_idx])) yyError("array_join : argument" + _idx + " is not an array");
         _ret = _ret.concat(arguments[_idx]);
     }
 
@@ -1495,7 +1494,7 @@ function array_join(_array) {
 function array_union(_array) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_union : argument0 is not an array");
 
     var _ret = _array;
 
@@ -1503,7 +1502,7 @@ function array_union(_array) {
     for (var _idx = 1; _idx < arguments.length; _idx++) {
 
         // Check array argument
-        if (!Array.isArray(arguments[_idx])) yyError("argument" + _idx + " is not an array");
+        if (!Array.isArray(arguments[_idx])) yyError("array_union : argument" + _idx + " is not an array");
         _ret = _ret.concat(arguments[_idx]);
     }
 
@@ -1527,7 +1526,7 @@ function array_intersection(_array) {
         _array = arguments[_idx];
 
         // Check array argument
-        if (!Array.isArray(arguments[_idx])) yyError("argument" + _idx + " is not an array");
+        if (!Array.isArray(arguments[_idx])) yyError("array_intersection : argument" + _idx + " is not an array");
 
         // Remove duplicates
         _array = Array.from(new Set(_array));
@@ -1553,7 +1552,6 @@ function array_intersection(_array) {
     return _ret;
 
 } // end array_intersection
-
 
 // #############################################################################################
 // Converts the buffer to a hexadecimal string
