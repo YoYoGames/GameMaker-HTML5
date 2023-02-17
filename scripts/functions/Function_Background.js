@@ -118,7 +118,7 @@ function background_get_height(_resourceindex)
 // #############################################################################################
 function background_create_from_screen(_x,_y,_w,_h,_removeback,_smooth)
 {
-    var surfid = surface_create(_w,_h);
+    var surfid = surface_create(_w,_h, eTextureFormat_A8R8G8B8);
     var pDest = g_Surfaces.Get(surfid);
 
     // Fill the surface with the colour
@@ -173,7 +173,7 @@ function background_create_from_screen(_x,_y,_w,_h,_removeback,_smooth)
 function background_create_from_surface(_id,_x,_y,_w,_h,_removeback,_smooth)
 {
     var pSrc = g_Surfaces.Get(_id);
-    var surfid = surface_create(_w,_h);
+    var surfid = surface_create(_w,_h, eTextureFormat_A8R8G8B8);
     var pDest = g_Surfaces.Get(surfid);
 
     // Fill the surface with the colour
@@ -217,7 +217,7 @@ function background_create_from_surface(_id,_x,_y,_w,_h,_removeback,_smooth)
 // #############################################################################################
 function background_create_color(_w,_h,_colour)
 {
-    var surf = surface_create(_w,_h);
+    var surf = surface_create(_w,_h, eTextureFormat_A8R8G8B8);
     var pSurf = g_Surfaces.Get(surf);
 
     // Fill the surface with the colour
@@ -265,7 +265,7 @@ var background_create_colour = background_create_color;
 // #############################################################################################
 function    background_create_gradient(_w,_h,_col1,_col2,_kind) 
 {
-    var surf = surface_create(_w,_h);
+    var surf = surface_create(_w,_h, eTextureFormat_A8R8G8B8);
     var pSurf = g_Surfaces.Get(surf);
 
     // Fill the surface with the colour
@@ -343,6 +343,7 @@ function background_duplicate(_back)
 		pTPE.copy(pBack.TPEntry);
 		pTPE.tp = Graphics_AddImage(pImage);
 		pTPE.texture = g_Textures[pTPE.tp];
+		pTPE.texture.complete = true;
 		pTPE.x = 0;
 		pTPE.y = 0;
 
@@ -380,6 +381,7 @@ function background_assign( _dest, _src )
 		pNew.TPEntry.copy(pSrc.TPEntry);
 		pNew.TPEntry.tp = Graphics_AddImage(pImage);
 		pNew.TPEntry.texture = g_Textures[pNew.TPEntry.tp];
+		pNew.TPEntry.texture.complete = true;
 		pNew.TPEntry.x = 0;
 		pNew.TPEntry.y = 0;
 
@@ -642,6 +644,7 @@ function background_set_alpha_from_background(_ind, _back)
 
 		pDest.TPEntry.tp = Graphics_AddImage(pImage);
 		pDest.TPEntry.texture = g_Textures[pSrc.TPEntry.tp]; //Fritz: this was reffing pBack, presuming this should be source?
+		pDest.TPEntry.texture.complete = true;
 		pDest.TPEntry.x = 0;
 		pDest.TPEntry.y = 0;
 		pDest.copy = true;

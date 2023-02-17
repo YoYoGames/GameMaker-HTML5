@@ -39,9 +39,12 @@ var offsethack = 0.0;
 // #############################################################################################
 function display_get_gui_height() {
     var gui_height = g_GUIHeight;
+    var scale = g_GUI_Y_Scale;
     if (gui_height < 0)
         gui_height = window_get_height();
-    return gui_height;
+    if (scale == 0.0)
+        scale = 1.0;
+    return gui_height / scale;
 }
 
 // #############################################################################################
@@ -55,9 +58,12 @@ function display_get_gui_height() {
 // #############################################################################################
 function display_get_gui_width() {
     var gui_width = g_GUIWidth;
+    var scale = g_GUI_X_Scale;
 	if( gui_width<0 )
 	    gui_width = window_get_width();
-	return gui_width;
+    if (scale == 0.0)
+        scale = 1.0;
+	return gui_width / scale;
 }
 
 // #############################################################################################
@@ -2713,7 +2719,17 @@ function SetViewExtents(xview, yview, wview, hview,  angle)
 	}
 };
 
-
+function GetViewFrustum()
+{
+    if (g_ViewFrustumDirty)
+    {
+        var viewProjMat = new Matrix();
+        viewProjMat.Multiply(g_Matrix[MATRIX_VIEW], g_Matrix[MATRIX_PROJECTION]);
+        g_ViewFrustum.FromViewProjMat(viewProjMat);
+        g_ViewFrustumDirty = false;
+    }
+    return g_ViewFrustum;
+}
 
 function DirtyRoomExtents()
 {

@@ -779,14 +779,84 @@ yySkeletonInstance.prototype.SetAnimationTransform = function (_ind, _x, _y, _sc
 	        _eventInstance.PerformEvent(EVENT_OTHER_ANIMATIONUPDATE, 0, _eventInstance, null);
 	    }
 
-	    var savedRotation = root.rotation;
-	    root.rotation += _angle;
+	    this.UpdateWorldTransformAndBounds();
+    }
+};
 
-	    skeleton.updateWorldTransform();
-	    this.m_skeletonBounds.update(this.m_skeleton, 1);
-        
-	    root.rotation = savedRotation;
+yySkeletonInstance.prototype.UpdateWorldTransformAndBounds = function()
+{
+	var skeleton = this.m_skeleton;
+	var root = this.m_skeleton.getRootBone();
+
+	/* We combine the sprite rotation with the rotation set on the root bone... this mostly
+	 * works, with the following exceptions:
+	 *
+	 * - Rotation is around the origin point of the root bone rather than the GM sprite object.
+	 *
+	 * - If any bones do not inherit rotation from the root bone, they will not be rotated.
+	 *
+	 * - If any bones are translated relative to rotated co-ordinates, they will move relative
+	 *   to the sprite origin in ways they shouldn't (but remain correct to the skeleton).
+	 *
+	 * In the future, we should try to apply the rotation ourselves after Spine has done its
+	 * thing, but that interacts with rendering, collisions and probably some other things I
+	 * don't know about so I'm not going to tempt fate by messing with all that right now.
+	 *
+	 * If we fix that, we can kill the next hack and use the skeleton-wide scaling factor too.
+	*/
+
+	var savedRotation = root.rotation;
+	root.rotation += this.m_angle;
+
+	/* GM-6420: If we apply a scaling factor to the whole skeleton, it is applied after any
+	 * rotation, which is not the expected behaviour for GameMaker.
+	 *
+	 * So, we instead apply the scaling factor to the root bone, since bone scaling is applied
+	 * BEFORE rotation, as is expected in GameMaker land. This will not work correctly where
+	 * a skeleton contains bone(s) that do not inherit their parents' scale, but that isn't a
+	 * new problem for us since we used to overwrite the root bone's scale anyway.
+	 *
+	 * PS: If the skeleton scale is negative, we multiply the bone scale by its inverse and
+	 * do the flipping on the skeleton to keep combined rotations/transforms in animations
+	 * correct...
+	*/
+
+	var savedBoneScaleX = root.scaleX;
+	var savedSkeletonScaleX = skeleton.scaleX;
+
+	if (skeleton.scaleX >= 0.0)
+	{
+		root.scaleX *= skeleton.scaleX;
+		skeleton.scaleX = 1.0;
 	}
+	else {
+		root.scaleX *= -1.0 * skeleton.scaleX;
+		skeleton.scaleX = -1.0;
+	}
+
+	var savedBoneScaleY = root.scaleY;
+	var savedSkeletonScaleY = skeleton.scaleY;
+
+	if (skeleton.scaleY >= 0.0)
+	{
+		root.scaleY *= skeleton.scaleY;
+		skeleton.scaleY = 1.0;
+	}
+	else {
+		root.scaleY *= -1.0 * skeleton.scaleY;
+		skeleton.scaleY = -1.0;
+	}
+
+	skeleton.updateWorldTransform();
+	this.m_skeletonBounds.update(this.m_skeleton, 1);
+
+	skeleton.scaleY = savedSkeletonScaleY;
+	skeleton.scaleX = savedSkeletonScaleX;
+
+	root.scaleX = savedBoneScaleX;
+	root.scaleY = savedBoneScaleY;
+
+	root.rotation = savedRotation;
 };
 
 // #############################################################################################
@@ -836,8 +906,7 @@ yySkeletonInstance.prototype.GetBoundingBox = function (_pRect) {
     
 	if (this.m_skeletonBounds != null)
 	{
-		this.m_skeleton.updateWorldTransform();	    
-		this.m_skeletonBounds.update(this.m_skeleton, 1);	
+		this.UpdateWorldTransformAndBounds();
 		
 		if (this.m_skeletonBounds.boundingBoxes.length > 0)
 		{
@@ -872,8 +941,7 @@ yySkeletonInstance.prototype.GetBoundingBoxAttachment = function (_index) {
     {
         if (_index >= 0)
         {
-			this.m_skeleton.updateWorldTransform();	    
-	        this.m_skeletonBounds.update(this.m_skeleton, 1);	
+			this.UpdateWorldTransformAndBounds();
 			
             if (_index < this.m_skeletonBounds.boundingBoxes.length)
             {                	    
@@ -1154,19 +1222,19 @@ yySkeletonInstance.prototype.GetBoneData = function (_bone, _map) {
 		var pMap = g_ActiveMaps.Get(_map);
 		if (pMap) 
 		{
-		    pMap["length"] = bone.data.length;
-		    pMap["x"] = bone.data.x;			
-			pMap["y"] = bone.data.y;
-			pMap["angle"] = bone.data.rotation;
-			pMap["xscale"] = bone.data.scaleX;
-			pMap["yscale"] = bone.data.scaleY;
+		    pMap.set( "length", bone.data.length);
+		    pMap.set( "x", bone.data.x);			
+			pMap.set( "y",  bone.data.y);
+			pMap.set( "angle", bone.data.rotation);
+			pMap.set( "xscale", bone.data.scaleX);
+			pMap.set( "yscale", bone.data.scaleY);
 			if ((bone.data.parent !== undefined) && (bone.data.parent !== null))
 			{
-			    pMap["parent"] = bone.data.parent.name;
+			    pMap.set( "parent", bone.data.parent.name);
 			}
 			else
 			{
-			    pMap["parent"] = "";
+			    pMap.set( "parent", "");
 			}
 			return true;
 		}
@@ -1188,12 +1256,12 @@ yySkeletonInstance.prototype.SetBoneData = function (_bone, _map) {
 		var pMap = g_ActiveMaps.Get(_map);
 		if (pMap) 
 		{
-		    bone.data.length = (pMap["length"] !== undefined) ? pMap["length"] : bone.data.length;
-			bone.data.x = (pMap["x"] !== undefined) ? pMap["x"] : bone.data.x;
-			bone.data.y = (pMap["y"] !== undefined) ? pMap["y"] : bone.data.y;
-			bone.data.rotation = (pMap["angle"] !== undefined) ? pMap["angle"] : bone.data.rotation;
-			bone.data.scaleX = (pMap["xscale"] !== undefined) ? pMap["xscale"] : bone.data.scaleX;
-			bone.data.scaleY = (pMap["yscale"] !== undefined) ? pMap["yscale"] : bone.data.scaleY;
+		    bone.data.length = (pMap.get("length") !== undefined) ? pMap.get("length") : bone.data.length;
+			bone.data.x = (pMap.get("x") !== undefined) ? pMap.get("x") : bone.data.x;
+			bone.data.y = (pMap.get("y") !== undefined) ? pMap.get("y") : bone.data.y;
+			bone.data.rotation = (pMap.get("angle") !== undefined) ? pMap.get("angle") : bone.data.rotation;
+			bone.data.scaleX = (pMap.get("xscale") !== undefined) ? pMap.get("xscale") : bone.data.scaleX;
+			bone.data.scaleY = (pMap.get("yscale") !== undefined) ? pMap.get("yscale") : bone.data.scaleY;
 			return true;
 		}
 	}
@@ -1213,25 +1281,25 @@ yySkeletonInstance.prototype.GetBoneState = function (_bone, _map) {
 		var pMap = g_ActiveMaps.Get(_map);
 		if (pMap) 
 		{
-		    pMap["x"] = bone.x;			
-			pMap["y"] = bone.y;
-			pMap["angle"] = bone.rotation;
-			pMap["xscale"] = bone.scaleX;
-			pMap["yscale"] = bone.scaleY;
-			pMap["worldX"] = bone.worldX;
-			pMap["worldY"] = bone.worldY;
+		    pMap.set( "x", bone.x);
+			pMap.set( "y", bone.y);
+			pMap.set( "angle", bone.rotation);
+			pMap.set( "xscale", bone.scaleX);
+			pMap.set( "yscale", bone.scaleY);
+			pMap.set( "worldX", bone.worldX);
+			pMap.set( "worldY", bone.worldY);
 			//pMap["worldAngle"] = bone.worldRotation;
 			//pMap["worldScaleX"] = bone.worldScaleX;
 			//pMap["worldScaleY"] = bone.worldScaleY;
 		    //pMap["parent"] = bone.parent.data.name;
-			pMap["worldAngleX"] = bone.getWorldRotationX();
-			pMap["worldAngleY"] = bone.getWorldRotationY();
-			pMap["worldScaleX"] = bone.getWorldScaleX();
-			pMap["worldScaleY"] = bone.getWorldScaleY();
-			pMap["appliedAngle"] = bone.arotation;
+			pMap.set( "worldAngleX", bone.getWorldRotationX());
+			pMap.set( "worldAngleY", bone.getWorldRotationY());
+			pMap.set( "worldScaleX", bone.getWorldScaleX());
+			pMap.set( "worldScaleY", bone.getWorldScaleY());
+			pMap.set( "appliedAngle", bone.arotation);
 			if (bone.parent != null)
 			    if (bone.parent.data != null)
-			        pMap["parent"] = bone.parent.data.name;
+			        pMap.set( "parent", bone.parent.data.name);
 			return true;
 		}
 	}
@@ -1252,14 +1320,14 @@ yySkeletonInstance.prototype.SetBoneState = function (_bone, _map) {
 		if (pMap) 
 		{
 			
-			if(pMap["angle"] !== undefined) bone.rotation = pMap["angle"];
-			if(pMap["xscale"] !== undefined) bone.scaleX = pMap["xscale"];
-			if(pMap["yscale"] !== undefined) bone.scaleY = pMap["yscale"];
+			if(pMap.get("angle") !== undefined) bone.rotation = pMap.get("angle");
+			if(pMap.get("xscale") !== undefined) bone.scaleX = pMap.get("xscale");
+			if(pMap.get("yscale") !== undefined) bone.scaleY = pMap.get("yscale");
 
 			var worldX = bone.worldX;
 			var worldY = bone.worldY;
-			if(pMap["worldX"] !== undefined) worldX = pMap["worldX"];
-			if(pMap["worldY"] !== undefined) worldY = pMap["worldY"];
+			if(pMap.get("worldX") !== undefined) worldX = pMap.get("worldX");
+			if(pMap.get("worldY") !== undefined) worldY = pMap.get("worldY");
 
 			// Since worldX/worldY and x/y modify the same fields on the bone, favour worldX/worldY if they've changed as this implies
 			// that they've been modified deliberately
@@ -1280,8 +1348,8 @@ yySkeletonInstance.prototype.SetBoneState = function (_bone, _map) {
 			}
 			else
 			{
-				if(pMap["x"] !== undefined) bone.x = pMap["x"];
-				if(pMap["y"] !== undefined) bone.y = pMap["y"];
+				if(pMap.get("x") !== undefined) bone.x = pMap.get("x");
+				if(pMap.get("y") !== undefined) bone.y = pMap.get("y");
 			}
 
 			return true;

@@ -188,6 +188,10 @@ function yyGetBool(_v) {
             return _v.toNumber() > 0.5;
         }
         else
+        if (_v instanceof yyInstance) {
+            return true;
+        }
+        else
         if (_v.__yyIsGMLObject)
             return true;
         else
@@ -223,6 +227,25 @@ var g_countSTRING_RValue = 0;
 var g_comparisonARRAY_RValue = 1;
 var g_comparisonSTRUCT_RValue = 1;
 var g_incQuotesSTRING_RValue = 0;
+
+var g_STRING_VISITED_LIST = new Map(); 
+ 
+function STRING_HasBeenVisited( _v ) 
+{ 
+	return g_STRING_VISITED_LIST.has(_v); 
+} // end STRING_HasBeenVisited 
+ 
+function STRING_AddVisited( _v ) 
+{ 
+	g_STRING_VISITED_LIST.set( _v, _v); 
+} 
+ 
+function STRING_RemoveVisited( _v ) 
+{ 
+	g_STRING_VISITED_LIST.delete(_v); 
+} 
+
+
 function yyGetString(_v) {
     if (typeof _v === "string") {
         var ret = "";
@@ -238,6 +261,9 @@ function yyGetString(_v) {
     } // end if
     else if (_v === undefined) {
         return "undefined";
+    } // end if
+    else if (_v === g_pBuiltIn.pointer_null) {
+        return "null";
     } // end if
     else if (typeof _v === "number") {
         if (isFinite(_v)) {
@@ -267,9 +293,8 @@ function yyGetString(_v) {
         else if (_v instanceof Array) {
             var retString = "";
             ++g_incQuotesSTRING_RValue;
-            if (!(_v._yyvisited) || (_v._yyvisited < g_comparisonARRAY_RValue)) {
-                g_comparisonARRAY_RValue = ++g_countSTRING_RValue;
-                _v._yyvisited = g_countSTRING_RValue;
+            if (!STRING_HasBeenVisited(_v)) {
+                STRING_AddVisited(_v);
                 retString = "[ ";
                 for(var n = 0; n < _v.length; ++n) {
                     if (n != 0) {
@@ -278,10 +303,10 @@ function yyGetString(_v) {
                     retString += yyGetString(_v[n]);
                 } // end for
                 retString += " ]";
-                g_comparisonARRAY_RValue = ++g_countSTRING_RValue;
+                STRING_RemoveVisited(_v);
             } // end if
             else {
-                retString = "\"Warning: recursive array found\"";
+                retString = "\"Warning: Recursive array found\"";
             } // end else
             --g_incQuotesSTRING_RValue;
             return retString;
@@ -296,9 +321,8 @@ function yyGetString(_v) {
             } else {
 
                 ++g_incQuotesSTRING_RValue;
-                if (!(_v._yyvisited) || (_v._yyvisited < g_comparisonSTRUCT_RValue)) {
-                    g_comparisonSTRUCT_RValue = ++g_countSTRING_RValue;
-                    _v._yyvisited = g_countSTRING_RValue;
+                if (!STRING_HasBeenVisited(_v)) {
+                    STRING_AddVisited(_v);
                     var retString = "{ ";
                     var names = __internal__get_variable_names(_v, false);                
                     for( var n=0; n<names.length; n+=2) {
@@ -310,10 +334,10 @@ function yyGetString(_v) {
                         retString += yyGetString(_v[ names[n+1] ]);
                     } // end for  
                     retString += " }";
-                    g_comparisonSTRUCT_RValue = ++g_countSTRING_RValue;
+                    STRING_RemoveVisited(_v);
                 } // end if
                 else {
-                    retString = "\"Warning: recursive struct found\"";
+                    retString = "\"Warning: Recursive struct found\"";
                 } // end else
                 --g_incQuotesSTRING_RValue;
             } // end else

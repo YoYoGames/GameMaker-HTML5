@@ -8653,4 +8653,3 @@ var spine = (() => {
   SwirlEffect.interpolation = new PowOut(2);
   return src_exports;
 })();
-//# sourceMappingURL=spine-core.js.map

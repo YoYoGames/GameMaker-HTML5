@@ -611,35 +611,7 @@ function GameMaker_Init()
         g_AudioModel = Audio_WebAudio;
     }
 
-    if (g_AudioModel==Audio_WebAudio)
-    {
-        try
-        {
-        	g_WebAudioContext = new AudioContext(); // gotta love Safari...
-
-         //   if (!g_WebAudioContext.createGainNode) {
-                // Sigh, deprecated APIs on the web...
-         //       g_WebAudioContext.createGainNode = g_WebAudioContext.createGain;
-          //  }
-        }
-        catch (e)
-        {
-            try{
-                g_WebAudioContext = new webkitAudioContext();
-                }
-            catch(e)
-                {
-                    debug('Web Audio API not supported in this browser');
-                    g_AudioModel = Audio_Sound;
-                }
-        }
-
-        if ((g_AudioModel == Audio_WebAudio) && (g_WebAudioContext != null))
-        {
-            g_WebAudioContext.addEventListener("statechange", Audio_WebAudioContextOnStateChanged);
-        }
-        audio_init();        
-    }
+    
 
     document.body.style.overflow = "hidden";
 
@@ -714,11 +686,7 @@ function GameMaker_Init()
     	debug("Max Texture Size=" + g_webGL.GetMaxTextureSize());
     }
     InitAboyne();                               // Init the "runtime" engine
-    YoYo_Init();                                // Init the YoYo GML functions
-
-    // BETA
-    //debug("\nGameMaker:Studio BETA\nDEBUG only\nNot for SALE\n");
-
+    YoYo_Init();                                // Init the YoYo GML functions       
 
 	// IF we required WebGL and it's not available, ignore everything and abort.
 	if (g_OpenGLRequired)
@@ -1170,7 +1138,7 @@ function StartRoom( _numb, _starting )
         
         // Now remove the copied instances from the active list...
         for (var i=persistent.length-1; i >= 0; i--) {
-            g_CurrentRoom.m_Active.Delete(persistent[i]);
+            g_CurrentRoom.m_Active.DeleteItem(persistent[i]);
         }
 
         // Finally, remove all NON-persistent instances (clean up OLD room)
@@ -1459,7 +1427,7 @@ function    StartGame()
     if(g_AudioModel == Audio_WebAudio)
     {
         // Audio: Report current device status to the newly created room
-        Audio_WebAudioContextReportStatus();
+        Audio_EngineReportState();
     }
 }
 
@@ -1497,11 +1465,12 @@ function    StartGame()
 
 // #############################################################################################
 /// Function:<summary>
-///          	If we're ending the game, we need to kill everything off - 
-///				including persistent objects!
+///          	If we're ending the game, we need to kill everything off - including persistent objects!
+///             Note that this function is also used when the game is reset.
 ///          </summary>
+/// In:		 <param name="_reset">Whether the game will be reset afterwards.</param>
 // #############################################################################################
-function Run_EndGame() {
+function Run_EndGame(_reset) {
 
 	g_ParticleTypes = [];
 	g_ParticleSystems = [];
@@ -1512,16 +1481,21 @@ function Run_EndGame() {
 	// Clear all instances - including persistant ones.
 	g_RunRoom.m_Active.Clear();
 	g_RunRoom.m_Deactive.Clear();
-	var pool = g_pObjectManager.objidlist;    
-    for (var i = 0; i < pool.length; i++)
-	{	
+	var pool = g_pObjectManager.objidlist;
+	for (var i = 0; i < pool.length; i++) {
 		var pObj = pool[i];
 		pObj.Instances.Clear();
 		pObj.Instances_Recursive.Clear();
 	}
 	g_pInstanceManager.Clear();
 
-    Audio_Quit();
+	if (_reset) {
+		// Just stops all audio instances.
+		audio_stop_all();
+	} else {
+		// Destroys the AudioContext instance.
+		Audio_Quit();
+	}
 }
 
 
@@ -1549,22 +1523,12 @@ function UpdateActiveLists() {
 	//-so Sort can insert in the wrong place
 	//-need to remove unsorted entries first, before doing insertion sort
 	if (g_RunRoom.m_DepthSorting.length > 0) g_RunRoom.ProcessDepthList2();
-	if( g_RunRoom.m_Active.unsorted>=0 ) g_RunRoom.m_Active.Sort();
+	//if( g_RunRoom.m_Active.unsorted>=0 ) g_RunRoom.m_Active.Sort();
     //if (g_RunRoom.m_DepthSorting.length > 0) g_RunRoom.ProcessDepthList();
 	//if (g_RunRoom.m_NewInstances.length > 0) g_RunRoom.ProcessNewInstanceList();
 	if (g_ParticleChanges.length > 0) g_RunRoom.ProcessParticleDepthChange();
 	
-	//TEST-verify list sorted correctly; +ve depth at end of list
-	/*var iDepth = 0;
-	for (var i = 0; i < g_RunRoom.m_Active.pool.length; i++)
-	{
-	    var nextDepth = g_RunRoom.m_Active.pool[i].depth;
-	    if( i >0 && nextDepth < iDepth ) 
-	    {
-	        console.log("ERROR depth list: " + (i-1) + ":" + g_RunRoom.m_Active.pool[i-1].depth + " , " + i + ":" + g_RunRoom.m_Active.pool[i].depth );
-	    }
-	    iDepth = nextDepth;
-	}*/
+
 }
 
 // #############################################################################################
@@ -2300,28 +2264,33 @@ function GameMaker_Tick()
 
 
 
-		    // See whether we should the room || the game
-		    switch (New_Room) {
-		        case -1: break;         // Nothing needs to be done
+			// See whether we should the room || the game
+			switch (New_Room) {
+				case -1:
+					// Nothing needs to be done
+					break;
 
-		        case ROOM_ENDOFGAME:
-                case ROOM_ABORTGAME:
-                    Run_EndGame();
-                    return;
+				case ROOM_ENDOFGAME:
+				case ROOM_ABORTGAME:
+					Run_EndGame(false);
+					return;
 
-		        case ROOM_RESTARTGAME: Run_EndGame();
-		            // Reset rooms to ensure persistence isn't carried over
-		            g_pRoomManager.ResetAll();
-		            StartGame();
-		            break;
+				case ROOM_RESTARTGAME:
+					Run_EndGame(true);
+					// Reset rooms to ensure persistence isn't carried over
+					g_pRoomManager.ResetAll();
+					StartGame();
+					break;
 
-		        case ROOM_LOADGAME: LoadGame();
-		            break;
+				case ROOM_LOADGAME:
+					LoadGame();
+					break;
 
-		        default: SwitchRoom(New_Room);
-		            done = false;
-		            break;
-		    }
+				default:
+					SwitchRoom(New_Room);
+					done = false;
+					break;
+			}
 		    ErrorCount--;
 		    if (ErrorCount <= 0) break;
 		}

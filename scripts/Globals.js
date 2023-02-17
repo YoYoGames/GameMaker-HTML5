@@ -796,6 +796,25 @@ MAXTIMER = 12,
 Audio_NoAudio = -1,
 Audio_Sound =0,
 Audio_WebAudio=1,
+
+// Surface formats (ensure these match the surface format constants defined in GameMaker\Runner\GMAssetCompiler\GMAssetCompiler\Output\GMLCompile.cs)
+	eTextureFormat_UnknownFormat = 0,
+	eTextureFormat_DXT1 = 1,
+	eTextureFormat_DXT2 = 2,
+	eTextureFormat_DXT3 = 3,
+	eTextureFormat_DXT4 = 4,
+	eTextureFormat_DXT5 = 5,
+	eTextureFormat_A8R8G8B8 = 6,
+	eTextureFormat_Depth = 7,
+	eTextureFormat_DepthStencil = 8,
+	eTextureFormat_Float16 = 9,
+	eTextureFormat_Float32 = 10,
+	eTextureFormat_A4R4G4B4 = 11,
+	eTextureFormat_R8 = 12,
+	eTextureFormat_R8G8 = 13,
+	eTextureFormat_R16G16B16A16_Float = 14,
+	eTextureFormat_R32G32B32A32_Float = 15,
+
 //***************************************************************************************************************************
 //***************************************************************************************************************************
 //
@@ -875,10 +894,9 @@ Audio_WebAudio=1,
 	g_CurrentSurfaceIdStack =[], // ditto
 
 	g_gmlConst =null,
+	g_AudioBusMain = null;
 	g_AudioMainVolumeNode =null,
-	g_AudioMusicVolumeNode =null,
 	g_WebAudioContext =null,
-	g_pAudioMixer = null;
 	g_dialogs = null,
 	g_dialogName = null,
 	Current_View = null,
@@ -979,6 +997,8 @@ Audio_WebAudio=1,
 	g_GUI_X_Scale = 1,
 	g_GUI_Y_Scale = 1,
 	g_transRoomExtentsDirty = true,
+	g_ViewFrustumDirty = true,
+	g_ViewFrustum = new Frustum(),
     cr_default = 0,
     cr_none =  0,
     cr_arrow = 0,
@@ -1626,7 +1646,7 @@ function BrowserDetect() {
 		this.browser = this.searchString(this.dataBrowser) || "An unknown browser";
 		this.browser_version = this.GetBrowserVersion();
 		this.version = this.searchVersion(navigator.userAgent) || this.searchVersion(navigator.appVersion) || "an unknown version";
-		this.OS = this.searchString(this.dataOS) || "an unknown OS";
+		this.OS = this.GetOS(this.browser);
 		this.os_version = this.GetOSVersion();		
 	},
 	
@@ -1645,6 +1665,16 @@ function BrowserDetect() {
         return -1;
 	},
 
+	this.GetOS = function(_browser) {
+		const os = this.searchString(this.dataOS) || "an unknown OS";
+
+		// macOS and iPadOS have identical userAgent strings on Safari
+		if (_browser === "Safari" && os === "Mac" && navigator["maxTouchPoints"] && navigator["maxTouchPoints"] > 1)
+			return "iPad";
+
+		return os;
+	},
+	
     /** @this {BrowserDetect} */	
 	this.GetOSVersion= function () {
 		

@@ -63,8 +63,9 @@ function InitAboyne()
     g_pLayerManager = new LayerManager();
 	g_pEffectsManager = new yyEffectsManager();
     g_pCameraManager = new CameraManager();
-	g_pAudioMixer = new AudioMixer();
     InitAboyneGlobals();
+
+    Audio_Init(); 
 
 	if (g_isZeus)
 	{
@@ -853,6 +854,18 @@ function LoadGame(_GameFile)
         }
     }
 
+	// Load Particle System Emitters
+    if (_GameFile.PSEmitters !== undefined) {
+		ParticleSystem_Emitters_Load(_GameFile);
+    }
+
+	// Load Particle Systems
+    if (_GameFile.ParticleSystems !== undefined) {
+        for (index = 0; index < _GameFile.ParticleSystems.length; index++) {
+			CParticleSystem.CreateFromJSON(_GameFile.ParticleSystems[index]);
+        }
+    }
+
 	// Load Effect Defs
 	if (_GameFile.FiltersAndEffectDefs !== undefined) {
 		for (index = 0; index < _GameFile.FiltersAndEffectDefs.length; index++) {
@@ -911,27 +924,7 @@ function LoadGame(_GameFile)
 				}
 			}
 
-			// Do some extra work to find the textures associated with any spine sprites and add them to our texture list for this group
-			if (pTGInfo.spinesprites.length > 0)
-			{
-				for(var i = 0; i < pTGInfo.spinesprites.length; i++)
-				{
-					var sprt = g_pSpriteManager.Sprites[pTGInfo.spinesprites[i]];
-					if (sprt !== null)
-					{
-						if (sprt.m_skeletonSprite)
-						{	
-						    var entry = pTGInfo.textures.length;
-						    var numTextures = sprt.m_skeletonSprite.GetNumAtlasTextures();
-						    for (var t = 0; t < numTextures; t++)
-						    {
-						        pTGInfo.textures[entry] = sprt.m_skeletonSprite.GetAtlasTextureID(t);
-						        entry++;
-						    }
-						}
-					}
-				}
-			}
+			// Spine sprites now just reference textures from the group so we don't need to retrieve them separately
 
 			g_pTextureGroupInfoManager.AddTextureGroupInfo(pTGInfo);
 		}

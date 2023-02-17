@@ -199,6 +199,19 @@ function GetHTTPRequestSettings(_url, _headers) {
 				requestSettings.xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
 			}
 		}
+		
+		/* Enable credentials (i.e. cookies) for requests when enabled using the GML
+		 * http_set_request_crossorigin() function.
+		 *
+		 * This has to be an opt-in because if you enable credentials for a request and the
+		 * response doesn't include *exactly* the right blend of CORS headers the browser wants,
+		 * the browser will tell us the request failed and not give us the payload, probably
+		 * breaking things for lots of people who don't need cookies.
+		*/
+		if(g_HttpRequestCrossOriginType === "use-credentials")
+		{
+			requestSettings.xmlhttp.withCredentials = true;
+		}
 	}
 	return requestSettings;
 }
@@ -418,12 +431,12 @@ function http_request(_url, _method, _headerMap, _body)
     // Turn the supplied header ds_map into a set of key-value pairs
     var headers = [];
     var pMap = g_ActiveMaps.Get(_headerMap);    
-    for (var key in pMap) {    
-        if (pMap.hasOwnProperty(key)) {
-            headers.push({ key: key, value: pMap[key] });
-        }
+    for (const [key, item] of pMap) {    
+        var v = key;
+        if (pMap.originalKeys && pMap.originalKeys.has(key))
+            v = pMap.originalKeys.get(key);        	
+	    headers.push({ key: v, value: item  });
     }
-
     // If the "_body" is a number then it's an index to a binary buffer
     if (typeof(_body) === 'number') {
         return http_request_buffer(_url, _method, headers, _body);

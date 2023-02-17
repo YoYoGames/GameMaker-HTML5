@@ -1883,22 +1883,25 @@ function WebGL_gpu_set_zwriteenable(_enable)
 //function WebGL_gpu_set_lightingenable(_enable)                                                       { ErrorFunction("gpu_set_lightingenable()"); }
 function WebGL_gpu_set_fog(_enable,_col,_start,_end)
 {
-    // Support arrays like the C++ runner
     if (Array.isArray(_enable))
     {
         var params = _enable;
-        g_webGL.RSMan.SetRenderState(yyGL.RenderState_FogEnable, yyGetInt32(params[0]) >= 0.5);
-        g_webGL.RSMan.SetRenderState(yyGL.RenderState_FogColour, yyGetInt32(params[1]));
-        g_webGL.RSMan.SetRenderState(yyGL.RenderState_FogStart, yyGetReal(params[2]));
-        g_webGL.RSMan.SetRenderState(yyGL.RenderState_FogEnd, yyGetReal(params[3]));
-    }
-    else
-    {
-        g_webGL.RSMan.SetRenderState(yyGL.RenderState_FogEnable, yyGetInt32(_enable) >= 0.5);
-        g_webGL.RSMan.SetRenderState(yyGL.RenderState_FogColour, yyGetInt32(_col));
-        g_webGL.RSMan.SetRenderState(yyGL.RenderState_FogStart, yyGetReal(_start));
-        g_webGL.RSMan.SetRenderState(yyGL.RenderState_FogEnd, yyGetReal(_end));
-    }
+		_enable = params[0];    	
+		_col = params[1];    	
+		_start = params[2];    	
+		_end = params[3];    	
+    } // end if
+
+    _enable = yyGetBool(_enable);
+    _col = yyGetInt32(_col ) | 0xff000000;
+    _start = yyGetReal(_start);
+    _end = yyGetReal(_end);
+
+    // Support arrays like the C++ runner
+    g_webGL.RSMan.SetRenderState(yyGL.RenderState_FogEnable, _enable);
+    g_webGL.RSMan.SetRenderState(yyGL.RenderState_FogColour, _col);
+    g_webGL.RSMan.SetRenderState(yyGL.RenderState_FogStart, _start);
+    g_webGL.RSMan.SetRenderState(yyGL.RenderState_FogEnd, _end);
 
     // The global fog parameters needs to be set here so that it remains after
     // the current render cycle and into the next until it is reset
@@ -1910,7 +1913,9 @@ function WebGL_gpu_set_fog(_enable,_col,_start,_end)
     GR_FogParameters[4] = (_col & 0xff) / 255.0;
     GR_FogParameters[5] = ((_col >> 8) & 0xff) / 255.0;
     GR_FogParameters[6] = ((_col >> 16) & 0xff) / 255.0;
-    GR_FogParameters[7] = ((_col >> 24) & 0xff) / 255.0;   
+    GR_FogParameters[7] = 1.0; //((_col >> 24) & 0xff) / 255.0;   
+
+    g_webGL.SetFogData(GR_FogParameters);
 }
 
 function WebGL_gpu_set_cullmode(_cullmode)

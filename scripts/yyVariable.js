@@ -409,7 +409,7 @@ function __yy_gml_array_set_owner( _a )
 
 function __yy_gml_array_check_index( _a, _b )
 {
-    if (!(_b instanceof Array)) { 
+    if (!(_b instanceof Array) && !(_b instanceof Float32Array)) { 
         yyError( "trying to index variable which is not an array" );
     } // end if
     _a = yyGetInt32(_a);
@@ -461,6 +461,41 @@ function __yy_gml_errCheck( _a )
     return _a;
 }
 
+// #############################################################################################
+// Returns a function given a function or script index (used for array functions)
+// #############################################################################################
+function getFunction(_function_or_script, _argn) {
+
+    switch( typeof _function_or_script )
+    {
+        case "function": return _function_or_script;
+        case "number": return JSON_game.Scripts[_function_or_script - 100000];
+        default: yyError("argument" + _argn + " is not a method or script");
+    }
+
+}
+
+// #############################################################################################
+// Returns [offset, loops, step] given raw offset and raw length (used for string/array functions)
+// #############################################################################################
+function computeIterationValues(_maxLength, _rawOffset, _rawLength) {
+    
+    var _offset = Math.min(Math.max(_rawOffset, -_maxLength), _maxLength - 1);
+    if (_offset < 0) _offset = _maxLength + _offset;
+
+    var _step = 0, _loops = 0;
+    if (_rawLength < 0) {
+        _step = -1;
+        _loops = Math.min(_offset + 1, Math.abs(_rawLength));
+    }
+    else {
+        _step = 1;
+        _loops = Math.min(_offset + _rawLength, _maxLength) - _offset;
+    }
+
+    return [_offset, _loops, _step];
+}
+
 
 // #############################################################################################
 /// Function:<summary>
@@ -478,7 +513,7 @@ function array_equals(_a, _b)
 {
     // Both arguments must be arrays
     if (!Array.isArray(_a) || !Array.isArray(_b)) {
-        ELine("array_equals():  both arguments must be arrays");
+        ELine("array_equals :  both arguments must be arrays");
         return false;
     }
     // Both must match in size and dimensions
@@ -499,7 +534,7 @@ function array_equals(_a, _b)
         }
     }
     return true;
-}
+} // end array_equals
 
 function array_create( _size, _val )
 {
@@ -526,38 +561,47 @@ function array_create( _size, _val )
 
 function array_copy( _dest, _dest_index, _src, _src_index, _length)
 {
-    if (_src_index < 0)
-    {
-        _length += _src_index;      /* Negative _src_index decrements _length... */
-        _dest_index -= _src_index;  /* ...increments _dest_index... */
-        _src_index = 0;             /* ...and finally gets clamped to zero. */
+    // Check array argument
+    if (!Array.isArray(_dest)) yyError("array_copy : argument0 is not an array");
+
+    // Check values argument
+    if (!Array.isArray(_src)) yyError("array_copy : argument2 is not an array");
+
+    _dest_index = yyGetInt32(_dest_index);
+    _src_index = isFinite(_src_index) ? yyGetInt32(_src_index) : yyGetReal(_src_index);
+    _length = isFinite(_length) ? yyGetInt32(_length) : yyGetReal(_length);
+
+    // Compute the correct values for offset, loops and step (direction)
+    [ _src_index, _length, _step ] = computeIterationValues(_src.length, _src_index, _length);
+
+    if (_length == 0) return;
+    
+    // Converts negative offset to positive value and clamps between allowed values
+    _dest_index = Math.max(_dest_index, -_dest.length);
+    if (_dest_index < 0) _dest_index = _dest.length + _dest_index;
+
+    // Fill any null elements prior to the copy with 0 (real) values. 
+    // This mimics the initialisation flow of array data on VM/YYC when MemoryManager::SetLength is called. 
+    if (_dest.length < _dest_index) { 
+        for (var index = _dest.length; index < _dest_index + min(_src.length - _src_index, _length) ; ++index) { 
+            if (_dest[index] == null) { 
+                _dest[index] = 0; 
+            }
+        } // end for  
+    } // end if 
+
+    // Reverse indices we want to start at the end and go towards the beginning
+    _src_index = _src_index + ((_length - 1) * _step);
+    _dest_index += _length;
+    _step = -_step;
+
+    // Iterate over the input array range
+    while (_length > 0) {
+        _dest[--_dest_index] = _src[_src_index];
+        _src_index += _step;
+        _length -= 1;
     }
-
-    if (_length < 0) {
-        _length = 0; /* Negative _length gets clamped to zero. */
-    }
-
-    if (Array.isArray(_dest) && Array.isArray(_src)) {
-
-        _dest_index = yyGetInt32(_dest_index);
-        _src_index = yyGetInt32(_src_index);
-        _length = yyGetInt32( _length );
-
-        // fill any null elements prior to the copy with 0 (real) values.
-        // This mimics the initialisation flow of array data on VM/YYC when MemoryManager::SetLength is called.
-        if (_dest.length < _dest_index) {
-            for (var index = _dest.length; index < _dest_index + min(_src.length - _src_index, _length) ; ++index) {
-                if (_dest[index] == null) {
-                    _dest[index] = 0;
-                }
-            } // end for 
-        } // end if
-
-        for (var n = 0; n < _length && (_src_index + n) < _src.length; ++n) {
-            _dest[_dest_index + n] = _src[_src_index + n];
-        } // end for 
-    } // endif
-}
+} // end array_copy
 
 function array_resize( _array, _newSize )
 {
@@ -574,9 +618,9 @@ function array_resize( _array, _newSize )
 
     } // end if
     else {
-        yyError( "argument0 is not an array");
+        yyError( "array_resize : argument0 is not an array");
     } // end else
-}
+} // end array_resize
 
 function array_push( _array )
 {
@@ -586,7 +630,7 @@ function array_push( _array )
         } // end for
     } // end if
     else {
-        yyError( "argument0 is not an array");
+        yyError( "array_push : argument0 is not an array");
     } // end else
 } // end array_push
 
@@ -596,58 +640,57 @@ function array_pop( _array )
         return _array.pop();
     } // end if
     else {
-        yyError( "argument0 is not an array");
+        yyError( "array_pop : argument0 is not an array");
     } // end else
 } // end array_pop
 
+function array_shift( _array )
+{
+    if (Array.isArray(_array)) {
+        return _array.shift();
+    } // end if
+    else {
+        yyError( "array_shift : argument0 is not an array");
+    } // end else
+} // end array_shift
 
 function array_insert( _array, _index )
 {
     if (Array.isArray(_array)) {
         _index = yyGetInt32(_index);
-        if(_index > _array.length)
-        {
-            var currLen = _array.length;
-            var n;
-            for(n = 2; n < arguments.length; ++n) {
-                _array[_index+n-2] = arguments[n];
-            }
-            // zero fill back to original length
-            for(n = _index - 1; n >= currLen; --n)
-            {
-                _array[n] = 0;
-            }
+
+        // Fill any null elements prior to the copy with 0 (real) values. 
+        // This mimics the initialisation flow of array data on VM/YYC when MemoryManager::SetLength is called. 
+        for(n = _index - 1; n >= _array.length; --n) { 
+            _array[n] = 0; 
         }
-        else
-        {
-            for( var n=2; n<arguments.length; ++n) {
-                _array.splice( _index+n-2, 0, arguments[n] );
-            } // end for
-        }
+
+        _values = Array.prototype.slice.call(arguments, 2);
+        Array.prototype.splice.apply(_array, [_index, 0].concat(_values));
     } // end if
     else {
-        yyError( "argument0 is not an array");
+        yyError( "array_insert : argument0 is not an array");
     } // end else
 } // end array_insert
 
 function array_delete( _array, _index, _number )
 {
     if (Array.isArray(_array)) {
-        _index = yyGetInt32(_index); 
-        if (_index < 0) {
-            yyError("argument1 cannot be negative");
-        } // end if      
-        _number = yyGetInt32(_number);
+        _index = yyGetReal(_index);
+        _number = yyGetReal(_number);
+
+        // If number is negative shift the index back and make number positive again
         if (_number < 0) {
-            yyError("argument2 cannot be negative");
-        } // end if        
+            _index += _number + 1;
+            _number = -_number;
+        }
+
         _array.splice( _index, _number );
     } // end if
     else {
-        yyError( "argument0 is not an array");
+        yyError( "array_delete : argument0 is not an array");
     } // end else
 } // end array_delete
-
 
 function array_sort( _array, _typeofSort )
 {
@@ -678,64 +721,103 @@ function array_sort( _array, _typeofSort )
         }
     } // end if
     else {
-        yyError( "argument0 is not an array");
+        yyError( "array_sort : argument0 is not an array");
     } // end else
 } // end array_sort
 
+const shuffleArray = (_array, _offset, _length) => {
+
+    _offset ??= 0;
+    _length ??= _array.length - _offset;
+
+    for (let i = _length - 1; i > 0; --i) {
+        const j = _offset + Math.floor(Math.random() * (i + 1));
+        const temp = _array[_offset + i];
+        _array[_offset + i] = _array[j];
+        _array[j] = temp;
+    }
+} // end shuffleArray
+
+function array_shuffle( _array, _offset, _length )
+{
+    // Check raw offset and length
+    _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
+    _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
+
+    var ret = undefined;
+    if (Array.isArray(_array)) {
+
+        // Compute raw values into valid/clamped values
+        _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
+        _offset = _itValues[0];
+        var _loops = _itValues[1];
+        var _step = _itValues[2];
+
+        // Order doesn't matter here allways go up
+        if (_step < 0) _offset -= (_loops - 1);
+
+        // Duplicate the array
+        ret = _array.slice(_offset, _offset + _loops);
+
+        // Shuffle the array
+        shuffleArray(ret);
+
+    } // end if
+    else {
+        yyError( "array_shuffle : argument0 is not an array");
+    } // end else
+    return ret;
+} // end array_shuffle
+
+function array_shuffle_ext(_array, _offset, _length)
+{
+    // Check raw offset and length
+    _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
+    _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
+
+    var ret = undefined;
+    if (Array.isArray(_array)) {
+
+        // Compute raw values into valid/clamped values
+        _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
+        _offset = _itValues[0];
+        var _loops = _itValues[1];
+        var _step = _itValues[2];
+
+        // Order doesn't matter here allways go up
+        if (_step < 0) _offset -= (_loops - 1);
+
+        ret = _array;
+
+        if (_loops == 0) return ret;
+
+        // Shuffle the array
+        shuffleArray(ret, _offset, _loops);
+
+    } // end if
+    else {
+        yyError( "array_shuffle_ext : argument0 is not an array");
+    } // end else
+    return _loops;
+} // end array_shuffle_ext
 
 function array_first(_array) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_first : argument0 is not an array");
 
     var _length = _array.length;
     return _length == 0 ? undefined : _array[0];
-}
+} // end array_first
 
 function array_last(_array) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_last : argument0 is not an array");
 
     var _length = _array.length;
     return _length == 0 ? undefined : _array[_length -1];
-}
-
-
-// #############################################################################################
-// Returns a function given a function or script index (used for array functions)
-// #############################################################################################
-function getFunction(_function_or_script, _argn) {
-
-    switch( typeof _function_or_script )
-    {
-        case "function": return _function_or_script;
-        case "number": return JSON_game.Scripts[_function_or_script - 100000];
-        default: yyError("argument" + _argn + " is not a method or script");
-    }
-
-}
-
-// #############################################################################################
-// Returns array [offset, loops, step] given raw offset and raw length (used for array functions)
-// #############################################################################################
-function computeIterationValues(_array, _rawOffset, _rawLength) {
-    
-    var _offset = Math.min(Math.max(_rawOffset, -_array.length), _array.length - 1);
-    if (_offset < 0) _offset = _array.length + _offset;
-
-    var _step = 0, _loops = 0;
-    if (_rawLength < 0) {
-        _step = -1;
-        _loops = Math.abs(Math.max(_offset + _rawLength, 0) - _offset) + 1;
-    }
-    else {
-        _step = 1;
-        _loops = Math.min(_offset + _rawLength, _array.length) - _offset;
-    }
-
-    return [_offset, _loops, _step];
-}
+} // end array_last
 
 function array_create_ext(_size, _func) {
 
@@ -759,7 +841,7 @@ function array_create_ext(_size, _func) {
 function array_find_index(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_find_index : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -770,7 +852,7 @@ function array_find_index(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -787,12 +869,135 @@ function array_find_index(_array, _func, _offset, _length) {
         _offset += _step;
         _loops--;
     }
+    return -1;
 } // end array_find_index
+
+function array_get_index(_array, _value, _offset, _length) {
+
+    // Check array argument
+    if (!Array.isArray(_array)) yyError("array_get_index : argument0 is not an array");
+
+    // Check raw offset and length
+    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
+    _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
+
+    // Compute raw values into valid/clamped values
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
+    _offset = _itValues[0];
+    var _loops = _itValues[1];
+    var _step = _itValues[2];
+
+    // Loop through array range
+    while (_loops > 0) {
+
+        // If match found return offset (index)
+        if (yyCompareVal(_array[_offset], _value, g_GMLMathEpsilon, false) == 0) {
+            return _offset;
+        }
+
+        // Update index and loops
+        _offset += _step;
+        _loops--;
+    }
+
+    return -1;
+} // end array_get_index
+
+function array_contains(_array, _value, _offset, _length) {
+
+    // Check array argument
+    if (!Array.isArray(_array)) yyError("array_contains : argument0 is not an array");
+
+    // Check raw offset and length
+    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
+    _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
+
+    // Compute raw values into valid/clamped values
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
+    _offset = _itValues[0];
+    var _loops = _itValues[1];
+    var _step = _itValues[2];
+
+    // Loop through array range
+    while (_loops > 0) {
+
+        // If match found return offset (index)
+        if (yyCompareVal(_array[_offset], _value, g_GMLMathEpsilon, false) == 0) {
+            return true;
+        }
+
+        // Update index and loops
+        _offset += _step;
+        _loops--;
+    }
+
+    return false;
+} // end array_contains
+
+function array_contains_ext(_array, _values, _matchAll, _offset, _length) {
+
+    // Check array argument
+    if (!Array.isArray(_array)) yyError("array_contains_ext : argument0 is not an array");
+
+    // Check values argument
+    if (!Array.isArray(_values)) yyError("array_contains_ext : argument1 is not an array");
+    
+    var subArrayLength = _values.length;
+
+    // Early exit if test subset size if zero (should return true)
+    if (subArrayLength == 0) return true;
+
+    // Check raw offset and length
+    _matchAll = _offset = arguments.length > 2 ? yyGetBool(_matchAll) : false;
+    _offset = arguments.length > 3 ? yyGetReal(_offset) : 0;
+    _length = arguments.length > 4 ? yyGetReal(_length) : _array.length; 
+
+    // Compute raw values into valid/clamped values
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
+    _offset = _itValues[0];
+    var _loops = _itValues[1];
+    var _step = _itValues[2];
+
+    var matchCount = 0;
+
+    // Loop through array range
+    while (_loops > 0) {
+
+		var matched = false;
+        var current = _array[_offset];
+		for (var i = 0; i < subArrayLength; ++i)
+		{
+			if (yyCompareVal(current, _values[i], g_GMLMathEpsilon, false) == 0)
+			{
+				matched = true;
+				matchCount += 1;
+				break;
+			}
+		}
+		// There was a match and any should match; return true
+		if (matched && !_matchAll)
+		{
+			return true;
+		}
+
+        // Update index and loops
+        _offset += _step;
+        _loops--;
+    }
+
+	// If match count matches the size of the sub array; return true
+	if (matchCount == subArrayLength)
+	{
+		return true;
+	}
+
+    return false;
+} // end array_contains_ext
 
 function array_any(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_any : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -803,7 +1008,7 @@ function array_any(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -828,7 +1033,7 @@ function array_any(_array, _func, _offset, _length) {
 function array_all(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_all : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -839,7 +1044,7 @@ function array_all(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -864,7 +1069,7 @@ function array_all(_array, _func, _offset, _length) {
 function array_foreach(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_foreach : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -875,7 +1080,7 @@ function array_foreach(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -895,7 +1100,7 @@ function array_foreach(_array, _func, _offset, _length) {
 function array_reduce(_array, _func, _init, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_reduce : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -906,7 +1111,7 @@ function array_reduce(_array, _func, _init, _offset, _length) {
     _length = arguments.length > 4 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -936,7 +1141,7 @@ function array_reduce(_array, _func, _init, _offset, _length) {
 function array_filter(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_filter : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -947,7 +1152,7 @@ function array_filter(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -975,7 +1180,7 @@ function array_filter(_array, _func, _offset, _length) {
 function array_filter_ext(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_filter_ext : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -986,7 +1191,7 @@ function array_filter_ext(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -1015,7 +1220,7 @@ function array_filter_ext(_array, _func, _offset, _length) {
 function array_map(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_map : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -1026,7 +1231,7 @@ function array_map(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -1052,7 +1257,7 @@ function array_map(_array, _func, _offset, _length) {
 function array_map_ext(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_map_ext : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -1063,7 +1268,7 @@ function array_map_ext(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -1089,7 +1294,7 @@ function array_map_ext(_array, _func, _offset, _length) {
 function array_copy_while(_array, _func, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_copy_while : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
@@ -1100,7 +1305,7 @@ function array_copy_while(_array, _func, _offset, _length) {
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -1129,14 +1334,14 @@ function array_copy_while(_array, _func, _offset, _length) {
 function array_unique(_array, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_unique : argument0 is not an array");
 
     // Check raw offset and length
     _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
     _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -1163,14 +1368,14 @@ function array_unique(_array, _offset, _length) {
 function array_unique_ext(_array, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_unique_ext : argument0 is not an array");
 
     // Check raw offset and length
     _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
     _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -1200,14 +1405,14 @@ function array_unique_ext(_array, _offset, _length) {
 function array_reverse(_array, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_reverse : argument0 is not an array");
 
     // Check raw offset and length
     _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
     _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -1233,14 +1438,14 @@ function array_reverse(_array, _offset, _length) {
 function array_reverse_ext(_array, _offset, _length) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_reverse_ext : argument0 is not an array");
 
     // Check raw offset and length
     _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
     _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
-    _itValues = computeIterationValues(_array, _offset, _length); // [offset, loops, step]
+    _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
     _offset = _itValues[0];
     var _loops = _itValues[1];
     var _step = _itValues[2];
@@ -1269,7 +1474,7 @@ function array_reverse_ext(_array, _offset, _length) {
 function array_join(_array) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_join : argument0 is not an array");
 
     var _ret = _array;
 
@@ -1277,7 +1482,7 @@ function array_join(_array) {
     for (var _idx = 1; _idx < arguments.length; _idx++) {
 
         // Check array argument
-        if (!Array.isArray(arguments[_idx])) yyError("argument" + _idx + " is not an array");
+        if (!Array.isArray(arguments[_idx])) yyError("array_join : argument" + _idx + " is not an array");
         _ret = _ret.concat(arguments[_idx]);
     }
 
@@ -1289,7 +1494,7 @@ function array_join(_array) {
 function array_union(_array) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_union : argument0 is not an array");
 
     var _ret = _array;
 
@@ -1297,7 +1502,7 @@ function array_union(_array) {
     for (var _idx = 1; _idx < arguments.length; _idx++) {
 
         // Check array argument
-        if (!Array.isArray(arguments[_idx])) yyError("argument" + _idx + " is not an array");
+        if (!Array.isArray(arguments[_idx])) yyError("array_union : argument" + _idx + " is not an array");
         _ret = _ret.concat(arguments[_idx]);
     }
 
@@ -1321,7 +1526,7 @@ function array_intersection(_array) {
         _array = arguments[_idx];
 
         // Check array argument
-        if (!Array.isArray(arguments[_idx])) yyError("argument" + _idx + " is not an array");
+        if (!Array.isArray(arguments[_idx])) yyError("array_intersection : argument" + _idx + " is not an array");
 
         // Remove duplicates
         _array = Array.from(new Set(_array));
@@ -1347,7 +1552,6 @@ function array_intersection(_array) {
     return _ret;
 
 } // end array_intersection
-
 
 // #############################################################################################
 // Converts the buffer to a hexadecimal string
@@ -2185,7 +2389,7 @@ function variable_instance_exists(_id, _var) {
             if (pInst.__yyIsGMLObject || (!pInst.marked && pInst.active)) {
                 var settings = undefined;
                 if ((typeof g_var2obf !== "undefined") && (g_var2obf[_var] != undefined)) {
-                    ret = g_instance_names[ g_var2obf[_var] ];
+                    settings = g_instance_names[ g_var2obf[_var] ];
                 } else {
                     settings = g_instance_names[ _var ];
                 } // end else
@@ -2198,7 +2402,10 @@ function variable_instance_exists(_id, _var) {
                     } // end else
                 }  
                 else {
-                    ret = true;
+                    if (pInst.__yyIsGMLObject) 
+                        ret = _var in pInst || "gml"+_var in pInst;
+                    else
+                        ret = true;
                 } // end else
                 break;
             } // end if
@@ -2335,10 +2542,11 @@ function variable_instance_get_names( _id )
 
 function __yy_gml_copy_prototype( _dest, _source)
 {
-  for (key in _source) {
-    if (key === "yy_staticInitialiser") continue;
-    _dest[key] = _source[key]; // copies each property to the objCopy object
-  }    
+    Object.setPrototypeOf( _dest, _source );
+  //for (key in _source) {
+  //  if (key === "yy_staticInitialiser") continue;
+  //  _dest[key] = _source[key]; // copies each property to the objCopy object
+  //}    
 }
 
 

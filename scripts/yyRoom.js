@@ -62,7 +62,8 @@ yyRoom.prototype.Init = function () {
 	this.m_enableviews = false; 				// whether views are enabled
 	this.m_code = null; 						// Creation code for the room
 
-	this.m_Active = new yyOList(); 		        // the ACTIVE instance list (ordered by DEPTH)
+	this.m_Active = new yyList(); 		        // the ACTIVE instance list (ordered by DEPTH)
+	this.m_Active.packing = true;
 	this.m_Deactive = new yyList(); 		    // the DEACTIVE instance list
 	this.m_Deactive.packing = true;
 	this.m_DepthSorting = []; 				    // When the depth is changed, we need to remember it so we can "change" it at a safe point. 
@@ -443,6 +444,27 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
 							};
         				}
 
+						// Particles
+						newLayer.pcount = sourceLayer.pcount;
+						newLayer.particles = new Array(sourceLayer.particles.length);
+
+						for (assetIdx = 0; i < sourceLayer.particles.length; assetIdx++)
+						{
+							var srcParticle = sourceLayer.particles[assetIdx];
+
+							newLayer.particles[assetIdx] =
+							{
+								sName: srcParticle.sName,
+								sIndex: srcParticle.sIndex,
+								sX: srcParticle.sX,
+								sY: srcParticle.sY,
+								sXScale: srcParticle.sXScale,
+								sYScale: srcParticle.sYScale,
+								sBlend: srcParticle.sBlend,
+								sRotation: srcParticle.sRotation,
+							};
+						}
+
         				break;
 					case YYLayerType_Effect:
 						newLayer.m_pInitialEffectInfo = sourceLayer.m_pInitialEffectInfo;
@@ -642,7 +664,7 @@ yyRoom.prototype.CreateInstance = function (_x, _y, _id, _objindex, _scaleX, _sc
 {
     
     var pinst = new yyInstance(_x, _y, _id, _objindex, true);
-    this.m_Active.AddUnsorted(pinst);
+    this.m_Active.Add(pinst);
     g_pInstanceManager.Add(pinst);
 
 
@@ -698,7 +720,7 @@ yyRoom.prototype.CreateInstance = function (_x, _y, _id, _objindex, _scaleX, _sc
 yyRoom.prototype.AddInstance = function (_x, _y, _id, _objindex, _overridedepth, _depth)
 {
     var pinst = new yyInstance(_x, _y, _id, _objindex, true);
-    this.m_Active.AddUnsorted(pinst);
+    this.m_Active.Add(pinst);
     g_pInstanceManager.Add(pinst);
 
     if (_overridedepth)
@@ -749,7 +771,7 @@ yyRoom.prototype.AddLayerInstance = function (_x, _y, _layer, _id, _objindex)
     
     pinst.depth = _layer.depth;
     
-    this.m_Active.AddUnsorted(pinst);
+    this.m_Active.Add(pinst);
     g_pInstanceManager.Add(pinst);
 
     pinst.BuildPhysicsBody();
@@ -769,7 +791,7 @@ yyRoom.prototype.AddLayerInstance = function (_x, _y, _layer, _id, _objindex)
 /// In:		 <param name="_inst">Instance to add</param>
 // #############################################################################################
 yyRoom.prototype.AddInstanceToRoom = function (_pInst) {
-	this.m_Active.AddUnsorted(_pInst);
+	this.m_Active.Add(_pInst);
 	g_pInstanceManager.Add(_pInst);
 
 	if (g_isZeus)
@@ -1062,308 +1084,6 @@ yyRoom.prototype.UpdateViews = function () {
 	
 	
 };
-
-var g_can = false;
-
-// #############################################################################################
-/// Function:<summary>
-///             There are NO tiles OR particles, so just loop through all the instances...
-///          </summary>
-///
-/// In:		 <param name="r">Rect to "fit" in</param>
-// #############################################################################################
-yyRoom.prototype.DrawInstancesTiles = function (_rect) 
-{
-    var pPlayfield = this.m_PlayfieldManager.GetFirst();
-    var part_depth = pPlayfield.depth;
-	
-	for( var i = this.m_Active.length-1; i>=0; i-- )
-	{
-		var pInst = this.m_Active.Get(i);
-
-		// If this instance has been "marked", move to the next one - should really be a WHILE loop here instead of "continue"
-		if( pInst.marked || pInst.visible == 0 ) continue;
-
-        while( part_depth>pInst.depth){
-            pPlayfield.Draw(_rect);
-            pPlayfield = this.m_PlayfieldManager.GetNext();
-            if( pPlayfield ){
-                part_depth = pPlayfield.depth;
-            }else{
-                part_depth=-1000000000000;
-            }
-        }        
-        
-        // Perform drawing event, if we couldn't, then draw it "simply"
-        //if (!pInst.PerformEvent(EVENT_DRAW, 0, pInst, pInst))
-        if( !pInst.REvent[EVENT_DRAW] )
-        {
-	        // Otherwise just DRAW it..
-	        var pSprite = g_pSpriteManager.Get(pInst.sprite_index);
-	        if (pSprite)
-	        {
-		        if ((pInst.image_xscale == 1.0) && (pInst.image_yscale == 1.0) && (pInst.image_angle == 0.0) && (pInst.image_blend == 0xffffff)) // &&  (pInst.image_alpha == 1.0))
-		        {
-		        	pSprite.DrawSimple(pInst.image_index, pInst.x, pInst.y, pInst.image_alpha * g_GlobalAlpha);
-		        }
-		        else
-		        {
-			        pSprite.Draw(pInst.image_index,
-							        pInst.x, pInst.y,
-							        pInst.image_xscale, pInst.image_yscale,
-							        pInst.image_angle,
-							        ConvertGMColour(pInst.image_blend),
-							        pInst.image_alpha * g_GlobalAlpha
-						        );
-		        }
-	        }
-        }else{
-            g_skeletonDrawInstance = pInst;
-            pInst.PerformEvent(EVENT_DRAW, 0, pInst, pInst);
-            g_skeletonDrawInstance = null;
-        }
-	}	
-
-    // Make sure we've drawn all the playfields...	
-	while(pPlayfield){
-        pPlayfield.Draw(_rect);
-        pPlayfield = this.m_PlayfieldManager.GetNext();
-	}
-};
-
-
-// #############################################################################################
-/// Function:<summary>
-///             There are NO tiles OR particles, so just loop through all the instances...
-///          </summary>
-///
-/// In:		 <param name="r">Rect to "fit" in</param>
-// #############################################################################################
-yyRoom.prototype.DrawInstancesOnly = function (_rect) {
-	var pSprite, pInst, i, pool, pSprites;
-	
-	pool = this.m_Active.pool;
-	pSprites = g_pSpriteManager.Sprites;
-
-	for (i = pool.length - 1; i >= 0; i--)
-	{
-		pInst = pool[i];
-
-		// If this instance has been "marked", move to the next one - should really be a WHILE loop here instead of "continue"
-		if (pInst.marked || !pInst.visible) continue;
-
-
-		// Perform drawing event, if we couldn't, then draw it "simply"
-		if (!pInst.REvent[EVENT_DRAW])
-		{
-			// Otherwise just DRAW it..
-			pSprite = pSprites[pInst.sprite_index];
-			if (pSprite)
-			{
-			    g_skeletonDrawInstance = pInst;
-				if ((pInst.image_xscale == 1.0) && (pInst.image_yscale == 1.0) && (pInst.image_angle == 0.0) && (pInst.image_blend == 0xffffff)) // &&  (pInst.image_alpha == 1.0))
-				{
-					pSprite.DrawSimple(pInst.image_index, pInst.x, pInst.y, pInst.image_alpha * g_GlobalAlpha);
-				}
-				else
-				{
-					pSprite.Draw(	pInst.image_index,
-									pInst.x, pInst.y,
-									pInst.image_xscale, pInst.image_yscale,
-									pInst.image_angle,
-									ConvertGMColour(pInst.image_blend),
-									pInst.image_alpha * g_GlobalAlpha
-					);
-				}
-				g_skeletonDrawInstance = null;
-			}
-		}
-		else
-		{
-		    g_skeletonDrawInstance = pInst;
-			pInst.PerformEvent(EVENT_DRAW, 0, pInst, pInst);
-			g_skeletonDrawInstance = null;
-		}
-	}
-};
-
-
-// #############################################################################################
-/// Function:<summary>
-///             There are NO tiles OR particles, so just loop through all the instances...
-///          </summary>
-///
-/// In:		 <param name="r">Rect to "fit" in</param>
-// #############################################################################################
-yyRoom.prototype.DrawInstancesParticles = function (_rect) {
-
-	var partdepth = ParticleSystem_LargestDepth();
-
-	for (var i = this.m_Active.length - 1; i >= 0; i--)
-	{
-		var pInst = this.m_Active.Get(i);
-
-
-		// If this instance has been "marked", move to the next one - should really be a WHILE loop here instead of "continue"
-		if (pInst.marked || pInst.visible == 0) continue;
-
-
-        // stop ultimate loops if they've got an asinine instance depth
-        var prevPartDepth = partdepth;
-		while (partdepth > pInst.depth)
-		{
-			ParticleSystem_DrawDepth(partdepth);
-			partdepth = ParticleSystem_NextDepth(partdepth);
-			
-			if (partdepth == prevPartDepth) {
-			    break;
-			}
-			prevPartDepth = partdepth;
-		}
-
-		// Perform drawing event, if we couldn't, then draw it "simply"
-		if (!pInst.REvent[EVENT_DRAW])
-		{
-			// Otherwise just DRAW it..
-			var pSprite = g_pSpriteManager.Get(pInst.sprite_index);
-			if (pSprite)
-			{
-				if ((pInst.image_xscale == 1.0) && (pInst.image_yscale == 1.0) && (pInst.image_angle == 0.0) && (pInst.image_blend == 0xffffff)) // &&  (pInst.image_alpha == 1.0))
-				{
-					pSprite.DrawSimple(pInst.image_index, pInst.x, pInst.y, pInst.image_alpha * g_GlobalAlpha);
-				}
-				else
-				{
-					pSprite.Draw(pInst.image_index,
-									pInst.x, pInst.y,
-									pInst.image_xscale, pInst.image_yscale,
-									pInst.image_angle,
-									ConvertGMColour(pInst.image_blend),
-									pInst.image_alpha * g_GlobalAlpha
-								);
-				}
-			}
-		} else
-		{
-		    g_skeletonDrawInstance = pInst;
-			pInst.PerformEvent(EVENT_DRAW, 0, pInst, pInst);
-			g_skeletonDrawInstance = null;
-		}
-	}
-
-	// Render any particles that are left...
-	while (partdepth > -1000000000)
-	{
-		ParticleSystem_DrawDepth(partdepth);
-		partdepth = ParticleSystem_NextDepth(partdepth);
-	}
-};
-
-
-// #############################################################################################
-/// Function:<summary>
-///             There are instances, particles and tiles to draw
-///          </summary>
-///
-/// In:		 <param name="r">Rect to "fit" in</param>
-// #############################################################################################
-yyRoom.prototype.DrawInstancesParticlesTiles = function (_rect) 
-{	
-    // Draw instances and particles
-	var partdepth = ParticleSystem_LargestDepth();
-    var pPlayfield = this.m_PlayfieldManager.GetFirst();
-    var playfield_depth = pPlayfield.depth;
-	for (var i = this.m_Active.length - 1; i >= 0; i--)
-	{
-		var pInst = this.m_Active.Get(i);
-
-
-		// If this instance has been "marked", move to the next one - should really be a WHILE loop here instead of "continue"
-		if (pInst.marked || pInst.visible == 0) continue;
-
-        // higher numbers are further back, neg are higher up
-        while( true )
-        {
-            // playfield UNDER the instance?
-            if( playfield_depth>pInst.depth )
-            {
-                // playfield UNDER particles?
-                if( playfield_depth>partdepth )
-                {
-                    // If so, draw PLAYFIELDS.
-                    pPlayfield.Draw(_rect);
-                    pPlayfield = this.m_PlayfieldManager.GetNext();
-                    if( pPlayfield ){
-                        playfield_depth = pPlayfield.depth;
-                    }else{
-                        playfield_depth = -1000000000000;
-                    }
-                }else{
-			        ParticleSystem_DrawDepth(partdepth);
-			        partdepth = ParticleSystem_NextDepth(partdepth);
-                }
-            }else if( partdepth>pInst.depth ){
-			    ParticleSystem_DrawDepth(partdepth);
-			    partdepth = ParticleSystem_NextDepth(partdepth);
-            }else{
-                break;
-            }
-        }
-
-
-		// Perform drawing event, if we couldn't, then draw it "simply"
-		if (!pInst.REvent[EVENT_DRAW])
-		{
-			// Otherwise just DRAW it..
-			var pSprite = g_pSpriteManager.Get(pInst.sprite_index);
-			if (pSprite)
-			{
-				if ((pInst.image_xscale == 1.0) && (pInst.image_yscale == 1.0) && (pInst.image_angle == 0.0) && (pInst.image_blend == 0xffffff)) // &&  (pInst.image_alpha == 1.0))
-				{
-					pSprite.DrawSimple(pInst.image_index, pInst.x, pInst.y, pInst.image_alpha * g_GlobalAlpha);
-				}
-				else
-				{
-					pSprite.Draw(pInst.image_index,
-									pInst.x, pInst.y,
-									pInst.image_xscale, pInst.image_yscale,
-									pInst.image_angle,
-									ConvertGMColour(pInst.image_blend),
-									pInst.image_alpha * g_GlobalAlpha
-								);
-				}
-			}
-		} else
-		{
-		    g_skeletonDrawInstance = pInst;
-			pInst.PerformEvent(EVENT_DRAW, 0, pInst, pInst);
-			g_skeletonDrawInstance = null;
-		}
-	}
-
-	// Render any particles or tiles that are left...
-    while( true )
-    {
-        // If plafields are below particles draw them
-        if( playfield_depth>partdepth ){
-            // If so, draw PLAYFIELDS.
-            pPlayfield.Draw(_rect);
-            pPlayfield = this.m_PlayfieldManager.GetNext();
-            if( pPlayfield ){
-                playfield_depth = pPlayfield.depth;
-            }else{
-                playfield_depth = -1000000000000;
-            }
-        }else{
-            if( partdepth <= -1000000000 ) break;
-	        ParticleSystem_DrawDepth(partdepth);
-	        partdepth = ParticleSystem_NextDepth(partdepth);
-        }
-    }
-
-};
-
-
 
 
 
@@ -2317,7 +2037,26 @@ yyRoom.prototype.DrawLayerTilemapElement = function(_rect,_layer,_el,_xpos,_ypos
 
 yyRoom.prototype.DrawLayerParticleSystem = function(_rect,_layer,_el)
 {
-	ParticleSystem_AutoDraw(_el.m_systemID);
+	var ps = _el.m_systemID;
+
+	if (!ParticleSystem_Exists(ps) || !g_ParticleSystems[ps].automaticdraw)
+	{
+		return;
+	}
+
+	var matWorldOld = WebGL_GetMatrix(MATRIX_WORLD);
+
+	var matRot = new Matrix();
+	var matScale = new Matrix();
+	matRot.SetZRotation(_el.m_imageAngle);
+	matScale.SetScale(_el.m_imageScaleX, _el.m_imageScaleY, 1.0);
+	var matWorldNew = new Matrix();
+	matWorldNew.Multiply(matScale, matRot);
+	matWorldNew.Translation(_el.m_x, _el.m_y, 0.0);
+
+	WebGL_SetMatrix(MATRIX_WORLD, matWorldNew);
+	ParticleSystem_Draw(ps, _el.m_imageBlend, _el.m_imageAlpha);
+	WebGL_SetMatrix(MATRIX_WORLD, matWorldOld);
 };
 
 yyRoom.prototype.DrawLayerTileElement = function (_rect, _layer, _el) {
@@ -2533,6 +2272,9 @@ yyRoom.prototype.DrawTrackList = function (_rect, _layer, _pSequenceEl, _evalTre
 				case eSTT_Text:
                     this.HandleSequenceText(_rect, _layer, _pSequenceEl, currNode, track, _headPosition, _lastHeadPosition, _headDirection, _sequence);
                     break;
+				case eSTT_Particle:
+					this.HandleSequenceParticle(_rect, _layer, _pSequenceEl, currNode, track, _headPosition, _lastHeadPosition, _headDirection, _sequence);
+					break;
             }
         }
 		
@@ -2904,6 +2646,7 @@ ClippingMaskState.prototype.Save = function()
 
 g_clippingMaskStack = [];
 g_globalClippingMaskState = null;
+g_SeqClippingMaskDepth = 0;
 
 yyRoom.prototype.HandleSequenceClipMask = function (_rect, _layer, _pSequenceEl, _node, _track, _headPosition, _lastHeadPosition, _headDirection, _sequence)
 {
@@ -2914,113 +2657,91 @@ yyRoom.prototype.HandleSequenceClipMask = function (_rect, _layer, _pSequenceEl,
 
 	// Find mask and subject tracks as immediate children of this track
 	var currentNode = _node.m_subtree == null ? null : _node.m_subtree;
-	for(var i = 0; i < _track.m_tracks.length; i++)
-	{
+	for(var i = 0; i < _track.m_tracks.length; i++) {
 		var subtrack = _track.m_tracks[i];
-		if(subtrack.m_type == eSTT_ClipMask_Mask)
-		{
+		if(subtrack.m_type == eSTT_ClipMask_Mask) {
 			maskTrack = subtrack;
 			maskNode = currentNode;
-
-			if(subjectTrack != null)
-			{
-				break;
-			}
+			if(subjectTrack != null) break;
 		}
-		else if(subtrack.m_type == eSTT_ClipMask_Subject)
-		{
+		else if(subtrack.m_type == eSTT_ClipMask_Subject) {
 			subjectTrack = subtrack;
 			subjectNode = currentNode;
-
-			if(maskTrack != null)
-			{
-				break;
-			}
+			if(maskTrack != null) break;
 		}
-
 		currentNode = currentNode.m_next;
 	}
 
-	// Set up stencil
-	if (g_clippingMaskStack == null || g_clippingMaskStack.length == 0)
+	if (g_SeqClippingMaskDepth == 0)
 	{
-		// Get current render states to restore to when we're done
-		if (g_globalClippingMaskState == null) g_globalClippingMaskState = new ClippingMaskState();
-		g_globalClippingMaskState.Save();
+		g_webGL.RSMan.SaveStates();
 		g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilEnable, true);
 	}
 
-	// Render to stencil buffer
-	var state = new ClippingMaskState();
-	state.StencilFunc = yyGL.CmpFunc_CmpGreater;
-	state.StencilPass = yyGL.StencilOp_Replace;
-	state.ColourWriteEnable = 0;
-	state.ZWriteEnable = 0;
-	state.StencilRef = g_clippingMaskStack.length + 1;
-	state.Apply();
-	// So we can restore this state again, for nested clipping masks
-	g_clippingMaskStack.push(state);
-
+	// Setup mask states
 
 	// Always alpha test
-	if (g_globalClippingMaskState.AlphaTestEnable == 0)
-	{
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaTestEnable, true);
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaRef, 0); // we want colour parameters on the clipping mask to apply to the result of the clipping mask (subject) not the mask (which this simulates)
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaFunc, yyGL.CmpFunc_CmpGreater);
-	}
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaTestEnable, true);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaRef, 0); // we want colour parameters on the clipping mask to apply to the result of the clipping mask (subject) not the mask (which this simulates)
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaFunc, yyGL.CmpFunc_CmpGreater);
+
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilEnable, true);				
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilFunc, yyGL.CmpFunc_CmpEqual);	
+
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_ColourWriteEnable, 0);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_ZWriteEnable, false);			
+	
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilRef, g_SeqClippingMaskDepth);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilPass, yyGL.StencilOp_Incr);
+
+	g_SeqClippingMaskDepth++;
 
 	// Draw mask
 	g_SeqStack.push(maskTrack);
 	this.DrawTrackList(_rect, _layer, _pSequenceEl, maskNode.m_subtree, _headPosition, _lastHeadPosition, _headDirection, maskTrack.m_tracks, _sequence);
 	g_SeqStack.pop();
 
-	// Increase stencil buffer
-	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilPass, yyGL.StencilOp_Incr);
-	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilFunc, g_clippingMaskStack.length < 2 ? yyGL.CmpFunc_CmpLessEqual : yyGL.CmpFunc_CmpEqual);
-	g_webGL.RSMan.SetRenderState(yyGL.RenderState_ColourWriteEnable, g_clippingMaskStack.length < 2 ? g_globalClippingMaskState.ColourWriteEnable : 0);
-	g_webGL.RSMan.SetRenderState(yyGL.RenderState_ZWriteEnable, g_clippingMaskStack.length < 2 ? g_globalClippingMaskState.ZWriteEnable : 0);
+	g_SeqClippingMaskDepth--;
 
-	// Apply global alpha test state
-	if (g_globalClippingMaskState.AlphaTestEnable == 0)
+	if (g_SeqClippingMaskDepth == 0)
 	{
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaTestEnable, g_globalClippingMaskState.AlphaTestEnable);
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaRef, g_globalClippingMaskState.AlphaRef);
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaFunc, g_globalClippingMaskState.AlphaFunc);
+		g_webGL.RSMan.SetRenderState(yyGL.RenderState_ColourWriteEnable, g_webGL.RSMan.PeekPrevState(yyGL.RenderState_ColourWriteEnable));
+		g_webGL.RSMan.SetRenderState(yyGL.RenderState_ZWriteEnable, g_webGL.RSMan.PeekPrevState(yyGL.RenderState_ZWriteEnable));
+
+		// Apply global alpha test state		
+		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaTestEnable, g_webGL.RSMan.PeekPrevState(yyGL.RenderState_AlphaTestEnable));
+		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaRef, g_webGL.RSMan.PeekPrevState(yyGL.RenderState_AlphaRef));
+		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaFunc, g_webGL.RSMan.PeekPrevState(yyGL.RenderState_AlphaFunc));
 	}
+
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilRef, g_SeqClippingMaskDepth + 1);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilPass, yyGL.StencilOp_Keep);
 
 	// Draw subject/children
 	g_SeqStack.push(subjectTrack);
 	this.DrawTrackList(_rect, _layer, _pSequenceEl, subjectNode.m_subtree, _headPosition, _lastHeadPosition, _headDirection, subjectTrack.m_tracks, _sequence);
 	g_SeqStack.pop();
 
-	// Always alpha test
-	if (g_globalClippingMaskState.AlphaTestEnable == 0)
-	{
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaTestEnable, true);
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaRef, 0); // we want colour parameters on the clipping mask to apply to the result of the clipping mask (subject) not the mask (which this simulates)
-		g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaFunc, yyGL.CmpFunc_CmpGreater);
-	}
-	
-	// Zero stencil buffer
-	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilPass, yyGL.StencilOp_Zero);
-	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilFunc, yyGL.CmpFunc_CmpEqual);
+	// Cleanup mask	
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilPass, yyGL.StencilOp_Decr);
 	g_webGL.RSMan.SetRenderState(yyGL.RenderState_ColourWriteEnable, 0);
 	g_webGL.RSMan.SetRenderState(yyGL.RenderState_ZWriteEnable, 0);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaTestEnable, true);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaRef, 0); // we want colour parameters on the clipping mask to apply to the result of the clipping mask (subject) not the mask (which this simulates) 
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaFunc, yyGL.CmpFunc_CmpGreater);
 
-	// Draw mask again
+	g_SeqClippingMaskDepth++;
+
+	// Draw mask
 	g_SeqStack.push(maskTrack);
 	this.DrawTrackList(_rect, _layer, _pSequenceEl, maskNode.m_subtree, _headPosition, _lastHeadPosition, _headDirection, maskTrack.m_tracks, _sequence);
 	g_SeqStack.pop();
 
-	// Pop and apply the render state for this track
-	var restore = g_clippingMaskStack.pop();
-	restore.Apply();
-	//delete restore;
+	g_SeqClippingMaskDepth--;
 
-	// Restore global render state, we're out of the clipping mask track
-	if (g_clippingMaskStack.length == 0) {
-		g_globalClippingMaskState.Apply();
+	if (g_SeqClippingMaskDepth == 0)
+	{
+		g_webGL.RSMan.RestoreStates();
 	}
 };
 
@@ -3111,6 +2832,77 @@ yyRoom.prototype.HandleSequenceInstance = function (_rect, _layer, _pSequenceEl,
 
 		g_SeqStack.pop();
 	}	
+};
+
+yyRoom.prototype.HandleSequenceParticle = function (_rect, _layer, _pSequenceEl, _node, _track, _headPosition, _lastHeadPosition, _headDirection, _sequence) {
+
+	var keyframes = _track.m_keyframeStore;
+	var keyframeCurrent = null;
+
+	// Find the current keyframe
+	var index = keyframes.GetKeyframeIndexAtFrame(_headPosition, _sequence.m_length);
+	if (index != -1)
+	{
+		var keyframe = keyframes.keyframes[index];
+		if (keyframe != null)
+		{
+			keyframeCurrent = keyframe.m_channels[0];
+		}
+	}
+	
+	if (_pSequenceEl.m_instanceIndex == -1) return;
+
+	var _pInst = g_pSequenceManager.GetInstanceFromID(_pSequenceEl.m_instanceIndex);
+
+	// If keyframe changed, destroy the old particle system
+	var keyframeLast = _pInst.m_trackIDToLastKeyframe[_track.id];
+	if (keyframeLast !== undefined && keyframeLast !== keyframeCurrent)
+	{
+		var psLast = _pInst.m_trackIDToPS[_track.id];
+		if (psLast !== undefined && psLast != -1)
+		{
+			ParticleSystem_Destroy(psLast);
+		}
+		_pInst.m_trackIDToPS[_track.id] = -1;
+	}
+
+	var ps = -1;
+	var particleSystem = _pInst.m_trackIDToPS[_track.id];
+	if (particleSystem === undefined || particleSystem === -1)
+	{
+		// Create a new particle system from the current key
+		if (keyframeCurrent && keyframeCurrent.particleSystemIndex != -1)
+		{
+			ps = CParticleSystem.Get(keyframeCurrent.particleSystemIndex).MakeInstance();
+			ParticleSystem_AutomaticDraw(ps, false);
+			ParticleSystem_AutomaticUpdate(ps, false);
+			_pInst.m_trackIDToPS[_track.id] = ps;
+		}
+	}
+	else
+	{
+		// The particle system already exists
+		ps = particleSystem;
+	}
+
+	// Draw the particles
+	if (ps != -1)
+	{
+		var mul = _node.value.colorMultiply;
+		var add = _node.value.colorAdd;
+		var r = Math.min(255, ((mul[0] + add[0]) * (_pSequenceEl.m_imageBlend & 0xff)));
+		var g = Math.min(255, ((mul[1] + add[1]) * ((_pSequenceEl.m_imageBlend >> 8) & 0xff)));
+		var b = Math.min(255, ((mul[2] + add[2]) * ((_pSequenceEl.m_imageBlend >> 16) & 0xff)));
+		var drawcol = (Math.max(0, r))
+					| (Math.max(0, g) << 8)
+					| (Math.max(0, b) << 16);
+		var a = Math.min(1, (mul[3] + add[3]) * _pSequenceEl.m_imageAlpha);
+
+		ParticleSystem_Draw(ps, drawcol, a);
+	}
+
+	// Keep track of the last keyframe played
+	_pInst.m_trackIDToLastKeyframe[_track.id] = keyframeCurrent;
 };
 
 yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _node, _track, _headPosition, _lastHeadPosition, _headDirection, _sequence) {
@@ -3478,87 +3270,7 @@ yyRoom.prototype.DrawTheRoom = function (_rect) {
         //Drawing as layers
         this.DrawRoomLayers(_rect);
     }
-    else
-    {
-
-	    // Draw the backgrounds
-	    for (var i = 0; i < g_pBackgroundManager.background.length; i++)
-	    {
-		    var pBack = g_pBackgroundManager.Get(i);
-		    if (pBack)
-		    {
-			    pBack.visible = g_pBuiltIn.background_visible[i];
-			    pBack.foreground = g_pBuiltIn.background_foreground[i];
-			    pBack.x = g_pBuiltIn.background_x[i];
-			    pBack.y = g_pBuiltIn.background_y[i];
-			    pBack.index = g_pBuiltIn.background_index[i];
-			    pBack.hTiled = g_pBuiltIn.background_htiled[i];
-			    pBack.vTiled = g_pBuiltIn.background_vtiled[i];
-			    pBack.alpha = g_pBuiltIn.background_alpha[i];
-			    pBack.blend = g_pBuiltIn.background_blend[i];
-			    pBack.hspeed = g_pBuiltIn.background_hspeed[i];
-			    pBack.vspeed = g_pBuiltIn.background_vspeed[i];
-			    pBack.xscale = g_pBuiltIn.background_xscale[i];
-			    pBack.yscale = g_pBuiltIn.background_yscale[i];
-
-			    if (pBack != null && pBack.visible && !pBack.foreground)
-			    {
-				    var pImage = g_pBackgroundManager.GetImage(pBack.index);
-				    if (pImage != null)
-				    {
-					    if (pBack.stretch)
-					    {
-						    Graphics_DrawStretchedExt(pImage.TPEntry, pBack.x,pBack.y, this.m_width,this.m_height, pBack.blend,pBack.alpha);
-					    } else
-					    {
-						    Graphics_TextureDrawTiled(pImage.TPEntry, pBack.x,pBack.y, pBack.xscale,pBack.yscale, pBack.vTiled,pBack.hTiled, pBack.blend,pBack.alpha);
-					    }
-				    }
-			    }
-		    }
-	    }
-	    //float partdepth = ParticleSystem_LargestDepth();	
-
-	    if (this.m_PlayfieldManager.m_Playfields.count > 0)
-	    {
-		    if (g_ParticleSystems.length != 0)
-		    {
-			    this.DrawInstancesParticlesTiles(_rect);
-		    }
-		    else
-		    {
-			    this.DrawInstancesTiles(_rect);
-		    }
-	    } else if (g_ParticleSystems.length != 0)
-	    {
-		    this.DrawInstancesParticles(_rect);
-	    } else
-	    {
-		    this.DrawInstancesOnly(_rect);
-	    }
-
-
-	    // Draw the foregrounds
-	    //GR_3D_Set_Depth(-12000);
-	    for (var i = 0; i < g_pBackgroundManager.background.length; i++)
-	    {
-		    var pBack = g_pBackgroundManager.Get(i);
-		    if (pBack != null && pBack.visible && pBack.foreground)
-		    {
-			    var pImage = g_pBackgroundManager.GetImage(pBack.index);
-			    if (pImage != null)
-			    {
-				    if (pBack.stretch)
-				    {
-					    Graphics_DrawStretchedExt(pImage.TPEntry, pBack.x,pBack.y, this.m_width,this.m_height, pBack.blend,pBack.alpha);
-				    } else
-				    {
-					    Graphics_TextureDrawTiled(pImage.TPEntry, pBack.x,pBack.y, pBack.xscale,pBack.yscale, pBack.vTiled,pBack.hTiled,  pBack.blend,pBack.alpha);
-				    }
-			    }			
-		    }
-        }
-    }
+   
     this.ExecuteDrawEvent(_rect, EVENT_DRAW_END);
 	
 };
@@ -3838,7 +3550,7 @@ yyRoom.prototype.SetApplicationSurface = function () {
         //Create Application Surface?
         if( g_ApplicationSurface < 0 )
         {
-            g_ApplicationSurface = surface_create( g_ApplicationWidth, g_ApplicationHeight );
+            g_ApplicationSurface = surface_create( g_ApplicationWidth, g_ApplicationHeight, eTextureFormat_A8R8G8B8 );
             g_pBuiltIn.application_surface = g_ApplicationSurface;
             debug("Application Surface created: w="+g_ApplicationWidth + ", h=" + g_ApplicationHeight );
         }
@@ -3847,7 +3559,7 @@ yyRoom.prototype.SetApplicationSurface = function () {
         {
             g_NewApplicationSize = false;
             //surface_resize( g_ApplicationSurface, g_NewApplicationWidth, g_NewApplicationHeight );
-            surface_create(g_NewApplicationWidth, g_NewApplicationHeight, g_ApplicationSurface );
+            surface_create(g_NewApplicationWidth, g_NewApplicationHeight, eTextureFormat_A8R8G8B8, g_ApplicationSurface );
             g_ApplicationWidth = g_NewApplicationWidth;
 		    g_ApplicationHeight = g_NewApplicationHeight;
 		    debug("Application Surface resized: w=" + g_ApplicationWidth + ", h="+ g_ApplicationHeight );
@@ -4309,7 +4021,7 @@ yyRoom.prototype.DeleteInstance = function (pInst) {
     }
     g_pLayerManager.RemoveInstance(this, pInst);
     g_pInstanceManager.Remove(pInst);
-	this.m_Active.Delete(pInst);
+	this.m_Active.DeleteItem(pInst);
 	this.m_Deactive.DeleteItem(pInst);
 	pInst.pObject.RemoveInstance(pInst);
 };
@@ -4322,7 +4034,7 @@ yyRoom.prototype.DeleteInstance = function (pInst) {
 yyRoom.prototype.DeactivateInstance = function (_pInst) {
 	if (_pInst.active)
 	{
-		this.m_Active.Delete(_pInst); 		// Remove from active list
+		this.m_Active.DeleteItem(_pInst); 		// Remove from active list
 		_pInst.pObject.RemoveInstance(_pInst); 	// remove instance from the object list/rlist
 
 		// Now add to deactve list
@@ -4342,7 +4054,7 @@ yyRoom.prototype.ActivateInstance = function (_pInst) {
 	{
 		this.m_Deactive.DeleteItem(_pInst); 		// move it into active list
 
-		this.m_Active.AddUnsorted(_pInst); 			// Remove from active list
+		this.m_Active.Add(_pInst); 			// Remove from active list
 		_pInst.pObject.AddInstance(_pInst); 			// remove instance from the object list/rlist
 
 		// Now add to deactve list
@@ -4429,109 +4141,38 @@ yyRoom.prototype.ClearTilesFromStorage = function () {
 
 
 
-// #############################################################################################
-/// Function:<summary>
-///             Process DEPTH list
-///          </summary>
-///
-/// In:		 <param name="_depth">New depth of the instance</param>
-// #############################################################################################
-/*yyRoom.prototype.ProcessDepthList = function () {
-	if (this.m_DepthSorting.length == 0) return;
 
-	var list = this.m_DepthSorting;
-	//Problem- when there are multiple unsorted entries, add will not insert into correct place ( as it may compare against unsorted entry depths )
-	//for (var i = 0; i < this.m_DepthSorting.length; i++)
-	//{
-	//	var pInst = list[i];
-	//	this.m_Active.Delete(pInst);
-	//	this.m_Active.Add(pInst, pInst.depth);
-	//}
-	//instead, remove all the unsorted entries first
-	for (var i = 0; i < this.m_DepthSorting.length; i++)
-	{
-		var pInst = list[i];
-		this.m_Active.Delete(pInst);
-	}
-    //and then add them back in ( all existing entries are sorted so will insert in correct place )
-    for (var i = 0; i < this.m_DepthSorting.length; i++)
-	{
-		var pInst = list[i];
-		this.m_Active.Add(pInst, pInst.depth);
-    }
-	//BUT- this does not work correctly either , as the Sort step is done before this, and insert compares against unsorted entries
-	
-	// Now we've processed it... Clear the list
-	this.m_DepthSorting = [];
-};*/
 
 yyRoom.prototype.ProcessDepthList2 = function () {
     if (this.m_DepthSorting.length == 0) return;
 	var list = this.m_DepthSorting;
-	var active = this.m_Active;
-	var activeLen;
-	var sortedLen;
-	if( active.unsorted < 0 )
-	{
-	    sortedLen = active.pool.length;
-	} else {
-	    sortedLen = active.unsorted;
-	}
+
 
 	//remove all the unsorted entries in SORTED section, and move to end of list
-	var count = 0;
 	for (var i = 0; i < list.length; i++)
 	{
 		var pInst = list[i];
-		for (var j = 0; j < sortedLen; j++)
-	    {
-    		if (pInst == active.pool[j])
-	    	{
-                active.pool.splice(j,1);	
-		        //now add to end in unsorted section (for subsequent sorting )
-		        active.pool[active.pool.length] = pInst;
-		        count += 1;
-		        sortedLen -=1;   
-		        break;
-		    }
+
+		//Have a look see if we need to move its layer
+		var room = g_RunRoom;
+		if (room != null) {
+			var pLayer = g_pLayerManager.GetLayerFromID(room, pInst.m_nLayerID);
+
+			if (pLayer != null) {
+				if (floor(pLayer.depth) != floor(pInst.depth)) {
+					if (pLayer.m_dynamic && pLayer.m_elements.length == 1) {
+						//We're the only thing on the layer, we can just change it's depth
+						g_pLayerManager.ChangeLayerDepth(room, pLayer, pInst.depth, true);
+					}
+					else {
+						g_pLayerManager.RemoveInstanceFromLayer(room, pLayer, pInst);
+						//Move to a new layer
+						g_pLayerManager.AddInstance(room, pInst);
+
+					}
+				}
+			}
 		}
-
-        // On Zeus try and move the layer
-		if (g_isZeus) {
-		    //Have a look see if we need to move its layer
-		    var room = g_RunRoom;
-		    if (room != null) {
-		        var pLayer = g_pLayerManager.GetLayerFromID(room, pInst.m_nLayerID);
-
-		        if (pLayer != null) {
-		            if (floor(pLayer.depth) != floor(pInst.depth)) {
-		                if (pLayer.m_dynamic && pLayer.m_elements.length == 1) {
-		                    //We're the only thing on the layer, we can just change it's depth
-		                    g_pLayerManager.ChangeLayerDepth(room, pLayer, pInst.depth, true);
-		                }
-		                else {
-		                    g_pLayerManager.RemoveInstanceFromLayer(room, pLayer, pInst);
-		                    //Move to a new layer
-		                    g_pLayerManager.AddInstance(room, pInst);
-
-		                }
-		            }
-		        }
-		    }
-		}
-	}
-	
-	//shift up the unsorted start point(active list length is unchanged)
-	if(count > 0 )
-	{
-	    if (active.unsorted < 0)
-	    {
-		    active.unsorted = active.pool.length-count;
-	    }
-	    else
-	    {
-	        active.unsorted -= count;
-	    }
 	}
 	
 	// Now we've processed it... Clear the list

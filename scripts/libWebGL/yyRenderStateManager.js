@@ -159,10 +159,16 @@ function yyRenderStateCollection(_numrenderstates, _numsamplers, _numsamplerstat
 { 
     var renderStates = []; 
     var samplerStates = [];     
+
+    // These are not applied in a deferred way like other states
+	// But are just here so we can track this information
+    var textures = [];
  
     (function() { 
         renderStates = new Array(_numrenderstates); 
         samplerStates = new Array(_numsamplers * _numsamplerstates); 
+
+        textures = new Array(_numsamplers);        
     })(); 
 
     Object.defineProperties(this, {
@@ -174,6 +180,11 @@ function yyRenderStateCollection(_numrenderstates, _numsamplers, _numsamplerstat
         m_samplerStates: {
 	        get: function () { return samplerStates; },
             set: function (val) { samplerStates = val; }
+	    },
+
+        m_textures: {
+	        get: function () { return textures; },
+            set: function (val) { textures = val; }
 	    },
 	});
 } 
@@ -296,6 +307,12 @@ function yyRenderStateManager(_numTextureStages,_stackSize,_commandBuilder,_inte
         { 
             m_next.m_samplerStates[i] = m_current.m_samplerStates[i]; 
         } 
+
+        // Set up initial texture info
+        for (i = 0; i < _numTextureStages; i++)
+        {
+            m_current.m_textures[i] = null;
+        }
  
         m_stackTop = 0; 
     };
@@ -341,6 +358,17 @@ function yyRenderStateManager(_numTextureStages,_stackSize,_commandBuilder,_inte
         // Or do we need multiple sets of changeflags at all?? Just combine m_changeFlags and m_changeSamplerFlags 
         m_anyChange = m_changeFlags.AnyBitSet() || m_changeSamplerFlags.AnyBitSet(); 
     };
+
+    this.PeekPrevState = function (_state)
+    {
+		if (m_stackTop <= 0)
+			return 0;
+
+		if ((_state < 0) || (_state >= yyGL.RenderState_MAX))
+			return 0;
+
+		return m_stack[m_stackTop - 1].m_renderStates[_state];
+	};
  
     this.SetSamplerState = function(_stage, _state, _value) 
     { 
@@ -364,6 +392,39 @@ function yyRenderStateManager(_numTextureStages,_stackSize,_commandBuilder,_inte
         // having to constantly allocate new instances         
         m_anyChange = m_changeFlags.AnyBitSet() || m_changeSamplerFlags.AnyBitSet(); 
     };
+
+    this.SetTexture = function(_stage, _texture)
+    {
+        // This doesn't set the texture on the back end but just caches the value
+        // It would probably make sense to actually make this a deferred thing like other state
+        if ((_stage < 0) || (_stage >= _numTextureStages))
+            return;
+
+        // Note that since we're not deferring texture setting we're using m_current rather than m_next        
+        m_current.m_textures[_stage] = _texture;
+    };
+
+    this.ClearTexture = function(_texture)
+    {
+        if (_texture > 0)
+        {
+            for(var i = 0; i < _numTextureStages; i++)
+            {
+                if (m_current.m_textures[i] == _texture)
+                {
+                    m_current.m_textures[i] = null;
+                }
+
+                for(var j = 0; j < m_stackTop; j++)
+                {
+                    if (m_stack[j].m_textures[i] == _texture)
+                    {
+                        m_stack[j].m_textures[i] = null;
+                    }
+                }
+            }
+        }
+    };    
  
     this.GetRenderState = function(_state) 
     { 
@@ -374,11 +435,22 @@ function yyRenderStateManager(_numTextureStages,_stackSize,_commandBuilder,_inte
     { 
         return m_next.m_samplerStates[(_stage*yyGL.SamplerState_MAX)+_state]; 
     };
+
+    this.GetTexture = function(_stage)
+    {
+        if ((_stage < 0) || (_stage >= _numTextureStages))
+            return null;
+
+        return m_current.textures[_stage];
+    };
  
     this.SaveStates = function() 
     { 
         m_stack[m_stackTop].m_renderStates = m_next.m_renderStates.slice(); 
         m_stack[m_stackTop].m_samplerStates = m_next.m_samplerStates.slice(); 
+
+        // Note that because texture setting isn't currently deferred we're copying from m_current rather than m_next
+        m_stack[m_stackTop].m_textures = m_current.m_textures.slice();
  
         if (m_stackTop < _stackSize) 
         { 
@@ -390,7 +462,7 @@ function yyRenderStateManager(_numTextureStages,_stackSize,_commandBuilder,_inte
         } 
     };
  
-    this.RestoreStates = function() 
+    this.RestoreStates = function(_setTextures) 
     { 
         if (m_stackTop > 0) 
         { 
@@ -416,6 +488,17 @@ function yyRenderStateManager(_numTextureStages,_stackSize,_commandBuilder,_inte
                 this.SetSamplerState(i, j, m_stack[m_stackTop].m_samplerStates[(i * _numTextureStages) + j]); 
             } 
         } 
+
+        if ((_setTextures != undefined) && (_setTextures == true))
+        {
+            if (g_webGL)
+            {
+                for(i = 0; i < _numTextureStages; i++)
+                {
+                    g_webGL.SetTexture(i, m_stack[m_stackTop].m_textures[i]);
+                }
+            }
+        }
     };
  
     this.Flush = function() 

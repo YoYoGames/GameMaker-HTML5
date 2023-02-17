@@ -14,6 +14,7 @@
 // 
 // **********************************************************************************************************************   
 var g_webGL = null;
+var g_isWebGL2 = false;
 
 var g_savedWebGLState = null;
 var g_webGL_textureFont = null;   
@@ -80,6 +81,25 @@ var g_circleSteps = 36,
 var offsethackGL = 0.5;
 
 var g_extAnisotropic = null;
+var g_extTextureHalfFloat = null;
+var g_extTextureHalfFloatLinear = null;
+var g_extColourBufferHalfFloat = null;
+var g_extTextureFloat = null;
+var g_extTextureFloatLinear = null;
+var g_extColourBufferFloat = null;
+var g_extStandardDerivatives = null;
+
+var g_SupportHalfFloatSurfs = false;
+var g_SupportFloatSurfs = false;
+var g_SupportSubFourChannelHalfFloatSurfs = false;	
+var g_SupportSubFourChannelFloatSurfs = false;
+var g_SupportSubFourChannelIntSurfs = false;
+var g_HalfFloatSurfsUseSizedFormats = false;		
+var g_FloatSurfsUseSizedFormats = false;
+var g_IntSurfsUseSizedFormats = false;
+
+var g_SupportGLSLDerivatives = false;
+var g_AppendDerivativesExtToShader = false;
 
 // #############################################################################################
 /// Function:<summary>
@@ -188,6 +208,7 @@ function InitWebGLFunctions() {
     fn_shader_enable_corner_id = WebGL_shader_enable_corner_id_RELEASE;	
     fn_shader_set_uniform_i_array = WebGL_shader_set_uniform_i_array_RELEASE;
     fn_shader_set_uniform_f_array = WebGL_shader_set_uniform_f_array_RELEASE;
+    fn_shader_set_uniform_f_buffer = WebGL_shader_set_uniform_f_buffer_RELEASE;
     fn_shader_set_uniform_matrix_array = WebGL_shader_set_uniform_matrix_array_RELEASE;    
     shaders_are_supported = WebGL_shaders_are_supported_RELEASE;
     fn_shader_get_name = WebGL_shader_get_name_RELEASE;
@@ -379,7 +400,12 @@ function InitLightingEnv() {
     GR_PointLights = new Float32Array(yyGL.MAX_LIGHTS * 4);
     GR_LightColours = new Float32Array(yyGL.MAX_LIGHTS * 4);    
     GR_AmbientLight = new Float32Array(4);
-    
+    GR_AmbientLight[0] = 1;
+    GR_AmbientLight[1] = 1;
+    GR_AmbientLight[2] = 1;
+    GR_AmbientLight[3] = 1;    
+
+
     var baseIndex;
     for (var i = 0; i < yyGL.MAX_LIGHTS; i++) 
     {                
@@ -1291,11 +1317,14 @@ function WebGL_DrawSWF_RELEASE(SWFDictionary, SWFTimeline, ind, xorig, yorig, x,
         ind = ind + (SWFTimeline.numFrames);
     }
 	
+    // Get colour bytes
+    var mulcolor = (color | ((alpha * 255) & 0xff) << 24);
+
     var colvals = [];
-    colvals[0] = color & 0xff;
-    colvals[1] = (color >> 8) & 0xff;
-    colvals[2] = (color >> 16) & 0xff;
-    colvals[3] = (alpha * 255) & 0xff;
+    colvals[0] = mulcolor & 0xff;
+    colvals[1] = (mulcolor >> 8) & 0xff;
+    colvals[2] = (mulcolor >> 16) & 0xff;
+    colvals[3] = (mulcolor >> 24) & 0xff;
 
     // Set up any transformation here related to pos\rot\scale
     var posMat = new Matrix();
@@ -1351,7 +1380,7 @@ function WebGL_DrawSWF_RELEASE(SWFDictionary, SWFTimeline, ind, xorig, yorig, x,
 			    g_webGL.SetColorWriteEnable(false, false, false, false);
 			    g_webGL.SetZWriteEnable(false);
 
-			    totaltris += Graphics_SWFDrawObject(SWFDictionary, pMaskObject, postMat, gradTransMat, color, colvals, false/*no aa*/, TPEs);
+			    totaltris += Graphics_SWFDrawObject(SWFDictionary, pMaskObject, postMat, gradTransMat, mulcolor, colvals, false/*no aa*/, TPEs);
 
 			    // Set back to masking again			    
 			    g_webGL.SetStencilRef(numActiveMaskObjects - 1);
@@ -1394,7 +1423,7 @@ function WebGL_DrawSWF_RELEASE(SWFDictionary, SWFTimeline, ind, xorig, yorig, x,
 	        allowAA = true;
 	    }
 
-	    totaltris += Graphics_SWFDrawObject(SWFDictionary, pObject, postMat, gradTransMat, color, colvals, allowAA ? GR_SWFAAEnabled : false, TPEs);
+	    totaltris += Graphics_SWFDrawObject(SWFDictionary, pObject, postMat, gradTransMat, mulcolor, colvals, allowAA ? GR_SWFAAEnabled : false, TPEs);
 
 	    if (pObject.clipDepth > 0)
 	    {
@@ -1422,7 +1451,7 @@ function WebGL_DrawSWF_RELEASE(SWFDictionary, SWFTimeline, ind, xorig, yorig, x,
 	    for (var j = 0; j < numActiveMaskObjects; j++)
 	    {
 		    var pMaskObject = pActiveMaskObjects[j];
-		    totaltris += Graphics_SWFDrawObject(SWFDictionary, pMaskObject, postMat, gradTransMat, color, colvals, false/*no aa*/, TPEs);
+		    totaltris += Graphics_SWFDrawObject(SWFDictionary, pMaskObject, postMat, gradTransMat, mulcolor, colvals, false/*no aa*/, TPEs);
 	    }		
     }
 		
@@ -2568,9 +2597,9 @@ function WebGL_TextureDrawWH_RELEASE(_pTPE, _xorig, _yorig, _width, _height, _x,
 ///			 <param name="_y"></param>
 ///			 <param name="_canvas"></param>
 // #############################################################################################
-function WebGL_UpdateTexture_RELEASE( _texture, _x, _y, _w,_h, _canvas ) {
+function WebGL_UpdateTexture_RELEASE( _texture, _x, _y, _w,_h, _canvas, _format ) {
 
-    g_webGL.UpdateTexture(_texture, _x, _y, _w, _h, _canvas);
+    g_webGL.UpdateTexture(_texture, _x, _y, _w, _h, _canvas, _format);
     
 }
 
@@ -3152,17 +3181,36 @@ function WebGL_draw_point_RELEASE(_x, _y) {
 ///			</returns>
 // #############################################################################################
 function WebGL_draw_getpixel_RELEASE(_x, _y) {
-    return WebGL_draw_getpixel_ext_RELEASE(_x,_y) & 0x00ffffff;
+    
+    var ret = WebGL_draw_getpixel_ext_RELEASE(_x,_y);
+    if (Array.isArray(ret))
+    {
+        return ret;
+    }
+    else
+    {
+        return ret & 0x00ffffff;
+    }    
 }
 
 function WebGL_draw_getpixel_ext_RELEASE(_x, _y) {
 
+    var format = eTextureFormat_A8R8G8B8;
+    if ((g_CurrentSurfaceId != null) && (g_CurrentSurfaceId != -1))
+    {
+        var pSurf = g_Surfaces.Get(g_CurrentSurfaceId);
+        if (pSurf != null)
+        {		
+            format = pSurf.FrameBufferData.Texture.Format;
+        }
+    }
+    
     _x = yyGetInt32(_x);
     _y = yyGetInt32(_y); 
     if (g_RenderTargetActive < 0) {
         _y = g_webGL.DeviceHeight - _y;
     }
-    return g_webGL.GetPixel(_x, _y);    
+    return g_webGL.GetPixel(_x, _y, format);    
 }
 
 // #############################################################################################
@@ -3517,9 +3565,9 @@ function WebGL_draw_line_width_color_RELEASE(_x1, _y1, _x2, _y2, _w, _col1, _col
 ///				
 ///			</returns>
 // #############################################################################################
-function initTextureFramebuffer(_pTPE, _w,_h) {
+function initTextureFramebuffer(_pTPE, _w,_h, _format) {
 
-    var frameBufferData = g_webGL.CreateFramebuffer(_w, _h);
+    var frameBufferData = g_webGL.CreateFramebuffer(_w, _h, _format);
     _pTPE.FrameBufferData = frameBufferData;
     
     _pTPE.FrameBuffer = frameBufferData.FrameBuffer;
@@ -3541,7 +3589,7 @@ function initTextureFramebuffer(_pTPE, _w,_h) {
 ///				
 ///			</returns>
 // #############################################################################################
-function WebGL_surface_create_RELEASE(_w, _h, _forceid) {
+function WebGL_surface_create_RELEASE(_w, _h, _format, _forceid) {
 
     _w = yyGetInt32(_w);
     _h = yyGetInt32(_h);
@@ -3559,7 +3607,7 @@ function WebGL_surface_create_RELEASE(_w, _h, _forceid) {
     pTPE.texture.width = _w;
     pTPE.texture.height = _h;
     pTPE.texture.m_Width = _w;
-    pTPE.texture.m_Height = _h;
+    pTPE.texture.m_Height = _h;    
 
     if( _forceid != undefined )
     {
@@ -3571,7 +3619,7 @@ function WebGL_surface_create_RELEASE(_w, _h, _forceid) {
         }
     }
         
-    initTextureFramebuffer(pTPE,_w,_h);
+    initTextureFramebuffer(pTPE,_w,_h, _format);
 
     pTPE.x = 0;
     pTPE.y = 0;
@@ -3661,7 +3709,16 @@ function WebGL_surface_free_RELEASE(_id) {
 // #############################################################################################
 function WebGL_surface_getpixel_RELEASE(_id, _x, _y) {
 
-    return WebGL_surface_getpixel_ext_RELEASE(_id, _x, _y) & 0x00ffffff;
+    var ret = WebGL_surface_getpixel_ext_RELEASE(_id, _x, _y);
+
+    if (Array.isArray(ret))
+    {
+        return ret;
+    }
+    else
+    {
+        return ret & 0x00ffffff;
+    }    
 }
 
 // #############################################################################################
@@ -3677,7 +3734,7 @@ function WebGL_surface_getpixel_ext_RELEASE(_id, _x, _y) {
 	    _x = yyGetInt32(_x);
 	    _y = yyGetInt32(_y);
 	    
-	    ret = g_webGL.GetPixelFromFramebuffer(pSurf.FrameBuffer, _x, _y);
+	    ret = g_webGL.GetPixelFromFramebuffer(pSurf.FrameBuffer, _x, _y, pSurf.FrameBufferData.Texture.Format);
     }
     return ret;
 }
@@ -3982,7 +4039,13 @@ function WebGL_background_create_from_surface_RELEASE(_id,_x,_y,_w,_h,_removebac
 
     var pSurf = g_Surfaces.Get(_id);
     if (pSurf != null)
-    {	        
+    {	  
+        if (pSurf.FrameBufferData.Texture.Format != eTextureFormat_A8R8G8B8)
+        {
+            debug("Surface " + yyGetInt32(_id) + " can't be used as a background source as it uses unsupported format " + g_webGL.GetSurfaceFormatName(pSurf.FrameBufferData.Texture.Format));
+            return -1;
+        }
+
         // Clamp coordinates
         _x = ~~_x;
         _y = ~~_y;
@@ -4013,6 +4076,7 @@ function WebGL_background_create_from_surface_RELEASE(_id,_x,_y,_w,_h,_removebac
         pTPE.texture.webgl_textureid = glTexture;
         pTPE.texture.m_Width = singleimage.width;
         pTPE.texture.m_Height = singleimage.height;
+        pTPE.texture.complete = true;
             
         var pNew = new yyBackgroundImage();
         pNew.TPEntry = pTPE;
@@ -4079,6 +4143,7 @@ function WebGL_background_create_from_screen_RELEASE(_x,_y,_w,_h,_removeback,_sm
     pTPE.texture.height = _h;
     pTPE.texture.m_Width = _w;
     pTPE.texture.m_Height = _h;    
+    pTPE.texture.complete = true;
         
     var pNew = new yyBackgroundImage();
     pNew.TPEntry = pTPE;
@@ -4109,6 +4174,12 @@ function WebGL_sprite_create_from_surface_RELEASE(_id, _x, _y, _w, _h, _removeba
     var pSurf = g_Surfaces.Get(yyGetInt32(_id));
     if (pSurf != null)
     {	    	
+        if (pSurf.FrameBufferData.Texture.Format != eTextureFormat_A8R8G8B8)
+        {
+            debug("Surface " + yyGetInt32(_id) + " can't be used as a sprite source as it uses unsupported format " + g_webGL.GetSurfaceFormatName(pSurf.FrameBufferData.Texture.Format));
+            return -1;
+        }
+
         // Clamp coordinates
         _x = yyGetInt32(_x);
         _y = yyGetInt32(_y);
@@ -4144,6 +4215,7 @@ function WebGL_sprite_create_from_surface_RELEASE(_id, _x, _y, _w, _h, _removeba
         pTPE.texture.webgl_textureid = glTexture;
         pTPE.texture.m_Width = singleimage.width;
         pTPE.texture.m_Height = singleimage.height;
+        pTPE.texture.complete = true;
 
 	    // Create a new sprite
         var pNewSpr = new yySprite();                
@@ -4202,6 +4274,12 @@ function WebGL_sprite_add_from_surface_RELEASE(_ind, _id, _x, _y, _w, _h, _remov
     var pSurf = g_Surfaces.Get(yyGetInt32(_id));
     if (pSurf != null)
     {
+        if (pSurf.FrameBufferData.Texture.Format != eTextureFormat_A8R8G8B8)
+        {
+            debug("Surface " + yyGetInt32(_id) + " can't be used as a sprite source as it uses unsupported format " + g_webGL.GetSurfaceFormatName(pSurf.FrameBufferData.Texture.Format));
+            return -1;
+        }
+
         _ind = yyGetInt32(_ind);
 
         // Clamp coordinates
@@ -4237,6 +4315,7 @@ function WebGL_sprite_add_from_surface_RELEASE(_ind, _id, _x, _y, _w, _h, _remov
         pTPE.texture.webgl_textureid = glTexture;
         pTPE.texture.m_Width = singleimage.width;
         pTPE.texture.m_Height = singleimage.height;
+        pTPE.texture.complete = true;
         
         // Get the sprite being added to
         var pSpr = g_pSpriteManager.Get(_ind);
@@ -4677,6 +4756,42 @@ function WebGL_shader_set_uniform_f_array_RELEASE(_handle, _array)
 
 // #############################################################################################
 /// Function:<summary>
+///
+///          </summary>
+// #############################################################################################
+function WebGL_shader_set_uniform_f_buffer_RELEASE(_handle, _buffer, _offset, _count)
+{
+    var pBuff = g_BufferStorage.Get(yyGetInt32(_buffer));
+
+    if (!pBuff) {
+        alert('ERROR: shader_set_uniform_f_buffer() Data is not a buffer');
+        return;
+    }
+
+    _offset = yyGetInt32(_offset);
+    if (_offset < 0) {
+        alert('ERROR: shader_set_uniform_f_buffer() Invalid offset ' + _offset);
+        return;
+    }
+
+    _count = yyGetInt32(_count);
+    if (_count <= 0 || ((_offset + _count * 4) > pBuff.m_Size)) {
+        alert('ERROR: shader_set_uniform_f_buffer() Invalid count ' + _count
+            + '. Trying to read outside of the buffer.');
+        return;
+    }
+
+    var _array = new Array(_count);
+    for (var i = 0; i < _count; ++i) {
+        _array[i] = pBuff.yyb_peek(eBuffer_F32, _offset);
+        _offset += 4;
+    }
+
+    g_webGL.SetUniformArrayF(yyGetInt32(_handle), _array);
+}
+
+// #############################################################################################
+/// Function:<summary>
 ///          	
 ///          </summary>
 // #############################################################################################
@@ -4881,6 +4996,8 @@ function WebGL_SetMatrix(_type, _matrix) {
 
     DirtyRoomExtents();
 
+    g_ViewFrustumDirty |= (_type == MATRIX_VIEW || _type == MATRIX_PROJECTION);
+
     if(g_webGL==null)
         return;
     switch (_type) {
@@ -5058,7 +5175,7 @@ function WEBGL_buffer_get_surface(_buffer, _surface, _mode, _offset, _modulo) {
     if(_offset === undefined) _offset = 0;
 
     // Get RAW buffer
-    var pixels = g_webGL.GetRectFromFramebuffer(pSurf.FrameBuffer, 0, 0, pSurf.m_Width, pSurf.m_Height);
+    var pixels = g_webGL.GetRectFromFramebuffer(pSurf.FrameBuffer, 0, 0, pSurf.m_Width, pSurf.m_Height, pSurf.FrameBufferData.Texture.Format);
    
     // Resize buffer if required and valid to do so
     if(pBuff.m_Type == eBuffer_Format_Grow && _offset + pixels.length > pBuff.m_Size)
@@ -5097,7 +5214,7 @@ function WEBGL_buffer_set_surface(_buffer, _surface, _mode, _offset, _modulo) {
     //_pTPE.texture.webgl_textureid = frameBufferData.Texture;
 
     var data = new Uint8Array(pBuff.m_pRAWUnderlyingBuffer);
-    WebGL_UpdateTexture_RELEASE(pSurf.texture.webgl_textureid, 0, 0, pSurf.m_Width,pSurf.m_Height, data);
+    WebGL_UpdateTexture_RELEASE(pSurf.texture.webgl_textureid, 0, 0, pSurf.m_Width,pSurf.m_Height, data, pSurf.FrameBufferData.Texture.Format);
     
     data = null;      // free Uint8Array[]
 }

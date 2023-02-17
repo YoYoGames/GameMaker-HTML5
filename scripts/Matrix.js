@@ -421,6 +421,23 @@ Matrix.prototype.SetTranslation = function(_x, _y, _z) {
 
 // #############################################################################################
 /// Function:<summary>
+///             Translate the matrix
+///          </summary>
+///
+/// In:		 <param name="_x">X offset</param>
+///			 <param name="_y">Y offset</param>
+///			 <param name="_z">Z offset</param>
+///
+// #############################################################################################
+Matrix.prototype.Translation = function (_x, _y, _z) {
+
+	this.m[_41] += _x;
+	this.m[_42] += _y;
+	this.m[_43] += _z;
+};
+
+// #############################################################################################
+/// Function:<summary>
 ///             Build a scale matrix
 ///          </summary>
 // #############################################################################################
@@ -432,6 +449,20 @@ Matrix.prototype.SetScale = function(_xs, _ys, _zs) {
     this.m[_33] = _zs;
 };
 
+// #############################################################################################
+/// Function:<summary>
+///          	Retrieves maximum unit scale.
+///          </summary>
+// #############################################################################################
+Matrix.prototype.GetMaximumUnitScale = function () {
+	var scaleX = Math.sqrt(
+		(this.m[_11] * this.m[_11]) + (this.m[_21] * this.m[_21]) + (this.m[_31] * this.m[_31]));
+	var scaleY = Math.sqrt(
+		(this.m[_12] * this.m[_12]) + (this.m[_22] * this.m[_22]) + (this.m[_32] * this.m[_32]));
+	var scaleZ = Math.sqrt(
+		(this.m[_13] * this.m[_13]) + (this.m[_23] * this.m[_23]) + (this.m[_33] * this.m[_33]));
+	return Math.max(scaleX, scaleY, scaleZ);
+};
 
 // #############################################################################################
 /// Function:<summary>

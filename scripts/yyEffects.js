@@ -427,7 +427,7 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 	var scratchSurface = -1;
 	if (this.tempSurfaceID != -1)
 	{
-		g_webGL.RSMan.RestoreStates();
+		g_webGL.RSMan.RestoreStates(true);
 		surface_reset_target();
 	}
 	else
@@ -621,7 +621,7 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 	}
 
 	// Restore state
-    g_webGL.RSMan.RestoreStates();
+    g_webGL.RSMan.RestoreStates(true);
 	shader_set(BackupUserShader);
 	//g_webGL.FlushAll();  //FlushShader();
 	GR_Depth = olddepth;
@@ -1549,7 +1549,7 @@ yyEffectsManager.prototype.AcquireTempSurface = function (_width, _height)
 	pSurf.width = _width;
 	pSurf.height = _height;
 	pSurf.inUse = true;
-	pSurf.surfaceID = surface_create(_width, _height);
+	pSurf.surfaceID = surface_create(_width, _height, eTextureFormat_A8R8G8B8);
 	pSurf.frameLastUsed = -1;		// irrelevant just now
 
 	this.m_TempSurfaces[this.m_TempSurfaces.length] = pSurf;	

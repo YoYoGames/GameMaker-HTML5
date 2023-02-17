@@ -198,6 +198,21 @@ function bool(_v) {
     }
 }
 
+var g_PlaceholderRE = new RegExp('{([0-9]+)}', 'g');
+
+function __yy_StringReplacePlaceholders(_str, _values)
+{
+    return _str.replaceAll(g_PlaceholderRE, function(match, group){
+        
+        // Convert catch group to a number
+        var _index = parseInt(group);
+        
+        // if the index is out-of-bounds just return the match (don't replace)
+        if (_index < 0 || _index >= _values.length) return match;
+        return yyGetString(_values[_index]);
+    })
+}
+
 // #############################################################################################
 /// Function:<summary>
 ///          	Turns the real value into a string using a standard format (no decimal places 
@@ -212,7 +227,35 @@ function bool(_v) {
 
 function string(_obj) 
 {
-    return yyGetString(_obj);
+    if (arguments.length == 1)
+    {
+        return yyGetString(_obj);
+    }
+
+    if (typeof(_obj) != "string") 
+    {
+        yyError("string() trying to use string template but argument0 is not a string");
+    }
+
+    var _values = [];
+    for( var n=1; n<arguments.length; ++n) {
+        _values.push(arguments[n]);
+    }
+    
+    return __yy_StringReplacePlaceholders(_obj, _values);
+}
+
+function string_ext(_str, _values)
+{
+    if (typeof(_str) != "string") {
+        yyError("string_ext() argument0 is not a string");
+    }
+
+    if (!(_values instanceof Array)) {
+        yyError("string_ext() argument1 is not an array");
+    }
+
+    return __yy_StringReplacePlaceholders(_str, _values);
 }
 
 // #############################################################################################
@@ -1041,4 +1084,355 @@ function string_lettersdigits(_str)
         }
     }
     return s;  
+}
+
+var g_EscapeRegexRE = new RegExp('[.*+?^${}()|[\]\\]', 'g');
+
+function string_trim_start(_str, _substrs) {
+
+    _str = yyGetString(_str);
+
+    // If there is only one argument return with the result right away
+    if (arguments.length == 1) return _str.trimStart();
+
+    if (!(_substrs instanceof Array)) {
+        yyError("string_trim_start() argument1 is not an array");
+    }
+
+    // Convert substrings to single string, escape the regex symbols, remove empty entries
+    _substrs = _substrs.map((val) => {
+    
+        // Ensure that the element is a string
+        if (typeof(val) != "string") {
+            yyError("string_trim_start() argument1 should be an array of string");
+        }
+        return yyGetString(val).replace(g_EscapeRegexRE, '\\$&')
+    
+    }).filter(elm => elm).join("|");
+
+    let _rg = new RegExp("^(?:" +_substrs+ ")*");
+
+    return _str.replace(_rg, "");
+}
+
+function string_trim_end(_str, _substrs) {
+
+    _str = yyGetString(_str);
+
+    // If there is only one argument return with the result right away
+    if (arguments.length == 1) return _str.trimEnd();
+
+    if (!(_substrs instanceof Array)) {
+        yyError("string_trim_end() argument1 is not an array");
+    }
+
+    // Convert substrings to single string, escape the regex symbols, remove empty entries
+    _substrs = _substrs.map((val) => {
+    
+        // Ensure that the element is a string
+        if (typeof(val) != "string") {
+            yyError("string_trim_end() argument1 should be an array of string");
+        }
+        return yyGetString(val).replace(g_EscapeRegexRE, '\\$&')
+    
+    }).filter(elm => elm).join("|");
+
+    let _rg = new RegExp("(?:" +_substrs+ ")*$");
+
+    return _str.replace(_rg, "");
+}
+
+function string_trim(_str, _substrs) {
+
+    _str = yyGetString(_str);
+
+    // If there is only one argument return with the result right away
+    if (arguments.length == 1) return _str.trim();
+
+    if (!(_substrs instanceof Array)) {
+        yyError("string_trim() argument1 is not an array");
+    }
+
+    // Convert substrings to single string, escape the regex symbols, remove empty entries
+    _substrs = _substrs.map((val) => {
+    
+        // Ensure that the element is a string
+        if (typeof(val) != "string") {
+            yyError("string_trim() argument1 should be an array of string");
+        }
+        return yyGetString(val).replace(g_EscapeRegexRE, '\\$&')
+    
+    }).filter(elm => elm).join("|");
+
+    let _rgStart = new RegExp("^(?:" +_substrs+ ")*");
+    let _rgEnd = new RegExp("(?:" +_substrs+ ")*$");
+
+    return _str.replace(_rgStart, "").replace(_rgEnd, "");
+}
+
+function string_starts_with(_str, _val) {
+
+    _str = yyGetString(_str);
+    _val = yyGetString(_val);
+
+    return _str.startsWith(_val);
+}
+
+function string_ends_with(_str, _val) {
+
+    _str = yyGetString(_str);
+    _val = yyGetString(_val);
+
+    return _str.endsWith(_val);
+}
+
+function __yy_StringSplit(input, separator, limit) {
+
+    const output = [];
+    let finalIndex = 0;
+  
+    while (limit--) {
+      const lastIndex = separator.lastIndex;
+      const search = separator.exec(input);
+      if (search === null) {
+          break;
+      }
+      finalIndex = separator.lastIndex;
+      output.push(input.slice(lastIndex, search.index));
+    }
+  
+    output.push(input.slice(finalIndex));
+
+    return output;
+}
+
+function string_split(_str, _delim, _removeEmpty, _maxSplits) {
+
+    _str = yyGetString(_str);
+    _delim = yyGetString(_delim);
+
+    // Compatible with Windows
+    if (_delim == "") {
+        return [ _out ];
+    }
+
+    // Get optional arguments
+    _removeEmpty = arguments.length > 2 ? yyGetReal(_removeEmpty) : false;
+    _maxSplits = arguments.length > 3 ? yyGetReal(_maxSplits) : _str.length;
+
+    // Create a RegExp with the delimiter
+    var _rg = new RegExp(_delim.replace(g_EscapeRegexRE, '\\$&'), 'g');
+
+    var _out = __yy_StringSplit(_str, _rg, _maxSplits);
+    if (_removeEmpty) {
+        _out = _out.filter(elm => elm);
+    }
+
+    return _out;
+}
+
+function string_split_ext(_str, _delims, _removeEmpty, _maxSplits) {
+
+    _str = yyGetString(_str);
+
+    if (!(_delims instanceof Array)) {
+        yyError("string_split_ext() argument1 is not an array");
+    }
+
+    // Get optional arguments
+    _removeEmpty = arguments.length > 2 ? yyGetReal(_removeEmpty) : false;
+    _maxSplits = arguments.length > 3 ? yyGetReal(_maxSplits) : _str.length;
+
+    // Convert delimiter to stringm, escape the pipe symbols, remove empty entries,
+    _delims = _delims.map((val) => yyGetString(val).replace(g_EscapeRegexRE, '\\$&')).filter(elm => elm).join("|");
+
+    // Create a RegExp with the delimiters
+    var _rg = new RegExp(_delims, "g");
+
+    // Split the input string (limit to maxSplits)
+    var _out = __yy_StringSplit(_str, _rg, _maxSplits);
+    if (_removeEmpty) {
+        // Remove empty strings
+        _out = _out.filter(elm => elm);
+    }
+
+    // Remove the escape the pipe symbols
+    return _out.map((val) => val.replaceAll("\\|", "|"));
+}
+
+function stringJoinDelimiter(_delim, _values)
+{
+    return _values.join(_delim);
+}
+
+function string_join(_delim) {
+
+    _delim = yyGetString(_delim);
+
+    var _values = [];
+    for( var n=1; n<arguments.length; ++n) {
+        _values.push( yyGetString(arguments[n]) );
+    }
+
+    return stringJoinDelimiter(_delim, _values);
+}
+
+function string_join_ext(_delim, _values, _offset, _length) {
+
+    _delim = yyGetString(_delim);
+
+    if (!(_values instanceof Array)) {
+        yyError("string_join_ext() argument1 is not an array");
+    }
+
+    // Check raw offset and length
+    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
+    _length = arguments.length > 3 ? yyGetReal(_length) : _values.length; 
+
+    var _itValues = computeIterationValues(_values.length, _offset, _length);
+    _offset = _itValues[0];
+    var _loops = _itValues[1];
+    var _step = _itValues[2];
+
+    var _temp = [];
+    // Loop through array range
+    while (_loops > 0) {
+        _temp.push(yyGetString(_values[_offset]));
+
+        // Update index and loops
+        _offset += _step;
+        _loops--;
+    }
+
+    // Return the string joined with a delimiter
+    return stringJoinDelimiter(_delim, _temp);
+}
+
+function string_concat() {
+
+    var _values = [];
+    for( var n=0; n<arguments.length; ++n) {
+        _values.push( yyGetString(arguments[n]) );
+    }
+
+    return stringJoinDelimiter("", _values);
+}
+
+function string_concat_ext(_values, _offset, _length) {
+
+    if (!(_values instanceof Array)) {
+        yyError("string_concat_ext() argument1 is not an array");
+    }
+
+    // Check raw offset and length
+    _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
+    _length = arguments.length > 2 ? yyGetReal(_length) : _values.length; 
+
+    var _itValues = computeIterationValues(_values.length, _offset, _length);
+    _offset = _itValues[0];
+    var _loops = _itValues[1];
+    var _step = _itValues[2];
+
+    var _temp = [];
+    // Loop through array range
+    while (_loops > 0) {
+        _temp.push(yyGetString(_values[_offset]));
+
+        // Update index and loops
+        _offset += _step;
+        _loops--;
+    }
+
+    // Return the string joined with a delimiter
+    return stringJoinDelimiter("", _temp);
+}
+
+function __yy_CharCodeSize(_code) {
+    return (_code >= 0xD800 && _code <= 0xD8FF) ? 2 : 1;
+}
+
+function string_foreach(_str, _func, _pos, _length) {
+
+    _str = yyGetString(_str);
+
+    // Check method argument
+    _func = getFunction(_func, 1);
+    _obj = "boundObject" in _func ? _func.boundObject : {};
+
+    // Check raw offset and length
+    _pos = arguments.length > 3 ? yyGetReal(_pos) : 1;
+    _length = arguments.length > 3 ? yyGetReal(_length) : _str.length;
+
+    var _offset = (_pos < 0 ? _pos : (_pos > 0 ? _pos - 1 : 0));
+
+    var _itValues = computeIterationValues(string_length(_str), _offset, _length);
+    _offset = _itValues[0];
+    var _loops = _itValues[1];
+    var _step = _itValues[2];
+
+    _pos = _offset + 1;
+    var _charCursor = 0;
+    if (_step > 0) {
+
+        // If we are walking towards the end of the string
+        // Just move the cursor (JS position) by offset (GML position)
+        for (var i = 0; i < _offset; i++)
+		{
+            var _high = _str.charCodeAt(_charCursor);
+			_charCursor += __yy_CharCodeSize(_high);
+		}
+
+        // Now for the number of loops (iterations)
+        for (var i = 0; i < _loops; i++) {
+
+            // Cache the current character code
+            var _high = _str.charCodeAt(_charCursor);
+            // Check character size
+            var _size = __yy_CharCodeSize(_high);
+            // Set chr to the current char in string or build a new string if size is != 1
+            var _chr = _size == 1 ? _str[_charCursor] : String.fromCharCode(_high, _str.charCodeAt(_charCursor + 1));
+
+            // Call iteration method
+            _func(_obj, _obj, _chr, _pos);
+
+            // Increase position and update cursor
+            _pos++;
+            _charCursor += _size;
+        }
+    }
+    else {
+        // If we are walking towards the begining of the string
+
+        // We will use a circular buffer to store the offset diffs
+		var _offsetDiffs = [];
+		var _counter = 0;
+
+		for (var i = 0; i < _offset; i++)
+		{
+            var _high = _str.charCodeAt(_charCursor);
+            var _size = __yy_CharCodeSize(_high);
+			
+            _charCursor += _size;
+			_offsetDiffs[(_counter++ % _loops)] = _size;
+		}
+
+        // Now we will iterate over the string backwards using the stored offsets
+		for (var i = 0; i < _loops; i++)
+		{
+            // Cache the current character code
+            var _high = _str.charCodeAt(_charCursor);
+            // Check character size
+            var _size = __yy_CharCodeSize(_high);
+            // Set chr to the current char in string or build a new string if size is != 1
+            var _chr = _size == 1 ? _str[_charCursor] : String.fromCharCode(_high, _str.charCodeAt(_charCursor + 1));
+
+            // Call iteration method
+			_func(_obj, _obj, _chr, _pos);
+
+            // Decrease position and update cursor
+            _pos--;
+            _charCursor -= _offsetDiffs[(--_counter % _loops)];
+		}
+
+    }
 }

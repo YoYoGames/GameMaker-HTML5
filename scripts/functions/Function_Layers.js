@@ -17,8 +17,7 @@ YYLayerType_Background=1,
 YYLayerType_Instance=2,
 YYLayerType_Asset=3,
 YYLayerType_Tile=4,
-YYLayerType_Particle=5,
-YYLayerType_Effect=6;
+YYLayerType_Effect=5;
 
 
 var	eLayerElementType_Undefined = 0,
@@ -248,6 +247,16 @@ function CLayerParticleElement()
     this.m_name = "";
     this.m_id=0;
     this.m_bRuntimeDataInitialised = false;
+
+    // When loaded from WAD:
+    this.m_ps = -1;          // The id of the particle system resource
+    this.m_imageScaleX = 1.0;
+    this.m_imageScaleY = 1.0;
+    this.m_imageAngle = 0.0;
+    this.m_imageBlend = 0xffffffff;
+    this.m_imageAlpha = 1.0;
+    this.m_x = 0;
+    this.m_y = 0;
 };
 
 /** @constructor */
@@ -618,6 +627,11 @@ LayerManager.prototype.BuildTilemapElementRuntimeData = function( _room ,_layer,
 
 LayerManager.prototype.BuildParticleElementRuntimeData = function( _room ,_layer,_element)
 {
+    if (_element.m_ps != -1 && _element.m_systemID == -1)
+    {
+        CParticleSystem.Get(_element.m_ps).MakeInstance(-1, false, _element);
+    }
+
     _element.m_bRuntimeDataInitialised=true;
 };
 
@@ -1874,7 +1888,9 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                         NewSequence.m_sequenceIndex = pLayer.sequences[i].sIndex;
                         //NewSequence.m_imageSpeed = pLayer.sequences[i].sImageSpeed;
                         NewSequence.m_headPosition = pLayer.sequences[i].sHeadPosition;
-                        NewSequence.m_blend = pLayer.sequences[i].sBlend;
+                        // NewSequence.m_blend = pLayer.sequences[i].sBlend;
+                        NewSequence.m_imageBlend = ConvertGMColour(pLayer.sequences[i].sBlend & 0xffffff);
+                        NewSequence.m_imageAlpha = ((pLayer.sequences[i].sBlend>>24)&0xff) / 255.0;
                         NewSequence.m_scaleX = pLayer.sequences[i].sXScale;
                         NewSequence.m_scaleY = pLayer.sequences[i].sYScale;
                         NewSequence.m_x = pLayer.sequences[i].sX;
@@ -1888,6 +1904,30 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                     }
                 }
 
+                // Particles
+                var numparticles = 0;
+                if (pLayer.pcount != undefined) numparticles = pLayer.pcount;
+
+                if (numparticles > 0) {
+                    for (var i = numparticles - 1; i >= 0; --i)
+                    {
+                        var pParticle = pLayer.particles[i];
+                        var NewParticle = new CLayerParticleElement();
+
+                        NewParticle.m_systemID = -1;
+                        NewParticle.m_ps = pParticle.sIndex;
+                        NewParticle.m_imageScaleX = pParticle.sXScale;
+                        NewParticle.m_imageScaleY = pParticle.sYScale;
+                        NewParticle.m_imageAngle = pParticle.sRotation;
+                        NewParticle.m_imageBlend = ConvertGMColour(pParticle.sBlend & 0xffffff);
+                        NewParticle.m_imageAlpha = ((pParticle.sBlend>>24)&0xff) / 255.0;
+                        NewParticle.m_x = pParticle.sX;
+                        NewParticle.m_y = pParticle.sY;
+                        NewParticle.m_pName = pParticle.sName;
+
+                        this.AddNewElement(_room, NewLayer, NewParticle, false);
+                    }
+                }
             }
             else if(pLayer.type === YYLayerType_Tile)
             {
@@ -3572,6 +3612,62 @@ function tileset_get_uvs(_ind) {
     return null;
 }
 
+function tileset_get_info(_ind) {
+
+    var pDest = g_pBackgroundManager.GetImage(yyGetInt32(_ind));
+    var ret = undefined;
+    if( pDest) {
+        ret = new GMLObject();
+
+        var pTPE = pDest.TPEntry;        
+        var texture = pTPE.texture;
+        variable_struct_set(ret, "width", texture.width); 
+        variable_struct_set(ret, "height", texture.height); 
+        variable_struct_set(ret, "texture", pTPE.tp); 
+        variable_struct_set(ret, "tile_width", pDest.tilewidth); 
+        variable_struct_set(ret, "tile_height", pDest.tileheight); 
+        variable_struct_set(ret, "tile_horizontal_separator", pDest.tilehsep); 
+        variable_struct_set(ret, "tile_vertical_separator", pDest.tilevsep); 
+        variable_struct_set(ret, "tile_columns", pDest.tilecolumns); 
+        variable_struct_set(ret, "tile_count", pDest.tilecount); 
+        variable_struct_set(ret, "frame_count", pDest.frames); 
+        variable_struct_set(ret, "frame_length_ms", pDest.framelength); 
+
+        var frames = new GMLObject();
+        for( var t = 0; t < pDest.tilecount; ++t) {
+
+            var allFramesSame = true;
+            for( var f=0; allFramesSame &&  f<pDest.frames; ++f) {
+
+                var tt = pDest.framedata[ (t*pDest.frames) + f ];
+                if (tt == 0) break;
+                allFramesSame = (tt == t);
+
+            } // end for
+
+            // goto next tile if all frames are the same in the framedata.
+            if (allFramesSame) continue;
+
+
+            var fr = [];            
+            for( var f=0; f<pDest.frames; ++f) {
+
+                var tt = pDest.framedata[ (t*pDest.frames) + f ];
+                if (tt == 0) break;
+
+                fr[f] = tt;
+            } // end for
+
+            variable_struct_set(frames, t.toString(), fr); 
+        } // end for
+
+        variable_struct_set(ret, "frames", frames); 
+    } // end if
+
+    return ret;
+}
+
+
 function tilemap_get_tileset( arg1) 
 {
     var room = g_pLayerManager.GetTargetRoomObj();
@@ -4203,6 +4299,7 @@ function ShallowCopyVars( _dest, _other)
 {
     if (_other != undefined) {
         var props = Object.getOwnPropertyNames(_other);
+        props = props.filter(val => !val.startsWith("__"));
         for (var i = 0; i < props.length; i++)
         {
             var prop = props[i];

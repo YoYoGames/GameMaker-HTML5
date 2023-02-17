@@ -122,7 +122,6 @@ function window_get_fullscreen() {
 // #############################################################################################
 function window_set_showborder(_show) 
 {
-    ErrorFunction("window_set_showborder()");
 }
 
 // #############################################################################################
@@ -136,8 +135,7 @@ function window_set_showborder(_show)
 // #############################################################################################
 function window_get_showborder() 
 {
-    ErrorFunction("window_get_showborder()");
-    return false;
+    return true;
 }
 
 // #############################################################################################

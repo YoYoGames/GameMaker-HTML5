@@ -60,7 +60,15 @@ function surface_resize_RELEASE(_id, _w, _h)
     }
 
     //resize...
-    surface_create( _w,_h, _id );   //create new surface and replace existing in _id slot
+    var pSurf = g_Surfaces.Get(_id);
+    var format = eTextureFormat_A8R8G8B8;
+
+    if (g_webGL)
+    {
+        format = pSurf.texture.webgl_textureid.format;
+    }
+    
+    surface_create( _w,_h, format, _id );   //create new surface and replace existing in _id slot
 
     return 0;
 }
@@ -98,7 +106,7 @@ function surface_get_depth_disable()
 ///			</returns>
 // #############################################################################################
 var surface_create = surface_create_RELEASE;
-function surface_create_RELEASE(_w, _h, _forceid) 
+function surface_create_RELEASE(_w, _h, _format, _forceid) 
 {
     _w = yyGetInt32(_w);
     _h = yyGetInt32(_h);
@@ -108,7 +116,7 @@ function surface_create_RELEASE(_w, _h, _forceid)
     pSurf.m_Height = pSurf.height = _h;
     pSurf.complete = true;
     pSurf.canvas_element = false;
-	pSurf.name = "";
+	pSurf.name = "";    
 
 	pSurf.graphics = pSurf.getContext('2d');
 	Graphics_AddCanvasFunctions(pSurf.graphics); 			// update for OUR functions.
@@ -172,7 +180,7 @@ function surface_create_RELEASE(_w, _h, _forceid)
 ///				
 ///			</returns>
 // #############################################################################################
-function surface_create_ext(_name, _w,_h) 
+function surface_create_ext(_name, _w,_h, _format) 
 {
     _name = yyGetString(_name);
     _w = yyGetInt32(_w);
@@ -182,13 +190,13 @@ function surface_create_ext(_name, _w,_h)
 	if (!pSurf)
 	{
 		WarningFunction("Can not find pre-created canvas element: " + _name);
-		return surface_create(_w, _h);
+		return surface_create(_w, _h, _format);
 	}
 	pSurf.name = _name;
     pSurf.m_Width = pSurf.width = _w;
     pSurf.m_Height = pSurf.height = _h;
     pSurf.complete = true;
-    pSurf.canvas_element = true;
+    pSurf.canvas_element = true;    
 
     pSurf.graphics = pSurf.getContext('2d');
     Graphics_AddCanvasFunctions(pSurf.graphics); 			// update for OUR functions
@@ -404,7 +412,8 @@ function surface_set_target_system_RELEASE(_id)
         });
 
         g_CurrentSurfaceIdStack.push(g_CurrentSurfaceId);
-        g_CurrentSurfaceId = _id;
+        g_CurrentSurfaceId = _id;
+
         if (g_webGL) {
             g_CurrentFrameBuffer = pSurf.FrameBuffer;
             g_webGL.SetRenderTarget(pSurf.FrameBuffer);
@@ -455,7 +464,10 @@ function surface_set_target_RELEASE(_id)
             cannvas_graphics: graphics,
         });
         g_CurrentSurfaceIdStack.push(g_CurrentSurfaceId);
-        g_CurrentSurfaceId = _id;        if (g_webGL) {
+        g_CurrentSurfaceId = _id;
+
+
+        if (g_webGL) {
             g_CurrentFrameBuffer = pSurf.FrameBuffer;
             g_webGL.SetRenderTarget(pSurf.FrameBuffer);
             g_RenderTargetActive = -1;
@@ -478,16 +490,21 @@ function surface_set_target_RELEASE(_id)
         if (g_webGL) g_webGL.Flush();
         DirtyRoomExtents();
 
-        if (!g_webGL) {
+
+        if (!g_webGL) {
             Graphics_SetInterpolation_Auto(graphics);
         }
 	}	
 }
 
-function surface_get_target() {
-    return g_CurrentSurfaceId;
-}
-
+function surface_get_target() {
+
+    return g_CurrentSurfaceId;
+
+}
+
+
+
 // #############################################################################################
 /// Function:<summary>
 ///          	Resets the drawing target to the normal screen.
@@ -522,21 +539,28 @@ function surface_reset_target_RELEASE()
             g_CurrentFrameBuffer = storedState.FrameBuffer;
         }
 
-
-
-        Graphics_SetViewPort(g_clipx, g_clipy, g_clipw, g_cliph);
-        if (g_isZeus) {
-            UpdateDefaultCamera(g_worldx, g_worldy, g_worldw, g_worldh, 0);
-        }
-        else {
-            Graphics_SetViewArea(g_worldx, g_worldy, g_worldw, g_worldh, 0);
+        if (g_InGUI_Zone && g_SurfaceStack.length == 0) {
+            // (This is function SetGuiView in the C++ runner)
+            Graphics_SetViewPort(0, 0, g_DisplayWidth, g_DisplayHeight);
+            g_pProjection.OrthoLH(g_DisplayWidth, -g_DisplayHeight * g_RenderTargetActive, 1.0, 32000.0);
+            Calc_GUI_Scale();
+        } else {
+            Graphics_SetViewPort(g_clipx, g_clipy, g_clipw, g_cliph);
+            if (g_isZeus) {
+                UpdateDefaultCamera(g_worldx, g_worldy, g_worldw, g_worldh, 0);
+            }
+            else {
+                Graphics_SetViewArea(g_worldx, g_worldy, g_worldw, g_worldh, 0);
+            }
         }
     }
     else {
         ErrorOnce("Error: Surface stacking error detected");
     }
     if (g_webGL) g_webGL.SetRenderTarget(g_CurrentFrameBuffer);
-    g_CurrentSurfaceId = g_CurrentSurfaceIdStack.pop();    if (g_CurrentSurfaceId == null) g_CurrentSurfaceId = -1;
+    g_CurrentSurfaceId = g_CurrentSurfaceIdStack.pop();
+    if (g_CurrentSurfaceId == null) g_CurrentSurfaceId = -1;
+
     if (!g_webGL) Graphics_SetInterpolation_Auto(graphics);
     DirtyRoomExtents();
 }
@@ -1072,4 +1096,71 @@ function surface_copy_part(_destination,_x,_y, _source,_xs,_ys,_ws,_hs)
 		pImg.restore();
 	} 
 }
+
+function SurfaceFormatSupported(_format)
+{        
+	switch (_format)
+	{
+		case eTextureFormat_A8R8G8B8: return true;
+		case eTextureFormat_Float16: return true;
+        case eTextureFormat_Float32: return true;
+        case eTextureFormat_A4R4G4B4: return true; 
+        case eTextureFormat_R8: return true;
+        case eTextureFormat_R8G8: return true;
+		case eTextureFormat_R16G16B16A16_Float: return true;
+        case eTextureFormat_R32G32B32A32_Float: return true;
+		default: return false;
+	}
+}
+
+function TextureFormatSupported(_format)
+{
+    if (g_webGL)
+    {
+        return g_webGL.IsTextureFormatSupported(_format);
+    }
+    else
+    {
+        if (_format == eTextureFormat_A8R8G8B8)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }	
+}
+
+function surface_format_is_supported(_format)
+{
+    if (SurfaceFormatSupported(_format) && TextureFormatSupported(_format))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+function surface_get_format(_id)
+{    
+    var pSurf = g_Surfaces.Get(_id);
+	if( pSurf != null)
+	{
+        if (g_webGL)
+        {
+            if (pSurf.FrameBufferData.Texture)
+            {
+                return pSurf.FrameBufferData.Texture.Format;
+            }
+        }
+        else
+        {
+            return eTextureFormat_A8R8G8B8; // canvas always uses this format
+        }
+    }
+
+    return eTextureFormat_UnknownFormat;
+}
+
 

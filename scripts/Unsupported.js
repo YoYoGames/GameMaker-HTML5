@@ -48,6 +48,8 @@ function splash_set_interrupt(interrupt)    { ErrorFunction("splash_set_interrup
 function splash_set_stop_key(stop)          { ErrorFunction("splash_set_stop_key()"); }
 function splash_set_stop_mouse(stop)        { ErrorFunction("splash_set_stop_mouse()"); }
 function splash_set_close_button(show)      { ErrorFunction("splash_set_close_button()"); }
+function os_set_orientation_lock()			{ ErrorFunction("os_set_orientation_lock()"); }
+function extension_exists()					{ return false; }
 
 
 
@@ -93,7 +95,7 @@ function activate_clipboard()
 
 			g_ActivatingClipboard = true;
 			// get permission first for clipboard
-			navigator.permissions.query( { name: 'clipboard-read', allowWithoutGesture: true}).then( function(result) {
+			navigator.permissions.query( { "name": 'clipboard-read', "allowWithoutGesture": true}).then( function(result) {
 
 				if ((result.state == 'granted') || (result.state == 'prompt')) {
 
@@ -474,25 +476,32 @@ function push_set_application_badge_number()        { ErrorFunction("push_set_ap
 //function application_surface_enable()               { ErrorFunction("application_surface_enable()"); }
 //function application_surface_is_enabled()           { ErrorFunction("application_surface_is_enabled()"); return 0; }
 //
-function surface_set_target_ext()               { ErrorFunction("surface_set_target_ext()"); return 0; }
-function surface_get_target_ext(_)              { ErrorFunction("surface_set_target_ext()"); return -1; }
+function surface_set_target_ext()                       { ErrorFunction("surface_set_target_ext()"); return 0; }
+function surface_get_target_ext()                       { ErrorFunction("surface_set_target_ext()"); return -1; }
 
-function audio_destroy_sync_group() 					{ ErrorFunction("audio_destroy_sync_group()"); return -1; }
-function audio_create_sync_group()                  	{ ErrorFunction("audio_create_sync_group()"); return -1; }
-function audio_play_in_sync_group()                 	{ ErrorFunction("audio_play_in_sync_group()"); }
-function audio_start_sync_group()                  		{ ErrorFunction("audio_start_sync_group()"); }
-function audio_pause_sync_group()                  		{ ErrorFunction("audio_pause_sync_group()"); }
-function audio_resume_sync_group()                  	{ ErrorFunction("audio_resume_sync_group()"); }
-function audio_stop_sync_group()                  		{ ErrorFunction("audio_stop_sync_group()"); }
+/* Audio Emitters */
+function audio_emitter_velocity()                       { ErrorFunction("audio_emitter_velocity()"); }
+function audio_emitter_get_vx()                         { ErrorFunction("audio_emitter_get_vx()"); return 0.0; }
+function audio_emitter_get_vy()                         { ErrorFunction("audio_emitter_get_vy()"); return 0.0; }
+function audio_emitter_get_vz()                         { ErrorFunction("audio_emitter_get_vz()"); return 0.0; }
+
+/* Audio Listeners */
+function audio_set_listener_mask()                      { ErrorFunction("audio_set_listener_mask()"); }
+function audio_sound_set_listener_mask()                { ErrorFunction("audio_sound_set_listener_mask()"); }
+function audio_emitter_set_listener_mask()              { ErrorFunction("audio_emitter_set_listener_mask()"); }
+
+/* Audio Sync Groups */
+function audio_destroy_sync_group()                     { ErrorFunction("audio_destroy_sync_group()"); return -1; }
+function audio_create_sync_group()                      { ErrorFunction("audio_create_sync_group()"); return -1; }
+function audio_play_in_sync_group()                     { ErrorFunction("audio_play_in_sync_group()"); }
+function audio_start_sync_group()                       { ErrorFunction("audio_start_sync_group()"); }
+function audio_pause_sync_group()                       { ErrorFunction("audio_pause_sync_group()"); }
+function audio_resume_sync_group()                      { ErrorFunction("audio_resume_sync_group()"); }
+function audio_stop_sync_group()                        { ErrorFunction("audio_stop_sync_group()"); }
 function audio_sync_group_get_track_pos()               { ErrorFunction("audio_sync_group_get_track_pos()"); return -1; }
 function audio_sync_group_is_playing()                  { ErrorFunction("audio_sync_group_is_playing()"); return -1; }
-function audio_sync_group_is_paused()                  	{ ErrorFunction("audio_sync_group_is_paused()"); return -1; }
-function audio_sync_group_debug()                   	{ ErrorFunction("audio_sync_group_debug()"); }
-
-function audio_bus_create()                   			{ ErrorFunction("audio_bus_create()"); }
-function audio_effect_create() 							{ ErrorFunction("audio_effect_create()"); }
-function audio_emitter_bus()							{ ErrorFunction("audio_emitter_bus()"); }
-function audio_emitter_get_bus()						{ ErrorFunction("audio_emitter_get_bus()"); }
+function audio_sync_group_is_paused()                   { ErrorFunction("audio_sync_group_is_paused()"); return -1; }
+function audio_sync_group_debug()                       { ErrorFunction("audio_sync_group_debug()"); }
 
 function gpio_set()                                     { ErrorFunction("GPIO is not supported"); }
 function gpio_clear()                                   { ErrorFunction("GPIO is not supported"); }

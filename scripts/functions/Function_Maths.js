@@ -120,11 +120,7 @@ function abs(_a)
 // #############################################################################################
 function cos(_a)
 {
-    var _x = Math.cos(yyGetReal(_a));
-
-	var t = ~ ~(_x * 0x1000000);
-	_x = t / 0x1000000;
-	return _x;
+    return Math.cos(yyGetReal(_a));
 }
 
 // #############################################################################################
@@ -153,11 +149,7 @@ function dcos(_a) {
 // #############################################################################################
 function sin(_a)
 {
-    var _x = Math.sin(yyGetReal(_a));
-
-	var t = ~ ~(_x * 0x1000000);
-	_x = t / 0x1000000;
-	return _x;
+    return Math.sin(yyGetReal(_a));
 }
 
 // #############################################################################################
@@ -188,11 +180,7 @@ function dsin(_a) {
 // #############################################################################################
 function tan(_a)
 {
-    var _x = Math.tan(yyGetReal(_a));
-
-    var t = ~ ~(_x * 0x1000000);
-    _x = t / 0x1000000;
-    return _x;
+    return Math.tan(yyGetReal(_a));
 }
 
 // #############################################################################################
@@ -950,10 +938,14 @@ function darctan(_x)
 ///				
 ///			</returns>
 // #############################################################################################
-var arctan2 = Math.atan2;
+function arctan2(_y, _x)
+{
+    return Math.atan2(yyGetReal(_y), yyGetReal(_x));
+}
+
 function darctan2(_y,_x) 
 {
-    return Math.atan2(yyGetReal(_y), yyGetReal(_x)) * 57.2957795;
+    return arctan2(_y, _x) * 57.2957795;
 }
 
 // #############################################################################################
@@ -1219,18 +1211,6 @@ function is_ptr(_x) {
     return (typeof(_x) == "object" && (_x instanceof ArrayBuffer)) ? 1 : 0;
 }
 
-function is_vec3(_x) {
-    return 0;
-}
-
-function is_vec4(_x) {
-    return 0;
-}
-
-function is_matrix(_x) {
-    return 0;
-}
-
 function is_struct(_x) {
     return ((typeof _x === "object") && (_x.__yyIsGMLObject)) ? 1 : 0;
 }
@@ -1242,6 +1222,62 @@ function is_nan(_x) {
 function is_infinity(_x) {
     _x = yyGetReal(_x);
     return !Number.isFinite(_x) && !Number.isNaN(_x);
+}
+
+function static_get( s )
+{
+    var ret = undefined;
+    switch( typeof(s) ) {
+        case "number":
+            var funcId = yyGetInt32(s);
+            if (funcId >= 100000) {
+                func = JSON_game.Scripts[ funcId - 100000];
+                ret = func.prototype;
+            } // end if
+            break;
+        case "function":
+            ret = s.prototype;
+            break;
+        case "object":
+            ret = Object.getPrototypeOf(s);
+            break;
+    } // end switch
+    return ret;
+} // end static_get
+
+function static_set( d, s )
+{
+    if ((typeof(s) == "object") && (typeof(d) == "object")) {
+        Object.setPrototypeOf(d, s);
+    } // end if
+} // end static_set
+
+function YYIsInstanceof(_x,_v)
+{
+    var ret = false;
+    if ((typeof(_x) == "object") && (_x.__yyIsGMLObject === true)) {
+        var func = undefined;
+        var funcId = yyGetInt32(_v);
+        if (funcId >= 100000)
+            func = JSON_game.Scripts[ funcId - 100000];
+
+        if (func) {
+
+            var c = Object.getPrototypeOf(_x);
+            var funcProto  = func.prototype;
+            while( c && !ret ) {
+                if (c === funcProto) {
+                    ret = true;
+                    break;
+                } // end if
+
+                c =Object.getPrototypeOf(c);
+            } // end while
+
+        } // end if
+    } // end if
+
+    return ret;
 }
 
 function YYInstanceof(_x) {
