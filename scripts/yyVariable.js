@@ -179,7 +179,25 @@ function __yy_gml_object_create( _self, _a )
 
 function is_method( _a )
 {
-  return (_a instanceof Function) && (typeof _a.__yy_userFunction !== 'undefined');   
+    return (_a instanceof Function) && (typeof _a.__yy_userFunction !== 'undefined');   
+}
+
+function is_callable( _v )
+{
+    switch( typeof(_v) )
+    {
+        // Is a function so is callable (return true)
+        case "function": return true;
+        // Is a number try to get the script from it
+        case "number": _v = JSON_game.Scripts[_v - 100000]; break;
+        // Is a object, check if it is a 'Long' convert it to number and try to get script from it
+        case "object": if (_v instanceof Long) _v = JSON_game.Scripts[_v.toNumber() - 100000]; break;
+        // Is not callable (return false)
+        default: return false;
+    }
+
+    // Check if a script was found
+    return _v != undefined;
 }
 
 function __yyg_call_method( _func )
@@ -226,8 +244,6 @@ function __yy_method( _inst, _func )
     _func.__yy_userFunction = true;
     return ret;
 }
-
-
 
 function method( _inst, _func )
 {
