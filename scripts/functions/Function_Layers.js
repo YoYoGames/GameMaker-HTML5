@@ -1545,16 +1545,13 @@ LayerManager.prototype.UpdateLayers = function()
                 }
                 else
                 {
-                    if (el.m_playbackspeedtype == ePlaybackSpeedType_FramesPerGameFrame)
+                    var fps = g_GameTimer.GetFPS();
+                    if (fps != 0.0)
                     {
-                        el.m_imageIndex += el.m_imageSpeed;
-                    }
-                    else
-                    {
-                        var fps = g_GameTimer.GetFPS();
-                        el.m_imageIndex += el.m_imageSpeed/fps;
-                    }            
-                    //el.m_imageIndex += el.m_imageSpeed;
+                        if (sprite.playbackspeedtype != ePlaybackSpeedType_FramesPerSecond)
+                            fps = 1.0;                        
+                        el.m_imageIndex += (sprite.playbackspeed / fps) * el.m_imageSpeed;
+                    }                    
                 }
             }
             else if( type == eLayerElementType_Tilemap)
