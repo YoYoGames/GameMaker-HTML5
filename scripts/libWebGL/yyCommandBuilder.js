@@ -219,6 +219,10 @@ function yyCommandBuilder(_interpolatePixels) {
     /** @this {yyCommandBuilder} */
     this.SetTexture = function (_stage, _texture) {
 
+        // Update state manager here
+        // Although the state isn't actually *set* at this point from the game's perspective this is the current state
+        g_webGL.RSMan.SetTexture(_stage, _texture);
+        
 	    // Track texture setting so we don't have redundant texture setting.
 	    if (m_lastTexture[_stage] == _texture) {
 	        return;
@@ -246,7 +250,7 @@ function yyCommandBuilder(_interpolatePixels) {
     ///           	Update a texture with new bits
     ///           </summary>
     // #############################################################################################
-    this.UpdateTexture = function( _texture, _x, _y, _w, _h, _canvas_or_u8array ) {
+    this.UpdateTexture = function( _texture, _x, _y, _w, _h, _canvas_or_u8array, _format ) {
     
         m_commandList.push( CMD_UPDATE_TEXTURE );
         m_commandList.push( _texture );
@@ -255,6 +259,7 @@ function yyCommandBuilder(_interpolatePixels) {
         m_commandList.push( _w );
         m_commandList.push( _h );
         m_commandList.push(_canvas_or_u8array);
+        m_commandList.push(_format);
     };
 
 
@@ -1594,7 +1599,7 @@ function yyCommandBuilder(_interpolatePixels) {
                     {
                         // RK : retrieve the info from the command list
                         // RK : params are
-                        // RK : texture, x, y, canvas info (object ref)
+                        // RK : texture, x, y, canvas info (object ref), texture format
                         // RK : place contents of the canvas (of width and height) on the texture at the x, y pixel position
                         texture = m_commandList[ i + 1];
                         var xx = m_commandList[ i + 2];
@@ -1602,7 +1607,43 @@ function yyCommandBuilder(_interpolatePixels) {
                         var ww = m_commandList[i + 4];
                         var hh = m_commandList[i + 5];
                         var canvas = m_commandList[i + 6];
-                        i += 7;
+                        var format = m_commandList[i + 7];
+                        i += 8;
+
+                        var texFormatData = g_webGL.ConvertTexFormat(format);
+
+                        // May need to do some buffer format switcheroo
+                        switch(format)
+                        {                            
+                            case eTextureFormat_A8R8G8B8: break;
+                            case eTextureFormat_A4R4G4B4:
+                                { 
+                                    var temparray = new Uint16Array( canvas.buffer);
+                                    canvas = temparray;
+                                } break;
+                            case eTextureFormat_Float16:
+                                { 
+                                    var temparray = new Uint16Array( canvas.buffer);
+                                    canvas = temparray;
+                                } break;
+                            case eTextureFormat_Float32:
+                                { 
+                                    var temparray = new Float32Array( canvas.buffer);
+                                    canvas = temparray;
+                                } break;
+                            case eTextureFormat_R8: break;
+                            case eTextureFormat_R8G8: break;
+                            case eTextureFormat_R16G16B16A16_Float:
+                                { 
+                                    var temparray = new Uint16Array( canvas.buffer);
+                                    canvas = temparray;
+                                } break;
+                            case eTextureFormat_R32G32B32A32_Float:
+                                { 
+                                    var temparray = new Float32Array( canvas.buffer);
+                                    canvas = temparray;
+                                } break;
+                        }
 
                         // Hmm... to make this work with the texture-on-demand stuff we'll need to store a complete copy of the
                         // image data that we can then use to rebuild the texture
@@ -1618,7 +1659,8 @@ function yyCommandBuilder(_interpolatePixels) {
                         gl.activeTexture(gl.TEXTURE0);
                         gl.bindTexture(gl.TEXTURE_2D, texture.Texture);
                         //gl.texSubImage2D(gl.TEXTURE_2D, 0, xx, yy, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
-                        gl.texSubImage2D(gl.TEXTURE_2D, 0, xx, yy, ww,hh, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+                        //gl.texSubImage2D(gl.TEXTURE_2D, 0, xx, yy, ww,hh, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+                        gl.texSubImage2D(gl.TEXTURE_2D, 0, xx, yy, ww,hh, texFormatData.format, texFormatData.type, canvas);
 
                         // rebind the correct texture back in
                         if (m_activeTextures.length > 0) {

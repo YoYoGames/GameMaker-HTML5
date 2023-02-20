@@ -3505,7 +3505,7 @@ yyInstanceManager.prototype.PerformEvent = function (_event, _index) {
 		for (var index = pool.length - 1; index >= 0; index--)
 		{
 			var pInst = pool[index];
-			if (!pInst.marked && (pInst.createCounter <= count))
+			if (pInst!==undefined && !pInst.marked && (pInst.createCounter <= count))
 			{
 			    var pObject = pInst.pObject;
 

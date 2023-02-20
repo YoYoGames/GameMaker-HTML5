@@ -11,7 +11,7 @@
 // **********************************************************************************************************************
 
 /** @constructor */
-function yyGLTexture(_glTexture, _width, _height, _pow2, _image, _numMips, _flags) {
+function yyGLTexture(_glTexture, _width, _height, _pow2, _image, _numMips, _flags, _format) {
 
     var gl = this._gl;
 
@@ -22,7 +22,8 @@ function yyGLTexture(_glTexture, _width, _height, _pow2, _image, _numMips, _flag
         m_pow2,
         m_image,
         m_numMips,
-        m_flags;
+        m_flags,
+        m_format;
 
     var m_isDirty;
      
@@ -56,7 +57,10 @@ function yyGLTexture(_glTexture, _width, _height, _pow2, _image, _numMips, _flag
         IsDirty: {
             get: function () { return m_isDirty; },
             set: function (_val) { m_isDirty = _val; }
-        }
+        },
+        Format: {
+            get: function () { return m_format; }
+        },
     });
        
     // #############################################################################################
@@ -73,7 +77,11 @@ function yyGLTexture(_glTexture, _width, _height, _pow2, _image, _numMips, _flag
         m_image = _image;
         m_numMips = _numMips;
         m_flags = _flags;
+        m_format = _format;
         m_isDirty = false;
+
+        if (m_format == undefined)
+            m_format = eTextureFormat_A8R8G8B8;
 
         m_samplerState = new yyTextureSamplerState();
         
