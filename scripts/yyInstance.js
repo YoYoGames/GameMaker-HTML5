@@ -1548,7 +1548,7 @@ yyInstance.prototype.Compute_BoundingBox = function() {
             }
             
             if (g_Collision_Compatibility_Mode) {
-                this.bbox.left = Math.floor((this.x + cc_xmin + ss_ymin) + 0.5);
+                bbox.left = Math.floor((this.x + cc_xmin + ss_ymin) + 0.5);
                 bbox.right = Math.floor((this.x + cc_xmax + ss_ymax) - 0.5);
             }
             else {
