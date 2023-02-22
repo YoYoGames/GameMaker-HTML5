@@ -1633,7 +1633,7 @@ function	ParticleSystem_Emitter_Stream( _ps, _ind, _ptype, _numb)
 // #############################################################################################
 function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 {
-	var em = (partsystems.arr[ps].emitters.length == 0)
+	var em = (g_ParticleSystems[_ps].emitters.length == 0)
 		? ParticleSystem_Emitter_Create(ps)
 		: 0;
 
@@ -1656,7 +1656,7 @@ function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 // #############################################################################################
 function	ParticleSystem_Particles_Create_Color( _ps, _x, _y, _parttype, _col, _numb)
 {
-    var em = (partsystems.arr[ps].emitters.length == 0)
+    var em = (g_ParticleSystems[_ps].emitters.length == 0)
 		? ParticleSystem_Emitter_Create(ps)
 		: 0;
 
