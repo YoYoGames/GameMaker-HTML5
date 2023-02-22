@@ -1413,6 +1413,25 @@ yyInstance.prototype.setspeed = function (_val) {
 ///          </summary>
 // #############################################################################################
 yyInstance.prototype.Compute_BoundingBox = function() {
+    var skeletonAnim = this.SkeletonAnimation();
+    if (skeletonAnim) {
+        if (!this.bbox) {
+            this.bbox = new YYRECT(0, 0, 0, 0);
+        }
+
+        if(!skeletonAnim.ComputeBoundingBox(this.bbox, this.image_index, this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle))
+        {
+            this.bbox.left = this.x; // no collisions
+            this.bbox.top = this.y;
+            this.bbox.right = this.x;
+            this.bbox.bottom = this.y;
+
+            this.precise = false;
+        }
+
+        this.bbox_dirty = false;
+        return;
+    }
 
     var spr, t;
     var ix = (this.mask_index >= 0) ? this.mask_index : this.sprite_index;
