@@ -537,7 +537,7 @@ audioSound.prototype.isPlaying = function() {
         // ... we should get rid of it then
         if (this.pbuffersource.playbackState == undefined 
         || this.pbuffersource.playbackState != this.pbuffersource.FINISHED_STATE
-        || _audioSound.paused) {
+        || this.paused) {
             return true;
         }
     }
