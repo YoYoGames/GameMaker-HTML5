@@ -21,11 +21,11 @@ var ASYNC_UNKNOWN = 0,
     ASYNC_SOUND = 4,
     ASYNC_WEB = 5,
     ASYNC_USER = 6,
-	ASYNC_BINARY = 7,
-	ASYNC_NETWORKING = 8,
-	ASYNC_AUDIO_PLAYBACK = 9,
+    ASYNC_BINARY = 7,
+    ASYNC_NETWORKING = 8,
+    ASYNC_AUDIO_PLAYBACK = 9,
     ASYNC_SYSTEM_EVENT = 10,            // device discovery/loss, user login
-	ASYNC_AUDIO_PLAYBACK_ENDED = 11,
+    ASYNC_AUDIO_PLAYBACK_ENDED = 11,
 
     ASYNC_STATUS_NONE=0,
     ASYNC_STATUS_LOADED=1,
@@ -34,8 +34,7 @@ var ASYNC_UNKNOWN = 0,
     ASYNC_WEB_STATUS_LOADED=0,
     ASYNC_WEB_STATUS_LOADING=1,
     ASYNC_WEB_STATUS_ERROR=-1;
-    
-    
+
 
 var g_AsyncLookup_obj = [];
 var g_AsyncLookup_data = [];

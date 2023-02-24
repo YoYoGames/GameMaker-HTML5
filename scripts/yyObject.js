@@ -750,19 +750,19 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 		case EVENT_OTHER_ANIMATIONUPDATE: if (this.AnimationUpdateEvent) this.AnimationUpdateEvent(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_ANIMATIONEVENT: if (this.AnimationEventEvent) this.AnimationEventEvent(_pInst, _pOther); else done = false; break;
 
-		case EVENT_OTHER_WEB_IMAGE_LOAD: if (this.WebImageLoadedEvent) this.WebImageLoadedEvent(_pInst, _pOther); else done = false; break;
-		case EVENT_OTHER_WEB_SOUND_LOAD: if (this.WebSoundLoadedEvent) this.WebSoundLoadedEvent(_pInst, _pOther); else done = false; break;
-		case EVENT_OTHER_WEB_ASYNC: if (this.WebAsyncEvent) this.WebAsyncEvent(_pInst, _pOther); else done = false; break;
-	    case EVENT_OTHER_WEB_USER_INTERACTION: if (this.WebUserInteractionEvent) this.WebUserInteractionEvent(_pInst, _pOther); else done = false; break;
-	    case EVENT_OTHER_WEB_IAP: if (this.WebIAPEvent) this.WebIAPEvent(_pInst, _pOther); else done = false; break;
-	    case EVENT_OTHER_SOCIAL: if( this.SocialEvent) this.SocialEvent( _pInst, _pOther); else done = false; break;
-	    case EVENT_OTHER_PUSH_NOTIFICATION: if( this.PushNotificationEvent) this.PushNotificationEvent( _pInst, _pOther); else done =false; break;
+        case EVENT_OTHER_WEB_IMAGE_LOAD: if (this.WebImageLoadedEvent) this.WebImageLoadedEvent(_pInst, _pOther); else done = false; break;
+        case EVENT_OTHER_WEB_SOUND_LOAD: if (this.WebSoundLoadedEvent) this.WebSoundLoadedEvent(_pInst, _pOther); else done = false; break;
+        case EVENT_OTHER_WEB_ASYNC: if (this.WebAsyncEvent) this.WebAsyncEvent(_pInst, _pOther); else done = false; break;
+        case EVENT_OTHER_WEB_USER_INTERACTION: if (this.WebUserInteractionEvent) this.WebUserInteractionEvent(_pInst, _pOther); else done = false; break;
+        case EVENT_OTHER_WEB_IAP: if (this.WebIAPEvent) this.WebIAPEvent(_pInst, _pOther); else done = false; break;
+        case EVENT_OTHER_SOCIAL: if( this.SocialEvent) this.SocialEvent( _pInst, _pOther); else done = false; break;
+        case EVENT_OTHER_PUSH_NOTIFICATION: if( this.PushNotificationEvent) this.PushNotificationEvent( _pInst, _pOther); else done =false; break;
         case EVENT_OTHER_ASYNC_SAVE_LOAD: if( this.AsyncSaveLoadEvent) this.AsyncSaveLoadEvent( _pInst, _pOther); else done =false; break;
         case EVENT_OTHER_NETWORKING: if( this.NetworkingEvent) this.NetworkingEvent( _pInst, _pOther); else done =false; break;
-	    case EVENT_OTHER_AUDIO_PLAYBACK: if (this.AudioPlaybackEvent) this.AudioPlaybackEvent( _pInst, _pOther); else done = false; break;
+        case EVENT_OTHER_AUDIO_PLAYBACK: if (this.AudioPlaybackEvent) this.AudioPlaybackEvent( _pInst, _pOther); else done = false; break;
         case EVENT_OTHER_AUDIO_PLAYBACK_ENDED: if (this.AudioPlaybackEndedEvent) this.AudioPlaybackEndedEvent( _pInst, _pOther); else done = false; break;
-	    case EVENT_OTHER_AUDIO_RECORDING: if (this.AudioRecordingEvent) this.AudioRecordingEvent( _pInst, _pOther); else done = false; break;
-	    case EVENT_OTHER_SYSTEM_EVENT: if (this.SystemEvent) this.SystemEvent(_pInst, _pOther); else done = false; break;
+        case EVENT_OTHER_AUDIO_RECORDING: if (this.AudioRecordingEvent) this.AudioRecordingEvent( _pInst, _pOther); else done = false; break;
+        case EVENT_OTHER_SYSTEM_EVENT: if (this.SystemEvent) this.SystemEvent(_pInst, _pOther); else done = false; break;
 
 	    case EVENT_OTHER_BROADCAST_MESSAGE: if (this.BroadcastMessageEvent) this.BroadcastMessageEvent(_pInst, _pOther); else done = false; break;
 
