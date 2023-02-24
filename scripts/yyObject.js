@@ -267,6 +267,7 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if (_pObjectStorage.AsyncSaveLoadEvent) { pObj.AsyncSaveLoadEvent = _pObjectStorage.AsyncSaveLoadEvent; pObj.Event[EVENT_OTHER_ASYNC_SAVE_LOAD] = true; }        
         if (_pObjectStorage.NetworkingEvent) { pObj.NetworkingEvent = _pObjectStorage.NetworkingEvent; pObj.Event[EVENT_OTHER_NETWORKING] = true; }        
         if (_pObjectStorage.AudioPlaybackEvent) { pObj.AudioPlaybackEvent = _pObjectStorage.AudioPlaybackEvent; pObj.Event[EVENT_OTHER_AUDIO_PLAYBACK] = true; }        
+        if (_pObjectStorage.AudioPlaybackEndedEvent) { pObj.AudioPlaybackEndedEvent = _pObjectStorage.AudioPlaybackEndedEvent; pObj.Event[EVENT_OTHER_AUDIO_PLAYBACK_ENDED] = true; }    
         if (_pObjectStorage.AudioRecordingEvent) { pObj.AudioRecordingEvent = _pObjectStorage.AudioRecordingEvent; pObj.Event[EVENT_OTHER_AUDIO_RECORDING] = true; }        
         if (_pObjectStorage.AnimationEventEvent) { pObj.AnimationEventEvent = _pObjectStorage.AnimationEventEvent; pObj.Event[EVENT_OTHER_ANIMATIONEVENT] = true; }
         if (_pObjectStorage.SystemEvent) { pObj.SystemEvent = _pObjectStorage.SystemEvent; pObj.Event[EVENT_OTHER_SYSTEM_EVENT] = true; }
@@ -759,6 +760,7 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
         case EVENT_OTHER_ASYNC_SAVE_LOAD: if( this.AsyncSaveLoadEvent) this.AsyncSaveLoadEvent( _pInst, _pOther); else done =false; break;
         case EVENT_OTHER_NETWORKING: if( this.NetworkingEvent) this.NetworkingEvent( _pInst, _pOther); else done =false; break;
 	    case EVENT_OTHER_AUDIO_PLAYBACK: if (this.AudioPlaybackEvent) this.AudioPlaybackEvent( _pInst, _pOther); else done = false; break;
+        case EVENT_OTHER_AUDIO_PLAYBACK_ENDED: if (this.AudioPlaybackEndedEvent) this.AudioPlaybackEndedEvent( _pInst, _pOther); else done = false; break;
 	    case EVENT_OTHER_AUDIO_RECORDING: if (this.AudioRecordingEvent) this.AudioRecordingEvent( _pInst, _pOther); else done = false; break;
 	    case EVENT_OTHER_SYSTEM_EVENT: if (this.SystemEvent) this.SystemEvent(_pInst, _pOther); else done = false; break;
 
@@ -929,6 +931,7 @@ function ConvertEvent(_event)
         case EVENT_OTHER_ASYNC_SAVE_LOAD:       return GML_EVENT_OTHER;
         case EVENT_OTHER_NETWORKING:            return GML_EVENT_OTHER;
         case EVENT_OTHER_AUDIO_PLAYBACK:        return GML_EVENT_OTHER;
+        case EVENT_OTHER_AUDIO_PLAYBACK_ENDED:  return GML_EVENT_OTHER;
         case EVENT_OTHER_AUDIO_RECORDING:       return GML_EVENT_OTHER;
         case EVENT_OTHER_SYSTEM_EVENT:          return GML_EVENT_OTHER;
 
@@ -1102,6 +1105,7 @@ function ConvertSubEvent(_event, _subevent)
         case EVENT_OTHER_ASYNC_SAVE_LOAD: return GML_EVENT_OTHER_ASYNC_SAVE_LOAD;
         case EVENT_OTHER_NETWORKING: return GML_EVENT_OTHER_NETWORKING;
         case EVENT_OTHER_AUDIO_PLAYBACK: return GML_EVENT_OTHER_AUDIO_PLAYBACK;
+        case EVENT_OTHER_AUDIO_PLAYBACK_ENDED: return GML_EVENT_OTHER_AUDIO_PLAYBACK_ENDED;
         case EVENT_OTHER_AUDIO_RECORDING: return EVENT_OTHER_AUDIO_RECORDING;
         case EVENT_OTHER_SYSTEM_EVENT: return GML_EVENT_OTHER_SYSTEM_EVENT;
 

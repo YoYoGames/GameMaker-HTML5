@@ -368,6 +368,8 @@ audioSound.prototype.start = function(_buffer) {
             this.pgainnode.disconnect();
 
         this.pemitter = null;
+
+        this.throwOnEndedEvent(false);
     };
 
     this.pbuffersource.connect(this.pgainnode);
@@ -463,8 +465,9 @@ audioSound.prototype.stop = function() {
         this.pgainnode.disconnect();
 
     this.pemitter = null;
-    this.soundid = -1;
     this.bActive = false;
+
+    this.throwOnEndedEvent(true);
 };
 
 audioSound.prototype.pause = function() {
@@ -769,6 +772,14 @@ audioSound.prototype.getAssetIndex = function() {
         return -1;
 
     return this.soundid;
+};
+
+audioSound.prototype.throwOnEndedEvent = function(_wasStopped) {
+    const asyncNode = g_pASyncManager.Add(undefined, undefined, ASYNC_AUDIO_PLAYBACK_ENDED, undefined);
+    asyncNode.voiceHandle = this.handle;
+    asyncNode.assetIndex = this.soundid;
+    asyncNode.wasStopped = _wasStopped;
+    asyncNode.m_Complete = true;
 };
 
 function GetAudioSoundFromHandle( _handle )
