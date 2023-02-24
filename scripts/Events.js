@@ -834,21 +834,21 @@ function    event_lookup(_event, _subevent)
         			case GML_ev_user15: return EVENT_OTHER_USER15;
         		    case GML_EVENT_OTHER_ANIMATIONUPDATE: return EVENT_OTHER_ANIMATIONUPDATE;
         		    case GML_EVENT_OTHER_ANIMATIONEVENT: return EVENT_OTHER_ANIMATIONEVENT;
-        			case GML_EVENT_OTHER_WEB_IMAGE_LOAD: return EVENT_OTHER_WEB_IMAGE_LOAD;
+        		    case GML_EVENT_OTHER_WEB_IMAGE_LOAD: return EVENT_OTHER_WEB_IMAGE_LOAD;
         		    case GML_EVENT_OTHER_WEB_SOUND_LOAD: return EVENT_OTHER_WEB_SOUND_LOAD;
         		    case GML_EVENT_OTHER_WEB_ASYNC: return EVENT_OTHER_WEB_ASYNC;
         		    case GML_EVENT_OTHER_WEB_USER_INTERACTION: return EVENT_OTHER_WEB_USER_INTERACTION;
         		    case GML_EVENT_OTHER_IAP: return EVENT_OTHER_WEB_IAP;
         		    case GML_EVENT_OTHER_NETWORKING: return EVENT_OTHER_NETWORKING;
-			    case GML_EVENT_OTHER_SOCIAL: return EVENT_OTHER_SOCIAL;
+        		    case GML_EVENT_OTHER_SOCIAL: return EVENT_OTHER_SOCIAL;
         		    case GML_EVENT_OTHER_PUSH_NOTIFICATION: return EVENT_OTHER_PUSH_NOTIFICATION;
         		    case GML_EVENT_OTHER_ASYNC_SAVE_LOAD: return EVENT_OTHER_ASYNC_SAVE_LOAD;
         		    case GML_EVENT_OTHER_AUDIO_PLAYBACK: return EVENT_OTHER_AUDIO_PLAYBACK;
-				    case GML_EVENT_OTHER_AUDIO_PLAYBACK_ENDED: return EVENT_OTHER_AUDIO_PLAYBACK_ENDED;
+        		    case GML_EVENT_OTHER_AUDIO_PLAYBACK_ENDED: return EVENT_OTHER_AUDIO_PLAYBACK_ENDED;
         		    case GML_EVENT_OTHER_SYSTEM_EVENT: return EVENT_OTHER_SYSTEM_EVENT;
         		    case GML_EVENT_OTHER_BROADCAST_MESSAGE: return EVENT_OTHER_BROADCAST_MESSAGE;
-        				default: return 0;
-        		} break;
+        		    default: return 0;
+        		}
         	}
         case GML_EVENT_DRAW :      return   EVENT_DRAW | _subevent;                                      
         case GML_EVENT_KEYBOARD :  return   EVENT_KEYBOARD;
