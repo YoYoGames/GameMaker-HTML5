@@ -85,6 +85,7 @@ function ParticleType_ClearClass()
     this.id = -1;
     this.created = true; 					// whether created
 	this.sprite = -1;							// sprite used
+	this.spritestart = 0;       				// starting sprite subimage
 	this.spriteanim = true;       				// whether to animate the sprite
 	this.spritestretch = false;    				// whether to stretch the animation
 	this.spriterandom = false;     				// whether to start at a random position
@@ -661,7 +662,7 @@ function CreateParticle(_x, _y, _parttype )
 	}
 	else
 	{
-		Result.spritestart = 0;
+		Result.spritestart = pParType.spritestart;
 	}
 	Result.ran = YYRandom(100000);
 	return Result;
@@ -1267,6 +1268,7 @@ function ParticleSystem_Emitters_Load(_GameFile)
 		var type = g_ParticleTypes[ptInd];
 		
 		type.sprite = yypt.spriteId;
+		type.spritestart = yypt.headPosition;
 		type.spriteanim = yypt.spriteAnimate;
 		type.spritestretch = yypt.spriteStretch;
 		type.spriterandom = yypt.spriteRandom;
@@ -1631,7 +1633,7 @@ function	ParticleSystem_Emitter_Stream( _ps, _ind, _ptype, _numb)
 // #############################################################################################
 function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 {
-	var em = (partsystems.arr[ps].emitters.length == 0)
+	var em = (g_ParticleSystems[_ps].emitters.length == 0)
 		? ParticleSystem_Emitter_Create(ps)
 		: 0;
 
@@ -1654,7 +1656,7 @@ function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 // #############################################################################################
 function	ParticleSystem_Particles_Create_Color( _ps, _x, _y, _parttype, _col, _numb)
 {
-    var em = (partsystems.arr[ps].emitters.length == 0)
+    var em = (g_ParticleSystems[_ps].emitters.length == 0)
 		? ParticleSystem_Emitter_Create(ps)
 		: 0;
 

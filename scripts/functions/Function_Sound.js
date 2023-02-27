@@ -1928,16 +1928,16 @@ function audio_is_paused(_soundid)
         return false;
 
     _soundid = yyGetInt32(_soundid);
-		
-	if (_soundid >= BASE_SOUND_INDEX) {
-		const voice = GetAudioSoundFromHandle(_soundid);
 
-		if (voice === null)
+    if (_soundid >= BASE_SOUND_INDEX) {
+        const voice = GetAudioSoundFromHandle(_soundid);
+
+        if (voice === null)
             return false;
 
-		return sound.isPaused();
-	}
-        
+        return voice.isPaused();
+    }
+
     return audio_sounds.filter(_voice => _voice.soundid === _soundid)
                        .some(_voice => _voice.isPaused());
 }
@@ -1948,20 +1948,20 @@ function audio_is_paused(_soundid)
 // ******************************************************************************************
 function audio_is_playing(_soundid)
 {
-	if (g_AudioModel !== Audio_WebAudio) 
-	    return false;
+    if (g_AudioModel !== Audio_WebAudio) 
+        return false;
 
-	_soundid = yyGetInt32(_soundid);
+    _soundid = yyGetInt32(_soundid);
 
-	if (_soundid >= BASE_SOUND_INDEX) {
-		const voice = GetAudioSoundFromHandle(_soundid);
+    if (_soundid >= BASE_SOUND_INDEX) {
+        const voice = GetAudioSoundFromHandle(_soundid);
 
-		if (voice === null)
+        if (voice === null)
             return false;
 
-		return sound.isPlaying();
-	}	
-        
+        return voice.isPlaying();
+    }
+
     return audio_sounds.filter(_voice => _voice.soundid === _soundid)
                        .some(_voice => _voice.isPlaying());
 }
