@@ -1267,9 +1267,9 @@ function ParticleSystem_Emitters_Load(_GameFile)
 		var type = g_ParticleTypes[ptInd];
 		
 		type.sprite = yypt.spriteId;
-		type.spriteanim = false;
-		type.spritestretch = false;
-		type.spriterandom = false;
+		type.spriteanim = yypt.spriteAnimate;
+		type.spritestretch = yypt.spriteStretch;
+		type.spriterandom = yypt.spriteRandom;
 		type.shape = yypt.texture;
 		type.sizemin = yypt.sizeMin;
 		type.sizemax = yypt.sizeMax;
