@@ -5075,7 +5075,7 @@ function layer_sequence_play(sequence_element_id)
                     var seq = g_pSequenceManager.GetSequenceFromID(seqInst.m_sequenceIndex);
                     if(seq != null)
                     {
-                        seqInst.m_headPosition = seqInst.lastHeadPosition = (seq.length - 1);
+                        seqInst.m_headPosition = seqInst.lastHeadPosition = (seq.m_length - 1);
                     }
                 }
                 else
