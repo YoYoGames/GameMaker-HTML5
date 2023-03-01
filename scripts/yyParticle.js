@@ -1779,6 +1779,7 @@ function ParticleSystem_Create_OnLayer(_layerID, _persistent, _pPartEl)
 
 	if (_layerID != -1)
 	{
+		var room = g_pLayerManager.GetTargetRoomObj();
 		layer = g_pLayerManager.GetLayerFromID(room, _layerID);
 
 		//g_ParticleSystems[index].m_origLayerID = _layerID;
@@ -2433,10 +2434,6 @@ function	DrawParticle(_pParticle, _xoff, _yoff, _color, _alpha)
 	r = ((_pParticle.age+_pParticle.ran) % 16)/4.0;
 	if ( r > 2.0 ) r = 4.0-r;
 	r = r-1.0;
-	
-	// Set the blend mode to additive if the particles is set to be additive.
-	// This is reset in ParticleSystem_Draw after all particles have been drawn.
-	draw_set_blend_mode(_pParticle.additiveblend ? 1 : 0);
 
 	var s = _pParticle.size + r*pParType.sizerand;   
 
@@ -2503,32 +2500,48 @@ function ParticleSystem_Draw( _ps, _color, _alpha )
 	    src = GR_BlendSrc;
 	    dest = GR_BlendDest;
 	}
-    
+	var additiveBlend = false;
+	var setAdditiveBlend = function (_enable) {
+		if (_enable && !additiveBlend)
+		{
+			draw_set_blend_mode(1);
+			additiveBlend = true;
+		}
+		else if (!_enable && additiveBlend)
+		{
+			if (g_webGL != null) {
+				draw_set_blend_mode_ext(src, dest);
+			} else {
+				draw_set_blend_mode(0);
+			}
+			additiveBlend = false;
+		}
+	};
+	
 	for (var e = 0; e < pPartSys.emitters.length; ++e)
 	{
 		var pParticles = pPartSys.emitters[e].particles;
 		if ( pPartSys.oldtonew )
 		{
 			for (var i = 0; i < pParticles.length; i++)
-			{            	
-				DrawParticle( pParticles[i], pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
+			{
+				var pParticle = pParticles[i];
+				setAdditiveBlend(pParticle.additiveblend);
+				DrawParticle( pParticle, pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
 			}
 		}
 		else
 		{
 			for(var i=pParticles.length-1 ; i >= 0 ; i-- )
 			{
-				DrawParticle( pParticles[i], pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
+				var pParticle = pParticles[i];
+				setAdditiveBlend(pParticle.additiveblend);
+				DrawParticle( pParticle, pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
 			}
 		}
 	}
 
-	if (g_webGL != null) {
-	    draw_set_blend_mode_ext(src, dest);
-	}
-	else {	    
-	    draw_set_blend_mode(0);
-	}
+	setAdditiveBlend(false);
 }
 
 
