@@ -2704,6 +2704,46 @@ function struct_remove( _id, _var)
     return variable_struct_remove( _id, _var );
 } // end struct_remove
 
+// struct_foreach(id, func)
+function struct_foreach(_id, _func) {
+
+    _func = getFunction(_func, 1);
+    _obj = "boundObject" in _func ? _func.boundObject : {};
+
+    var pObj = null;
+    var glob = false;
+    if ((typeof _id == "object") && _id.__yyIsGMLObject) {
+        pObj = [ _id ];
+    } else {
+        _id = yyGetInt32(_id);
+
+        if (_id == OBJECT_GLOBAL) {
+            pObj =  [ global ];
+            global.marked = false;
+            global.active = true;
+            glob = true;
+        }
+        else  { 
+            pObj = GetWithArray(_id);
+        } // end else
+    }
+    if (pObj != null)
+    {
+
+        for (var inst = 0; inst < pObj.length; inst++)
+        {
+            var pInst = pObj[inst];         
+            if (pInst.__yyIsGMLObject || (!pInst.marked && pInst.active)) {
+
+                var names = __internal__get_variable_names(pInst, glob);
+                for(var n=0; n<names.length; n+=2) {
+                    _func(_obj, _obj, names[n], _id[names[n + 1]]);
+                } // end for
+            } 
+        }
+    } // end if    
+} // end struct_foreach
+
 // struct_get_from_hash(id, hash) : redirects to 'variable_instance_get'
 function struct_get_from_hash( _id, _hash) {
     return variable_instance_get( _id, _hash);
