@@ -148,7 +148,7 @@ function Audio_Init()
         Audio_CreateMainBus();
     }
     else {
-        g_WebAudioContext.audioWorklet.addModule(g_pGMFile.Options.GameDir + "/sound/worklets/audio-worklet.js")
+        g_WebAudioContext.audioWorklet.addModule(g_RootDir + "/sound/worklets/audio-worklet.js")
         .then(() => {
             Audio_CreateMainBus();
         }).catch((_err) => {
@@ -1734,6 +1734,9 @@ function audio_system() {
 /* Returns true if the an emitter both exists and is active. */
 function audio_emitter_exists(_emitterIndex)
 {
+    if (_emitterIndex === undefined)
+        return false;
+
     _emitterIndex = yyGetInt32(_emitterIndex);
 
     const emitter = audio_emitters[_emitterIndex];
@@ -1925,16 +1928,16 @@ function audio_is_paused(_soundid)
         return false;
 
     _soundid = yyGetInt32(_soundid);
-		
-	if (_soundid >= BASE_SOUND_INDEX) {
-		const voice = GetAudioSoundFromHandle(_soundid);
 
-		if (voice === null)
+    if (_soundid >= BASE_SOUND_INDEX) {
+        const voice = GetAudioSoundFromHandle(_soundid);
+
+        if (voice === null)
             return false;
 
-		return sound.isPaused();
-	}
-        
+        return voice.isPaused();
+    }
+
     return audio_sounds.filter(_voice => _voice.soundid === _soundid)
                        .some(_voice => _voice.isPaused());
 }
@@ -1945,20 +1948,20 @@ function audio_is_paused(_soundid)
 // ******************************************************************************************
 function audio_is_playing(_soundid)
 {
-	if (g_AudioModel !== Audio_WebAudio) 
-	    return false;
+    if (g_AudioModel !== Audio_WebAudio) 
+        return false;
 
-	_soundid = yyGetInt32(_soundid);
+    _soundid = yyGetInt32(_soundid);
 
-	if (_soundid >= BASE_SOUND_INDEX) {
-		const voice = GetAudioSoundFromHandle(_soundid);
+    if (_soundid >= BASE_SOUND_INDEX) {
+        const voice = GetAudioSoundFromHandle(_soundid);
 
-		if (voice === null)
+        if (voice === null)
             return false;
 
-		return sound.isPlaying();
-	}	
-        
+        return voice.isPlaying();
+    }
+
     return audio_sounds.filter(_voice => _voice.soundid === _soundid)
                        .some(_voice => _voice.isPlaying());
 }

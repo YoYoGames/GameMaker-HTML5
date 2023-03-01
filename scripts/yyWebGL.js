@@ -87,6 +87,7 @@ var g_extColourBufferHalfFloat = null;
 var g_extTextureFloat = null;
 var g_extTextureFloatLinear = null;
 var g_extColourBufferFloat = null;
+var g_extStandardDerivatives = null;
 
 var g_SupportHalfFloatSurfs = false;
 var g_SupportFloatSurfs = false;
@@ -96,6 +97,9 @@ var g_SupportSubFourChannelIntSurfs = false;
 var g_HalfFloatSurfsUseSizedFormats = false;		
 var g_FloatSurfsUseSizedFormats = false;
 var g_IntSurfsUseSizedFormats = false;
+
+var g_SupportGLSLDerivatives = false;
+var g_AppendDerivativesExtToShader = false;
 
 // #############################################################################################
 /// Function:<summary>
@@ -3181,6 +3185,8 @@ function WebGL_draw_getpixel_RELEASE(_x, _y) {
     var ret = WebGL_draw_getpixel_ext_RELEASE(_x,_y);
     if (Array.isArray(ret))
     {
+        // Snip off alpha
+        ret.splice(3);
         return ret;
     }
     else
@@ -3709,6 +3715,8 @@ function WebGL_surface_getpixel_RELEASE(_id, _x, _y) {
 
     if (Array.isArray(ret))
     {
+        // Snip off alpha
+        ret.splice(3);
         return ret;
     }
     else

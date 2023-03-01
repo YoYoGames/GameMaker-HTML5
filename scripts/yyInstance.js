@@ -1413,6 +1413,25 @@ yyInstance.prototype.setspeed = function (_val) {
 ///          </summary>
 // #############################################################################################
 yyInstance.prototype.Compute_BoundingBox = function() {
+    var skeletonAnim = this.SkeletonAnimation();
+    if (skeletonAnim) {
+        if (!this.bbox) {
+            this.bbox = new YYRECT(0, 0, 0, 0);
+        }
+
+        if(!skeletonAnim.ComputeBoundingBox(this.bbox, this.image_index, this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle))
+        {
+            this.bbox.left = this.x; // no collisions
+            this.bbox.top = this.y;
+            this.bbox.right = this.x;
+            this.bbox.bottom = this.y;
+
+            this.precise = false;
+        }
+
+        this.bbox_dirty = false;
+        return;
+    }
 
     var spr, t;
     var ix = (this.mask_index >= 0) ? this.mask_index : this.sprite_index;
@@ -1548,7 +1567,7 @@ yyInstance.prototype.Compute_BoundingBox = function() {
             }
             
             if (g_Collision_Compatibility_Mode) {
-                this.bbox.left = Math.floor((this.x + cc_xmin + ss_ymin) + 0.5);
+                bbox.left = Math.floor((this.x + cc_xmin + ss_ymin) + 0.5);
                 bbox.right = Math.floor((this.x + cc_xmax + ss_ymax) - 0.5);
             }
             else {
@@ -2867,8 +2886,8 @@ yyInstance.prototype.RefreshPhysicalProperties = function (_physicsBody) {
 	this.bbox_dirty = true;
 	
 	this.__phy_rotation = (_physicsBody.GetAngle() * 180.0) / Math.PI;
-	this.__phy_position_x = this.x;
-	this.__phy_position_y = this.y;        	
+	this.__phy_position_x = this.x - finalOffset.x;
+	this.__phy_position_y = this.y - finalOffset.y;
     this.__phy_angular_velocity = (_physicsBody.GetAngularVelocity() * 180.0) / Math.PI;
     this.__phy_linear_velocity_x = _physicsBody.GetLinearVelocity().x * metreToPixelScale;     // pixels per sec
     this.__phy_linear_velocity_y = _physicsBody.GetLinearVelocity().y * metreToPixelScale;     // pixels per sec

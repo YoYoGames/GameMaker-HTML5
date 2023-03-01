@@ -550,13 +550,13 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint
 	if(_x_constraint!==undefined)
 	{
 		x_constraint = _x_constraint;
-		if(x_constraint>0)
+		if(x_constraint>=0)
 			apply_x_constraints = true;
 	}
 	if(_y_constraint!==undefined)
 	{
 		y_constraint = _y_constraint;
-		if(y_constraint>0)
+		if(y_constraint>=0)
 			apply_y_constraints = true;
 	}
 
