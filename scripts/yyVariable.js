@@ -2595,6 +2595,7 @@ function variable_struct_names_count( _id )
     return variable_instance_names_count( _id );
 }
 
+//variable_struct_remove(id, name)
 function variable_struct_remove( _id, _var)
 {
     var pObj;
@@ -2652,3 +2653,137 @@ function variable_struct_remove( _id, _var)
         } // end for
     } // end if
 }
+
+
+// struct_exists(id,name)
+function struct_exists( _id, _name)
+{
+    return variable_instance_exists( _id, _name );
+} // end struct_exists
+
+// struct_set(id,name,val)
+function struct_set( _id, _name, _val)
+{
+    return variable_instance_set( _id, _name, _val);
+} // end struct_set
+
+// struct_get(id,name)
+function struct_get( _id, _name)
+{
+    return variable_instance_get(_id, _name);
+} // end struct_get
+
+// struct_get_names(id)
+function struct_get_names( _id )
+{
+    return variable_instance_get_names( _id );
+} // end struct_get_names
+
+// struct_names_count(id)
+function struct_names_count( _id )
+{
+    return variable_instance_names_count( _id );
+} // end struct_names_count
+
+// struct_remove(id,name)
+function struct_remove( _id, _var)
+{
+    return variable_struct_remove( _id, _var );
+} // end struct_remove
+
+// struct_get_from_hash(id, hash) : redirects to 'variable_instance_get'
+function struct_get_from_hash( _id, _hash) {
+    return variable_instance_get( _id, _hash);
+} // end struct_get_from_hash
+
+// struct_set_from_hash(id, hash, val) : redirects to 'variable_instance_set'
+function struct_set_from_hash(_id, _hash, _val) {
+    return variable_instance_set( _id, _hash, _val);
+} // end struct_set_from_hash
+
+// variable_get_hash(name) : pass through
+function variable_get_hash(_name) {
+    return _name;
+} // end variable_get_hash
+
+g_CLONE_VISITED_LIST = new Map()
+
+function __internal_variable_clone(_val, _depth) {
+
+    if (g_CLONE_VISITED_LIST.has(_val)) {
+        return g_CLONE_VISITED_LIST.get(_val);
+    }
+
+    if (typeof _val === "object") {
+        
+        // Are we an int64?
+        if (_val instanceof Long) {
+            return _val;
+        }
+
+        // We shouldn't clone anymore (just copy OR use reference)
+        if (_depth <= 0) {
+            return _val;
+        }
+
+        // Are we an array?
+        if (_val instanceof Array) {
+
+            var clone = new Array(_val.length);
+            g_CLONE_VISITED_LIST.set(_val, clone);
+
+            for (var n = 0; n < _val.length; ++n) {
+                clone[n] = __internal_variable_clone(_val[n], _depth - 1);
+            } // end for
+
+            return clone;
+        } // end if
+        // We are a struct
+
+        var clone = new GMLObject();
+        g_CLONE_VISITED_LIST.set(_val, clone);
+
+        // Go through all the property in the struct
+        for (var name in _val) {
+
+            // Don't clone if it is not a property
+            if (!_val.hasOwnProperty(name)) {
+                continue;
+            }
+
+            // Creat a clone of the member value
+            var v = __internal_variable_clone(_val[name], _depth - 1);
+
+            // If it is a function that is bound to self then rebind it to the clone struct
+            if ((typeof v == 'function') && v.__yy_userFunction && v.boundObject && (v.boundObject == _val)) {
+                v = method( clone, v);
+            } // end if
+
+            // Define the property in the new object (proper name and attributes)
+            Object.defineProperty( clone, name, { 
+                value : v,
+                configurable : true,
+                writable : true,
+                enumerable : true
+            });
+        }
+
+        return clone;
+ 
+    } // end else
+
+    return _val;
+}
+
+// variable_clone( _val, _depth)
+function variable_clone(_val, _depth) {
+
+    // By default set depth to 128 (this is the same limit we use for JSON stringify in C++ runner to avoid stack-overflow)
+    _depth = arguments.length > 1 ? Math.max(0, yyGetReal(_depth)) : 128;
+
+    var clone = __internal_variable_clone(_val, _depth);
+    g_CLONE_VISITED_LIST.clear();
+
+    return clone;
+} // end variable_clone
+
