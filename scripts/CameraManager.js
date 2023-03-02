@@ -806,6 +806,51 @@ function camera_apply(arg0) {
     }
 }
 
+function camera_copy_transforms(arg0,arg1) {
+    var dest = g_pCameraManager.GetCamera(yyGetInt32(arg0));
+    var src = g_pCameraManager.GetCamera(yyGetInt32(arg1));
+
+    if (dest == null)
+    {
+        dbg_csol.Output("camera_copy_settings() - camera to copy to doesn't exist\n");
+        return;
+    }
+    if (src == null)
+    {
+        dbg_csol.Output("camera_copy_settings() - camera to copy from doesn't exist\n");
+        return;
+    }
+    if (src == dest)
+    {
+        dbg_csol.Output("camera_copy_settings() - source and destination cameras are the same\n");
+		return;
+    }
+
+    // copy all values
+    dest.m_viewX = src.m_viewX;
+    dest.m_viewY = src.m_viewY;
+    dest.m_viewWidth = src.m_viewWidth;
+    dest.m_viewHeight = src.m_viewHeight;
+    dest.m_viewSpeedX = src.m_viewSpeedX;
+    dest.m_viewSpeedY = src.m_viewSpeedY;
+    dest.m_viewBorderX = src.m_viewBorderX;
+    dest.m_viewBorderY = src.m_viewBorderY;
+    dest.m_viewAngle = src.m_viewAngle;    
+
+    var viewmat = new Matrix(src.m_viewMat);
+    var projmat = new Matrix(src.m_projMat);
+    var viewProjMat = new Matrix(src.m_viewProjMat);
+    var invProjMat = new Matrix(src.m_invProjMat);
+    var invViewMat = new Matrix(src.m_invViewMat);
+    var invViewProjMat = new Matrix(src.m_invViewProjMat);
+    dest.m_projMat = projmat;
+    dest.m_viewMat = viewmat;
+    dest.m_viewProjMat = viewProjMat;
+    dest.m_invProjMat = invProjMat;
+    dest.m_invViewMat = invViewMat;
+    dest.m_invViewProjMat = invViewProjMat;    
+}
+
 function camera_get_active() {
     var cam = g_pCameraManager.GetActiveCamera();
     if (cam != null)

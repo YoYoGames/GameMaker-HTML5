@@ -21,9 +21,17 @@ function AudioPlaybackProps(_props) {
     
     this.getProp(_props, "priority", this, "priority", true, yyGetReal, AudioPropsCalc.default_priority);
     this.getProp(_props, "loop", this, "loop", true, yyGetBool, AudioPropsCalc.default_loop);
+
     this.getProp(_props, "gain", this, "gain", true, yyGetReal, AudioPropsCalc.default_gain);
+    this.gain = Math.max(0.0, this.gain);
+
     this.getProp(_props, "offset", this, "offset", true, yyGetReal, AudioPropsCalc.not_specified);
+
+    if (this.offset !== AudioPropsCalc.not_specified)
+        this.offset = Math.max(0.0, this.offset);
+
     this.getProp(_props, "pitch", this, "pitch", true, yyGetReal, AudioPropsCalc.default_pitch);
+    this.pitch = Math.max(0.0, this.pitch);
 
     if (typeof _props.gmlposition === "object" && this.type === undefined) {
             this.type = AudioPlaybackType.POSITIONAL_SPECIFIED;
