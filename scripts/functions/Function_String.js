@@ -1086,7 +1086,7 @@ function string_lettersdigits(_str)
     return s;  
 }
 
-const g_EscapeRegexRE = /[/\-\\^$*+?.()|[\]{}]/g; 
+const g_EscapeRegexRE = new RegExp("[/-\\\\^$*+?.()|[\\]{}]", "g");
 function __escapeRegex(string) {
     return string.replace(g_EscapeRegexRE, '\\$&');
 }
