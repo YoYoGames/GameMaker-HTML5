@@ -41,7 +41,7 @@ function __yy_convert_key( _key )
             if (_key instanceof ArrayBuffer)
                 _key = "__@@YYArrayBuffer-" + getABId(_key);
             else
-                _key = "__@@YYKey-" + JSON.stringify(_key);
+                _key = "__@@YYKey-" + json_stringify(_key);
             break;
         default:
             yyError( "Illegal key type for ds_map");
