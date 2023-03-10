@@ -1522,7 +1522,7 @@ function variable_instance_exists(_id, _var) {
             if (pInst.__yyIsGMLObject || (!pInst.marked && pInst.active)) {
                 var settings = undefined;
                 if ((typeof g_var2obf !== "undefined") && (g_var2obf[_var] != undefined)) {
-                    ret = g_instance_names[ g_var2obf[_var] ];
+                    settings = g_instance_names[ g_var2obf[_var] ];
                 } else {
                     settings = g_instance_names[ _var ];
                 } // end else
@@ -1535,7 +1535,10 @@ function variable_instance_exists(_id, _var) {
                     } // end else
                 }  
                 else {
-                    ret = true;
+                    if (pInst.__yyIsGMLObject) 
+                        ret = "gml"+_var in pInst;
+                    else
+                        ret = true;
                 } // end else
                 break;
             } // end if
