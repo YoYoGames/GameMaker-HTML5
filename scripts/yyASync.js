@@ -252,20 +252,9 @@ function ASync_ImageLoad_Error_Callback(_event)
 // #############################################################################################
 /** @constructor */
 function yyASyncManager() {
-	this.pool = new yyAllocate(5);
+	this.queue = [];
+	this.queueLength = 0;
 }
-
-
-// #############################################################################################
-/// Function: <summary>
-///				Get the pool
-///           </summary>
-// #############################################################################################
-yyASyncManager.prototype.GetPool = function () {
-	return this.pool;
-};
-
-
 
 // #############################################################################################
 /// Function: <summary>
@@ -280,7 +269,7 @@ yyASyncManager.prototype.Add = function (_id, _filename, _type, _object) {
 	pFile.m_Name = _filename;
 	pFile.m_pObject = _object;
 	pFile.m_Type = _type;
-	this.pool.Add(pFile);
+	this.queue[this.queueLength++] = pFile;
 
 	AsyncAlloc(_object ,  pFile );
 	//_object.GameMakerASyncLoad = pFile;
@@ -298,10 +287,10 @@ yyASyncManager.prototype.Process = function () {
 	var map = ds_map_create();
 	g_pBuiltIn.async_load = map;
 
-	var pool = this.pool.pool;
-	for (var i = 0; i < pool.length; i++)
+	var queue = this.queue;
+	for (var i = 0; i < this.queueLength; i++)
 	{
-		var pFile = pool[i];
+		var pFile = queue[i];
 		if (pFile !== null)
 		{
 			if (pFile.m_Complete)
@@ -369,7 +358,7 @@ yyASyncManager.prototype.Process = function () {
 				else if (pFile.m_Type == ASYNC_SYSTEM_EVENT) g_pObjectManager.ThrowEvent(EVENT_OTHER_SYSTEM_EVENT, 0);
 
 				// Done load, so delete handle.
-				this.pool.DeleteIndex(i);
+				this.queue[i] = null;
 
                 // Web specifically needs to kill the ds_map used for response headers
 				if (pFile.m_Type == ASYNC_WEB) {
@@ -382,6 +371,9 @@ yyASyncManager.prototype.Process = function () {
 			}
 		}
 	}
+
+	this.queueLength = 0;
+
 	ds_map_destroy(map);
 	g_pBuiltIn.async_load = -1;
 };
