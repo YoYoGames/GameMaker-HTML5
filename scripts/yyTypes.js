@@ -188,6 +188,10 @@ function yyGetBool(_v) {
             return _v.toNumber() > 0.5;
         }
         else
+        if (_v instanceof yyInstance) {
+            return true;
+        }
+        else
         if (_v.__yyIsGMLObject)
             return true;
         else
