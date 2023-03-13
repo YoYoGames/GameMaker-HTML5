@@ -1,4 +1,4 @@
-﻿
+
 
 var g_rr = new YYRECT(0, 0, 0, 0);
 
@@ -3494,7 +3494,7 @@ yyInstanceManager.prototype.PerformEvent = function (_event, _index) {
 		for (var index = 0; index < pool.length;index++ )
 		{
 			var pInst = pool[index];
-			if (!pInst.marked)
+			if (pInst!==undefined && !pInst.marked && (pInst.createCounter <= count))
 			{
 			    var pObject = pInst.pObject;
 
