@@ -347,7 +347,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 {
 	if (_layerID === undefined) _layerID = -1;
 	if (_persistent === undefined) _persistent = false;
-	if (_pParticleEl === undefined) _persistent = null;
+	if (_pParticleEl === undefined) _pParticleEl = null;
 
 	var ps = (_pParticleEl == null)
 		? ParticleSystem_Create(_layerID, _persistent)
@@ -1816,7 +1816,7 @@ function	ParticleSystem_Create(_layerID,_persistent)
 	if (pPartEl == null)
 		return -1;
 	
-	return ParticleSystem_Create_OnLayer(_layerID, pPartEl, _persistent);
+	return ParticleSystem_Create_OnLayer(_layerID, _persistent, pPartEl);
 }
 
 // #############################################################################################
