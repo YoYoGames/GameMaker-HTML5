@@ -805,6 +805,9 @@ audioSound.prototype.throwOnEndedEvent = function(_wasStopped) {
 function ClampAndWarn(_val, _lo, _hi, _fn, _arg) {
     let newVal = _val;
 
+    if (isNaN(newVal) === true)
+        newVal = 0.0;
+
     if (isNaN(_lo) === false)
         newVal = Math.max(_lo, newVal);
 
