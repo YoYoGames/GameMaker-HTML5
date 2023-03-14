@@ -105,11 +105,7 @@ function audio_update()
     // Update and apply gains
     g_AudioGroups.forEach(_group => _group.gain.update());
     audio_sampledata.forEach(_asset => _asset.gain.update());
-    audio_sounds.filter(_voice => _voice.bActive === true)
-                .forEach(_voice => {
-                    _voice.gain.update();
-                    _voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(_voice);
-                });
+    audio_sounds.forEach(_voice => _voice.updateGain());
 }
 
 var g_hidden;
@@ -749,6 +745,24 @@ audioSound.prototype.setPlaybackPosition = function(_offset) {
     }
 };
 
+audioSound.prototype.setGain = function(_gain, _rampTimeMs = 0) {
+    if (this.bActive === false || this.pgainnode === null)
+        return;
+
+    this.gain.set(_gain, _rampTimeMs);
+
+    if (_rampTimeMs === 0)
+        this.updateGain();
+};
+
+audioSound.prototype.updateGain = function() {
+    if (this.bActive === false || this.pgainnode === null)
+        return;
+
+    this.gain.update();
+    this.pgainnode.gain.value = AudioPropsCalc.CalcGain(this);
+};
+
 audioSound.prototype.setPitch = function(_pitch) {
     if (this.bActive === false)
         return;
@@ -787,6 +801,21 @@ audioSound.prototype.throwOnEndedEvent = function(_wasStopped) {
     asyncNode.wasStopped = _wasStopped;
     asyncNode.m_Complete = true;
 };
+
+function ClampAndWarn(_val, _lo, _hi, _fn, _arg) {
+    let newVal = _val;
+
+    if (isNaN(_lo) === false)
+        newVal = Math.max(_lo, newVal);
+
+    if (isNaN(_hi) === false)
+        newVal = Math.min(newVal, _hi);
+
+    if (newVal !== _val)
+        console.warn(_fn + ": argument '" + _arg + "' was clamped (" + _val + " => " + newVal + ").");
+
+    return newVal;
+}
 
 function GetAudioSoundFromHandle( _handle )
 {
@@ -1425,45 +1454,36 @@ function audio_sound_get_gain(_index)
 
 function audio_sound_gain(_index, _gain, _timeMs)
 {
-    if (g_AudioModel != Audio_WebAudio)
-        return;
-
     _index = yyGetInt32(_index);
 
     _gain = yyGetReal(_gain);
-    _gain = Math.max(0, _gain);
+    _gain = ClampAndWarn(_gain, 0.0, undefined, "audio_sound_gain", "gain");
 
-    _timeMs = yyGetInt32(_timeMs); 
-    _timeMs = Math.max(0, _timeMs);
+    _timeMs = yyGetInt32(_timeMs);
+    _timeMs = ClampAndWarn(_timeMs, 0, undefined, "audio_sound_gain", "timeMs");
 
     if (_index >= BASE_SOUND_INDEX) {
         const voice = GetAudioSoundFromHandle(_index);
 
-        if (voice == null)
+        if (voice === null)
             return;
 
-        if (voice.bActive) {
-            voice.gain.set(_gain, _timeMs);
-
-            if (_timeMs == 0) 
-                voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(voice);
-        }
+        voice.setGain(_gain, _timeMs);
     }
     else {
         const asset = Audio_GetSound(_index);
 
-        if (asset !== undefined) {
-            asset.gain.set(_gain, _timeMs);
+        if (asset === null)
+            return;
 
-            if (_timeMs == 0) {
-                // Update all the active voices playing this asset
-                audio_sounds.forEach(_voice => {
-                    if (_voice.bActive && _voice.soundid == _index) {
-                        _voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(_voice);
-                    }
-                });
-            }
-        }
+        asset.gain.set(_gain, _timeMs);
+
+        if (_timeMs > 0.0)
+            return; /* Gain update for voices will be handled in audio_update */
+
+        /* Update all voices playing this asset */
+        audio_sounds.filter(_voice => _voice.soundid === _index)
+                    .forEach(_voice => _voice.updateGain());
     }
 }
 
