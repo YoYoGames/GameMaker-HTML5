@@ -48,7 +48,7 @@ function AudioBus() {
 				this.gain = max(0.0, _gain);
 
 				const gain = this.outputNode.parameters.get("gain");
-				gain.setTargetAtTime(this.gain, 0, AudioEffect.PARAM_TIME_CONSTANT);
+				gain.value = this.gain;
 			}
 		},
 		gmleffects: {
