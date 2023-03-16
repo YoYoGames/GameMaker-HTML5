@@ -10,7 +10,8 @@ AudioEffect.Type = {
     LPF2: 4,
     Reverb1: 5,
     Tremolo: 6,
-    PeakEQ: 7
+    PeakEQ: 7,
+    HiShelf: 8
 };
 
 AudioEffect.getWorkletName = function(_type) {
@@ -24,6 +25,7 @@ AudioEffect.getWorkletName = function(_type) {
         case AudioEffect.Type.Reverb1:      return "reverb1-processor";
         case AudioEffect.Type.Tremolo:      return "tremolo-processor";
         case AudioEffect.Type.PeakEQ:       return "peak-eq-processor";
+        case AudioEffect.Type.HiShelf:      return "hi-shelf-processor";
         default:                            return null;
     }
 };
@@ -77,6 +79,7 @@ AudioEffectStruct.Create = function(_type, _params) {
         case AudioEffect.Type.Reverb1:      return new Reverb1EffectStruct(_params);
         case AudioEffect.Type.Tremolo:      return new TremoloEffectStruct(_params);
         case AudioEffect.Type.PeakEQ:       return new PeakEQEffectStruct(_params);
+        case AudioEffect.Type.HiShelf:      return new HiShelfEffectStruct(_params);
         default:                            return null;
     }
 };
