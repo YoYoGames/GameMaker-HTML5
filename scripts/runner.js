@@ -157,6 +157,7 @@ document.write('<script type="text/javascript" src="scripts/sound/effects/Delay.
 document.write('<script type="text/javascript" src="scripts/sound/effects/Gain.js"></script>');
 document.write('<script type="text/javascript" src="scripts/sound/effects/HPF2.js"></script>');
 document.write('<script type="text/javascript" src="scripts/sound/effects/LPF2.js"></script>');
+document.write('<script type="text/javascript" src="scripts/sound/effects/PeakEQ.js"></script>');
 document.write('<script type="text/javascript" src="scripts/sound/effects/Reverb1.js"></script>');
 document.write('<script type="text/javascript" src="scripts/sound/effects/Tremolo.js"></script>');
 //document.write('<script type="text/javascript" src="scripts/spine/spine.js"></script>');
