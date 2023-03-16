@@ -1678,7 +1678,11 @@ function	ParticleSystem_Particles_Clear(_ps)
 	if( pPartSys ==null || pPartSys==undefined ) return false;
 
 	for (var i = pPartSys.emitters.length - 1; i >= 0; --i)
-		pPartSys.emitters[i].particles = [];
+	{
+		var pEmitter = pPartSys.emitters[i];
+		if (pEmitter == null) continue;
+		pEmitter.particles = [];
+	}
 
 	return true;
 }
@@ -1716,7 +1720,11 @@ function	ParticleSystem_Particles_Count( _ps )
 
 	var count = 0;
 	for (var i = pPartSys.emitters.length - 1; i >= 0; --i)
-		count += pPartSys.emitters[i].particles.length;
+	{
+		var pEmitter = pPartSys.emitters[i];
+		if (pEmitter == null) continue;
+		count += pEmitter.particles.length;
+	}
 
 	return count;
 }
@@ -2313,15 +2321,18 @@ function ParticleSystem_Update(_ps)
 	{
 		for (var i = 0; i < pEmitters.length; i++)
 		{
+			var pEmitter = pEmitters[i];
+			
+			if (pEmitter == null) continue;
+			
 			HandleLife(_ps, i);
 			HandleMotion(_ps, i);
 			HandleShape(_ps, i);
 
-			if( pEmitters[i]!=null
-				&& pEmitters[i].mode != PT_MODE_BURST
-				&& pEmitters[i].number != 0)
+			if(pEmitter.mode != PT_MODE_BURST
+				&& pEmitter.number != 0)
 			{
-				ParticleSystem_Emitter_Burst(_ps, i, pEmitters[i].parttype, pEmitters[i].number);
+				ParticleSystem_Emitter_Burst(_ps, i, pEmitter.parttype, pEmitter.number);
 			}
 		}
 	}
@@ -2520,7 +2531,9 @@ function ParticleSystem_Draw( _ps, _color, _alpha )
 	
 	for (var e = 0; e < pPartSys.emitters.length; ++e)
 	{
-		var pParticles = pPartSys.emitters[e].particles;
+		var pEmitter = pPartSys.emitters[e];
+		if (pEmitter == null) continue;
+		var pParticles = pEmitter.particles;
 		if ( pPartSys.oldtonew )
 		{
 			for (var i = 0; i < pParticles.length; i++)
