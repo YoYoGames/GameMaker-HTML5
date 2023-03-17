@@ -25,6 +25,7 @@ var ASYNC_UNKNOWN = 0,
     ASYNC_NETWORKING = 8,
     ASYNC_AUDIO_PLAYBACK = 9,
     ASYNC_SYSTEM_EVENT = 10,            // device discovery/loss, user login
+    ASYNC_AUDIO_PLAYBACK_ENDED = 11,
 
     ASYNC_STATUS_NONE=0,
     ASYNC_STATUS_LOADED=1,
@@ -33,7 +34,6 @@ var ASYNC_UNKNOWN = 0,
     ASYNC_WEB_STATUS_LOADED=0,
     ASYNC_WEB_STATUS_LOADING=1,
     ASYNC_WEB_STATUS_ERROR=-1;
-
 
 
 var g_AsyncLookup_obj = [];
@@ -352,6 +352,10 @@ yyASyncManager.prototype.Process = function () {
 				    ds_map_add(map, "queue_id", pFile.queue_id);
 				    ds_map_add(map, "buffer_id", pFile.buffer_id);
 				    ds_map_add(map, "queue_shutdown", pFile.queue_shutdown);
+				} else if (pFile.m_Type == ASYNC_AUDIO_PLAYBACK_ENDED) {
+				    ds_map_add(map, "sound_id", pFile.voiceHandle);
+				    ds_map_add(map, "asset_id", pFile.assetIndex);
+				    ds_map_add(map, "was_stopped", pFile.wasStopped);
 				} else if (pFile.m_Type == ASYNC_SYSTEM_EVENT) {
 				    ds_map_add(map, "event_type", pFile.event_type);
 				    ds_map_add(map, "pad_index", pFile.pad_index);
@@ -378,6 +382,7 @@ yyASyncManager.prototype.Process = function () {
 				else if (pFile.m_Type == ASYNC_BINARY) g_pObjectManager.ThrowEvent(EVENT_OTHER_ASYNC_SAVE_LOAD, 0, true);
 				else if (pFile.m_Type == ASYNC_NETWORKING) g_pObjectManager.ThrowEvent(EVENT_OTHER_NETWORKING, 0, true);
 				else if (pFile.m_Type == ASYNC_AUDIO_PLAYBACK) g_pObjectManager.ThrowEvent(EVENT_OTHER_AUDIO_PLAYBACK, 0, true);
+				else if (pFile.m_Type == ASYNC_AUDIO_PLAYBACK_ENDED) g_pObjectManager.ThrowEvent(EVENT_OTHER_AUDIO_PLAYBACK_ENDED, 0, true);
 				else if (pFile.m_Type == ASYNC_SYSTEM_EVENT) g_pObjectManager.ThrowEvent(EVENT_OTHER_SYSTEM_EVENT, 0, true);
 
 				// Done load, so delete handle.

@@ -368,6 +368,8 @@ audioSound.prototype.start = function(_buffer) {
             this.pgainnode.disconnect();
 
         this.pemitter = null;
+
+        this.throwOnEndedEvent(false);
     };
 
     this.pbuffersource.connect(this.pgainnode);
@@ -376,8 +378,14 @@ audioSound.prototype.start = function(_buffer) {
         contextTime: g_WebAudioContext.currentTime,
         bufferTime: startOffset
     };
-    
+
     this.pbuffersource.start(0, startOffset);
+
+    // This is for the case where a streamed asset is paused while it was decoding.
+    // Note that AudioBufferSourceNode requires 'start' to have been called before 
+    // the first call to 'stop', else an InvalidStateError exception will be thrown.
+    if (this.paused === true)
+        this.pause();
 };
 
 audioSound.prototype.play = function() {
@@ -463,12 +471,13 @@ audioSound.prototype.stop = function() {
         this.pgainnode.disconnect();
 
     this.pemitter = null;
-    this.soundid = -1;
     this.bActive = false;
+
+    this.throwOnEndedEvent(true);
 };
 
 audioSound.prototype.pause = function() {
-    if (this.bActive === false || this.paused === true)
+    if (this.bActive === false)
         return;
 
     //remove ended handler which sets bActive to false - 
@@ -478,7 +487,7 @@ audioSound.prototype.pause = function() {
         queue_sounds[queueSoundId].scriptNode.onended = null;
         queue_sounds[queueSoundId].scriptNode.disconnect(0);
     }
-    else {
+    else if (this.pbuffersource !== null) {
         this.pbuffersource.onended = null;
         this.pbuffersource.stop(0);
         this.pbuffersource.disconnect();
@@ -492,6 +501,8 @@ audioSound.prototype.resume = function() {
     if (this.bActive === false || this.paused === false)
         return;
 
+    this.paused = false;
+
     if (this.soundid >= BASE_QUEUE_SOUND_INDEX 
     && this.soundid < (BASE_QUEUE_SOUND_INDEX + g_queueSoundCount)) {
         const queueSoundId = this.soundid - BASE_QUEUE_SOUND_INDEX;
@@ -504,8 +515,6 @@ audioSound.prototype.resume = function() {
         this.startoffset = this.playbackCheckpoint.bufferTime;
         this.start(this.pbuffersource.buffer);
     }
-
-    this.paused = false;
 };
 
 audioSound.prototype.isPlaying = function() {
@@ -528,7 +537,7 @@ audioSound.prototype.isPlaying = function() {
         // ... we should get rid of it then
         if (this.pbuffersource.playbackState == undefined 
         || this.pbuffersource.playbackState != this.pbuffersource.FINISHED_STATE
-        || _audioSound.paused) {
+        || this.paused) {
             return true;
         }
     }
@@ -769,6 +778,14 @@ audioSound.prototype.getAssetIndex = function() {
         return -1;
 
     return this.soundid;
+};
+
+audioSound.prototype.throwOnEndedEvent = function(_wasStopped) {
+    const asyncNode = g_pASyncManager.Add(undefined, undefined, ASYNC_AUDIO_PLAYBACK_ENDED, undefined);
+    asyncNode.voiceHandle = this.handle;
+    asyncNode.assetIndex = this.soundid;
+    asyncNode.wasStopped = _wasStopped;
+    asyncNode.m_Complete = true;
 };
 
 function GetAudioSoundFromHandle( _handle )
