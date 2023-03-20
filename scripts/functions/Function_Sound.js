@@ -3677,9 +3677,13 @@ function audio_bus_clear_emitters(_bus) {
 }
 
 function lin_to_db(_x) {
-	return 20 * Math.log10(_x);
+    _x = yyGetReal(_x);
+    
+    return 20 * Math.log10(_x);
 }
 
 function db_to_lin(_x) {
-	return Math.pow(10, _x / 20);
+    _x = yyGetReal(_x);
+
+    return Math.pow(10, _x / 20);
 }
