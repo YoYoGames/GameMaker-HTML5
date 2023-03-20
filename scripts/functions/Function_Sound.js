@@ -3675,3 +3675,11 @@ function audio_bus_clear_emitters(_bus) {
                       _emitter.bus = g_AudioBusMain;
                   });
 }
+
+function lin_to_db(_x) {
+	return 20 * Math.log10(_x);
+}
+
+function db_to_lin(_x) {
+	return Math.pow(10, _x / 20);
+}
