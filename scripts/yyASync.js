@@ -109,10 +109,11 @@ function ASync_ImageLoad_Callback(_event) {
     {
         // Now actually UPDATE the sprite and TPage stuff.
         var pSpr = g_pSpriteManager.Get( pFile.m_ID );
-        if (pSpr === null) return;
-		if (!pSpr.ppTPE) return;
-		if (!pSpr.ppTPE[0]) return;
-        if (!pSpr.ppTPE[0].texture) return;
+		if (pSpr == undefined) { pFile.m_Status = ASYNC_STATUS_ERROR; return; }
+        if (pSpr === null) { pFile.m_Status = ASYNC_STATUS_ERROR; return; }
+		if (!pSpr.ppTPE) { pFile.m_Status = ASYNC_STATUS_ERROR; return; }
+		if (!pSpr.ppTPE[0]) { pFile.m_Status = ASYNC_STATUS_ERROR; return; }
+        if (!pSpr.ppTPE[0].texture) { pFile.m_Status = ASYNC_STATUS_ERROR; return; }
         
         pTexture = pSpr.ppTPE[0].texture;
         pTexture.webgl_textureid=undefined;		
