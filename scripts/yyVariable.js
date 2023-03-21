@@ -752,7 +752,7 @@ const shuffleArray = (_array, _offset, _length) => {
         _array[_offset + i] = _array[j];
         _array[j] = temp;
     }
-} // end shuffleArray
+}; // end shuffleArray
 
 function array_shuffle( _array, _offset, _length )
 {
@@ -2759,7 +2759,7 @@ function variable_get_hash(_name) {
     return _name;
 } // end variable_get_hash
 
-g_CLONE_VISITED_LIST = new Map()
+g_CLONE_VISITED_LIST = new Map();
 
 function __internal_variable_clone(_val, _depth) {
 
