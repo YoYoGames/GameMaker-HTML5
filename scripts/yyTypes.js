@@ -1,4 +1,4 @@
-﻿// **********************************************************************************************************************
+// **********************************************************************************************************************
 // 
 // Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
 // 
@@ -318,7 +318,12 @@ function yyGetString(_v) {
 
                 retString = _v.gmltoString( _v, _v );
 
-            } else {
+            } 
+            else if ((g_var2obf != undefined) && (g_var2obf["toString"] != undefined) && (_v[ g_var2obf["toString"]]!=undefined)) {
+                
+                retString = _v[ g_var2obf["toString"]]( _v, _v );
+            }
+            else {
 
                 ++g_incQuotesSTRING_RValue;
                 if (!STRING_HasBeenVisited(_v)) {

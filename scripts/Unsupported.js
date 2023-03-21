@@ -49,10 +49,6 @@ function splash_set_stop_key(stop)          { ErrorFunction("splash_set_stop_key
 function splash_set_stop_mouse(stop)        { ErrorFunction("splash_set_stop_mouse()"); }
 function splash_set_close_button(show)      { ErrorFunction("splash_set_close_button()"); }
 function os_set_orientation_lock()			{ ErrorFunction("os_set_orientation_lock()"); }
-function extension_exists()					{ return false; }
-
-
-
 
 // general
 function screen_redraw()                            {ErrorFunction("screen_redraw()");}
