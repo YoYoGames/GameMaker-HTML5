@@ -159,6 +159,21 @@ yySkeletonSprite.prototype.Load = function (_atlasDir, _sprName, _jsonData, _atl
                 newTex.image = 	e.SrcElement;
                 var target = e.target || e.srcElement;      // for compatibility with IE6-8
                 self.SetupTPE(newTex.name, target.width, target.height, tex);
+
+                if (_sprite.prefetchOnLoad != undefined)
+                {
+                    if (_sprite.prefetchOnLoad == true)
+                    {
+                        // We need to create the GL texture here and set it up
+                        var newTPE = self.m_TPE[newTex.name];
+                        WebGL_BindTexture(newTPE);
+
+                        if (newTPE.texture.webgl_textureid)
+                        {
+                            WebGL_RecreateTexture(newTPE.texture.webgl_textureid);							
+                        }	                        
+                    }
+                }
             };
             g_Textures[tex].onerror = function (e) {
                 var target = e.target || e.srcElement;      // for compatibility with IE6-8

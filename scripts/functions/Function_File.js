@@ -1244,6 +1244,9 @@ function json_encode(_map, _prettify) {
 	// Check if we want to prettify the output string
 	_prettify = _prettify == undefined ? false : yyGetReal(_prettify);
 
+	// Scrub existing list otherwise we can't encode the same map multiple times
+	// (as far as I can see json_encode should only be called from an external function so this shouldn't result in infinite recursion)
+	g_ENCODE_VISITED_LIST = new Map(); 
     var obj = _json_encode_map(yyGetInt32(_map));
 
     return JSON.stringify(obj, null, _prettify ? 2 : 0);
