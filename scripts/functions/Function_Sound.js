@@ -703,34 +703,42 @@ class AudioPropsCalc
 
         if (asset != null)
         {
-            return {
+            const props = {
                 gain: asset.gain,
                 offset: asset.trackPos,
                 pitch: asset.pitch
             };
+
+            return props;
         }
     
-        return {
+        const props = {
             gain: AudioPropsCalc.default_gain,
             offset: AudioPropsCalc.default_offset,
             pitch: AudioPropsCalc.default_pitch
         };
+
+        return props;
     }
 
     static GetEmitterProps(_emitter)
     {
         if (_emitter != null)
         {
-            return{
+            const props = {
                 gain: _emitter.gainnode.gain.value,
                 pitch: _emitter.pitch
             };
+
+            return props;
         }
     
-        return {
+        const props = {
             gain: AudioPropsCalc.default_gain,
             pitch: AudioPropsCalc.default_pitch
         };
+
+        return props;
     }
 }
 

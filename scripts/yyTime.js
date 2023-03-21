@@ -1,4 +1,4 @@
-﻿/* Built-in time source IDs */
+/* Built-in time source IDs */
 var eTimeSource_Global = 0,
     eTimeSource_Game = 1,
     eTimeSource_SDParent = 2;
