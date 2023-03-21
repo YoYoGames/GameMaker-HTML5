@@ -158,6 +158,8 @@ function Emitter_Reset()
 
 	this.created = true;		// whether created
 
+	this.name = undefined;
+	
 	this.mode = PT_MODE_UNDEFINED;	// stream or burst
 	this.number = 0;				// number of particles to create
 
@@ -1312,7 +1314,7 @@ function ParticleSystem_Emitters_Load(_GameFile)
 		////////////////////////////////////////////////////////////////////////
 		// Emitter
 		var emitter = new yyEmitter();
-		// TODO: Use emitter name from YYPSEmitter
+		emitter.name = yypse.pName;
 		//emitter.enabled = yypse.enabled;
 		emitter.mode = yypse.mode;
 		emitter.number = yypse.emitCount;
