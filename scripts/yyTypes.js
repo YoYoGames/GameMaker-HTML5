@@ -319,7 +319,7 @@ function yyGetString(_v) {
                 retString = _v.gmltoString( _v, _v );
 
             } 
-            else if ((g_var2obf != undefined) && (g_var2obf["toString"] != undefined) && (_v[ g_var2obf["toString"]]!=undefined)) {
+            else if ((typeof g_var2obf !== "undefined") && (g_var2obf["toString"] != undefined) && (_v[ g_var2obf["toString"]]!=undefined)) {
                 
                 retString = _v[ g_var2obf["toString"]]( _v, _v );
             }
