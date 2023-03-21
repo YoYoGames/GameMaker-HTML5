@@ -3490,8 +3490,9 @@ yyInstanceManager.prototype.PerformEvent = function (_event, _index) {
 		var evnt = _event;
 		if (evnt != EVENT_COLLISION) evnt |= _index;
 
+		var count = g_currentCreateCounter++;
 		var pool = g_RunRoom.m_Active.pool;	
-		for (var index = 0; index < pool.length;index++ )
+		for (var index = 0; index < pool.length;index++ ) 
 		{
 			var pInst = pool[index];
 			if (pInst!==undefined && !pInst.marked && (pInst.createCounter <= count))
