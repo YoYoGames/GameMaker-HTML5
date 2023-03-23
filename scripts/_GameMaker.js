@@ -168,14 +168,8 @@ function yyUnhandledExceptionHandler( event )
 function yyUnhandledRejectionHandler( error )
 {
 	var string =  "Unhandled Rejection - " + error.message;
-    console.error(string);
-    return false;
-    /*
-	print( string );
-	//alert( string );
-	game_end(-2);
-	debugger;
-	return false;*/
+	console.error(string);
+	return false;
 }
 
 window.addEventListener( "error", yyUnhandledExceptionHandler );
