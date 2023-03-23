@@ -3162,7 +3162,6 @@ yyRoom.prototype.DrawRoomLayers = function(_rect){
     Current_Event_Type = EVENT_DRAW;
     Current_Event_Number = 0;
 
-	Graphics_ClearScreen(ConvertGMColour(0xfff7ffff));
      var player,el,i,pool;
 	    pool = this.m_Layers.pool;
 	    for (i = pool.length - 1; i >= 0; i--)
@@ -3261,6 +3260,10 @@ yyRoom.prototype.DrawTheRoom = function (_rect) {
 	if (this.m_showcolor)
 	{
 		Graphics_ClearScreen(ConvertGMColour(g_pBuiltIn.background_color));
+	}
+	else if(this.m_Layers!=null && this.m_Layers.length>0)
+	{
+		Graphics_ClearScreen(ConvertGMColour(0xfff7ffff));
 	}
 
 	this.ExecuteDrawEvent(_rect, EVENT_DRAW_BEGIN);
