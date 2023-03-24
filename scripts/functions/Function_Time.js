@@ -1,4 +1,4 @@
-﻿function NonExistentError(_id)
+function NonExistentError(_id)
 {
 	console.error("Error: Index %d does not correspond to an existing time source\n", _id);
 }

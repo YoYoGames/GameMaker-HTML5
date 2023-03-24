@@ -10,6 +10,7 @@ function yySkeletonInstance(_skeletonSprite) {
 	this.m_lastFrame = 0;
 	this.m_lastFrameDir = 0;
     this.m_drawCollisionData = false;
+	this.m_angle = 0;
         
 	this.m_skeleton = null;
 	this.m_skeletonBounds = null;
@@ -90,12 +91,7 @@ yySkeletonInstance.prototype.SetupSkeletonData = function (_skeletonData) {
 	// Create a collision primitive for the skeleton
 	this.m_skeletonBounds = new spine.SkeletonBounds();	
 	
-	// Store off the loading scaling of the skeleton
-	var root = this.m_skeleton.getRootBone();
-	this.m_skeletonScale = [
-	    root.scaleX, 
-	    root.scaleY * -1.0
-	];
+
 };
 
 // #############################################################################################
@@ -631,25 +627,18 @@ yySkeletonInstance.prototype.SetAnimationTransform = function (_ind, _x, _y, _sc
 	var lastFrame = this.m_lastFrame;
 	var forceUpdate = this.m_forceUpdate;
 
-	//var negangle = -_angle;
+	_scaley*= -1.0;
 
     var    updateWorldTransform = (_eventInstance !== undefined);
         
-    // Because we need to preserve the loaded scaling of the skeleton...
-    var overallScaleX = _scalex * this.m_skeletonScale[0];
-    var overallScaleY = _scaley * this.m_skeletonScale[1];
-    var flipX = (overallScaleX < 0) ? -1.0 : 1.0;
-    var flipY = (overallScaleY < 0) ? -1.0 : 1.0;
-    var scalex = Math.abs(overallScaleX);
-    var scaley = Math.abs(overallScaleY);
+
     
     // Try and avoid unnecessary repetition of effort
     if ((forceUpdate == true) ||
     	(lastFrame !== _ind) ||
         (skeleton.x !== _x) || (skeleton.y !== _y) ||
-		(root.scaleX !== scalex) || (root.scaleY !== scaley) ||
-        (skeleton.scaleX != flipX) || (skeleton.scaleY != flipY) ||
-		(root.rotation !== _angle))
+        (skeleton.scaleX != _scalex) || (skeleton.scaleY != _scaley) || 
+		(this.m_angle !== _angle)) 
     {
         var _spr = _sprite;
         if (((_sprite == undefined) || (_sprite == null)) && (_eventInstance != undefined) && (_eventInstance != null))
@@ -705,14 +694,14 @@ yySkeletonInstance.prototype.SetAnimationTransform = function (_ind, _x, _y, _sc
 
 	    skeleton.x = _x;
 	    skeleton.y = _y;
-	    //skeleton.flipX = ((_scalex * this.m_skeletonScale[0]) < 0) ? 1 : 0;
-        //skeleton.flipY = ((_scaley * this.m_skeletonScale[1]) < 0) ? 1 : 0;
-	    skeleton.scaleX = flipX;
-	    skeleton.scaleY = flipY;
+
+	    skeleton.scaleX = _scalex;
+	    skeleton.scaleY = _scaley;
+		this.m_angle = _angle;
 	    
-	    root.scaleX = scalex;
-	    root.scaleY = scaley;
-	    root.rotation = _angle;
+	  //  root.scaleX = _scalex;
+	  //  root.scaleY = _scaley;
+	   // root.rotation = _angle;
 	    
 	    updateWorldTransform = true;
 
@@ -726,9 +715,12 @@ yySkeletonInstance.prototype.SetAnimationTransform = function (_ind, _x, _y, _sc
 	    if (_eventInstance) {
 	        _eventInstance.PerformEvent(EVENT_OTHER_ANIMATIONUPDATE, 0, _eventInstance, null);
 	    }
-
+	    var savedRotation = root.rotation; 
+	    root.rotation += _angle; 
 	    skeleton.updateWorldTransform();	    
-	    this.m_skeletonBounds.update(this.m_skeleton, 1);	
+	    this.m_skeletonBounds.update(this.m_skeleton, 1);
+		         
+	    root.rotation = savedRotation; 	
 	}
 };
 

@@ -1,4 +1,4 @@
-﻿/* Built-in time source IDs */
+/* Built-in time source IDs */
 var eTimeSource_Global = 0,
     eTimeSource_Game = 1,
     eTimeSource_SDParent = 2;
@@ -479,7 +479,7 @@ class CConfigurableTimeSource extends CStatefulTimeSource
 
         this.period = this.ConvertPeriod(_period, _units);
         this.units = _units;
-        this.callback = _callback;
+        this.callback = (typeof _callback === "number") ? script_get(_callback) : _callback;
         // __yy_method both replaces the first arg with the context and expects argument0 to be index 2...
         this.args = [null, null, ..._args];
         this.repsRequested = _reps;
@@ -769,10 +769,10 @@ class CConfigurableTimeSource extends CStatefulTimeSource
     /* Validates the requested callback */
     ValidateCallback(_callback)
     {
-        // Maybe we should check whether its a function?
-        if (typeof _callback != 'function')
+        if (typeof _callback != 'function'
+        && (typeof _callback != 'number' || script_get(_callback) === null))
         {
-            yyError("Error: Time source callback must be a method");
+            yyError("Error: Time source callback must be a method or function");
         }
     }
 

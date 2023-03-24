@@ -1291,11 +1291,14 @@ function WebGL_DrawSWF_RELEASE(SWFDictionary, SWFTimeline, ind, xorig, yorig, x,
         ind = ind + (SWFTimeline.numFrames);
     }
 	
+    // Get colour bytes
+    var mulcolor = (color | ((alpha * 255) & 0xff) << 24);
+
     var colvals = [];
-    colvals[0] = color & 0xff;
-    colvals[1] = (color >> 8) & 0xff;
-    colvals[2] = (color >> 16) & 0xff;
-    colvals[3] = (alpha * 255) & 0xff;
+    colvals[0] = mulcolor & 0xff;
+    colvals[1] = (mulcolor >> 8) & 0xff;
+    colvals[2] = (mulcolor >> 16) & 0xff;
+    colvals[3] = (mulcolor >> 24) & 0xff;
 
     // Set up any transformation here related to pos\rot\scale
     var posMat = new Matrix();
@@ -1351,7 +1354,7 @@ function WebGL_DrawSWF_RELEASE(SWFDictionary, SWFTimeline, ind, xorig, yorig, x,
 			    g_webGL.SetColorWriteEnable(false, false, false, false);
 			    g_webGL.SetZWriteEnable(false);
 
-			    totaltris += Graphics_SWFDrawObject(SWFDictionary, pMaskObject, postMat, gradTransMat, color, colvals, false/*no aa*/, TPEs);
+			    totaltris += Graphics_SWFDrawObject(SWFDictionary, pMaskObject, postMat, gradTransMat, mulcolor, colvals, false/*no aa*/, TPEs);
 
 			    // Set back to masking again			    
 			    g_webGL.SetStencilRef(numActiveMaskObjects - 1);
@@ -1394,7 +1397,7 @@ function WebGL_DrawSWF_RELEASE(SWFDictionary, SWFTimeline, ind, xorig, yorig, x,
 	        allowAA = true;
 	    }
 
-	    totaltris += Graphics_SWFDrawObject(SWFDictionary, pObject, postMat, gradTransMat, color, colvals, allowAA ? GR_SWFAAEnabled : false, TPEs);
+	    totaltris += Graphics_SWFDrawObject(SWFDictionary, pObject, postMat, gradTransMat, mulcolor, colvals, allowAA ? GR_SWFAAEnabled : false, TPEs);
 
 	    if (pObject.clipDepth > 0)
 	    {
@@ -1422,7 +1425,7 @@ function WebGL_DrawSWF_RELEASE(SWFDictionary, SWFTimeline, ind, xorig, yorig, x,
 	    for (var j = 0; j < numActiveMaskObjects; j++)
 	    {
 		    var pMaskObject = pActiveMaskObjects[j];
-		    totaltris += Graphics_SWFDrawObject(SWFDictionary, pMaskObject, postMat, gradTransMat, color, colvals, false/*no aa*/, TPEs);
+		    totaltris += Graphics_SWFDrawObject(SWFDictionary, pMaskObject, postMat, gradTransMat, mulcolor, colvals, false/*no aa*/, TPEs);
 	    }		
     }
 		

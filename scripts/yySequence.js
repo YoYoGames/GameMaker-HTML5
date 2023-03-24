@@ -1,4 +1,4 @@
-﻿// **********************************************************************************************************************
+// **********************************************************************************************************************
 // 
 // Copyright (c)2019, YoYo Games Ltd. All Rights reserved.
 // 
@@ -5531,6 +5531,21 @@ CSequenceInstance.prototype.CleanupAudioEmitters = function ()
         }
 
     }
+};
+
+CSequenceInstance.prototype.CleanupParticles = function ()
+{
+    // Destroy particle systems created by the layer
+    for (var k in this.m_trackIDToPS)
+    {
+        var ps = this.m_trackIDToPS[k];
+        if (ps != -1)
+        {
+            ParticleSystem_Destroy(ps);
+        }
+    }
+    this.m_trackIDToPS = {};
+    this.m_trackIDToLastKeyframe = {};
 };
 
 CSequenceInstance.prototype.SetInstanceInSequenceStatus = function (_inSequence)

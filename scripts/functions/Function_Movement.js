@@ -505,7 +505,233 @@ function move_contact(_inst, _dir, _maxdist, _useall)
 		    return;
     }
 }
+function Command_InstancePlace(_pInst,_x,_y,_obj)
+{
+	var xx = _pInst.x;
+	var yy = _pInst.y;
+	_pInst.SetPosition(_x,_y);
 
+
+	var pInstance = Instance_SearchLoop(_pInst, yyGetInt32(_obj), false, OBJECT_NOONE,
+		function (_pInstance) {
+			if (_pInstance.Collision_Instance(_pInst, true)) {
+			    return _pInstance.id;
+			}
+			return OBJECT_NOONE;
+		}
+	);
+	_pInst.SetPosition(xx, yy);
+	return pInstance;
+};
+function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint,_y_constraint)
+{
+	var ret =[];
+	if ((ind == OBJECT_SELF) && (selfinst != NULL)) ind = selfinst.id;
+	if (ind == OBJECT_NOONE)
+	{
+		return ret;
+	}
+
+	var res = Command_InstancePlace(selfinst,selfinst.x,selfinst.y,ind);
+	if(res!=OBJECT_NOONE)
+		return ret;
+
+	if ((dx == 0) && (dy == 0))
+	{
+		return ret;
+	}
+
+	var apply_x_constraints = false;
+	var apply_y_constraints = false;
+	var x_constraint = -1.0;
+	var y_constraint = -1.0;
+	
+	if(_x_constraint!==undefined)
+	{
+		x_constraint = _x_constraint;
+		if(x_constraint>=0)
+			apply_x_constraints = true;
+	}
+	if(_y_constraint!==undefined)
+	{
+		y_constraint = _y_constraint;
+		if(y_constraint>=0)
+			apply_y_constraints = true;
+	}
+
+	var clamp_minx = selfinst.x; 
+	var clamp_miny = selfinst.y; 
+
+	var clamp_maxx = clamp_minx + x_constraint; 
+	var clamp_maxy = clamp_miny + y_constraint; 
+	clamp_minx -= x_constraint; 
+	clamp_miny -= y_constraint; 
+
+	var num_steps = 4;
+	if(_iterations !== undefined)
+		num_steps = _iterations;
+
+	var check_perp = false;
+	var delta_length = 0;
+	var lxoff =0;
+	var lyoff =0;
+	if(xoff === undefined || yoff ===undefined || (xoff ===0 && yoff===0))
+	{
+		check_perp = true;
+	}
+	else
+	{
+		delta_length = Math.sqrt(xoff*xoff + yoff *yoff);
+		lxoff = xoff/delta_length;
+		lyoff = yoff/delta_length;
+
+	}
+
+	var steps = Math.sqrt(dx * dx + dy * dy);
+	var ndx = dx/steps;
+	var ndy = dy/steps;
+	var root2over2 = 0.70710678118654; 
+	var step_dist = steps/num_steps;
+	var dist_to_travel = steps; 
+
+	for (var i = 0; i < num_steps; i++)
+	{
+		var this_step_dist = step_dist; 
+		if (dist_to_travel < this_step_dist) 
+		{ 
+			this_step_dist = dist_to_travel; 
+			if(this_step_dist<=0)
+				break;
+		} 
+ 
+		var tx = selfinst.x + ndx * this_step_dist; 
+		var ty = selfinst.y + ndy * this_step_dist; 
+ 
+		if (apply_x_constraints) 
+		{ 
+			tx = clamp(tx, clamp_minx, clamp_maxx); 
+		} 
+		if(apply_y_constraints) 
+		{ 
+			ty = clamp(ty, clamp_miny, clamp_maxy); 
+		} 
+ 
+		res = Command_InstancePlace(selfinst, tx, ty, ind);
+		if (res == OBJECT_NOONE)
+		{
+			selfinst.x =tx;
+			selfinst.y =ty;
+			dist_to_travel -= this_step_dist; 
+		}
+		else 
+		{
+			if(!ret.includes(res))
+				ret[ret.length]= res;
+			
+			var has_moved = false;
+
+			if(check_perp)
+			{
+				for (var j = 1; j <num_steps-i+1; j++)
+				{
+					tx = selfinst.x + root2over2 * (ndx + j * ndy) * this_step_dist; 
+					ty = selfinst.y + root2over2 * (ndy - j * ndx) * this_step_dist; 
+ 
+					if (apply_x_constraints) 
+					{ 
+						tx = clamp(tx, clamp_minx, clamp_maxx); 
+					} 
+					if (apply_y_constraints) 
+					{ 
+						ty = clamp(ty, clamp_miny, clamp_maxy); 
+					} 
+ 
+					res = Command_InstancePlace(selfinst, tx, ty, ind);
+					if (res==OBJECT_NOONE)
+					{
+						dist_to_travel -= this_step_dist*j; 
+						has_moved = true;
+						selfinst.x = tx;
+						selfinst.y = ty;
+						break;
+					}
+					else
+					{
+						if(!ret.includes(res))
+							ret[ret.length]= res;
+					}
+
+					tx = selfinst.x + root2over2 * (ndx - j * ndy) * this_step_dist; 
+					ty = selfinst.y + root2over2 * (ndy + j * ndx) * this_step_dist; 
+ 
+					if (apply_x_constraints) 
+					{ 
+						tx = clamp(tx, clamp_minx, clamp_maxx); 
+					} 
+					if (apply_y_constraints) 
+					{ 
+						ty = clamp(ty, clamp_miny, clamp_maxy); 
+					} 
+ 
+					
+					res = Command_InstancePlace(selfinst, tx, ty, ind);
+					if (res==OBJECT_NOONE)
+					{
+						dist_to_travel -= this_step_dist*j; 
+						has_moved = true;
+						selfinst.x = tx;
+						selfinst.y = ty;
+						break;
+					}
+					else
+					{
+						if(!ret.includes(res))
+							ret[ret.length]= res;
+					}
+				}
+			}
+			else
+			{
+				for (var j = 1; j < num_steps - i + 1; j++)
+				{
+
+					tx = selfinst.x + root2over2 * (ndx + j * lxoff) * this_step_dist; 
+					ty = selfinst.y + root2over2 * (ndy + j * lyoff) * this_step_dist; 
+ 
+					if (apply_x_constraints) 
+					{ 
+						tx = clamp(tx, clamp_minx, clamp_maxx); 
+					} 
+					if (apply_y_constraints) 
+					{ 
+						ty = clamp(ty, clamp_miny, clamp_maxy); 
+					} 
+					
+					res = Command_InstancePlace(selfinst, tx, ty, ind);
+					if (res==OBJECT_NOONE)
+					{
+
+						dist_to_travel -= this_step_dist*j; 
+						has_moved = true;
+						selfinst.x = tx;
+						selfinst.y = ty;
+						break;
+					}
+					else
+					{
+						if(!ret.includes(res))
+							ret[ret.length]= res;
+					}
+				}
+			}
+			
+			if(!has_moved)
+				return ret;
+		
+		}
+	}	
+	return ret;
+}
 
 // #############################################################################################
 /// Function:<summary>

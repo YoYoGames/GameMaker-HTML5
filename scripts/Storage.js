@@ -1,4 +1,4 @@
-﻿
+
 // complicated by the fact that images may have been scaled before being placed on the TPage
 // then they are cropped ...
 // so the scale can be calculated by ow/w or oh/h
