@@ -158,6 +158,8 @@ function Emitter_Reset()
 
 	this.created = true;		// whether created
 
+	this.enabled = true;            // if false then the emitter is disabled and it shouldn't spawn particles
+	
 	this.mode = PT_MODE_UNDEFINED;	// stream or burst
 	this.number = 0;				// number of particles to create
 
@@ -370,7 +372,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 		var em = ParticleSystem_Emitter_Create(ps);
 		var instanceEmitter = system.emitters[em];
 
-		//instanceEmitter.enabled = templateEmitter.enabled;
+		instanceEmitter.enabled = templateEmitter.enabled;
 		instanceEmitter.mode = templateEmitter.mode;
 		instanceEmitter.number = templateEmitter.number;
 		instanceEmitter.posdistr = templateEmitter.posdistr;
@@ -381,6 +383,8 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 		instanceEmitter.ymax = templateEmitter.ymax;
 		//instanceEmitter.rotation = templateEmitter.rotation;
 		instanceEmitter.parttype = templateEmitter.parttype;
+
+		if (!instanceEmitter.enabled) continue;
 
 		if (instanceEmitter.mode == PT_MODE_STREAM)
 		{
@@ -1313,7 +1317,7 @@ function ParticleSystem_Emitters_Load(_GameFile)
 		// Emitter
 		var emitter = new yyEmitter();
 		// TODO: Use emitter name from YYPSEmitter
-		//emitter.enabled = yypse.enabled;
+		emitter.enabled = yypse.enabled;
 		emitter.mode = yypse.mode;
 		emitter.number = yypse.emitCount;
 		emitter.posdistr = yypse.distribution;
@@ -2324,6 +2328,7 @@ function ParticleSystem_Update(_ps)
 			var pEmitter = pEmitters[i];
 			
 			if (pEmitter == null) continue;
+			if (!pEmitter.enabled) continue;
 			
 			HandleLife(_ps, i);
 			HandleMotion(_ps, i);
@@ -2533,6 +2538,7 @@ function ParticleSystem_Draw( _ps, _color, _alpha )
 	{
 		var pEmitter = pPartSys.emitters[e];
 		if (pEmitter == null) continue;
+		if (!pEmitter.enabled) continue;
 		var pParticles = pEmitter.particles;
 		if ( pPartSys.oldtonew )
 		{
