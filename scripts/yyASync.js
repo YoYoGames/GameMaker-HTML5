@@ -1,4 +1,4 @@
-﻿// **********************************************************************************************************************
+// **********************************************************************************************************************
 //
 // Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
 //
@@ -109,13 +109,14 @@ function ASync_ImageLoad_Callback(_event) {
     {
         // Now actually UPDATE the sprite and TPage stuff.
         var pSpr = g_pSpriteManager.Get( pFile.m_ID );
-        if (pSpr === null) return;
-		if (!pSpr.ppTPE) return;
-		if (!pSpr.ppTPE[0]) return;
-        if (!pSpr.ppTPE[0].texture) return;
+		if (pSpr == undefined) { pFile.m_Status = ASYNC_STATUS_ERROR; return; }
+        if (pSpr === null) { pFile.m_Status = ASYNC_STATUS_ERROR; return; }
+		if (!pSpr.ppTPE) { pFile.m_Status = ASYNC_STATUS_ERROR; return; }
+		if (!pSpr.ppTPE[0]) { pFile.m_Status = ASYNC_STATUS_ERROR; return; }
+        if (!pSpr.ppTPE[0].texture) { pFile.m_Status = ASYNC_STATUS_ERROR; return; }
         
         pTexture = pSpr.ppTPE[0].texture;
-        pTexture.webgl_textureid=undefined;
+        pTexture.webgl_textureid=undefined;		
         
         var w = pTexture.width;
         var h = pTexture.height;
@@ -144,6 +145,29 @@ function ASync_ImageLoad_Callback(_event) {
 	        
 	        x+=sprw;
 	    }
+
+		if (g_webGL)
+		{
+			if (pSpr.prefetchOnLoad != undefined)
+			{
+				if (pSpr.prefetchOnLoad == true)
+				{
+					// We need to create the GL texture here and set it up
+					for(var i = 0; i < pSpr.numb;i++)
+					{
+						WebGL_BindTexture(pSpr.ppTPE[i]);
+
+						// It should only be necessary to do this for the first one
+						// as they all share the same texture, but this is safer in case
+						// things change in the future
+						if (pSpr.ppTPE[i].texture.webgl_textureid)
+						{
+							WebGL_RecreateTexture(pTPE.texture.webgl_textureid);							
+						}	
+					}
+				}
+			}
+		}
         return;
     }    
     
@@ -363,7 +387,10 @@ yyASyncManager.prototype.Process = function () {
 				else if (pFile.m_Type == ASYNC_SYSTEM_EVENT) g_pObjectManager.ThrowEvent(EVENT_OTHER_SYSTEM_EVENT, 0, true);
 
 				// Done load, so delete handle.
-				this.queue[i] = null;
+				//this.queue[i] = null;
+				this.queue.splice(i,1);
+				i--;
+				this.queueLength--;
 
                 // Web specifically needs to kill the ds_map used for response headers
 				if (pFile.m_Type == ASYNC_WEB) {
@@ -377,7 +404,7 @@ yyASyncManager.prototype.Process = function () {
 		}
 	}
 
-	this.queueLength = 0;
+	//this.queueLength = 0;
 
 	ds_map_destroy(map);
 	g_pBuiltIn.async_load = -1;

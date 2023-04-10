@@ -158,6 +158,7 @@ function Emitter_Reset()
 
 	this.created = true;		// whether created
 
+	this.name = undefined;
 	this.enabled = true;            // if false then the emitter is disabled and it shouldn't spawn particles
 	
 	this.mode = PT_MODE_UNDEFINED;	// stream or burst
@@ -1316,7 +1317,7 @@ function ParticleSystem_Emitters_Load(_GameFile)
 		////////////////////////////////////////////////////////////////////////
 		// Emitter
 		var emitter = new yyEmitter();
-		// TODO: Use emitter name from YYPSEmitter
+		emitter.name = yypse.pName;
 		emitter.enabled = yypse.enabled;
 		emitter.mode = yypse.mode;
 		emitter.number = yypse.emitCount;
@@ -1661,7 +1662,7 @@ function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 function	ParticleSystem_Particles_Create_Color( _ps, _x, _y, _parttype, _col, _numb)
 {
     var em = (g_ParticleSystems[_ps].emitters.length == 0)
-		? ParticleSystem_Emitter_Create(ps)
+		? ParticleSystem_Emitter_Create(_ps)
 		: 0;
 
 	EmitParticles(_ps, em, _x, _y, _parttype, _numb, true, _col);
