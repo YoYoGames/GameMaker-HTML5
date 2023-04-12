@@ -185,6 +185,8 @@ var GMS_API = {
     "ds_list_size": ds_list_size,
     "ds_list_find_value": ds_list_find_value,
     "json_encode": json_encode,
+    "json_decode": json_decode,
+    "extension_get_option_value": extension_get_option_value,
     "send_async_event_social": YYSendAsyncEvent_Social,
     "get_facebook_app_id": YYGetFacebookAppId,
 	"get_app_version_string": YYGetAppVersionString
