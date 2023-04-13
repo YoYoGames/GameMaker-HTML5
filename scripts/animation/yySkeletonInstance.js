@@ -698,6 +698,8 @@ yySkeletonInstance.prototype.SetAnimationTransform = function (_ind, _x, _y, _sc
 	var lastFrame = this.m_lastFrame;
 	var forceUpdate = this.m_forceUpdate;
 
+	var animationUpdated = false;
+
 	_scaley *= -1.0; /* Y scale seems to be inverted somewhere... */
 
     var    updateWorldTransform = (_eventInstance !== undefined);
@@ -769,6 +771,7 @@ yySkeletonInstance.prototype.SetAnimationTransform = function (_ind, _x, _y, _sc
 	    this.m_rotationMatrix = new yyRotationMatrix(-_angle);
 	    
 	    updateWorldTransform = true;
+		animationUpdated = true;
 
 	    this.m_forceUpdate = false;
 	}
@@ -783,6 +786,8 @@ yySkeletonInstance.prototype.SetAnimationTransform = function (_ind, _x, _y, _sc
 
 	    this.UpdateWorldTransformAndBounds();
     }
+
+	return animationUpdated;
 };
 
 yySkeletonInstance.prototype.UpdateWorldTransformAndBounds = function()
