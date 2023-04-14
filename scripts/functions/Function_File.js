@@ -1266,6 +1266,8 @@ function _json_replacer(value)
 			if (isNaN(value)) return "@@nan$$";
 			if (!isFinite(value)) return value > 0 ? "@@infinity$$" : "@@-infinity$$";
 			return value;
+		case "boolean":
+			return value;
 		case "object":
 			// It's null just return null
 			if (value == null) return null;
@@ -1383,6 +1385,8 @@ function _json_reviver(_, value)
 			
 			return value;
 		case "number":
+			return value;
+		case "boolean":
 			return value;
 		case "object":
 
