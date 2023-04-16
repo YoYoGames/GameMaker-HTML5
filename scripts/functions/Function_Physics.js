@@ -290,7 +290,7 @@ function physics_fixture_bind_ext(_inst, _fixtureID, _id, _xo, _yo) {
         	var pInst = pool[inst];        	
         	if (pInst.marked) continue;
         	
-        	fixtureIndex = g_RunRoom.m_pPhysicsWorld.CreateBody(fixture, pInst, _xo, _yo);
+        	fixtureIndex = g_RunRoom.m_pPhysicsWorld.CreateBody(fixture, pInst, _xo, _yo, false);
         }
     }
     else if(_obj < 100000)
@@ -308,13 +308,13 @@ function physics_fixture_bind_ext(_inst, _fixtureID, _id, _xo, _yo) {
         	var pInst = pool[inst];        	
         	if (pInst.marked) continue;
         	
-        	fixtureIndex = g_RunRoom.m_pPhysicsWorld.CreateBody(fixture, pInst, _xo, _yo);
+        	fixtureIndex = g_RunRoom.m_pPhysicsWorld.CreateBody(fixture, pInst, _xo, _yo, false);
         }
     }
     else
     {
         var pInst = g_pInstanceManager.Get(_obj);        
-        fixtureIndex = g_RunRoom.m_pPhysicsWorld.CreateBody(fixture, pInst, _xo, _yo);
+        fixtureIndex = g_RunRoom.m_pPhysicsWorld.CreateBody(fixture, pInst, _xo, _yo, false);
     }	          
     return fixtureIndex;
 }
