@@ -17,7 +17,8 @@ YYLayerType_Background=1,
 YYLayerType_Instance=2,
 YYLayerType_Asset=3,
 YYLayerType_Tile=4,
-YYLayerType_Effect=5;
+YYLayerType_Particle=5,
+YYLayerType_Effect=6;
 
 
 var	eLayerElementType_Undefined = 0,
