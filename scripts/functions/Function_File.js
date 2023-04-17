@@ -1294,7 +1294,7 @@ function _json_replacer(value)
 
 				// Remove the flag
 				g_ENCODE_VISITED_LIST.delete(value);
-				return value;
+				return ret;
 			}
 
 			// It's an object prepare to set internal values
