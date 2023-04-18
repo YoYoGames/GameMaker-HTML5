@@ -436,7 +436,6 @@ function string_pos_ext(_substr, _str, _startPos)
     var inSubstr = yyGetString(_substr);
     var inStr = yyGetString(_str);
     var startPos = __yy_GMLIndex2JSIndex( inStr, yyGetInt32(_startPos) );
-    ++startPos;
     var resIndex = inStr.indexOf(inSubstr, startPos);
     return __yy_JSIndex2GMLIndex(inStr, resIndex);
 }
@@ -1086,7 +1085,10 @@ function string_lettersdigits(_str)
     return s;  
 }
 
-var g_EscapeRegexRE = new RegExp('[.*+?^${}()|[\]\\]', 'g');
+const g_EscapeRegexRE = new RegExp("[/-\\\\^$*+?.()|[\\]{}]", "g");
+function __escapeRegex(string) {
+    return string.replace(g_EscapeRegexRE, '\\$&');
+}
 
 function string_trim_start(_str, _substrs) {
 
@@ -1106,7 +1108,7 @@ function string_trim_start(_str, _substrs) {
         if (typeof(val) != "string") {
             yyError("string_trim_start() argument1 should be an array of string");
         }
-        return yyGetString(val).replace(g_EscapeRegexRE, '\\$&')
+        return __escapeRegex(yyGetString(val));
     
     }).filter(elm => elm).join("|");
 
@@ -1133,7 +1135,7 @@ function string_trim_end(_str, _substrs) {
         if (typeof(val) != "string") {
             yyError("string_trim_end() argument1 should be an array of string");
         }
-        return yyGetString(val).replace(g_EscapeRegexRE, '\\$&')
+        return __escapeRegex(yyGetString(val));
     
     }).filter(elm => elm).join("|");
 
@@ -1160,7 +1162,7 @@ function string_trim(_str, _substrs) {
         if (typeof(val) != "string") {
             yyError("string_trim() argument1 should be an array of string");
         }
-        return yyGetString(val).replace(g_EscapeRegexRE, '\\$&')
+        return __escapeRegex(yyGetString(val));
     
     }).filter(elm => elm).join("|");
 
@@ -1220,8 +1222,11 @@ function string_split(_str, _delim, _removeEmpty, _maxSplits) {
     _removeEmpty = arguments.length > 2 ? yyGetReal(_removeEmpty) : false;
     _maxSplits = arguments.length > 3 ? yyGetReal(_maxSplits) : _str.length;
 
+    // Escape regex symbols from delimiter.
+    _delim = __escapeRegex(_delim);
+
     // Create a RegExp with the delimiter
-    var _rg = new RegExp(_delim.replace(g_EscapeRegexRE, '\\$&'), 'g');
+    var _rg = new RegExp(_delim, "g");
 
     var _out = __yy_StringSplit(_str, _rg, _maxSplits);
     if (_removeEmpty) {
@@ -1243,8 +1248,8 @@ function string_split_ext(_str, _delims, _removeEmpty, _maxSplits) {
     _removeEmpty = arguments.length > 2 ? yyGetReal(_removeEmpty) : false;
     _maxSplits = arguments.length > 3 ? yyGetReal(_maxSplits) : _str.length;
 
-    // Convert delimiter to stringm, escape the pipe symbols, remove empty entries,
-    _delims = _delims.map((val) => yyGetString(val).replace(g_EscapeRegexRE, '\\$&')).filter(elm => elm).join("|");
+    // Convert delimiter to string, escape the pipe symbols, remove empty entries.
+    _delims = _delims.map((val) => __escapeRegex(yyGetString(val))).filter(elm => elm).join("|");
 
     // Create a RegExp with the delimiters
     var _rg = new RegExp(_delims, "g");

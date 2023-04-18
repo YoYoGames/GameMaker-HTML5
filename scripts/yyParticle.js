@@ -85,6 +85,7 @@ function ParticleType_ClearClass()
     this.id = -1;
     this.created = true; 					// whether created
 	this.sprite = -1;							// sprite used
+	this.spritestart = 0;       				// starting sprite subimage
 	this.spriteanim = true;       				// whether to animate the sprite
 	this.spritestretch = false;    				// whether to stretch the animation
 	this.spriterandom = false;     				// whether to start at a random position
@@ -157,6 +158,9 @@ function Emitter_Reset()
 
 	this.created = true;		// whether created
 
+	this.name = undefined;
+	this.enabled = true;            // if false then the emitter is disabled and it shouldn't spawn particles
+	
 	this.mode = PT_MODE_UNDEFINED;	// stream or burst
 	this.number = 0;				// number of particles to create
 
@@ -346,7 +350,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 {
 	if (_layerID === undefined) _layerID = -1;
 	if (_persistent === undefined) _persistent = false;
-	if (_pParticleEl === undefined) _persistent = null;
+	if (_pParticleEl === undefined) _pParticleEl = null;
 
 	var ps = (_pParticleEl == null)
 		? ParticleSystem_Create(_layerID, _persistent)
@@ -369,7 +373,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 		var em = ParticleSystem_Emitter_Create(ps);
 		var instanceEmitter = system.emitters[em];
 
-		//instanceEmitter.enabled = templateEmitter.enabled;
+		instanceEmitter.enabled = templateEmitter.enabled;
 		instanceEmitter.mode = templateEmitter.mode;
 		instanceEmitter.number = templateEmitter.number;
 		instanceEmitter.posdistr = templateEmitter.posdistr;
@@ -380,6 +384,8 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 		instanceEmitter.ymax = templateEmitter.ymax;
 		//instanceEmitter.rotation = templateEmitter.rotation;
 		instanceEmitter.parttype = templateEmitter.parttype;
+
+		if (!instanceEmitter.enabled) continue;
 
 		if (instanceEmitter.mode == PT_MODE_STREAM)
 		{
@@ -661,7 +667,7 @@ function CreateParticle(_x, _y, _parttype )
 	}
 	else
 	{
-		Result.spritestart = 0;
+		Result.spritestart = pParType.spritestart;
 	}
 	Result.ran = YYRandom(100000);
 	return Result;
@@ -1267,9 +1273,10 @@ function ParticleSystem_Emitters_Load(_GameFile)
 		var type = g_ParticleTypes[ptInd];
 		
 		type.sprite = yypt.spriteId;
-		type.spriteanim = false;
-		type.spritestretch = false;
-		type.spriterandom = false;
+		type.spritestart = yypt.headPosition;
+		type.spriteanim = yypt.spriteAnimate;
+		type.spritestretch = yypt.spriteStretch;
+		type.spriterandom = yypt.spriteRandom;
 		type.shape = yypt.texture;
 		type.sizemin = yypt.sizeMin;
 		type.sizemax = yypt.sizeMax;
@@ -1310,8 +1317,8 @@ function ParticleSystem_Emitters_Load(_GameFile)
 		////////////////////////////////////////////////////////////////////////
 		// Emitter
 		var emitter = new yyEmitter();
-		// TODO: Use emitter name from YYPSEmitter
-		//emitter.enabled = yypse.enabled;
+		emitter.name = yypse.pName;
+		emitter.enabled = yypse.enabled;
 		emitter.mode = yypse.mode;
 		emitter.number = yypse.emitCount;
 		emitter.posdistr = yypse.distribution;
@@ -1631,7 +1638,7 @@ function	ParticleSystem_Emitter_Stream( _ps, _ind, _ptype, _numb)
 // #############################################################################################
 function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 {
-	var em = (partsystems.arr[ps].emitters.length == 0)
+	var em = (g_ParticleSystems[_ps].emitters.length == 0)
 		? ParticleSystem_Emitter_Create(ps)
 		: 0;
 
@@ -1654,8 +1661,8 @@ function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 // #############################################################################################
 function	ParticleSystem_Particles_Create_Color( _ps, _x, _y, _parttype, _col, _numb)
 {
-    var em = (partsystems.arr[ps].emitters.length == 0)
-		? ParticleSystem_Emitter_Create(ps)
+    var em = (g_ParticleSystems[_ps].emitters.length == 0)
+		? ParticleSystem_Emitter_Create(_ps)
 		: 0;
 
 	EmitParticles(_ps, em, _x, _y, _parttype, _numb, true, _col);
@@ -1676,7 +1683,11 @@ function	ParticleSystem_Particles_Clear(_ps)
 	if( pPartSys ==null || pPartSys==undefined ) return false;
 
 	for (var i = pPartSys.emitters.length - 1; i >= 0; --i)
-		pPartSys.emitters[i].particles = [];
+	{
+		var pEmitter = pPartSys.emitters[i];
+		if (pEmitter == null) continue;
+		pEmitter.particles = [];
+	}
 
 	return true;
 }
@@ -1714,7 +1725,11 @@ function	ParticleSystem_Particles_Count( _ps )
 
 	var count = 0;
 	for (var i = pPartSys.emitters.length - 1; i >= 0; --i)
-		count += pPartSys.emitters[i].particles.length;
+	{
+		var pEmitter = pPartSys.emitters[i];
+		if (pEmitter == null) continue;
+		count += pEmitter.particles.length;
+	}
 
 	return count;
 }
@@ -1777,6 +1792,7 @@ function ParticleSystem_Create_OnLayer(_layerID, _persistent, _pPartEl)
 
 	if (_layerID != -1)
 	{
+		var room = g_pLayerManager.GetTargetRoomObj();
 		layer = g_pLayerManager.GetLayerFromID(room, _layerID);
 
 		//g_ParticleSystems[index].m_origLayerID = _layerID;
@@ -1813,7 +1829,7 @@ function	ParticleSystem_Create(_layerID,_persistent)
 	if (pPartEl == null)
 		return -1;
 	
-	return ParticleSystem_Create_OnLayer(_layerID, pPartEl, _persistent);
+	return ParticleSystem_Create_OnLayer(_layerID, _persistent, pPartEl);
 }
 
 // #############################################################################################
@@ -2310,15 +2326,19 @@ function ParticleSystem_Update(_ps)
 	{
 		for (var i = 0; i < pEmitters.length; i++)
 		{
+			var pEmitter = pEmitters[i];
+			
+			if (pEmitter == null) continue;
+			if (!pEmitter.enabled) continue;
+			
 			HandleLife(_ps, i);
 			HandleMotion(_ps, i);
 			HandleShape(_ps, i);
 
-			if( pEmitters[i]!=null
-				&& pEmitters[i].mode != PT_MODE_BURST
-				&& pEmitters[i].number != 0)
+			if(pEmitter.mode != PT_MODE_BURST
+				&& pEmitter.number != 0)
 			{
-				ParticleSystem_Emitter_Burst(_ps, i, pEmitters[i].parttype, pEmitters[i].number);
+				ParticleSystem_Emitter_Burst(_ps, i, pEmitter.parttype, pEmitter.number);
 			}
 		}
 	}
@@ -2431,10 +2451,6 @@ function	DrawParticle(_pParticle, _xoff, _yoff, _color, _alpha)
 	r = ((_pParticle.age+_pParticle.ran) % 16)/4.0;
 	if ( r > 2.0 ) r = 4.0-r;
 	r = r-1.0;
-	
-	// Set the blend mode to additive if the particles is set to be additive.
-	// This is reset in ParticleSystem_Draw after all particles have been drawn.
-	draw_set_blend_mode(_pParticle.additiveblend ? 1 : 0);
 
 	var s = _pParticle.size + r*pParType.sizerand;   
 
@@ -2501,32 +2517,51 @@ function ParticleSystem_Draw( _ps, _color, _alpha )
 	    src = GR_BlendSrc;
 	    dest = GR_BlendDest;
 	}
-    
+	var additiveBlend = false;
+	var setAdditiveBlend = function (_enable) {
+		if (_enable && !additiveBlend)
+		{
+			draw_set_blend_mode(1);
+			additiveBlend = true;
+		}
+		else if (!_enable && additiveBlend)
+		{
+			if (g_webGL != null) {
+				draw_set_blend_mode_ext(src, dest);
+			} else {
+				draw_set_blend_mode(0);
+			}
+			additiveBlend = false;
+		}
+	};
+	
 	for (var e = 0; e < pPartSys.emitters.length; ++e)
 	{
-		var pParticles = pPartSys.emitters[e].particles;
+		var pEmitter = pPartSys.emitters[e];
+		if (pEmitter == null) continue;
+		if (!pEmitter.enabled) continue;
+		var pParticles = pEmitter.particles;
 		if ( pPartSys.oldtonew )
 		{
 			for (var i = 0; i < pParticles.length; i++)
-			{            	
-				DrawParticle( pParticles[i], pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
+			{
+				var pParticle = pParticles[i];
+				setAdditiveBlend(pParticle.additiveblend);
+				DrawParticle( pParticle, pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
 			}
 		}
 		else
 		{
 			for(var i=pParticles.length-1 ; i >= 0 ; i-- )
 			{
-				DrawParticle( pParticles[i], pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
+				var pParticle = pParticles[i];
+				setAdditiveBlend(pParticle.additiveblend);
+				DrawParticle( pParticle, pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
 			}
 		}
 	}
 
-	if (g_webGL != null) {
-	    draw_set_blend_mode_ext(src, dest);
-	}
-	else {	    
-	    draw_set_blend_mode(0);
-	}
+	setAdditiveBlend(false);
 }
 
 

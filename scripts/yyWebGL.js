@@ -3185,6 +3185,8 @@ function WebGL_draw_getpixel_RELEASE(_x, _y) {
     var ret = WebGL_draw_getpixel_ext_RELEASE(_x,_y);
     if (Array.isArray(ret))
     {
+        // Snip off alpha
+        ret.splice(3);
         return ret;
     }
     else
@@ -3713,6 +3715,8 @@ function WebGL_surface_getpixel_RELEASE(_id, _x, _y) {
 
     if (Array.isArray(ret))
     {
+        // Snip off alpha
+        ret.splice(3);
         return ret;
     }
     else
@@ -5072,7 +5076,7 @@ function WebGL_draw_set_color_RELEASE( _colour )
 // #############################################################################################
 function WebGL_BindTexture( _pTPE )
 {
-    if (!_pTPE.webgl_textureid) 
+    if (!_pTPE.texture.webgl_textureid) 
     {
         var glTexture = g_webGL.CreateTexture(_pTPE.texture);        
         _pTPE.texture.webgl_textureid = glTexture;
