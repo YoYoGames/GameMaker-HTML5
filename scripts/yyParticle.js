@@ -1636,7 +1636,7 @@ function	ParticleSystem_Emitter_Stream( _ps, _ind, _ptype, _numb)
 function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 {
 	var em = (g_ParticleSystems[_ps].emitters.length == 0)
-		? ParticleSystem_Emitter_Create(ps)
+		? ParticleSystem_Emitter_Create(_ps)
 		: 0;
 
 	EmitParticles(_ps, em, _x, _y, _parttype, _numb);
