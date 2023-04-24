@@ -1,4 +1,4 @@
-﻿// **********************************************************************************************************************
+// **********************************************************************************************************************
 // 
 // Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
 // 
@@ -1986,4 +1986,66 @@ function ds_grid_sort(_id, _column, _ascending) {
         }
     }
     pGrid.m_pGrid = gridDest;
+}
+
+
+// #############################################################################################
+/// Function:<summary>
+///          	Convert a ds_grid into a mp_grid (of the same size)
+///          </summary>
+// #############################################################################################
+function ds_grid_to_mp_grid(_src, _dest, _predicate) {
+
+    var pGrid = g_ActiveGrids.Get(yyGetInt32(_src));
+    var pMPGrid = g_ActiveGrids.Get(yyGetInt32(_dest));
+
+    if (pMPGrid == null || pGrid == null)
+    {
+        yyError("Error: Invalid source or destination grid (ds_grid_to_mp_grid)");
+        return; 
+    }
+
+    // Src+Dest must be exactly the same size
+    var w = pMPGrid.m_hcells;
+    var h = pMPGrid.m_vcells;
+    var gw = pGrid.m_Width;
+    var gh = pGrid.m_Height;
+
+    if (w != gw || h != gh ) 
+    {
+        yyError("Error: Grid sizes do not match (ds_grid_to_mp_grid) ");
+        return; 
+    }
+	
+    // There is no predicate just direct copy from ds_grid to mp_grid
+	// zero-ed cells will be empty and everything else will be made occupied
+	if (_predicate == undefined)
+	{
+		for (var y = 0; y < h; ++y)
+		{
+			for (var x = 0; x < w; ++x)
+			{
+				var val = yyGetReal(pGrid.m_pGrid[x + (y * pGrid.m_Width)]);
+				pMPGrid.m_cells[(x * pMPGrid.m_vcells) + y] = val == 0 ? 0 : -1;
+			}
+		}
+	}
+	// There is a predicate function
+	else 
+	{
+		// Check method argument
+		_func = getFunction(_predicate, 2);
+		_obj = "boundObject" in _func ? _func.boundObject : {};
+
+		for (var y = 0; y < h; ++y)
+		{
+			for (var x = 0; x < w; ++x)
+			{
+				var val = pGrid.m_pGrid[x + (y * pGrid.m_Width)];
+				var res = yyGetBool(_func(_obj, _obj, val, x, y));
+
+				pMPGrid.m_cells[(x * pMPGrid.m_vcells) + y] = res ? -1 : 0;
+			}
+		}
+	}
 }
