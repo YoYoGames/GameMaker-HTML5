@@ -1244,6 +1244,9 @@ function json_encode(_map, _prettify) {
 	// Check if we want to prettify the output string
 	_prettify = _prettify == undefined ? false : yyGetReal(_prettify);
 
+	// Scrub existing list otherwise we can't encode the same map multiple times
+	// (as far as I can see json_encode should only be called from an external function so this shouldn't result in infinite recursion)
+	g_ENCODE_VISITED_LIST = new Map(); 
     var obj = _json_encode_map(yyGetInt32(_map));
 
     return JSON.stringify(obj, null, _prettify ? 2 : 0);
@@ -1262,6 +1265,8 @@ function _json_replacer(value)
 		case "number":
 			if (isNaN(value)) return "@@nan$$";
 			if (!isFinite(value)) return value > 0 ? "@@infinity$$" : "@@-infinity$$";
+			return value;
+		case "boolean":
 			return value;
 		case "object":
 			// It's null just return null
@@ -1289,7 +1294,7 @@ function _json_replacer(value)
 
 				// Remove the flag
 				g_ENCODE_VISITED_LIST.delete(value);
-				return value;
+				return ret;
 			}
 
 			// It's an object prepare to set internal values
@@ -1380,6 +1385,8 @@ function _json_reviver(_, value)
 			
 			return value;
 		case "number":
+			return value;
+		case "boolean":
 			return value;
 		case "object":
 

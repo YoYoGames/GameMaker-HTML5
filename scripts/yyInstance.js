@@ -1414,7 +1414,7 @@ yyInstance.prototype.setspeed = function (_val) {
 // #############################################################################################
 yyInstance.prototype.Compute_BoundingBox = function() {
     var skeletonAnim = this.SkeletonAnimation();
-    if (skeletonAnim) {
+    if (this.mask_index < 0 && skeletonAnim) {
         if (!this.bbox) {
             this.bbox = new YYRECT(0, 0, 0, 0);
         }
@@ -1608,6 +1608,35 @@ yyInstance.prototype.Compute_BoundingBox = function() {
     this.bbox_dirty = false;
 };
 
+// #############################################################################################
+/// Function:<summary>
+/// Compute the on-screen bounding box, if it needs updating.
+/// </summary>
+// #############################################################################################
+yyInstance.prototype.Maybe_Compute_BoundingBox = function() {
+	if (this.bbox_dirty)
+	{
+		this.Compute_BoundingBox();
+		return;
+	}
+
+	var skeletonAnim = this.SkeletonAnimation();
+	if (this.mask_index < 0 && skeletonAnim)
+	{
+		var sprite = _spr = g_pSpriteManager.Get(this.sprite_index);
+		
+		if(skeletonAnim.SetAnimationTransform(this.image_index, this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, undefined, sprite))
+		{
+			 /* Bounding box isn't flagged as dirty, but the Skeleton sprite/animation
+			  * state has changed, so force an update anyway.
+			*/
+
+			this.Compute_BoundingBox();
+			return;
+		}
+	}
+};
+
 
 // #############################################################################################
 /// Function:<summary>
@@ -1624,21 +1653,8 @@ yyInstance.prototype.Compute_BoundingBox = function() {
 yyInstance.prototype.Collision_Point = function (_x, _y, _prec) {
 
 	if (this.marked) return false;
-	
-	var skeletonAnim = this.SkeletonAnimation();
-	if (skeletonAnim) {
-	    
-	    var oldinst = g_skeletonDrawInstance;
-	    g_skeletonDrawInstance = this;
-		if (skeletonAnim.ComputeBoundingBox(this.bbox, this.image_index, this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle)) {
-		    this.precise = true;
-		    this.bbox_dirty = false;
-		}
-		g_skeletonDrawInstance = oldinst;
-	}
-	
-	// First, if box is dirty, recompute bounding box.
-	if (this.bbox_dirty) this.Compute_BoundingBox();	
+
+	this.Maybe_Compute_BoundingBox();
 
 	var col_delta = -0.00001; //To avoid floating point inaccuracies
 	if (g_Collision_Compatibility_Mode)
@@ -1677,7 +1693,8 @@ yyInstance.prototype.Collision_Point = function (_x, _y, _prec) {
 
 	// handle precise collision tests
     var Result = false;
-    if (skeletonAnim) {
+    var skeletonAnim = this.SkeletonAnimation();
+    if (skeletonAnim && this.mask_index < 0) {
         Result = skeletonAnim.PointCollision(this.image_index, this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, _x, _y);
     }
     else {    
@@ -1709,18 +1726,7 @@ yyInstance.prototype.Collision_Point = function (_x, _y, _prec) {
 yyInstance.prototype.Collision_Rectangle = function (_x1, _y1, _x2, _y2, _prec) {
 	if (this.marked) return false;
 
-	var skeletonAnim = this.SkeletonAnimation();
-	if (skeletonAnim) {
-	    var oldinst = g_skeletonDrawInstance;
-	    g_skeletonDrawInstance = this;
-		if (skeletonAnim.ComputeBoundingBox(this.bbox, this.image_index, this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle)) {
-		    this.precise = true;
-		    this.bbox_dirty = false;
-		}
-		g_skeletonDrawInstance = oldinst;
-	}
-	
-	if (this.bbox_dirty) this.Compute_BoundingBox();	
+	this.Maybe_Compute_BoundingBox();
 
 	// easy cases first
 	var bbox = this.bbox;
@@ -1794,7 +1800,8 @@ yyInstance.prototype.Collision_Rectangle = function (_x1, _y1, _x2, _y2, _prec) 
 
 	// handle precise collision tests
     var Result = false;
-    if (skeletonAnim) {
+    var skeletonAnim = this.SkeletonAnimation();
+    if (skeletonAnim && this.mask_index < 0) {
         Result = skeletonAnim.RectangleCollision(this.image_index, this.x, this.y, 
                                                  this.image_xscale, this.image_yscale, this.image_angle, 
 			                                     _x1, _y1, _x2, _y2);
@@ -1849,17 +1856,7 @@ yyInstance.prototype.Collision_Ellipse = function (_x1, _y1, _x2, _y2, _prec) {
 
 	if (this.marked) return false;
 
-	var skeletonAnim = this.SkeletonAnimation();
-	if (skeletonAnim) {
-	    var oldinst = g_skeletonDrawInstance;
-	    g_skeletonDrawInstance = this;
-	    
-		if (skeletonAnim.ComputeBoundingBox(this.bbox, this.image_index, this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle)) {
-		    this.precise = true;
-		    this.bbox_dirty = false;
-		}
-	    g_skeletonDrawInstance = oldinst;
-	}
+	this.Maybe_Compute_BoundingBox();
 
     if (this.bbox_dirty) this.Compute_BoundingBox();
     
@@ -1939,7 +1936,8 @@ yyInstance.prototype.Collision_Ellipse = function (_x1, _y1, _x2, _y2, _prec) {
 	g_rr.bottom = max_y1y2;
 
 	// handle precise collision tests
-    if (skeletonAnim) {
+    var skeletonAnim = this.SkeletonAnimation();
+    if (skeletonAnim && this.mask_index < 0) {
         return skeletonAnim.EllipseCollision(this.image_index, this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, g_rr);
     }
     else {	    
@@ -1966,20 +1964,7 @@ yyInstance.prototype.Collision_Line = function (_x1, _y1, _x2, _y2, _prec) {
 
 	if (this.marked) return false;
 
-	var skeletonAnim = this.SkeletonAnimation();
-	if (skeletonAnim) {
-	
-	    var oldinst = g_skeletonDrawInstance;
-	    g_skeletonDrawInstance = this;
-	    
-		if (skeletonAnim.ComputeBoundingBox(this.bbox, this.image_index, this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle)) {
-		    this.precise = true;
-		    this.bbox_dirty = false;
-		}
-	    g_skeletonDrawInstance = oldinst;
-	
-	}
-	if (this.bbox_dirty) this.Compute_BoundingBox();	
+	this.Maybe_Compute_BoundingBox();
 
 	// easy cases first    
 	var i_bbox = this.bbox;
@@ -2039,7 +2024,8 @@ yyInstance.prototype.Collision_Line = function (_x1, _y1, _x2, _y2, _prec) {
 	if (!_prec || !this.precise) { return true; }
 
 	// handle precise collision tests
-	if (skeletonAnim) {
+	var skeletonAnim = this.SkeletonAnimation();
+	if (skeletonAnim && this.mask_index < 0) {
 	    return skeletonAnim.LineCollision(this.image_index, this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, _x1, _y1, _x2, _y2);
 	}
 	else {
@@ -2055,29 +2041,10 @@ yyInstance.prototype.Collision_Line = function (_x1, _y1, _x2, _y2, _prec) {
 ///          </summary>
 // #############################################################################################
 yyInstance.prototype.Collision_Skeleton = function (inst, prec)
-{	
-	var skel1 = this.SkeletonAnimation();
-	var skel2 = inst.SkeletonAnimation();
-	
-	var spr1 = g_pSpriteManager.Get(this.sprite_index);	
-
-    var oldinst = g_skeletonDrawInstance;
-    g_skeletonDrawInstance = this;
-	// Go ahead and get the bounding box for our animation	
-	if (skel1.ComputeBoundingBox(this.bbox, this.image_index, this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle)) {
-	    this.bbox_dirty = false;
-	}
-	g_skeletonDrawInstance = inst;
-	if (skel2) {
-		// Skeleton vs skeleton collision
-		if (skel2.ComputeBoundingBox(inst.bbox, inst.image_index, inst.x, inst.y, inst.image_xscale, inst.image_yscale, inst.image_angle)) {
-		    inst.bbox_dirty = false;
-		}
-	}
-	g_skeletonDrawInstance = oldinst;
-	// Skeleton vs sprite collision
-	if (this.bbox_dirty) this.Compute_BoundingBox();
-	if (inst.bbox_dirty) inst.Compute_BoundingBox();
+{
+	// Go ahead and get the bounding box for our animation
+	this.Maybe_Compute_BoundingBox();
+	inst.Maybe_Compute_BoundingBox();
 
 	// Do the bounds overlap test
 	if ( inst.bbox.left     >= this.bbox.right+1  ) return false;
@@ -2099,8 +2066,11 @@ yyInstance.prototype.Collision_Skeleton = function (inst, prec)
 	
 	if (!prec || (!this.precise && !inst.precise)) return true;
 
+	var skel1 = this.SkeletonAnimation();
+	var skel2 = inst.SkeletonAnimation();
+
 	// At this stage, decide how to test for a collision between the two "sprites"
-	if (skel2) {
+	if (skel2 && inst.mask_index < 0) {
 		return skel1.SkeletonCollision(this.image_index, this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle,
 			skel2, inst.image_index, inst.x, inst.y, inst.image_xscale, inst.image_yscale, inst.image_angle);				
 	}

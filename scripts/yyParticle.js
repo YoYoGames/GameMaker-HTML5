@@ -158,6 +158,9 @@ function Emitter_Reset()
 
 	this.created = true;		// whether created
 
+	this.name = undefined;
+	this.enabled = true;            // if false then the emitter is disabled and it shouldn't spawn particles
+	
 	this.mode = PT_MODE_UNDEFINED;	// stream or burst
 	this.number = 0;				// number of particles to create
 
@@ -370,7 +373,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 		var em = ParticleSystem_Emitter_Create(ps);
 		var instanceEmitter = system.emitters[em];
 
-		//instanceEmitter.enabled = templateEmitter.enabled;
+		instanceEmitter.enabled = templateEmitter.enabled;
 		instanceEmitter.mode = templateEmitter.mode;
 		instanceEmitter.number = templateEmitter.number;
 		instanceEmitter.posdistr = templateEmitter.posdistr;
@@ -381,6 +384,8 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 		instanceEmitter.ymax = templateEmitter.ymax;
 		//instanceEmitter.rotation = templateEmitter.rotation;
 		instanceEmitter.parttype = templateEmitter.parttype;
+
+		if (!instanceEmitter.enabled) continue;
 
 		if (instanceEmitter.mode == PT_MODE_STREAM)
 		{
@@ -1312,8 +1317,8 @@ function ParticleSystem_Emitters_Load(_GameFile)
 		////////////////////////////////////////////////////////////////////////
 		// Emitter
 		var emitter = new yyEmitter();
-		// TODO: Use emitter name from YYPSEmitter
-		//emitter.enabled = yypse.enabled;
+		emitter.name = yypse.pName;
+		emitter.enabled = yypse.enabled;
 		emitter.mode = yypse.mode;
 		emitter.number = yypse.emitCount;
 		emitter.posdistr = yypse.distribution;
@@ -1657,7 +1662,7 @@ function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 function	ParticleSystem_Particles_Create_Color( _ps, _x, _y, _parttype, _col, _numb)
 {
     var em = (g_ParticleSystems[_ps].emitters.length == 0)
-		? ParticleSystem_Emitter_Create(ps)
+		? ParticleSystem_Emitter_Create(_ps)
 		: 0;
 
 	EmitParticles(_ps, em, _x, _y, _parttype, _numb, true, _col);
@@ -1678,7 +1683,11 @@ function	ParticleSystem_Particles_Clear(_ps)
 	if( pPartSys ==null || pPartSys==undefined ) return false;
 
 	for (var i = pPartSys.emitters.length - 1; i >= 0; --i)
-		pPartSys.emitters[i].particles = [];
+	{
+		var pEmitter = pPartSys.emitters[i];
+		if (pEmitter == null) continue;
+		pEmitter.particles = [];
+	}
 
 	return true;
 }
@@ -1716,7 +1725,11 @@ function	ParticleSystem_Particles_Count( _ps )
 
 	var count = 0;
 	for (var i = pPartSys.emitters.length - 1; i >= 0; --i)
-		count += pPartSys.emitters[i].particles.length;
+	{
+		var pEmitter = pPartSys.emitters[i];
+		if (pEmitter == null) continue;
+		count += pEmitter.particles.length;
+	}
 
 	return count;
 }
@@ -2313,15 +2326,19 @@ function ParticleSystem_Update(_ps)
 	{
 		for (var i = 0; i < pEmitters.length; i++)
 		{
+			var pEmitter = pEmitters[i];
+			
+			if (pEmitter == null) continue;
+			if (!pEmitter.enabled) continue;
+			
 			HandleLife(_ps, i);
 			HandleMotion(_ps, i);
 			HandleShape(_ps, i);
 
-			if( pEmitters[i]!=null
-				&& pEmitters[i].mode != PT_MODE_BURST
-				&& pEmitters[i].number != 0)
+			if(pEmitter.mode != PT_MODE_BURST
+				&& pEmitter.number != 0)
 			{
-				ParticleSystem_Emitter_Burst(_ps, i, pEmitters[i].parttype, pEmitters[i].number);
+				ParticleSystem_Emitter_Burst(_ps, i, pEmitter.parttype, pEmitter.number);
 			}
 		}
 	}
@@ -2520,7 +2537,10 @@ function ParticleSystem_Draw( _ps, _color, _alpha )
 	
 	for (var e = 0; e < pPartSys.emitters.length; ++e)
 	{
-		var pParticles = pPartSys.emitters[e].particles;
+		var pEmitter = pPartSys.emitters[e];
+		if (pEmitter == null) continue;
+		if (!pEmitter.enabled) continue;
+		var pParticles = pEmitter.particles;
 		if ( pPartSys.oldtonew )
 		{
 			for (var i = 0; i < pParticles.length; i++)
