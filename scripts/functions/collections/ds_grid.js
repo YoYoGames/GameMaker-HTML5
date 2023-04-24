@@ -1996,24 +1996,12 @@ function ds_grid_sort(_id, _column, _ascending) {
 // #############################################################################################
 function ds_grid_to_mp_grid(_src, _dest, _predicate) {
 
-	_dest = yyGetInt32(_dest);
-    _src = yyGetInt32(_src);
-
-    var gridnum = g_ActiveGrids.count;
-    var mpnum = g_MPGridColletion.count;
-
-    if ((_dest < 0) || (_dest >= mpnum) || (_src < 0) || (_src >= gridnum))
-    { 
-        yyError("Error: Invalid source or destination grid");
-        return;
-    }
-
-    var pGrid = g_ActiveGrids.Get(_src);
-    var pMPGrid = g_MPGridColletion.Get(_dest);
+    var pGrid = g_ActiveGrids.Get(yyGetInt32(_src));
+    var pMPGrid = g_ActiveGrids.Get(yyGetInt32(_dest));
 
     if (pMPGrid == null || pGrid == null)
-    { 
-        yyError("Error: Invalid source or destination grid");
+    {
+        yyError("Error: Invalid source or destination grid (ds_grid_to_mp_grid)");
         return; 
     }
 
