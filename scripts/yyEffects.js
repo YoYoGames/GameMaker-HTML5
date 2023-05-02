@@ -292,10 +292,7 @@ function yyFilterHost(_pShader, _shaderId, _pEffectInfo)
 	}
 	this[funcId] = this.RoomEnd;
 
-	var varId = "gml" + EFFECT_AFFECT_SINGLE_LAYER_VAR;
-	if ((typeof g_var2obf !== "undefined") && (g_var2obf[EFFECT_AFFECT_SINGLE_LAYER_VAR] != undefined)) {
-		varId = g_var2obf[EFFECT_AFFECT_SINGLE_LAYER_VAR];
-	}
+	var varId = EFFECT_AFFECT_SINGLE_LAYER_VAR;
 	this[varId] = false;		// set this to false initially
 
 	this.GetCommonShaderConstants();
@@ -346,10 +343,7 @@ yyFilterHost.prototype.LayerBegin = function (_layerID)
 	
 	// Check to see if this filter should apply only to this layer
 	var bOnlyThisLayer = false;
-	var varId = "gml" + EFFECT_AFFECT_SINGLE_LAYER_VAR;
-	if ((typeof g_var2obf !== "undefined") && (g_var2obf[EFFECT_AFFECT_SINGLE_LAYER_VAR] != undefined)) {
-		varId = g_var2obf[EFFECT_AFFECT_SINGLE_LAYER_VAR];
-	}
+	var varId = EFFECT_AFFECT_SINGLE_LAYER_VAR;
 	var pVar = this[varId];
 	if (pVar !== undefined)	
 	{
@@ -427,7 +421,7 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 	var scratchSurface = -1;
 	if (this.tempSurfaceID != -1)
 	{
-		g_webGL.RSMan.RestoreStates();
+		g_webGL.RSMan.RestoreStates(true);
 		surface_reset_target();
 	}
 	else
@@ -621,7 +615,7 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 	}
 
 	// Restore state
-    g_webGL.RSMan.RestoreStates();
+    g_webGL.RSMan.RestoreStates(true);
 	shader_set(BackupUserShader);
 	//g_webGL.FlushAll();  //FlushShader();
 	GR_Depth = olddepth;
@@ -1150,11 +1144,7 @@ yyEffectsManager.prototype.CreateNewEffectInstance = function (_effectname, _aut
 		newEffect.SetDefaultValues();
 
 		var bAffectsSingleLayerOnly = false;
-		var varId = "gml" + EFFECT_AFFECT_SINGLE_LAYER_VAR;
-		if ((typeof g_var2obf !== "undefined") && (g_var2obf[EFFECT_AFFECT_SINGLE_LAYER_VAR] != undefined)) {
-			varId = g_var2obf[EFFECT_AFFECT_SINGLE_LAYER_VAR];
-		}
-		newEffect[varId] = bAffectsSingleLayerOnly;
+		newEffect.SetParam(EFFECT_AFFECT_SINGLE_LAYER_VAR, FAE_PARAM_BOOL, 1, [ bAffectsSingleLayerOnly ]);		// hard code this just now
 
 		return newEffect;
 	}
@@ -1234,12 +1224,8 @@ yyEffectsManager.prototype.SetupLayerEffect = function (_pRoom, _pLayer)
 				var pParam = pEffectInfo.pParams[i]; //CLayerEffectParam
 				pEffectInst.SetParam(pParam.pName, pParam.type, pParam.elements, pParam.defaults_data);
 			}
-
-			var varId = "gml" + EFFECT_AFFECT_SINGLE_LAYER_VAR;
-			if ((typeof g_var2obf !== "undefined") && (g_var2obf[EFFECT_AFFECT_SINGLE_LAYER_VAR] != undefined)) {
-				varId = g_var2obf[EFFECT_AFFECT_SINGLE_LAYER_VAR];
-			}			
-			pEffectInst.SetParam(varId, FAE_PARAM_BOOL, 1, [ pEffectInfo.bAffectsSingleLayerOnly ]);
+		
+			pEffectInst.SetParam(EFFECT_AFFECT_SINGLE_LAYER_VAR, FAE_PARAM_BOOL, 1, [ pEffectInfo.bAffectsSingleLayerOnly ]);
 		}
 	}
 	else
@@ -1265,11 +1251,7 @@ yyEffectsManager.prototype.SetupLayerEffect = function (_pRoom, _pLayer)
 					_pLayer.SetEffect(pEffectInst.GetRef());
 					_pRoom.AddEffectLayerID(_pLayer.m_id);
 
-					var varId = "gml" + EFFECT_AFFECT_SINGLE_LAYER_VAR;
-					if ((typeof g_var2obf !== "undefined") && (g_var2obf[EFFECT_AFFECT_SINGLE_LAYER_VAR] != undefined)) {
-						varId = g_var2obf[EFFECT_AFFECT_SINGLE_LAYER_VAR];
-					}
-					pEffectInst.SetParam(varId, FAE_PARAM_BOOL, 1, [ false ]);		// hard code this just now
+					pEffectInst.SetParam(EFFECT_AFFECT_SINGLE_LAYER_VAR, FAE_PARAM_BOOL, 1, [ false ]);		// hard code this just now
 				}
 			}
 		}

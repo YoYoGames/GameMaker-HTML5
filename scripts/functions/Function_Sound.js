@@ -105,11 +105,7 @@ function audio_update()
     // Update and apply gains
     g_AudioGroups.forEach(_group => _group.gain.update());
     audio_sampledata.forEach(_asset => _asset.gain.update());
-    audio_sounds.filter(_voice => _voice.bActive === true)
-                .forEach(_voice => {
-                    _voice.gain.update();
-                    _voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(_voice);
-                });
+    audio_sounds.forEach(_voice => _voice.updateGain());
 }
 
 var g_hidden;
@@ -368,6 +364,8 @@ audioSound.prototype.start = function(_buffer) {
             this.pgainnode.disconnect();
 
         this.pemitter = null;
+
+        this.throwOnEndedEvent(false);
     };
 
     this.pbuffersource.connect(this.pgainnode);
@@ -376,8 +374,14 @@ audioSound.prototype.start = function(_buffer) {
         contextTime: g_WebAudioContext.currentTime,
         bufferTime: startOffset
     };
-    
+
     this.pbuffersource.start(0, startOffset);
+
+    // This is for the case where a streamed asset is paused while it was decoding.
+    // Note that AudioBufferSourceNode requires 'start' to have been called before 
+    // the first call to 'stop', else an InvalidStateError exception will be thrown.
+    if (this.paused === true)
+        this.pause();
 };
 
 audioSound.prototype.play = function() {
@@ -463,12 +467,13 @@ audioSound.prototype.stop = function() {
         this.pgainnode.disconnect();
 
     this.pemitter = null;
-    this.soundid = -1;
     this.bActive = false;
+
+    this.throwOnEndedEvent(true);
 };
 
 audioSound.prototype.pause = function() {
-    if (this.bActive === false || this.paused === true)
+    if (this.bActive === false)
         return;
 
     //remove ended handler which sets bActive to false - 
@@ -478,7 +483,7 @@ audioSound.prototype.pause = function() {
         queue_sounds[queueSoundId].scriptNode.onended = null;
         queue_sounds[queueSoundId].scriptNode.disconnect(0);
     }
-    else {
+    else if (this.pbuffersource !== null) {
         this.pbuffersource.onended = null;
         this.pbuffersource.stop(0);
         this.pbuffersource.disconnect();
@@ -492,6 +497,8 @@ audioSound.prototype.resume = function() {
     if (this.bActive === false || this.paused === false)
         return;
 
+    this.paused = false;
+
     if (this.soundid >= BASE_QUEUE_SOUND_INDEX 
     && this.soundid < (BASE_QUEUE_SOUND_INDEX + g_queueSoundCount)) {
         const queueSoundId = this.soundid - BASE_QUEUE_SOUND_INDEX;
@@ -504,8 +511,6 @@ audioSound.prototype.resume = function() {
         this.startoffset = this.playbackCheckpoint.bufferTime;
         this.start(this.pbuffersource.buffer);
     }
-
-    this.paused = false;
 };
 
 audioSound.prototype.isPlaying = function() {
@@ -528,7 +533,7 @@ audioSound.prototype.isPlaying = function() {
         // ... we should get rid of it then
         if (this.pbuffersource.playbackState == undefined 
         || this.pbuffersource.playbackState != this.pbuffersource.FINISHED_STATE
-        || _audioSound.paused) {
+        || this.paused) {
             return true;
         }
     }
@@ -740,6 +745,24 @@ audioSound.prototype.setPlaybackPosition = function(_offset) {
     }
 };
 
+audioSound.prototype.setGain = function(_gain, _rampTimeMs = 0) {
+    if (this.bActive === false || this.pgainnode === null)
+        return;
+
+    this.gain.set(_gain, _rampTimeMs);
+
+    if (_rampTimeMs === 0)
+        this.updateGain();
+};
+
+audioSound.prototype.updateGain = function() {
+    if (this.bActive === false || this.pgainnode === null)
+        return;
+
+    this.gain.update();
+    this.pgainnode.gain.value = AudioPropsCalc.CalcGain(this);
+};
+
 audioSound.prototype.setPitch = function(_pitch) {
     if (this.bActive === false)
         return;
@@ -770,6 +793,32 @@ audioSound.prototype.getAssetIndex = function() {
 
     return this.soundid;
 };
+
+audioSound.prototype.throwOnEndedEvent = function(_wasStopped) {
+    const asyncNode = g_pASyncManager.Add(undefined, undefined, ASYNC_AUDIO_PLAYBACK_ENDED, undefined);
+    asyncNode.voiceHandle = this.handle;
+    asyncNode.assetIndex = this.soundid;
+    asyncNode.wasStopped = _wasStopped;
+    asyncNode.m_Complete = true;
+};
+
+function ClampAndWarn(_val, _lo, _hi, _fn, _arg) {
+    let newVal = _val;
+
+    if (isNaN(newVal) === true)
+        newVal = 0.0;
+
+    if (isNaN(_lo) === false)
+        newVal = Math.max(_lo, newVal);
+
+    if (isNaN(_hi) === false)
+        newVal = Math.min(newVal, _hi);
+
+    if (newVal !== _val)
+        console.warn(_fn + ": argument '" + _arg + "' was clamped (" + _val + " => " + newVal + ").");
+
+    return newVal;
+}
 
 function GetAudioSoundFromHandle( _handle )
 {
@@ -1408,45 +1457,36 @@ function audio_sound_get_gain(_index)
 
 function audio_sound_gain(_index, _gain, _timeMs)
 {
-    if (g_AudioModel != Audio_WebAudio)
-        return;
-
     _index = yyGetInt32(_index);
 
     _gain = yyGetReal(_gain);
-    _gain = Math.max(0, _gain);
+    _gain = ClampAndWarn(_gain, 0.0, undefined, "audio_sound_gain", "gain");
 
-    _timeMs = yyGetInt32(_timeMs); 
-    _timeMs = Math.max(0, _timeMs);
+    _timeMs = yyGetInt32(_timeMs);
+    _timeMs = ClampAndWarn(_timeMs, 0, undefined, "audio_sound_gain", "timeMs");
 
     if (_index >= BASE_SOUND_INDEX) {
         const voice = GetAudioSoundFromHandle(_index);
 
-        if (voice == null)
+        if (voice === null)
             return;
 
-        if (voice.bActive) {
-            voice.gain.set(_gain, _timeMs);
-
-            if (_timeMs == 0) 
-                voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(voice);
-        }
+        voice.setGain(_gain, _timeMs);
     }
     else {
         const asset = Audio_GetSound(_index);
 
-        if (asset !== undefined) {
-            asset.gain.set(_gain, _timeMs);
+        if (asset === null)
+            return;
 
-            if (_timeMs == 0) {
-                // Update all the active voices playing this asset
-                audio_sounds.forEach(_voice => {
-                    if (_voice.bActive && _voice.soundid == _index) {
-                        _voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(_voice);
-                    }
-                });
-            }
-        }
+        asset.gain.set(_gain, _timeMs);
+
+        if (_timeMs > 0.0)
+            return; /* Gain update for voices will be handled in audio_update */
+
+        /* Update all voices playing this asset */
+        audio_sounds.filter(_voice => _voice.soundid === _index)
+                    .forEach(_voice => _voice.updateGain());
     }
 }
 
@@ -3634,4 +3674,16 @@ function audio_bus_clear_emitters(_bus) {
                       g_AudioBusMain.connectInput(_emitter.gainnode);
                       _emitter.bus = g_AudioBusMain;
                   });
+}
+
+function lin_to_db(_x) {
+    _x = yyGetReal(_x);
+    
+    return 20 * Math.log10(_x);
+}
+
+function db_to_lin(_x) {
+    _x = yyGetReal(_x);
+
+    return Math.pow(10, _x / 20);
 }

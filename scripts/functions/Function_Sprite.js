@@ -741,7 +741,7 @@ function sprite_duplicate_RELEASE(_ind)
 ///				When an error occurs -1 is returned.
 ///			 </returns>
 // #############################################################################################
-function sprite_add(_filename, _imgnumb, _removeback, _smooth, _xorig, _yorig)
+function sprite_add(_filename, _imgnumb, _removeback, _smooth, _xorig, _yorig, _prefetch)
 {
     _filename = yyGetString(_filename);
     _imgnumb = yyGetInt32(_imgnumb);
@@ -757,6 +757,14 @@ function sprite_add(_filename, _imgnumb, _removeback, _smooth, _xorig, _yorig)
 
 	if (_filename.substring(0, 5) == "file:") return -1;
 	pNewSpr.pName = _filename;
+
+	if (_prefetch != undefined)
+	{
+		if (_prefetch)
+		{
+			pNewSpr.prefetchOnLoad = true;
+		}
+	}
 
 	var newindex = g_pSpriteManager.AddSprite(pNewSpr);
 
@@ -826,6 +834,11 @@ function sprite_add(_filename, _imgnumb, _removeback, _smooth, _xorig, _yorig)
 	}
 
 	return newindex;
+}
+
+function sprite_add_ext(_filename, _imgnumb, _xorig, _yorig, _prefetch)
+{
+	return sprite_add(_filename, _imgnumb, false, false, _xorig, _yorig, _prefetch);
 }
 
 // #############################################################################################

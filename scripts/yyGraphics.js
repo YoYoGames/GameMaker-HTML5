@@ -1809,4 +1809,38 @@ function gif_add_surface(gif, surface, delaytime, xoffset, yoffset, quantquality
     }
 };
 
+function yyRotationMatrix(angleDegrees)
+{
+	this.m_angleDegrees = angleDegrees;
+	this.m_angleRadians = angleDegrees * Math.PI / 180.0;
+	
+	this.m_sin = Math.sin(this.m_angleRadians);
+	this.m_cos = Math.cos(this.m_angleRadians);
+}
 
+yyRotationMatrix.prototype = {
+	get angleDegrees() { return this.m_angleDegrees; },
+	get angleRadians() { return this.m_angleRadians; },
+	
+	get matrix()
+	{
+		return [
+			[ this.m_cos, -this.m_sin ],
+			[ this.m_sin, this.m_cos ],
+		];
+	},
+};
+
+function RotatePointAroundOrigin(point_xy, origin_xy, angle)
+{
+	var point_x = point_xy[0];
+	var point_y = point_xy[1];
+	
+	var origin_x = origin_xy[0];
+	var origin_y = origin_xy[1];
+	
+	var rotated_x = angle.matrix[0][0] * (point_x - origin_x) + angle.matrix[0][1] * (point_y - origin_y) + origin_x;
+	var rotated_y = angle.matrix[1][0] * (point_x - origin_x) + angle.matrix[1][1] * (point_y - origin_y) + origin_y;
+
+	return [ rotated_x, rotated_y ];
+}

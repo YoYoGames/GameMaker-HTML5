@@ -2,8 +2,36 @@
 // Copyright (C) 2019, YoYo Games Ltd. All Rights reserved.
 // **********************************************************************************************************************
 
+function extension_exists(_extension_name)
+{
+    _extension_name = yyGetString(_extension_name);
+    // Search for the first element that matches the predicate
+    const extension = g_pGMFile.Extensions.find(entry => entry["name"] == _extension_name);
+    return extension !== undefined;
+}
+
+function extension_get_version(_extension_name)
+{
+    _extension_name = yyGetString(_extension_name);
+    try {
+        // Search for the first element that matches the predicate
+        const extension = g_pGMFile.Extensions.find(entry => entry["name"] == _extension_name);
+        // Returns 'version' if found, else return 'undefined'
+        if (extension === undefined) return undefined;
+        return extension.version;
+
+    } catch( _ex ) {
+        show_debug_message( "extension_get_version :: caught unhandled exception " + _ex.message );
+    } // end catch
+
+    return undefined;
+}
+
 function extension_get_option_value(_extension_name, _option_name)
 {
+    _extension_name = yyGetString(_extension_name);
+    _option_name = yyGetString(_option_name);
+
     try {
         if( g_pGMFile.ExtensionOptions !== undefined ) 
         {
@@ -13,7 +41,7 @@ function extension_get_option_value(_extension_name, _option_name)
             }
         }
     } catch( _ex ) {
-        show_debug_message( "caught unhandled exception " + _ex.message );
+        show_debug_message( "extension_get_option_value :: caught unhandled exception " + _ex.message );
     } // end catch
 
     return undefined;
@@ -21,6 +49,7 @@ function extension_get_option_value(_extension_name, _option_name)
 
 function extension_get_option_count(_extension_name)
 {
+    _extension_name = yyGetString(_extension_name);
     try {
         if( g_pGMFile.ExtensionOptions !== undefined ) 
         {
@@ -30,7 +59,7 @@ function extension_get_option_count(_extension_name)
             }
         }
     } catch( _ex ) {
-        show_debug_message( "caught unhandled exception " + _ex.message );
+        show_debug_message( "extension_get_option_count :: caught unhandled exception " + _ex.message );
     } // end catch
 
     return 0;
@@ -38,6 +67,7 @@ function extension_get_option_count(_extension_name)
 
 function extension_get_option_names(_extension_name)
 {
+    _extension_name = yyGetString(_extension_name);
     try {
         if( g_pGMFile.ExtensionOptions !== undefined ) 
         {
@@ -47,7 +77,7 @@ function extension_get_option_names(_extension_name)
             }
         }
     } catch( _ex ) {
-        show_debug_message( "caught unhandled exception " + _ex.message );
+        show_debug_message( "extension_get_option_names :: caught unhandled exception " + _ex.message );
     } // end catch
 
     return [];
@@ -55,6 +85,7 @@ function extension_get_option_names(_extension_name)
 
 function extension_get_options(_extension_name)
 {
+    _extension_name = yyGetString(_extension_name);
     try {
         if( g_pGMFile.ExtensionOptions !== undefined ) 
         {
@@ -70,7 +101,7 @@ function extension_get_options(_extension_name)
             }
         }
     } catch( _ex ) {
-        show_debug_message( "caught unhandled exception " + _ex.message );
+        show_debug_message( "extension_get_options :: caught unhandled exception " + _ex.message );
     } // end catch
 
     return {};

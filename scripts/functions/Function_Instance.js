@@ -570,7 +570,7 @@ function instance_deactivate_all(_inst, _notme) {
 				g_RunRoom.DeactivateInstance(list[i]); // if we want to deactive "me" then do so...
 			} else
 			{
-				g_RunRoom.m_Active.AddUnsorted(list[i]);
+				g_RunRoom.m_Active.Add(list[i]);
 			}
 		} else
 		{

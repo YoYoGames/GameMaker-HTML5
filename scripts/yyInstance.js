@@ -1548,7 +1548,7 @@ yyInstance.prototype.Compute_BoundingBox = function() {
             }
             
             if (g_Collision_Compatibility_Mode) {
-                this.bbox.left = Math.floor((this.x + cc_xmin + ss_ymin) + 0.5);
+                bbox.left = Math.floor((this.x + cc_xmin + ss_ymin) + 0.5);
                 bbox.right = Math.floor((this.x + cc_xmax + ss_ymax) - 0.5);
             }
             else {
@@ -2867,8 +2867,8 @@ yyInstance.prototype.RefreshPhysicalProperties = function (_physicsBody) {
 	this.bbox_dirty = true;
 	
 	this.__phy_rotation = (_physicsBody.GetAngle() * 180.0) / Math.PI;
-	this.__phy_position_x = this.x;
-	this.__phy_position_y = this.y;        	
+	this.__phy_position_x = this.x - finalOffset.x;
+	this.__phy_position_y = this.y - finalOffset.y;
     this.__phy_angular_velocity = (_physicsBody.GetAngularVelocity() * 180.0) / Math.PI;
     this.__phy_linear_velocity_x = _physicsBody.GetLinearVelocity().x * metreToPixelScale;     // pixels per sec
     this.__phy_linear_velocity_y = _physicsBody.GetLinearVelocity().y * metreToPixelScale;     // pixels per sec
