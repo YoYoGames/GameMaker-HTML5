@@ -1,4 +1,4 @@
-﻿// **********************************************************************************************************************
+// **********************************************************************************************************************
 // 
 // Copyright (c)2018, YoYo Games Ltd. All Rights reserved.
 // 
@@ -907,20 +907,22 @@ function camera_set_view_target(arg0, arg1) {
     }
 };
 
-
 function camera_set_update_script(arg0, arg1) {
     var pCam = g_pCameraManager.GetCamera(yyGetInt32(arg0));
     if (pCam != null) {
-        if(typeof (arg1) === "number")
+        switch (typeof arg1)
         {
-            var ind = yyGetInt32(arg1);
-            if( ind >= 100000 )
-                ind -= 100000;
-            pCam.SetUpdateScript(g_pGMFile.Scripts[ind]);
-        }
-        else if(typeof arg1 == "function")
-        {
-            pCam.SetUpdateScript(arg1);
+            case "number":
+                var ind = yyGetInt32(arg1);
+                if (ind >= 100000)
+                    ind -= 100000;
+                pCam.SetUpdateScript(g_pGMFile.Scripts[ind]);
+                break;
+            case "function":
+                pCam.SetUpdateScript(arg1);
+                break;
+            default:    
+                yyError("camera_set_end_script : argument0 is not a function or a script");
         }
     }
 };
@@ -928,16 +930,19 @@ function camera_set_update_script(arg0, arg1) {
 function camera_set_begin_script(arg0, arg1) {
     var pCam = g_pCameraManager.GetCamera(yyGetInt32(arg0));
     if (pCam != null) {
-        if(typeof (arg1) === "number")
+        switch (typeof arg1)
         {
-            var ind = yyGetInt32(arg1);
-            if( ind >= 100000 )
-                ind -= 100000;
-            pCam.SetBeginScript(g_pGMFile.Scripts[ind]);
-        }
-        else if(typeof arg1 == "function")
-        {
-            pCam.SetBeginScript(arg1);
+            case "number":
+                var ind = yyGetInt32(arg1);
+                if( ind >= 100000 )
+                    ind -= 100000;
+                pCam.SetBeginScript(g_pGMFile.Scripts[ind]);
+                break;
+            case "function":
+                pCam.SetBeginScript(arg1);
+                break;
+            default:    
+                yyError("camera_set_begin_script : argument0 is not a function or a script");
         }
     }
 };
@@ -945,16 +950,19 @@ function camera_set_begin_script(arg0, arg1) {
 function camera_set_end_script(arg0, arg1) {
     var pCam = g_pCameraManager.GetCamera(yyGetInt32(arg0));
     if (pCam != null) {
-        if(typeof (arg1) === "number")
+        switch (typeof arg1)
         {
-            var ind = yyGetInt32(arg1);
-            if( ind >= 100000 )
-                ind -= 100000;
-            pCam.SetEndScript(g_pGMFile.Scripts[ind]);
-        }
-        else if(typeof arg1 == "function")
-        {
-            pCam.SetEndScript(arg1);
+            case "number":
+                var ind = yyGetInt32(arg1);
+                if( ind >= 100000 )
+                    ind -= 100000;
+                pCam.SetEndScript(g_pGMFile.Scripts[ind]);
+                break;
+            case "function":
+                pCam.SetEndScript(arg1);
+                break;
+            default:    
+                yyError("camera_set_end_script : argument0 is not a function or a script");
         }
     }
 };
@@ -1054,26 +1062,53 @@ function camera_get_view_target(arg0) {
     }
     return -1;
 };
+
 function camera_get_update_script(arg0) {
     var pCam = g_pCameraManager.GetCamera(yyGetInt32(arg0));
     if (pCam != null) {
-        return method_get_index(pCam.GetUpdateScript());
+        var script = pCam.GetUpdateScript();
+        if (typeof script === "number")
+        {
+            return method_get_index(script);
+        }
+        else if (typeof script == "function")
+        {
+            return script;
+        }
     }
-    return null;
+    return -1;
 };
+
 function camera_get_begin_script(arg0) {
     var pCam = g_pCameraManager.GetCamera(yyGetInt32(arg0));
     if (pCam != null) {
-        return method_get_index(pCam.GetBeginScript());
+        var script = pCam.GetBeginScript();
+        if (typeof script === "number")
+        {
+            return method_get_index(script);
+        }
+        else if (typeof script == "function")
+        {
+            return script;
+        }
     }
-    return null;
+    return -1;
 };
+
 function camera_get_end_script(arg0) {
     var pCam = g_pCameraManager.GetCamera(yyGetInt32(arg0));
     if (pCam != null) {
-        return method_get_index(pCam.GetEndScript());
+        var script = pCam.GetEndScript();
+        if(typeof script === "number")
+        {
+            return method_get_index(script);
+        }
+        else if (typeof script == "function")
+        {
+            return script;
+        }
     }
-    return null;
+    return -1;
 };
 
 function camera_get_view_x(arg0) {
