@@ -1487,10 +1487,10 @@ function array_reverse_ext(_array, _offset, _length) {
     return _ret;
 } // end array_reverse_ext
 
-function array_join(_array) {
+function array_concat(_array) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("array_join : argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_concat : argument0 is not an array");
 
     var _ret = _array;
 
@@ -1498,14 +1498,14 @@ function array_join(_array) {
     for (var _idx = 1; _idx < arguments.length; _idx++) {
 
         // Check array argument
-        if (!Array.isArray(arguments[_idx])) yyError("array_join : argument" + _idx + " is not an array");
+        if (!Array.isArray(arguments[_idx])) yyError("array_concat : argument" + _idx + " is not an array");
         _ret = _ret.concat(arguments[_idx]);
     }
 
     _ret.__yy_owner = g_CurrentArrayOwner;
     return _ret;
 
-} // end array_join
+} // end array_concat
 
 function array_union(_array) {
 
