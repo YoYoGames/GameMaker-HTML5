@@ -3596,6 +3596,10 @@ function WebGL_surface_create_RELEASE(_w, _h, _format, _forceid) {
     _w = yyGetInt32(_w);
     _h = yyGetInt32(_h);
 
+    if (_w <= 0 || _h <= 0) {
+        yyError("create_surface : Trying to create a surface with size equal to or less than zero.");
+    }
+
     if( _forceid != undefined )
     {
         _forceid = yyGetInt32(_forceid);
@@ -3740,7 +3744,7 @@ function WebGL_surface_getpixel_ext_RELEASE(_id, _x, _y) {
 	    
 	    ret = g_webGL.GetPixelFromFramebuffer(pSurf.FrameBuffer, _x, _y, pSurf.FrameBufferData.Texture.Format);
     }
-    return ret;
+    return new Long(ret);
 }
 
 
