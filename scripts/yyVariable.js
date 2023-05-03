@@ -676,8 +676,9 @@ function array_insert( _array, _index )
         _index = yyGetInt32(_index);
 
         // Fill any null elements prior to the copy with 0 (real) values. 
-        // This mimics the initialisation flow of array data on VM/YYC when MemoryManager::SetLength is called. 
-        for(n = _index - 1; n >= 0; --n) { 
+        // This mimics the initialisation flow of array data on VM/YYC when MemoryManager::SetLength is called.
+        _length = _array.length;
+        for(n = _index - 1; n >= _length; --n) { 
             _array[n] = 0; 
         }
 
