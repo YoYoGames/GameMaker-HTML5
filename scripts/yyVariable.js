@@ -421,8 +421,8 @@ function __yy_gml_is_typed_array(_a) {
 
 function __yy_gml_array_check( _a, _b )
 {
-    // If it is an array or typed array create a copy of it.
-    if (Array.isArray(_a) || __yy_gml_is_typed_array(_a)) {
+    // If it is an array with a different owner or typed array create a copy of it.
+    if ((Array.isArray(_a) && _a.__yy_owner != g_CurrentArrayOwner) || __yy_gml_is_typed_array(_a)) {
         _a = _a.slice();
     }
     // If it's not an array create an empty array.
