@@ -405,16 +405,33 @@ function method_get_index( _method )
     return undefined;
 }
 
+function __yy_gml_is_typed_array(_a) {
+    return _a instanceof Int8Array ||
+        _a instanceof Uint8Array ||
+        _a instanceof Uint8ClampedArray ||
+        _a instanceof Int16Array ||
+        _a instanceof Uint16Array ||
+        _a instanceof Int32Array ||
+        _a instanceof Uint32Array ||
+        _a instanceof Float32Array ||
+        _a instanceof Float64Array ||
+        _a instanceof BigInt64Array ||
+        _a instanceof BigUint64Array;
+}
+
 function __yy_gml_array_check( _a, _b )
 {
-    if (!(_a instanceof Array)) { 
-        _a = []; 
-        _a.__yy_owner = g_CurrentArrayOwner; 
-    }
-    else if (_a.__yy_owner !== g_CurrentArrayOwner) {
+    // If it is an array with a different owner or typed array create a copy of it.
+    if ((Array.isArray(_a) && _a.__yy_owner != g_CurrentArrayOwner) || __yy_gml_is_typed_array(_a)) {
         _a = _a.slice();
-        _a.__yy_owner = g_CurrentArrayOwner;
     }
+    // If it's not an array create an empty array.
+    else if (!(_a instanceof Array)) {
+        _a = [];
+    }
+    // Set the current owner
+    _a.__yy_owner = g_CurrentArrayOwner;
+
     return _a;
 }
 
