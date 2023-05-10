@@ -9,7 +9,7 @@ function EQEffectStruct(_params) {
 
     if (_params.gmllocut === undefined) {
         this.locut = new HPF2EffectStruct();
-        this.locut.gmlcutoff = HPF2EffectStruct.paramDescriptors().cutoff.minValue;
+        this.locut.gmlcutoff = 10;
         this.locut.gmlq = 1;
     }
     else {
