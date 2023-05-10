@@ -91,11 +91,11 @@ AudioEffectStruct.paramDescriptors = () => ({
     bypass: { name: "bypass", integer: true, defaultValue: 0, minValue: 0, maxValue: 1 }
 });
 
-AudioEffectStruct.prototype.addNode = function() {
+AudioEffectStruct.prototype.addInstance = function() {
     const node = g_WorkletNodeManager.createEffect(this);
     this.nodes.push(node);
-    
-    return node;
+
+    return { input: node, output: node };
 };
 
 AudioEffectStruct.prototype.initParams = function(_params, _descriptors) {
