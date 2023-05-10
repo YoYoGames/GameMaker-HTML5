@@ -97,7 +97,8 @@ AudioEffectStruct.prototype.addInstance = function() {
     const node = g_WorkletNodeManager.createEffect(this);
     this.nodes.push(node);
 
-    return { input: node, output: node };
+    const ret = { input: node, output: node };
+    return ret;
 };
 
 AudioEffectStruct.prototype.initParams = function(_params, _descriptors) {

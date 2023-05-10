@@ -126,7 +126,8 @@ function EQEffectStruct(_params) {
             node: outputNode
         });
     
-        return { input: inputNode, output: outputNode };
+        const ret = { input: inputNode, output: outputNode };
+        return ret;
     };
 }
 
