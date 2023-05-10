@@ -12,12 +12,12 @@ AudioEffect.Type = {
     Tremolo: 6,
     PeakEQ: 7,
     HiShelf: 8,
-    LoShelf: 9
+    LoShelf: 9,
+    EQ: 10
 };
 
 AudioEffect.getWorkletName = function(_type) {
-    switch (_type)
-    {
+    switch (_type) {
         case AudioEffect.Type.Bitcrusher:   return "bitcrusher-processor";
         case AudioEffect.Type.Delay:        return "delay-processor";
         case AudioEffect.Type.Gain:         return "gain-processor";
@@ -28,6 +28,7 @@ AudioEffect.getWorkletName = function(_type) {
         case AudioEffect.Type.PeakEQ:       return "peak-eq-processor";
         case AudioEffect.Type.HiShelf:      return "hi-shelf-processor";
         case AudioEffect.Type.LoShelf:      return "lo-shelf-processor";
+        case AudioEffect.Type.EQ:           return null;
         default:                            return null;
     }
 };
@@ -83,6 +84,7 @@ AudioEffectStruct.Create = function(_type, _params) {
         case AudioEffect.Type.PeakEQ:       return new PeakEQEffectStruct(_params);
         case AudioEffect.Type.HiShelf:      return new HiShelfEffectStruct(_params);
         case AudioEffect.Type.LoShelf:      return new LoShelfEffectStruct(_params);
+        case AudioEffect.Type.EQ:           return new EQEffectStruct(_params);
         default:                            return null;
     }
 };
