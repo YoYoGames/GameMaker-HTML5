@@ -760,9 +760,9 @@ function array_sort( _array, _typeofSort )
 } // end array_sort
 
 const shuffleArray = (_array, _offset, _length) => {
-
-    _offset ??= 0;
-    _length ??= _array.length - _offset;
+    
+    _offset = _offset !== undefined ? _offset : 0;
+    _length = _length !== undefined ? _length : _array.length - _offset;
 
     for (let i = _length - 1; i > 0; --i) {
         const j = _offset + Math.floor(Math.random() * (i + 1));
