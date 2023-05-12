@@ -7,76 +7,53 @@ function EQEffectStruct(_params) {
     const paramsWereGiven = (_params !== undefined);
     _params ??= {};
 
+    this.locut = new HPF2EffectStruct(_params.gmllocut);
+    this.loshelf = new LoShelfEffectStruct(_params.gmlloshelf);
+    this.eq1 = new PeakEQEffectStruct(_params.gmleq1);
+    this.eq2 = new PeakEQEffectStruct(_params.gmleq2);
+    this.eq3 = new PeakEQEffectStruct(_params.gmleq3);
+    this.eq4 = new PeakEQEffectStruct(_params.gmleq4);
+    this.hishelf = new HiShelfEffectStruct(_params.gmlhishelf);
+    this.hicut = new LPF2EffectStruct(_params.gmlhicut);
+
     if (_params.gmllocut === undefined) {
-        this.locut = new HPF2EffectStruct();
         this.locut.gmlcutoff = 10;
         this.locut.gmlq = 1;
     }
-    else {
-        this.locut = new HPF2EffectStruct(_params.gmllocut);
-    }
 
     if (_params.gmlloshelf === undefined) {
-        this.loshelf = new LoShelfEffectStruct();
         this.loshelf.gmlfreq = 200;
         this.loshelf.gmlgain = (paramsWereGiven === true) ? db_to_lin(0) : db_to_lin(12)
     }
-    else {
-        this.loshelf = new LoShelfEffectStruct(_params.gmlloshelf);
-    }
 
     if (_params.gmleq1 === undefined) {
-        this.eq1 = new PeakEQEffectStruct();
         this.eq1.gmlfreq = 500;
         this.eq1.gmlgain = (paramsWereGiven === true) ? db_to_lin(0) : db_to_lin(-24);
     }
-    else {
-        this.eq1 = new PeakEQEffectStruct(_params.gmleq1);
-    }
 
     if (_params.gmleq2 === undefined) {
-        this.eq2 = new PeakEQEffectStruct();
         this.eq2.gmlfreq = 1000;
         this.eq2.gmlgain = db_to_lin(0);
     }
-    else {
-        this.eq2 = new PeakEQEffectStruct(_params.gmleq2);
-    }
 
     if (_params.gmleq3 === undefined) {
-        this.eq3 = new PeakEQEffectStruct();
         this.eq3.gmlfreq = 2000;
         this.eq3.gmlgain = db_to_lin(0);
     }
-    else {
-        this.eq3 = new PeakEQEffectStruct(_params.gmleq3);
-    }
 
     if (_params.gmleq4 === undefined) {
-        this.eq4 = new PeakEQEffectStruct();
         this.eq4.gmlfreq = 3000;
         this.eq4.gmlgain = db_to_lin(0);
     }
-    else {
-        this.eq4 = new PeakEQEffectStruct(_params.gmleq4);
-    }
 
     if (_params.gmlhishelf === undefined) {
-        this.hishelf = new HiShelfEffectStruct();
         this.hishelf.gmlfreq = 5000;
         this.hishelf.gmlgain = (paramsWereGiven === true) ? db_to_lin(0) : db_to_lin(18);
     }
-    else {
-        this.hishelf = new HiShelfEffectStruct(_params.gmlhishelf);
-    }
 
     if (_params.gmlhicut === undefined) {
-        this.hicut = new LPF2EffectStruct();
         this.hicut.gmlcutoff = LPF2EffectStruct.paramDescriptors().cutoff.maxValue;
         this.hicut.gmlq = 1;
-    }
-    else {
-        this.hicut = new LPF2EffectStruct(_params.gmlhicut);
     }
 
     Object.defineProperties(this, {
