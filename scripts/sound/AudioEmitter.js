@@ -18,7 +18,7 @@ AudioEmitter.createPannerNode = function() {
         return g_WebAudioContext.createPanner();
     }
 
-    return new PannerNode();
+    return new PannerNode(g_WebAudioContext);
 };
 
 AudioEmitter.prototype.reset = function() {
