@@ -1181,7 +1181,7 @@ function audio_play_sound_common(_props) {
             // Intentional fall-through
         case AudioPlaybackType.POSITIONAL_EMITTER:
             voice.pemitter = _props.emitter;
-            voice.pgainnode.connect(voice.pemitter);
+            voice.pgainnode.connect(voice.pemitter.getInput());
             break;
         default:
             debug("Warning: Unknown audio playback type => " + _props.type);
@@ -1881,15 +1881,15 @@ function audio_falloff_set_model(_model)
 
     audio_emitters.filter(_emitter => _emitter.isActive() === true)
                   .forEach(_emitter => {
-                      _emitter.distanceModel = falloff_model;
+                      _emitter.pannerNode.distanceModel = falloff_model;
 
                       //set/restore rolloff factor
                       if (g_AudioFalloffModel == DistanceModels.AUDIO_FALLOFF_NONE) {
-                          _emitter.original_rolloffFactor = _emitter.rolloffFactor;
-                          _emitter.rolloffFactor = 0;
+                          _emitter.original_rolloffFactor = _emitter.pannerNode.rolloffFactor;
+                          _emitter.pannerNode.rolloffFactor = 0;
                       }
                       else if (_emitter.original_rolloffFactor !== undefined) {
-                          _emitter.rolloffFactor = _emitter.original_rolloffFactor;
+                          _emitter.pannerNode.rolloffFactor = _emitter.original_rolloffFactor;
                           _emitter.original_rolloffFactor = undefined;
                       }
                 });
