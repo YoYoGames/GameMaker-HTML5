@@ -103,7 +103,14 @@ AudioEffectStruct.prototype.addInstance = function() {
 
 AudioEffectStruct.prototype.initParams = function(_params, _descriptors) {
     Object.values(_descriptors).forEach(_desc => {
-        const val = _params ? (_params["gml" + _desc.name] ?? _desc.defaultValue) : _desc.defaultValue;
+        const val = (() => {
+            if (_params === undefined || _params["gml" + _desc.name] === undefined) {
+                return _desc.defaultValue;
+            }
+
+            return _params["gml" + _desc.name];
+        })();
+
         this.setParam(_desc, val);
     });
 };

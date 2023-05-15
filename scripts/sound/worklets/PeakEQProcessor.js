@@ -56,8 +56,13 @@ class PeakEQProcessor extends AudioWorkletProcessor
 
             for (let s = 0; s < inputChannel.length; ++s) {
                 // Recalc coefficients if needed
-                if (!paramsAreConstant)
-                    this.calcCoefficients(freq[s] ?? freq[0], q[s] ?? q[0], gain[s] ?? gain[0]);
+                if (paramsAreConstant === false) {
+                    const f = (freq[s] !== undefined) ? freq[s] : freq[0];
+                    const qs = (q[s] !== undefined) ? q[s] : q[0];
+                    const g = (gain[s] !== undefined) ? gain[s] : gain[0];
+
+                    this.calcCoefficients(f, qs, g);
+                }
 
                 // Calculate the new sample
                 const y0 = this.b0 * inputChannel[s]
@@ -75,7 +80,9 @@ class PeakEQProcessor extends AudioWorkletProcessor
                 this.y1[c] = y0;
 
                 // Write the original/filtered sample to the output
-                outputChannel[s] = (bypass[s] ?? bypass[0]) ? inputChannel[s] : y0;
+                const b = (bypass[s] !== undefined) ? bypass[s] : bypass[0];
+
+                outputChannel[s] = (b > 0) ? inputChannel[s] : y0;
             }
         }
 
