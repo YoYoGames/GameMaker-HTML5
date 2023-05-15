@@ -36,7 +36,7 @@ function AudioPlaybackProps(_props) {
     if (typeof _props.gmlposition === "object" && this.type === undefined) {
             this.type = AudioPlaybackType.POSITIONAL_SPECIFIED;
 
-            const position = _props.position ?? _props.gmlposition;
+            const position = (_props.position !== undefined) ? _props.position : _props.gmlposition;
             this.position = {};
 
             this.getProp(position, "x", this.position, "x", false, yyGetReal, 0);
@@ -47,7 +47,9 @@ function AudioPlaybackProps(_props) {
             this.getProp(position, "falloff_factor", this.position, "falloff_factor", true, yyGetReal, 1);
     }
 
-    this.type ??= AudioPlaybackType.NON_POSITIONAL;
+    if (this.type === undefined) {
+        this.type = AudioPlaybackType.NON_POSITIONAL;
+    }
 }
 
 AudioPlaybackProps.prototype.getProp = function(_srcObj, _srcKey, _destObj, _destKey, 

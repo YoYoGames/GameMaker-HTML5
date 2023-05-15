@@ -5,7 +5,10 @@ function EQEffectStruct(_params) {
     this.initParams(_params, PeakEQEffectStruct.paramDescriptors());
 
     const paramsWereGiven = (_params !== undefined);
-    _params ??= {};
+
+    if (paramsWereGiven === false) {
+        _params = {};
+    }
 
     this.locut = new HPF2EffectStruct(_params.gmllocut);
     this.loshelf = new LoShelfEffectStruct(_params.gmlloshelf);

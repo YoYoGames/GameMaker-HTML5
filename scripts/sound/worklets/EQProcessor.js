@@ -55,7 +55,9 @@ class EQOutput extends AudioWorkletProcessor
             const outputChannel = output[c];
 
             for (let s = 0; s < input0Channel.length; ++s) {
-                if (bypass[s] ?? bypass[0]) {
+                const b = (bypass[s] !== undefined) ? bypass[s] : bypass[0];
+
+                if (b > 0) {
                     outputChannel[s] = input1Channel[s];
                 }
                 else {
