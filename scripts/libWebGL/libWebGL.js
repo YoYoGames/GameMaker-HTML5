@@ -154,7 +154,7 @@ function yyWebGL(_canvas, _options) {
         g_extTextureFloatLinear = gl.getExtension('OES_texture_float_linear');
         g_extColourBufferFloat = gl.getExtension('EXT_color_buffer_float');
         
-        if (gl instanceof WebGL2RenderingContext)
+        if (!(typeof WebGL2RenderingContext === typeof undefined) && (gl instanceof WebGL2RenderingContext))        
         {
             g_isWebGL2 = true;
         }
