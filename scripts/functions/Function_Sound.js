@@ -117,7 +117,7 @@ function audio_reinit()
 
     g_AudioMainVolumeNode.disconnect();
 
-    g_AudioMainVolumeNode = new GainNode(g_WebAudioContext);
+    g_AudioMainVolumeNode = Audio_CreateGainNode(g_WebAudioContext);
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
 
     g_WebAudioContext.listener.pos = new Vector3(0,0,0);
@@ -139,7 +139,7 @@ function Audio_Init()
     g_UseDummyAudioBus = (g_OSBrowser === BROWSER_SAFARI_MOBILE)
                       || (g_WebAudioContext.audioWorklet === undefined);
 
-    g_AudioMainVolumeNode = new GainNode(g_WebAudioContext);
+    g_AudioMainVolumeNode = Audio_CreateGainNode(g_WebAudioContext);
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
 
     if (g_UseDummyAudioBus) {
@@ -197,6 +197,17 @@ function Audio_Quit()
 	g_WebAudioContext.close().then(() => {
 		g_WebAudioContext = null;
 	});
+}
+
+function Audio_CreateGainNode(_context) {
+    if (window.AudioContext !== undefined && _context instanceof window.AudioContext) {
+        return new GainNode(_context);
+    }
+    else if (window.webkitAudioContext !== undefined && _context instanceof window.webkitAudioContext) {
+        return _context.createGain();
+    }
+
+    return undefined;
 }
 
 function Audio_GetBusType() {
