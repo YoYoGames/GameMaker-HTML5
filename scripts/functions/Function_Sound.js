@@ -130,6 +130,8 @@ function Audio_Init()
     if (g_AudioModel !== Audio_WebAudio)
         return;
 
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+
     g_WebAudioContext = new AudioContext();
     g_WebAudioContext.addEventListener("statechange", Audio_EngineReportState);
 
@@ -922,7 +924,7 @@ var g_WaitingForWebAudioTouchUnlock = false;
 var g_HandleStreamedAudioAsUnstreamed = false;
 
 function Audio_ContextExists() {
-    return g_WebAudioContext instanceof AudioContext;
+    return g_WebAudioContext instanceof AudioContext || g_WebAudioContext instanceof webkitAudioContext;
 }
 
 function Audio_IsPlaybackAllowed() {
