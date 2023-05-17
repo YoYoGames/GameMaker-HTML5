@@ -148,7 +148,7 @@ AudioBus.isNodeIndex = function(_prop)
 };
 
 function DummyAudioBus() {
-	this.outputNode = Audio_CreateGainNode(g_WebAudioContext);
+	this.outputNode = g_WebAudioContext.createGain();
 
 	this.bypass = false;
 	this.gain = 1.0;

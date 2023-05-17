@@ -117,7 +117,7 @@ function audio_reinit()
 
     g_AudioMainVolumeNode.disconnect();
 
-    g_AudioMainVolumeNode = Audio_CreateGainNode(g_WebAudioContext);
+    g_AudioMainVolumeNode = g_WebAudioContext.createGain();
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
 
     g_WebAudioContext.listener.pos = new Vector3(0,0,0);
@@ -130,17 +130,23 @@ function Audio_Init()
     if (g_AudioModel !== Audio_WebAudio)
         return;
 
+    console.log("#1");
     const AudioContext = window.AudioContext || window.webkitAudioContext;
 
     g_WebAudioContext = new AudioContext();
+    console.log("#2");
     g_WebAudioContext.addEventListener("statechange", Audio_EngineReportState);
-
+    console.log("#2.1");
     g_HandleStreamedAudioAsUnstreamed = ( g_OSPlatform == BROWSER_IOS );
+    console.log("#2.2");
     g_UseDummyAudioBus = (g_OSBrowser === BROWSER_SAFARI_MOBILE)
                       || (g_WebAudioContext.audioWorklet === undefined);
-
-    g_AudioMainVolumeNode = Audio_CreateGainNode(g_WebAudioContext);
+    console.log("#2.3");
+    g_WebAudioContext.startRendering();
+    g_AudioMainVolumeNode = g_WebAudioContext.createGain();
+    console.log("#2.5");
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
+    console.log("#3");
 
     if (g_UseDummyAudioBus) {
         Audio_CreateMainBus();
@@ -153,6 +159,8 @@ function Audio_Init()
             console.error("Failed to load audio worklets => " + _err);
         });
     }
+
+    console.log("#4");
     
     audio_falloff_set_model(DistanceModels.AUDIO_FALLOFF_NONE);
 
@@ -184,7 +192,10 @@ function Audio_Init()
     Audio_InitSampleData();
     AudioGroups_Init();
 
+    console.log("#5");
+
     Audio_WebAudioContextTryUnlock();
+    console.log("#6");
 }
 
 function Audio_Quit()
@@ -204,7 +215,7 @@ function Audio_CreateGainNode(_context) {
         return new GainNode(_context);
     }
     else if (window.webkitAudioContext !== undefined && _context instanceof window.webkitAudioContext) {
-        return _context.createGain();
+        return undefined; //_context.createGain();
     }
 
     return undefined;
