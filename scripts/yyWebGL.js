@@ -4237,7 +4237,7 @@ function WebGL_sprite_create_from_surface_RELEASE(_id, _x, _y, _w, _h, _removeba
         pNewSpr.smooth = true;
         pNewSpr.preload = true;
         pNewSpr.bboxmode = 0;
-        pNewSpr.colcheck = false;
+        pNewSpr.colcheck = yySprite_CollisionType.AXIS_ALIGNED_RECT;
         pNewSpr.xOrigin = _xorig;
         pNewSpr.yOrigin = _yorig;
         pNewSpr.copy = true;
