@@ -117,7 +117,7 @@ function audio_reinit()
 
     g_AudioMainVolumeNode.disconnect();
 
-    g_AudioMainVolumeNode = new GainNode(g_WebAudioContext);
+    g_AudioMainVolumeNode = Audio_CreateGainNode(g_WebAudioContext);
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
 
     g_WebAudioContext.listener.pos = new Vector3(0,0,0);
@@ -130,14 +130,16 @@ function Audio_Init()
     if (g_AudioModel !== Audio_WebAudio)
         return;
 
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+
     g_WebAudioContext = new AudioContext();
     g_WebAudioContext.addEventListener("statechange", Audio_EngineReportState);
-
+    
     g_HandleStreamedAudioAsUnstreamed = ( g_OSPlatform == BROWSER_IOS );
     g_UseDummyAudioBus = (g_OSBrowser === BROWSER_SAFARI_MOBILE)
                       || (g_WebAudioContext.audioWorklet === undefined);
-
-    g_AudioMainVolumeNode = new GainNode(g_WebAudioContext);
+    
+    g_AudioMainVolumeNode = Audio_CreateGainNode(g_WebAudioContext);
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
 
     if (g_UseDummyAudioBus) {
@@ -195,6 +197,17 @@ function Audio_Quit()
 	g_WebAudioContext.close().then(() => {
 		g_WebAudioContext = null;
 	});
+}
+
+function Audio_CreateGainNode(_context) {
+    if (window.AudioContext !== undefined && _context instanceof window.AudioContext) {
+        return new GainNode(_context);
+    }
+    else if (window.webkitAudioContext !== undefined && _context instanceof window.webkitAudioContext) {
+        return _context.createGain();
+    }
+
+    return undefined;
 }
 
 function Audio_GetBusType() {
@@ -290,7 +303,7 @@ audioSampleData.prototype.TryDecode = function ( _rawData, _processCommands )
 /** @constructor */
 function audioSound(_props)
 {
-    this.pgainnode = g_WebAudioContext.createGain();
+    this.pgainnode = Audio_CreateGainNode(g_WebAudioContext);
     this.pemitter = null;
     this.handle=0;
 
@@ -922,7 +935,7 @@ var g_WaitingForWebAudioTouchUnlock = false;
 var g_HandleStreamedAudioAsUnstreamed = false;
 
 function Audio_ContextExists() {
-    return g_WebAudioContext instanceof AudioContext;
+    return g_WebAudioContext instanceof AudioContext || g_WebAudioContext instanceof webkitAudioContext;
 }
 
 function Audio_IsPlaybackAllowed() {
@@ -3577,7 +3590,7 @@ function audio_start_recording(_deviceNum)
                 {
                     var source = g_WebAudioContext.createMediaStreamSource(stream);
                     source.connect(gRecorder);
-                    var gainNode = g_WebAudioContext.createGain();
+                    var gainNode = Audio_CreateGainNode(g_WebAudioContext);
                     gRecorder.connect(gainNode);
                     gainNode.connect(g_WebAudioContext.destination);
                 },
