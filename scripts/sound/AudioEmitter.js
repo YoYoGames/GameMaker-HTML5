@@ -5,7 +5,7 @@ class AudioEmitter {
             return null;
         }
         
-        this.gainnode = g_WebAudioContext.createGain();
+        this.gainnode = Audio_CreateGainNode(g_WebAudioContext);
         this.pannerNode = AudioEmitter.createPannerNode();
         this.pannerNode.connect(this.gainnode);
     
