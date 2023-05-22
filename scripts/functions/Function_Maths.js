@@ -1240,6 +1240,7 @@ function static_get( s )
             break;
         case "object":
             ret = Object.getPrototypeOf(s);
+            if (s.__yyIsGMLObject) ret.__yyIsGMLObject = true;
             break;
     } // end switch
     return ret;

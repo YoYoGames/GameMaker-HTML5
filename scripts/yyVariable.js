@@ -2564,7 +2564,8 @@ function variable_instance_get_names( _id )
 
                 var names = __internal__get_variable_names(pInst, glob);
                 for(var n=0; n<names.length; n+=2) {
-                    ret.push( names[n] );
+                    if (names[n] != "constructor")
+                        ret.push( names[n] );
                 } // end for
 
                 return ret;
