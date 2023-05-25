@@ -1258,10 +1258,12 @@ function static_get( s )
             if (funcId >= 100000) {
                 func = JSON_game.Scripts[ funcId - 100000];
                 ret = func.prototype;
+                ret.__yyIsGMLObject = true;
             } // end if
             break;
         case "function":
             ret = s.prototype;
+            ret.__yyIsGMLObject = true;
             break;
         case "object":
             ret = Object.getPrototypeOf(s);
