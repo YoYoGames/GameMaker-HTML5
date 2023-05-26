@@ -606,6 +606,13 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
 	    worldMatrix = WebGL_GetMatrix(MATRIX_WORLD);
 	    WebGL_SetMatrix(MATRIX_WORLD, this.BuildWorldMatrix(_x, _y, _angle));
 	}
+
+	var spreadoffset = 0;
+	if (this.sdf)
+	{
+		g_pFontManager.Start_Rendering_SDF();
+		spreadoffset = this.sdfSpread;
+	}
 	
 	var numVerts = len * 6;
 	pBuff = g_webGL.AllocVerts(yyGL.PRIM_TRIANGLE, TP.texture.webgl_textureid, g_webGL.VERTEX_FORMAT_2D, numVerts);
@@ -646,14 +653,7 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
         var invStrWidth = 1/strWidth;
         var alpha = _col1 & 0xff000000;
         bLerp = true;
-    }
-
-	var spreadoffset = 0;
-	if (this.sdf)
-	{
-		g_pFontManager.Start_Rendering_SDF();
-		spreadoffset = this.sdfSpread;
-	}
+    }	
 
     var pPrev = null;
     for (var i = 0; i < len; i++)
@@ -1218,10 +1218,9 @@ yyFontManager.prototype.Start_Rendering_SDF = function()
 
 		shader_set(this.SDF_State.SDFShader);
 
-		var sdfshaderprog = g_shaderPrograms[this.SDF_State.SDFShader];		// urk
-		var basetexstage = sdfshaderprog.fragmentTextureAttribute;
+		var basetexstage = 0;			// we always force the default texture sampler index to be 0
 
-		this.SDF_State.currTexFilter = gpu_get_texfilter_ext(basetexstage);
+		this.SDF_State.currTexFilter = gpu_get_texfilter_ext(basetexstage);		// we always force the default texture sampler index to be 0
 		gpu_set_texfilter_ext(basetexstage, true);
 
 		this.SDF_State.usingSDFShader = true;
@@ -1236,6 +1235,7 @@ yyFontManager.prototype.End_Rendering_SDF = function()
 		{
 			shader_reset();
 
+			var basetexstage = 0;			// we always force the default texture sampler index to be 0
 			gpu_set_texfilter_ext(basetexstage, this.SDF_State.currTexFilter);
 
 			this.SDF_State.usingSDFShader = false;
