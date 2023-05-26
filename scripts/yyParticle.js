@@ -364,6 +364,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 	}
 
 	var system = g_ParticleSystems[ps];
+	system.oldtonew = (this.drawOrder == 0);
 
 	for (var i = this.emitters.length - 1; i >= 0; --i)
 	{
