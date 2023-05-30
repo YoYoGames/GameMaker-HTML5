@@ -80,6 +80,7 @@ yyFont.prototype.CreateFromStorage = function (_pStorage) {
 	this.ascenderOffset = _pStorage.ascenderOffset;
 	this.ascender = _pStorage.ascender;
 	this.sdfSpread = _pStorage.sdfSpread;
+	this.max_glyph_height = _pStorage.lineHeight;
 	this.sdf = this.sdfSpread > 0 ? true : false;
 
 	this.antialias = 0;
@@ -108,7 +109,11 @@ yyFont.prototype.CreateFromStorage = function (_pStorage) {
 		
 		if (pGlyph.h > maxHeight) maxHeight = pGlyph.h;
 	}
-	this.max_glyph_height = maxHeight;
+	if (this.max_glyph_height == 0)
+	{
+		this.max_glyph_height = maxHeight;
+	}
+	
 	this.first = f;
 	this.last = l;
 	this.TPEntry = Graphics_GetTextureEntry(_pStorage.TPageEntry);
