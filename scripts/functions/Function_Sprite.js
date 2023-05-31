@@ -1879,6 +1879,10 @@ function sprite_get_info( _spriteIndex )
                         variable_struct_set(nslot, "dark_blue", slot.darkColor.b); //nslot.gmldark_blue = slot.darkColor.b;
                         variable_struct_set(nslot, "dark_alpha", slot.darkColor.a); //nslot.gmldark_alpha = slot.darkColor.a;
                     } // end if
+
+                    var slotAttachmentsArray = pSpr.m_skeletonSprite.GetAttachmentsForSlot(slot.name);
+                    variable_struct_set(nslot, "attachments", slotAttachmentsArray);
+
                     slotsArray.push(nslot);
                 } // end for
 				variable_struct_set(ret, "slots", slotsArray); //ret.gmlslots = slotsArray;
