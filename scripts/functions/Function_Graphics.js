@@ -2420,7 +2420,7 @@ function skeleton_bone_state_get(_inst, _bone, _map) {
     var skeletonAnim = _inst.SkeletonAnimation();
     if (skeletonAnim)
 	{		
-        skeletonAnim.GetBoneState(yyGetString(_bone), yyGetInt32(_map));
+        skeletonAnim.GetBoneState(_inst, yyGetString(_bone), yyGetInt32(_map));
 	}
 }
 
