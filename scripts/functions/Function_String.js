@@ -147,7 +147,7 @@ function real(_v) {
 function bool(_v) {
     if (_v == undefined)
     {
-        return 0;
+        return false;
     }
     else if (_v == null)
     {
