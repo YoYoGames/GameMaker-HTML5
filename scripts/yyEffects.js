@@ -364,24 +364,17 @@ yyFilterHost.prototype.LayerBegin = function (_layerID)
 
 		this.tempSurfaceID = g_pEffectsManager.AcquireTempSurface(surfwidth, surfheight);
 
-		var pCam = g_pCameraManager.GetActiveCamera();
-		var pClonedCam = null;
-		if (pCam != null)
-		{
-			var clonedCamID = g_pCameraManager.CloneCamera(pCam.m_id);	
-			pClonedCam = g_pCameraManager.GetCamera(clonedCamID);
-		}
+		this.backupWorld = WebGL_GetMatrix(MATRIX_WORLD);
+		this.backupView = WebGL_GetMatrix(MATRIX_VIEW);
+		this.backupProj = WebGL_GetMatrix(MATRIX_PROJECTION);
 
 		// Draw everything on this layer to the temporary surface
 		surface_set_target(this.tempSurfaceID);
 		draw_clear_alpha(0, 0.0);
 
-		if (pClonedCam != null)
-		{			
-			UpdateCamera(pClonedCam.GetViewX(), pClonedCam.GetViewY(), pClonedCam.GetViewWidth(), pClonedCam.GetViewHeight(), pClonedCam.GetViewAngle(), g_pCameraManager.GetActiveCamera());
-
-			g_pCameraManager.DestroyCamera(pClonedCam.m_id);
-		}
+		WebGL_SetMatrix(MATRIX_WORLD, this.backupWorld);
+		WebGL_SetMatrix(MATRIX_VIEW, this.backupView);
+		WebGL_SetMatrix(MATRIX_PROJECTION, this.backupProj);
 
 		g_webGL.RSMan.SaveStates();
 
@@ -423,6 +416,10 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 	{
 		g_webGL.RSMan.RestoreStates(true);
 		surface_reset_target();
+
+		WebGL_SetMatrix(MATRIX_WORLD, this.backupWorld);
+		WebGL_SetMatrix(MATRIX_VIEW, this.backupView);
+		WebGL_SetMatrix(MATRIX_PROJECTION, this.backupProj);
 	}
 	else
 	{

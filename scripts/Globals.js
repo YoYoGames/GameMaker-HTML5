@@ -1148,7 +1148,6 @@ function    InitAboyneGlobals() {
     g_OldView_Surface = new yyView();
     g_OldView_Surface_From = new yyView();
     g_DefaultView = new yyView();
-    g_DefaultView.cameraID=0; //Point to the default camera
     g_GUIView = new yyView();   
     g_pCurrentView = new yyView();
 

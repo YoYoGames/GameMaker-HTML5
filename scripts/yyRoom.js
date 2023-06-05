@@ -1337,11 +1337,24 @@ function UpdateCamera(_x, _y, _w, _h, _angle, pCam)
 	}
 }
 
+function UpdateTempCamera(_x, _y, _w, _h, _angle)
+{
+	var tempCam = g_pCameraManager.GetTempCamera();
+	UpdateCamera(_x, _y, _w, _h, _angle, tempCam);
+	g_pCameraManager.SetActiveCamera(tempCam.GetID());		
+}
+
 function UpdateDefaultCamera(_x, _y, _w, _h, _angle)
 {
 	var defaultcam = g_pCameraManager.GetCamera(g_DefaultCameraID);
-	UpdateCamera(_x, _y, _w, _h, _angle, defaultcam);
-	g_pCameraManager.SetActiveCamera(g_DefaultCameraID);		
+	if (defaultcam == null)
+	{
+		UpdateTempCamera(_x, _y, _w, _h, _angle);
+	}
+	else
+	{
+		g_pCameraManager.SetActiveCamera(g_DefaultCameraID);
+	}
 }
 
 function DrawTile(_rect,_back,_indexdata,_frame,_x,_y,_depth)
@@ -3589,7 +3602,7 @@ yyRoom.prototype.DrawViews = function (r) {
 
 	if (g_isZeus)
 	{
-		UpdateDefaultCamera(0, 0, r.right,r.bottom,0);
+		UpdateTempCamera(0, 0, r.right,r.bottom,0);
 	}
 	
 	g_DisplayScaleX = 1;
@@ -3607,6 +3620,7 @@ yyRoom.prototype.DrawViews = function (r) {
 		Graphics_SetViewPort(0, 0, g_ApplicationWidth, g_ApplicationHeight);
          
 		if (g_isZeus) {
+			g_DefaultView.cameraID = g_DefaultCameraID;
 		    UpdateDefaultCamera(0, 0, g_RunRoom.m_width, g_RunRoom.m_height, 0);
 		}
 		else {

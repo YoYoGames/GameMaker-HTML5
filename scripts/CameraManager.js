@@ -21,6 +21,7 @@ function CameraManager() {
     this.camId = 0;
     this.m_activeCamera = null;
     this.m_CamPool = new yyList();
+    this.m_tempCamera = null;
 };
 
 
@@ -194,6 +195,8 @@ CameraManager.prototype.DestroyCamera = function (camid) {
         var pCam = this.m_CamPool.Get(i);
         if (pCam) {
             if (pCam.m_id === camid) {
+                if (this.m_tempCamera == pCam)
+                    this.m_tempCamera = null;
                 this.m_CamPool.DeleteItem(pCam);
                 return;
             }
@@ -278,7 +281,7 @@ CameraManager.prototype.Clean = function () {
     this.m_activeCamera = null;
     this.m_cameraListCurr = 0;
     this.m_lastCamPos = 0;
-
+    this.m_tempCamera = null;
 };
 
 // ################################################################################################
@@ -286,6 +289,12 @@ CameraManager.prototype.Clean = function () {
 // ################################################################################################
 CameraManager.prototype.GetActiveCamera = function () {
     return this.m_activeCamera;
+};
+
+CameraManager.prototype.GetTempCamera = function () {
+    if (this.m_tempCamera == null)
+        this.m_tempCamera = this.GetCamera(this.CreateCamera());
+    return this.m_tempCamera;
 };
 
 CameraManager.prototype.SetActiveCamera = function (arg0) {
