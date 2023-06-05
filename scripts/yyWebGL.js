@@ -4740,7 +4740,7 @@ function WebGL_shader_enable_corner_id_RELEASE(_on_off) {
 function WebGL_shader_set_uniform_i_array_RELEASE(_handle, _array)
 {
     if (_array instanceof Array){
-        g_webGL.SetUniformArrayI(yyGetInt32(_handle), shaderData);
+        g_webGL.SetUniformArrayI(yyGetInt32(_handle), _array);
     }
     else {
         alert('ERROR: shader_set_uniform_i_array() Data is not an array');
