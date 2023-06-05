@@ -469,7 +469,7 @@ function surface_set_target_RELEASE(_id)
         Graphics_SetViewPort(0, 0, pSurf.m_Width, pSurf.m_Height);
 
         if (g_isZeus) {
-            UpdateDefaultCamera(0, 0, pSurf.m_Width, pSurf.m_Height, 0);
+            UpdateTempCamera(0, 0, pSurf.m_Width, pSurf.m_Height, 0);
         }
         else {
             Graphics_SetViewArea(0, 0, pSurf.m_Width, pSurf.m_Height, 0);
