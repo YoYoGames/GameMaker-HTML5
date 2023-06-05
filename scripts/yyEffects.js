@@ -379,8 +379,10 @@ yyFilterHost.prototype.LayerBegin = function (_layerID)
 		draw_clear_alpha(0, 0.0);
 
 		WebGL_SetMatrix(MATRIX_WORLD, this.backupWorld);
-		WebGL_SetMatrix(MATRIX_VIEW, this.backupView);
-		WebGL_SetMatrix(MATRIX_PROJECTION, this.backupProj);
+		var tempCam = g_pCameraManager.GetTempCamera();
+		tempCam.SetViewMat(this.backupView);
+		tempCam.SetProjMat(this.backupProj);
+		tempCam.ApplyMatrices();
 
 		g_webGL.RSMan.SaveStates();
 
@@ -424,8 +426,10 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 		surface_reset_target();
 
 		WebGL_SetMatrix(MATRIX_WORLD, this.backupWorld);
-		WebGL_SetMatrix(MATRIX_VIEW, this.backupView);
-		WebGL_SetMatrix(MATRIX_PROJECTION, this.backupProj);
+		var tempCam = g_pCameraManager.GetTempCamera();
+		tempCam.SetViewMat(this.backupView);
+		tempCam.SetProjMat(this.backupProj);
+		tempCam.ApplyMatrices();
 	}
 	else
 	{
