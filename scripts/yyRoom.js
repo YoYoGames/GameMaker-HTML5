@@ -1629,13 +1629,11 @@ function UpdateDefaultCamera(_x, _y, _w, _h, _angle)
 {
 	var defaultcam = g_pCameraManager.GetCamera(g_DefaultCameraID);
 	if (defaultcam == null)
-	{
-		UpdateTempCamera(_x, _y, _w, _h, _angle);
-	}
-	else
-	{
-		g_pCameraManager.SetActiveCamera(g_DefaultCameraID);
-	}
+		defaultcam = g_pCameraManager.GetTempCamera();
+	// Note: This may override user's camera configuration if it's a cam passed
+	// in with camera_set_default!
+	UpdateCamera(_x, _y, _w, _h, _angle, defaultcam);
+	g_pCameraManager.SetActiveCamera(defaultcam.GetID());
 }
 
 function DrawTile(_rect,_back,_indexdata,_frame,_x,_y,_depth)
