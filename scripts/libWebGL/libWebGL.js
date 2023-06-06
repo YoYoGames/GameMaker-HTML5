@@ -1164,7 +1164,7 @@ function yyWebGL(_canvas, _options) {
     
         if (_handle != -1) {
             m_VBufferManager.Flush();
-            _shaderData = CopyArray(_handle, _shaderData);
+            _shaderData = this.CopyArray(_handle, _shaderData);
             m_CommandBuilder.SetUniformArrayI(_handle, _shaderData);        // shader data already copied
         }
     };    
