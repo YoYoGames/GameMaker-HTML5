@@ -372,7 +372,19 @@ yyFilterHost.prototype.LayerBegin = function (_layerID)
 
 		this.backupWorld = WebGL_GetMatrix(MATRIX_WORLD);
 		this.backupView = WebGL_GetMatrix(MATRIX_VIEW);
-		this.backupProj = WebGL_GetMatrix(MATRIX_PROJECTION);
+		var matProj = WebGL_GetMatrix(MATRIX_PROJECTION);
+
+		if (g_RenderTargetActive == -1)
+		{
+			this.backupProj = matProj;
+		}
+		else
+		{
+			var flipMat = new Matrix();
+			flipMat.unit();
+			flipMat.m[_22] = -1.0;
+			this.backupProj.Multiply(matProj, flipMat);
+		}
 
 		// Draw everything on this layer to the temporary surface
 		surface_set_target(this.tempSurfaceID);
