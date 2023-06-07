@@ -1783,11 +1783,27 @@ function WebGL_Matrix_Transform_Vertex(_mat, _x, _y, _z)
     _y = yyGetReal(_y);
     _z = yyGetReal(_z);
 
-    var xx = (_mat[_11]*_x) + (_mat[_21]*_y) + (_mat[_31]*_z) + _mat[_41];
-	var yy = (_mat[_12]*_x) + (_mat[_22]*_y) + (_mat[_32]*_z) + _mat[_42];
-	var zz = (_mat[_13]*_x) + (_mat[_23]*_y) + (_mat[_33]*_z) + _mat[_43];	
+    var res;
+    if (arguments.length == 4)
+    {
+        var xx = (_mat[_11]*_x) + (_mat[_21]*_y) + (_mat[_31]*_z) + _mat[_41];
+        var yy = (_mat[_12]*_x) + (_mat[_22]*_y) + (_mat[_32]*_z) + _mat[_42];
+        var zz = (_mat[_13]*_x) + (_mat[_23]*_y) + (_mat[_33]*_z) + _mat[_43];
 
-    var res = [xx, yy, zz];
+        res = [xx, yy, zz];
+    }
+    else
+    {
+        var _w = yyGetReal(arguments[4]);
+
+        var xx = (_mat[_11]*_x) + (_mat[_21]*_y) + (_mat[_31]*_z) + (_mat[_41]*_w);
+        var yy = (_mat[_12]*_x) + (_mat[_22]*_y) + (_mat[_32]*_z) + (_mat[_42]*_w);
+        var zz = (_mat[_13]*_x) + (_mat[_23]*_y) + (_mat[_33]*_z) + (_mat[_43]*_w);
+        var ww = (_mat[_14]*_x) + (_mat[_24]*_y) + (_mat[_34]*_z) + (_mat[_44]*_w);
+
+        res = [xx, yy, zz, ww];
+    }
+
     return res;
 }
 
