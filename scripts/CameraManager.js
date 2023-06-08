@@ -513,56 +513,7 @@ CCamera.prototype.GetCamRight = function () {
 
 
 CCamera.prototype.ApplyMatrices = function () {
-    if (this.IsOrthoProj()) {
-        var campos = this.GetCamPos();
-
-        // Experimental
-        // Back transform clip space extents by the inverse of our view-proj matrix to get our room-space bounds
-        var leftvec, rightvec, upvec, downvec;
-        leftvec = this.m_invViewProjMat.TransformVec3(new Vector3(-1.0, 0.0, 0.0));
-        rightvec = this.m_invViewProjMat.TransformVec3(new Vector3(1.0, 0.0, 0.0));
-        upvec = this.m_invViewProjMat.TransformVec3(new Vector3(0.0, 1.0, 0.0));
-        downvec = this.m_invViewProjMat.TransformVec3(new Vector3(0.0, -1.0, 0.0));
-
-        var diffh = rightvec.Sub(leftvec);
-        var diffv = upvec.Sub(downvec);
-
-        g_worldw = diffh.Length();
-        g_worldh = diffv.Length();
-
-        g_worldx = campos.X - (g_worldw * 0.5);
-        g_worldy = campos.Y - (g_worldh * 0.5);
-
-        var normdiffv = diffv;
-        normdiffv.Normalise();
-
-        var angle = Math.acos(normdiffv.Y);
-        if (normdiffv.X < 0.0) {
-            angle = (2.0 * Math.PI) - angle;
-        }
-
-        var ViewAreaA = (angle / (2.0 * Math.PI)) * 360.0;
-
-        /*g_worldx = campos.X - (this.m_viewWidth * 0.5);
-		g_worldy = campos.Y - (this.m_viewHeight * 0.5);
-		g_worldw = this.m_viewWidth;
-		g_worldh = this.m_viewHeight;
-		var ViewAreaA = this.m_viewAngle;*/
-
-        //Needs implmenting
-        SetViewExtents(g_worldx, g_worldy, g_worldw, g_worldh, ViewAreaA);
-
-
-    }
-    else {
-        // Not ideal, but set the view area to the room extents if this is a perspective camera
-        // We would need to change the way we do culling and work out extents for tile drawing etc across the codebase to handle this properly
-        g_worldx = 0;
-        g_worldy = 0;
-        g_worldw = g_RunRoom != null ? g_RunRoom.GetWidth() : 1;
-        g_worldh = g_RunRoom != null ? g_RunRoom.GetHeight() : 1;
-        SetViewExtents(g_worldx, g_worldy, g_worldw, g_worldh, 0);
-    }
+    UpdateViewExtents(this.m_viewMat, this.m_projMat, this.m_invViewMat, this.m_invViewProjMat);
 
     if (g_webGL != null) {
         WebGL_SetMatrix(MATRIX_VIEW, this.m_viewMat);
