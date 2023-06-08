@@ -527,7 +527,7 @@ function TimeSource_GetChildren(_id)
 
 	if (ts != null)
 	{
-		return ts.GetChildren();
+		return ts.GetChildren().map(_child => _child.GetId());
 	}
 
 	NonExistentError(_id);
