@@ -1668,26 +1668,11 @@ function WebGL_Matrix_Set(_type, _matrix) {
         case MATRIX_VIEW:
         {
             var matView = new Matrix(_matrix);
-            var matProj = new Matrix();
-            var matTemp = WebGL_GetMatrix(MATRIX_PROJECTION);
-            
-            if (g_RenderTargetActive == -1)
-            {
-                matProj = matTemp;
-            }
-            else
-            {
-                var flipMat = new Matrix();
-                flipMat.unit();
-                flipMat.m[_22] = -1;
-
-                matProj.Multiply(matTemp, flipMat);
-            }
-
+            var matProj = WebGL_GetMatrix(MATRIX_PROJECTION);
             var tempCam = g_pCameraManager.GetTempCamera();
             tempCam.SetViewMat(matView);
             tempCam.SetProjMat(matProj);
-            tempCam.ApplyMatrices();
+            tempCam.ApplyMatrices(false);
         }
         break;
         
@@ -1698,7 +1683,7 @@ function WebGL_Matrix_Set(_type, _matrix) {
             var tempCam = g_pCameraManager.GetTempCamera();
             tempCam.SetViewMat(matView);
             tempCam.SetProjMat(matProj);
-            tempCam.ApplyMatrices();
+            tempCam.ApplyMatrices(false);
         }
         break;
         

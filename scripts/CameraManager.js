@@ -512,7 +512,9 @@ CCamera.prototype.GetCamRight = function () {
 
 
 
-CCamera.prototype.ApplyMatrices = function () {
+CCamera.prototype.ApplyMatrices = function (_flipProj) {
+    if (_flipProj === undefined) _flipProj = true;
+    
     if (this.IsOrthoProj()) {
         var campos = this.GetCamPos();
 
@@ -586,7 +588,7 @@ CCamera.prototype.ApplyMatrices = function () {
         graphics._setTransform(g_transform[0], g_transform[3], g_transform[1], g_transform[4], g_transform[2], g_transform[5]);
     }
 
-    if (g_RenderTargetActive == -1) {
+    if (!_flipProj || g_RenderTargetActive == -1) {
         WebGL_SetMatrix(MATRIX_PROJECTION, this.m_projMat);
     }
     else {
