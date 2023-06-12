@@ -1337,13 +1337,6 @@ function UpdateCamera(_x, _y, _w, _h, _angle, pCam)
 	}
 }
 
-function UpdateTempCamera(_x, _y, _w, _h, _angle)
-{
-	var tempCam = g_pCameraManager.GetTempCamera();
-	UpdateCamera(_x, _y, _w, _h, _angle, tempCam);
-	g_pCameraManager.SetActiveCamera(tempCam.GetID());		
-}
-
 function UpdateDefaultCamera(_x, _y, _w, _h, _angle)
 {
 	var defaultcam = g_pCameraManager.GetCamera(g_DefaultCameraID);
@@ -3600,7 +3593,7 @@ yyRoom.prototype.DrawViews = function (r) {
 
 	if (g_isZeus)
 	{
-		UpdateTempCamera(0, 0, r.right,r.bottom,0);
+		UpdateDefaultCamera(0, 0, r.right,r.bottom,0);
 	}
 	
 	g_DisplayScaleX = 1;
