@@ -3883,7 +3883,7 @@ yyRoom.prototype.DrawViews = function (r) {
 
 	if (g_isZeus)
 	{
-		UpdateTempCamera(0, 0, r.right,r.bottom,0);
+		UpdateDefaultCamera(0, 0, r.right,r.bottom,0);
 	}
 	
 	g_DisplayScaleX = 1;
