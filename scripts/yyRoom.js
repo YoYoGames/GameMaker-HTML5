@@ -1618,13 +1618,6 @@ function UpdateCamera(_x, _y, _w, _h, _angle, pCam)
 	}
 }
 
-function UpdateTempCamera(_x, _y, _w, _h, _angle)
-{
-	var tempCam = g_pCameraManager.GetTempCamera();
-	UpdateCamera(_x, _y, _w, _h, _angle, tempCam);
-	g_pCameraManager.SetActiveCamera(tempCam.GetID());		
-}
-
 function UpdateDefaultCamera(_x, _y, _w, _h, _angle)
 {
 	var defaultcam = g_pCameraManager.GetCamera(g_DefaultCameraID);
