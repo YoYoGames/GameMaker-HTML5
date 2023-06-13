@@ -3146,7 +3146,7 @@ function yySequence(_pStorage) {
             set: function (_val)
             {
                 var val = yyGetInt32(_val);
-                if ((val >= 0) && (val < ePlaybackSpeedType_Max))
+                if (isFinite(_val) && (val >= 0) && (val < ePlaybackSpeedType_Max))
                 {
                     this.m_playbackSpeedType = val;
                 }
