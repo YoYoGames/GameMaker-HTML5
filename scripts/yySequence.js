@@ -1,4 +1,4 @@
-﻿// **********************************************************************************************************************
+// **********************************************************************************************************************
 // 
 // Copyright (c)2019, YoYo Games Ltd. All Rights reserved.
 // 
@@ -1347,9 +1347,11 @@ function yySequenceBaseTrack(_pStorage) {
         },
         gmllinkedTrack: {
             enumerable: true,
-            get: function () { return this.m_tags == null ? null : (this.m_tags[eTT_Link] != null ? this.m_tags[eTT_Link].track : null); },
+            get: function () { return this.m_tags == null ? -1 : (this.m_tags[eTT_Link] != null ? this.m_tags[eTT_Link].track : -1); },
             set: function (_val)
             {
+                if (_val == -1) _val = null;
+
                 if(this.m_tags[eTT_Disable] == null) this.m_tags[eTT_Link] = {};
                 this.m_tags[eTT_Link].track = _val;
             }
