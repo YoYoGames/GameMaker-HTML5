@@ -125,6 +125,7 @@ function d3d_transform_stack_discard()                                          
 
 function gpu_set_blendenable(enable)                                                            { ErrorFunction("gpu_set_blendenable()"); }
 function gpu_set_ztestenable(enable)                                                            { ErrorFunction("gpu_set_ztestenable()"); }
+function gpu_set_depth(_depth)                                                                   { ErrorFunction("gpu_set_depth()"); }
 function gpu_set_zfunc(cmp_func)                                                                { ErrorFunction("gpu_set_zfunc()"); }
 function gpu_set_zwriteenable(enable)                                                           { ErrorFunction("gpu_set_zwriteenable()"); }
 //function gpu_set_lightingenable(enable)                                                       { ErrorFunction("gpu_set_lightingenable()"); }
@@ -162,6 +163,7 @@ function gpu_set_tex_mip_enable_ext(sampler_id, setting)                        
 
 function gpu_get_blendenable()                                                                  { ErrorFunction("gpu_get_blendenable()"); }
 function gpu_get_ztestenable()                                                                  { ErrorFunction("gpu_get_ztestenable()"); }
+function gpu_get_depth()                                                                        { ErrorFunction("gpu_get_depth()"); }
 function gpu_get_zfunc()                                                                        { ErrorFunction("gpu_get_zfunc()"); }
 function gpu_get_zwriteenable()                                                                 { ErrorFunction("gpu_get_zwriteenable()"); }
 //function gpu_get_lightingenable()                                                             { ErrorFunction("gpu_get_lightingenable()"); }
@@ -332,6 +334,7 @@ function InitD3DFunctions() {
     gpu_set_blendmode = WebGL_gpu_set_blendmode;
     gpu_set_blendenable = WebGL_gpu_set_blendenable;
     gpu_set_ztestenable = WebGL_gpu_set_ztestenable;
+    gpu_set_depth = WebGL_gpu_set_depth;
     gpu_set_zfunc = WebGL_gpu_set_zfunc;
     gpu_set_zwriteenable = WebGL_gpu_set_zwriteenable;
     gpu_set_fog = WebGL_gpu_set_fog;
@@ -367,6 +370,7 @@ function InitD3DFunctions() {
 
     gpu_get_blendenable = WebGL_gpu_get_blendenable;
     gpu_get_ztestenable = WebGL_gpu_get_ztestenable;
+    gpu_get_depth = WebGL_gpu_get_depth;
     gpu_get_zfunc = WebGL_gpu_get_zfunc;
     gpu_get_zwriteenable = WebGL_gpu_get_zwriteenable;
     gpu_get_fog = WebGL_gpu_get_fog;
@@ -1886,6 +1890,11 @@ function WebGL_gpu_set_ztestenable(_enable)
     g_webGL.RSMan.SetRenderState(yyGL.RenderState_ZEnable, yyGetInt32(_enable) >= 0.5);
 }
 
+function WebGL_gpu_set_depth(_depth)
+{
+    GR_Depth = _depth;
+}
+
 function WebGL_gpu_set_zfunc(_cmp_func)
 {
     g_webGL.RSMan.SetRenderState(yyGL.RenderState_ZFunc, yyGetInt32(_cmp_func));
@@ -2322,6 +2331,11 @@ function WebGL_gpu_get_blendenable()
 function WebGL_gpu_get_ztestenable()
 {
     return g_webGL.RSMan.GetRenderState(yyGL.RenderState_ZEnable) ? 1.0 : 0.0;
+}
+
+function WebGL_gpu_get_depth()
+{
+    return GR_Depth;
 }
 
 function WebGL_gpu_get_zfunc()
