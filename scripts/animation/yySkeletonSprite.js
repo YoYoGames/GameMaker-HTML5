@@ -1796,3 +1796,37 @@ yySkeletonSprite.prototype.GetSlotData = function (_list) {
 		ds_list_add(_list, map);
 	}	
 };
+
+yySkeletonSprite.prototype.GetAttachmentsForSlot = function(_slotName)
+{
+	var pSlot = this.m_skeletonData.findSlot(_slotName);
+	if(pSlot === null)
+	{
+		/* Couldn't find the slot. */
+		return [];
+	}
+
+	var attachmentNames = [];
+
+	for (var skinIndex = 0; skinIndex < this.m_skeletonData.skins.length; skinIndex++)
+	{
+		var skin = this.m_skeletonData.skins[skinIndex];
+
+		var skinSlotEntries = [];
+		skin.getAttachmentsForSlot(pSlot.index, skinSlotEntries);
+
+		for (var i = 0; i < skinSlotEntries.length; ++i)
+		{
+			attachmentNames.push(skinSlotEntries[i].name);
+		}
+	}
+
+	/* Strip out duplicate attachment names (skins may re-use attachment names) */
+
+	attachmentNames = attachmentNames.filter(function(value, index, array)
+	{
+		return array.indexOf(value) === index;
+	});
+
+	return attachmentNames;
+};

@@ -935,7 +935,7 @@ var g_WaitingForWebAudioTouchUnlock = false;
 var g_HandleStreamedAudioAsUnstreamed = false;
 
 function Audio_ContextExists() {
-    return g_WebAudioContext instanceof AudioContext || g_WebAudioContext instanceof webkitAudioContext;
+        return g_WebAudioContext != null;
 }
 
 function Audio_IsPlaybackAllowed() {

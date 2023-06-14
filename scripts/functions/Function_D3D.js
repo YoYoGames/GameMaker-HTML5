@@ -1657,6 +1657,31 @@ function WebGL_Matrix_Set(_type, _matrix) {
     }
     WebGL_SetMatrix(_type, m);*/
     WebGL_SetMatrix(_type, _matrix);
+
+    if (_type == MATRIX_VIEW)
+    {
+        var matProj = new Matrix();
+        var matTemp = WebGL_GetMatrix(MATRIX_PROJECTION);
+
+        if (g_RenderTargetActive == -1)
+        {
+            matProj = matTemp;
+        }
+        else
+        {
+            var flipMat = new Matrix();
+            flipMat.unit();
+            flipMat.m[_22] = -1;
+
+            matProj.Multiply(matTemp, flipMat);
+        }
+        
+        UpdateViewExtents(new Matrix(_matrix), matProj);
+    }
+    else if (_type == MATRIX_PROJECTION)
+    { 
+        UpdateViewExtents(WebGL_GetMatrix(MATRIX_VIEW), new Matrix(_matrix));
+    }
 }
 
 function WebGL_matrix_build_identity() {
