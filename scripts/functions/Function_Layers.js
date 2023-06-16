@@ -4502,7 +4502,9 @@ function layer_sequence_destroy(sequence_element_id)
 
 function layer_sequence_exists(arg1, arg2)
 {
-    var el = layerSequenceGetInstance(yyGetInt32(sequence_element_id));
+    var layer = layerGetFromTargetRoom(arg1);
+    var el = g_pLayerManager.GetElementFromIDWithLayer(layer, yyGetInt32(arg2));
+    if ((el != null) && (el.m_type === eLayerElementType_Sequence))
     if (el != null)
     {
         return true;
