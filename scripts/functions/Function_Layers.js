@@ -91,7 +91,7 @@ this.m_effectEnabled = true;
 this.m_effectToBeEnabled = true;
 this.m_effect = null; // yyEffectInstanceRef
 this.m_pInitialEffectInfo = null;
-
+this.m_effectPS = -1;
 };
 
 CLayer.prototype.SetEffect = function(_effect)

@@ -888,7 +888,7 @@ var part_emitter_burst = ParticleSystem_Emitter_Burst;
 ///			</returns>
 // #############################################################################################
 function effect_create_below(_kind,_x,_y,_size,_color) {
-	Effect_Create(true, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
+	Effect_Create(ps_below, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
 }
 
 // #############################################################################################
@@ -907,9 +907,78 @@ function effect_create_below(_kind,_x,_y,_size,_color) {
 ///			</returns>
 // #############################################################################################
 function effect_create_above(_kind,_x,_y,_size,_color) {
-	Effect_Create(false, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
+	Effect_Create(ps_above, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
 }
 
+// #############################################################################################
+/// Function:<summary>
+///          	Creates an effect of the given kind (see above) at the indicated position on the
+///				layer specified.
+///          </summary>
+///
+/// In:		<param name="_layerid"></param>
+///			<param name="_kind"></param>
+///			<param name="_x"></param>
+///			<param name="_y"></param>
+///			<param name="_size">0 = small, 1 = medium, 2 = large</param>
+///			<param name="_color">indicates the color to be used</param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+function effect_create_layer(_layerid,_kind,_x,_y,_size,_color) {
+
+	var layer = null;
+	if(typeof (_layerid) == "string")
+		layer = g_pLayerManager.GetLayerFromName(g_RunRoom, yyGetString(_layerid));
+	else
+		layer = g_pLayerManager.GetLayerFromID(g_RunRoom, yyGetInt32(_layerid));
+
+	if (layer == null) {
+		yyError("Specified layer does not exist");
+		return;
+	}
+
+	if (!ParticleSystem_Exists(layer.m_effectPS))
+		layer.m_effectPS = ParticleSystem_Create(layer.m_id, false);
+
+	var ps = layer.m_effectPS;
+
+	Effect_Create(ps, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
+}
+
+// #############################################################################################
+/// Function:<summary>
+///          	Creates an effect of the given kind (see above) at the indicated position at the
+///				depth specified.
+///          </summary>
+///
+/// In:		<param name="_depth"></param>
+///			<param name="_kind"></param>
+///			<param name="_x"></param>
+///			<param name="_y"></param>
+///			<param name="_size">0 = small, 1 = medium, 2 = large</param>
+///			<param name="_color">indicates the color to be used</param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+function effect_create_depth(_depth,_kind,_x,_y,_size,_color) {
+
+	_depth = yyGetInt32(_depth);
+
+	var layer = g_pLayerManager.GetLayerWithDepth(g_RunRoom, _depth, true);
+
+	if (layer == null)
+		layer = g_pLayerManager.AddDynamicLayer(g_RunRoom, _depth);
+
+	if (!ParticleSystem_Exists(layer.m_effectPS))
+		layer.m_effectPS = ParticleSystem_Create(layer.m_id, false);
+
+	var ps = layer.m_effectPS;
+
+	Effect_Create(ps, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
+}
 
 
 // #############################################################################################
@@ -919,15 +988,8 @@ function effect_create_above(_kind,_x,_y,_size,_color) {
 // #############################################################################################
 function effect_clear() 
 {
-	// Kill the 2 particle systems that control effects
-	if (ParticleSystem_Exists(ps_below)){
-		ParticleSystem_Destroy(ps_below);
-		ps_below = -1;
-	}
-	if (ParticleSystem_Exists(ps_above)){
-		ParticleSystem_Destroy(ps_above);
-		ps_above = -1;
-	}
+	ParticleSystem_Particles_Clear(ps_below);
+	ParticleSystem_Particles_Clear(ps_above);
 }
 
 function part_system_create_layer(_layerid, _persistent, _partsys)
