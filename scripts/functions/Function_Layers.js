@@ -2522,7 +2522,10 @@ function layer_background_index( arg1,arg2)
     var el = layerBackgroudGetElement(yyGetInt32(arg1));
     if (el != null)
     {
-        el.m_pBackground.image_index = yyGetInt32(arg2);
+        var image_index = yyGetInt32(arg2);
+        var max_index = sprite_get_number(el.m_pBackground.image_index);
+
+        el.m_pBackground.image_index = fwrap(image_index, max_index);
     }
 };
 function layer_background_sprite( arg1,arg2) 
