@@ -2011,8 +2011,8 @@ LayerManager.prototype.GetScriptInstance = function()
 
 
 function layerGetObj(room, id_or_name) {
-    if (typeof (_id) === "string") return g_pLayerManager.GetLayerFromName(room, yyGetString(id_or_name));
-    return g_pLayerManager.GetLayerFromID(room, yyGetInt32(_id_or_name));
+    if (typeof (id_or_name) === "string") return g_pLayerManager.GetLayerFromName(room, yyGetString(id_or_name));
+    return g_pLayerManager.GetLayerFromID(room, yyGetInt32(id_or_name));
 };
 
 function layerGetFromTargetRoom(_id_or_name) {
