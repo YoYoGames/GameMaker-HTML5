@@ -17,7 +17,8 @@ YYLayerType_Background=1,
 YYLayerType_Instance=2,
 YYLayerType_Asset=3,
 YYLayerType_Tile=4,
-YYLayerType_Effect=5;
+YYLayerType_Particle=5,
+YYLayerType_Effect=6;
 
 
 var	eLayerElementType_Undefined = 0,
@@ -2458,7 +2459,9 @@ function layer_get_script_begin( arg1)
             
     if(layer === null)
         return -1;
-    return __find_script_id(layer.m_beginScript);
+    
+    _script_id = __find_script_id(layer.m_beginScript);
+    return _script_id === null ? -1 : _script_id;
 };
 function layer_get_script_end( arg1) 
 {
@@ -2471,9 +2474,9 @@ function layer_get_script_end( arg1)
             
     if(layer === null)
         return -1;
-    return __find_script_id(layer.m_endScript);
 
-
+    _script_id = __find_script_id(layer.m_endScript);
+    return _script_id === null ? -1 : _script_id;
 };
 
 function layer_get_shader( arg1) 

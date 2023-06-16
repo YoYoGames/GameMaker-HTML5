@@ -9,12 +9,15 @@ AudioEffect.Type = {
     HPF2: 3,
     LPF2: 4,
     Reverb1: 5,
-    Tremolo: 6
+    Tremolo: 6,
+    PeakEQ: 7,
+    HiShelf: 8,
+    LoShelf: 9,
+    EQ: 10
 };
 
 AudioEffect.getWorkletName = function(_type) {
-    switch (_type)
-    {
+    switch (_type) {
         case AudioEffect.Type.Bitcrusher:   return "bitcrusher-processor";
         case AudioEffect.Type.Delay:        return "delay-processor";
         case AudioEffect.Type.Gain:         return "gain-processor";
@@ -22,6 +25,10 @@ AudioEffect.getWorkletName = function(_type) {
         case AudioEffect.Type.LPF2:         return "lpf2-processor";
         case AudioEffect.Type.Reverb1:      return "reverb1-processor";
         case AudioEffect.Type.Tremolo:      return "tremolo-processor";
+        case AudioEffect.Type.PeakEQ:       return "peak-eq-processor";
+        case AudioEffect.Type.HiShelf:      return "hi-shelf-processor";
+        case AudioEffect.Type.LoShelf:      return "lo-shelf-processor";
+        case AudioEffect.Type.EQ:           return null;
         default:                            return null;
     }
 };
@@ -74,6 +81,10 @@ AudioEffectStruct.Create = function(_type, _params) {
         case AudioEffect.Type.LPF2:         return new LPF2EffectStruct(_params);
         case AudioEffect.Type.Reverb1:      return new Reverb1EffectStruct(_params);
         case AudioEffect.Type.Tremolo:      return new TremoloEffectStruct(_params);
+        case AudioEffect.Type.PeakEQ:       return new PeakEQEffectStruct(_params);
+        case AudioEffect.Type.HiShelf:      return new HiShelfEffectStruct(_params);
+        case AudioEffect.Type.LoShelf:      return new LoShelfEffectStruct(_params);
+        case AudioEffect.Type.EQ:           return new EQEffectStruct(_params);
         default:                            return null;
     }
 };
@@ -82,16 +93,24 @@ AudioEffectStruct.paramDescriptors = () => ({
     bypass: { name: "bypass", integer: true, defaultValue: 0, minValue: 0, maxValue: 1 }
 });
 
-AudioEffectStruct.prototype.addNode = function() {
+AudioEffectStruct.prototype.addInstance = function() {
     const node = g_WorkletNodeManager.createEffect(this);
     this.nodes.push(node);
-    
-    return node;
+
+    const ret = { input: node, output: node };
+    return ret;
 };
 
 AudioEffectStruct.prototype.initParams = function(_params, _descriptors) {
     Object.values(_descriptors).forEach(_desc => {
-        const val = _params ? (_params["gml" + _desc.name] ?? _desc.defaultValue) : _desc.defaultValue;
+        const val = (() => {
+            if (_params === undefined || _params["gml" + _desc.name] === undefined) {
+                return _desc.defaultValue;
+            }
+
+            return _params["gml" + _desc.name];
+        })();
+
         this.setParam(_desc, val);
     });
 };

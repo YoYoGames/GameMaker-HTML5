@@ -222,6 +222,8 @@ function fromString(str, unsigned, radix) {
         throw Error('empty string');
     if (str === "NaN" || str === "Infinity" || str === "+Infinity" || str === "-Infinity")
         return ZERO;
+    if (!g_NumberRE.test(str))
+        yyError("int64 : unable to convert string \"" + string + "\" to int64");
     if (typeof unsigned === 'number') {
         // For goog.math.long compatibility
         radix = unsigned,

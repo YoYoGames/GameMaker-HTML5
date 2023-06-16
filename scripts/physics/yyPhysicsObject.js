@@ -213,14 +213,15 @@ yyPhysicsObject.prototype.DebugRenderShapes = function(_scale) {
     while ((fixture != null) && (fixture != undefined)) {
     
         var shape = fixture.GetShape();
-        var bodyPosition = this.m_physicsBody.GetPosition();
+		var transform = this.m_physicsBody.GetTransform();
 		if (shape instanceof yyBox2D.CircleShape)
-	    {	        
+	    {
+			var center = yyBox2D.Mul_t_v2(transform, shape.m_p);
 			draw_ellipse(
-				(bodyPosition.x - shape.m_radius) * _scale, 
-				(bodyPosition.y - shape.m_radius) * _scale, 
-				(bodyPosition.x + shape.m_radius) * _scale, 
-				(bodyPosition.y + shape.m_radius) * _scale, 
+				(center.x - shape.m_radius) * _scale, 
+				(center.y - shape.m_radius) * _scale, 
+				(center.x + shape.m_radius) * _scale, 
+				(center.y + shape.m_radius) * _scale, 
 				true);
 	    }
 	    else if (shape instanceof yyBox2D.PolygonShape)
@@ -231,13 +232,9 @@ yyPhysicsObject.prototype.DebugRenderShapes = function(_scale) {
 			{
 				var posA = shape.m_vertices[n];
 				var posB = shape.m_vertices[(n + 1) % shape.m_count];
-
-				// Draw with rotated positions
-				draw_line(
-					(bodyPosition.x + ((posA.x * cs) - (posA.y * sn))) * _scale,
-					(bodyPosition.y + ((posA.x * sn) + (posA.y * cs))) * _scale,
-					(bodyPosition.x + ((posB.x * cs) - (posB.y * sn))) * _scale,
-					(bodyPosition.y + ((posB.x * sn) + (posB.y * cs))) * _scale);
+				var posAT = yyBox2D.Mul_t_v2(transform, posA);
+				var posBT = yyBox2D.Mul_t_v2(transform, posB);
+				draw_line(posAT.x * _scale, posAT.y * _scale, posBT.x * _scale, posBT.y * _scale);
 			}			
 		}		
 		fixture = fixture.m_next;

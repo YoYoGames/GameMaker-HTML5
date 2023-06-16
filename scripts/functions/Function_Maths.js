@@ -1,4 +1,4 @@
-﻿// **********************************************************************************************************************
+// **********************************************************************************************************************
 // 
 // Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
 // 
@@ -1167,61 +1167,88 @@ var dot_product_3d_normalized = dot_product_3d_normalised;
 ///			</returns>
 // #############################################################################################
 function is_real(_x) {
-    if (typeof (_x) == "number") return 1;
-    else return 0;
+    if (typeof (_x) == "number") return true;
+    else return false;
 }
 
 function is_numeric(_x) {
-    var ret = 0;
+    var ret = false;
     switch (typeof (_x)) {
     case "number":
     case "boolean":
-        ret = 1;
+        ret = true;
         break;
     case "object":
         if (_x instanceof Long) {
-            ret = 1;
+            ret = true;
         } // end if
         break;
     } // end switch
     return ret;
 } // end is_numeric
 
-
 function is_bool(_x) {
-	if (typeof (_x) == "boolean") return 1; 
-	else return 0;
+	if (typeof (_x) == "boolean") return true; 
+	else return false;
 }
+
 function is_undefined(_x) {
-	if (typeof (_x) == "undefined") return 1; 
-	else return 0;
+	if (typeof (_x) == "undefined") return true; 
+	else return false;
 }
 
 function is_int32(_x) {
-	if ((typeof (_x) === "number") && (~~_x === _x)) return 1; 
-	else return 0;
+	if ((typeof (_x) === "number") && (~~_x === _x)) return true; 
+	else return false;
 }
 
 function is_int64(_x) {
-    if (_x instanceof Long) return 1;
-	else return 0;
+    if (_x instanceof Long) return true;
+	else return false;
 }
 
 function is_ptr(_x) {
-    return (typeof(_x) == "object" && (_x instanceof ArrayBuffer)) ? 1 : 0;
+    return (typeof(_x) == "object" && (_x instanceof ArrayBuffer)) ? true : false;
 }
 
 function is_struct(_x) {
-    return ((typeof _x === "object") && (_x.__yyIsGMLObject)) ? 1 : 0;
+    return ((typeof _x === "object") && (_x.__yyIsGMLObject)) ? true : false;
 }
 
 function is_nan(_x) {
-    return Number.isNaN(yyGetReal(_x));
+    
+    // Try to convert to Real and check isNaN
+    try 
+    {
+        // If x is a pointer then it's a number.
+        if (is_ptr(_x)) return false;
+        if (is_struct(_x)) return true;
+        if (is_method(_x)) return true;
+
+        // Else try to convert to real
+        value = yyGetReal(_x);
+        return Number.isNaN(value);
+    }
+    // If there was an error then it's not-a-number
+    catch 
+    { 
+        return true;
+    }
 }
 
 function is_infinity(_x) {
-    _x = yyGetReal(_x);
-    return !Number.isFinite(_x) && !Number.isNaN(_x);
+
+    // Try to convert to Real and check for infinity
+    try 
+    {
+        _x = yyGetReal(_x);
+        return !Number.isFinite(_x) && !Number.isNaN(_x);
+    }
+    // If there was an error then it's not infinity.
+    catch 
+    { 
+        return false;
+    }
 }
 
 function static_get( s )
@@ -1233,13 +1260,16 @@ function static_get( s )
             if (funcId >= 100000) {
                 func = JSON_game.Scripts[ funcId - 100000];
                 ret = func.prototype;
+                ret.__yyIsGMLObject = true;
             } // end if
             break;
         case "function":
             ret = s.prototype;
+            ret.__yyIsGMLObject = true;
             break;
         case "object":
             ret = Object.getPrototypeOf(s);
+            if (s.__yyIsGMLObject) ret.__yyIsGMLObject = true;
             break;
     } // end switch
     return ret;

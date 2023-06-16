@@ -51,8 +51,6 @@ function SecondsToMicros(_s)
 
 class CTimeSource
 {
-    static idCtr = 0; // ID counter - keeps track of given IDs
-
     /* Creates a time source with the given ID */
     constructor(_id)
     {
@@ -285,6 +283,8 @@ class CTimeSource
         return this.type;
     }
 }
+
+CTimeSource.idCtr = 0;
 
 /********** CStatefulTimeSource *********/
 
