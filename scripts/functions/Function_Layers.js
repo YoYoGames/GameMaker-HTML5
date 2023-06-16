@@ -2628,7 +2628,7 @@ function layer_background_get_blend( arg1)
     var el = layerBackgroudGetElement(yyGetInt32(arg1));
     if (el != null)
     {
-        return ConvertGMColour(el.m_pBackground.blend) & 0x00ffffff;
+        return ConvertGMColour(el.m_pBackground.blend);
     }
     
     return 0;
@@ -2934,7 +2934,7 @@ function layer_sprite_get_blend( arg1)
     var el = layerSpriteGetElement(arg1);
     if (el != null)
     {
-        return ConvertGMColour(el.m_imageBlend) & 0x00ffffff;
+        return ConvertGMColour(el.m_imageBlend);
     }
     return 0;
 
