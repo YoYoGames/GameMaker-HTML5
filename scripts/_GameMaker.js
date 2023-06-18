@@ -169,6 +169,36 @@ function yyUnhandledRejectionHandler( error )
 {
 	var string =  "Unhandled Rejection - " + error.message;
 	console.error(string);
+	//print( string );
+	//alert( string );
+	if (error && error.promise) {
+		error.promise.catch(function(err){
+			var _endGame = true;
+			try {
+				var _urlPos = err.stack.indexOf("https://");
+				if (_urlPos < 0) _urlPos = err.stack.indexOf("http://");
+				if (_urlPos >= 0) {
+					var _url = err.stack.slice(_urlPos);
+					_urlPos = _url.indexOf(":", _urlPos + 7);
+					if (_urlPos > 0) {
+						var _errUrl = new URL(_url.slice(0, _urlPos));
+						if ((_errUrl.hostname != window.location.hostname) ||
+							(_errUrl.pathname.indexOf(g_pGMFile.Options.GameDir) !== 1)){
+							// The error is caused by an external resource.
+							_endGame = false;
+						}
+					}
+				}
+			}
+			catch (e) {
+				console.error(e.message);
+			}
+			if (_endGame) {
+				game_end(-2);
+				debugger;
+			}
+        	});
+	}
 	return false;
 }
 
