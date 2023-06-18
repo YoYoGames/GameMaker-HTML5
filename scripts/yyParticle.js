@@ -1694,7 +1694,16 @@ function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 // #############################################################################################
 function	ParticleSystem_Particles_Create_Color( _ps, _x, _y, _parttype, _col, _numb)
 {
-    var em = (g_ParticleSystems[_ps].emitters.length == 0)
+	if ( !ParticleSystem_Exists(_ps) ) {
+		console.log( "part_particles_create :: particle system does not exist!" );
+		return;
+	} // end if
+	if ( !ParticleType_Exists(_parttype) ) {
+		console.log( "part_particles_create :: particle type does not exist!" );
+		return;
+	} // end if
+
+	var em = (g_ParticleSystems[_ps].emitters.length == 0)
 		? ParticleSystem_Emitter_Create(_ps)
 		: 0;
 
