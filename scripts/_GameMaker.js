@@ -168,10 +168,38 @@ function yyUnhandledExceptionHandler( event )
 function yyUnhandledRejectionHandler( error )
 {
 	var string =  "Unhandled Rejection - " + error.message;
-	print( string );
-	//alert( string );
-	game_end(-2);
-	debugger;
+	console.error(string);
+	if (error && error.promise) {
+		error.promise.catch(function(err){
+			var _endGame = true;
+			try {
+				var _urlPos = err.stack.indexOf("https://");
+				if (_urlPos < 0) _urlPos = err.stack.indexOf("http://");
+				if (_urlPos >= 0) {
+					var _rows = err.stack.slice(_urlPos).split(/\r\n|\r|\n/g);
+					if (_rows.length > 0) {
+						var _url = _rows[0];
+						_urlPos = _url.lastIndexOf("/");
+						if (_urlPos > 0) {
+							var _errUrl = new URL(_url.slice(0, _urlPos + 1));
+							if ((_errUrl.hostname != window.location.hostname) ||
+								(_errUrl.pathname.indexOf(g_pGMFile.Options.GameDir) < 0)){
+								// The error is caused by an external resource.
+								_endGame = false;
+							}
+						}
+					}
+				}
+			}
+			catch (e) {
+				console.error(e.message);
+			}
+			if (_endGame) {
+				game_end(-2);
+				debugger;
+			}
+		});
+	}
 	return false;
 }
 
