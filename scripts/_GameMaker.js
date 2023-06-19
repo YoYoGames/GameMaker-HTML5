@@ -176,7 +176,8 @@ function yyUnhandledRejectionHandler( error )
 				var _urlPos = err.stack.indexOf("https://");
 				if (_urlPos < 0) _urlPos = err.stack.indexOf("http://");
 				if (_urlPos >= 0) {
-					var _rows = err.stack.slice(_urlPos).split(/\r\n|\r|\n/g);
+                    var reg_line_split = new RegExp("\\r\\n|\\r|\\n", "g");
+					var _rows = err.stack.slice(_urlPos).split(reg_line_split);
 					if (_rows.length > 0) {
 						var _url = _rows[0];
 						_urlPos = _url.lastIndexOf("/");
