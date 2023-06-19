@@ -429,6 +429,21 @@ var part_type_sprite = ParticleType_Sprite;
 
 // #############################################################################################
 /// Function:<summary>
+///          	This function can be used to set a particle type to use a custom sub-image
+///             (frame) of a sprite. If the particle's sprite is animated, then this sub-image
+///             will be used as the starting frame of the animation.
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+///			<param name="_subimg"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_type_subimage = ParticleType_Subimage;
+
+// #############################################################################################
+/// Function:<summary>
 ///          	Sets the size parameters for the particle type. You specify the minimum starting 
 ///             size, the maximum starting size, the size increase in each step (use a negative 
 ///             number for a decrease in size) and the amount of wiggling. 
