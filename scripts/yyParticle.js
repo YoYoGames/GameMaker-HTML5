@@ -1448,6 +1448,27 @@ function ParticleSystem_Emitter_DestroyAll(_ps)
 	return true;
 }
 
+// #############################################################################################
+/// Function:<summary>
+///				Enables or disables a particle emitter
+///          </summary>
+///
+/// In:		<param name="_ps"></param>
+///			<param name="_ind"></param>
+///			<param name="_enable"></param>
+/// Out:	<returns>
+///			</returns>
+// #############################################################################################
+function	ParticleSystem_Emitter_Enable(_ps, _ind, _enable)
+{
+	_ps = yyGetInt32(_ps);
+	_ind = yyGetInt32(_ind);
+
+	if (!ParticleSystem_Exists(_ps)) return;
+	if (!ParticleSystem_Emitter_Exists(_ps, _ind)) return;
+
+	g_ParticleSystems[_ps].emitters[_ind].enabled = yyGetBool(_enable);
+}
 
 // #############################################################################################
 /// Function:<summary>
