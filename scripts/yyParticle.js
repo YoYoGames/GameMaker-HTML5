@@ -808,6 +808,25 @@ function ParticleType_Sprite(_ind, _sprite, _anim, _stretch, _rand)
 
 // #############################################################################################
 /// Function:<summary>
+///          	Sets the starting sprite sub-image for the indicated particle type
+///          </summary>
+///
+/// In:		<param name="_ind">Particle type ti change</param>
+///			<param name="_subimg"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+function ParticleType_Subimage(_ind, _subimg)
+{
+    var pPar = g_ParticleTypes[yyGetInt32(_ind)];
+	if( pPar == null || pPar==undefined ) return;
+
+	pPar.spritestart = yyGetInt32(_subimg);
+}
+
+// #############################################################################################
+/// Function:<summary>
 ///				Sets the size for the indicated particle type
 ///          </summary>
 ///
