@@ -218,6 +218,12 @@ var pow_dbl = Math.pow; // Used 4 times (4*8 to 15+4)
  * @inner
  */
 function fromString(str, unsigned, radix) {
+    
+    // We should ignore the faction part of the string 
+    if (str.includes('.')) {
+        str = str.split('.')[0];
+    }
+
     if (str.length === 0)
         throw Error('empty string');
     if (str === "NaN" || str === "Infinity" || str === "+Infinity" || str === "-Infinity")
