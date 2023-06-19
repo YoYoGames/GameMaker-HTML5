@@ -54,6 +54,7 @@ function particle_get_info(_ind)
             variable_struct_set(pEmitterI, "ymax", templateEmitter.ymax);
             variable_struct_set(pEmitterI, "distribution", templateEmitter.posdistr);
             variable_struct_set(pEmitterI, "shape", templateEmitter.shape);
+            variable_struct_set(pEmitterI, "enabled", templateEmitter.enabled);
 
             var pPartTypeI = new GMLObject();
             var particleType = g_ParticleTypes[templateEmitter.parttype];
@@ -807,6 +808,21 @@ var part_emitter_destroy  = ParticleSystem_Emitter_Destroy;
 ///			</returns>
 // #############################################################################################
 var part_emitter_destroy_all = ParticleSystem_Emitter_DestroyAll;
+
+// #############################################################################################
+/// Function:<summary>
+///          	Enables or disables a particle emitter. Disabled emitters aren't updated nor
+///             rendered and they don't spawn new particles.
+///          </summary>
+///
+/// In:		<param name="_ps"></param>
+///			<param name="_ind"></param>
+///			<param name="_enable"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_emitter_enable = ParticleSystem_Emitter_Enable;
 
 // #############################################################################################
 /// Function:<summary>
