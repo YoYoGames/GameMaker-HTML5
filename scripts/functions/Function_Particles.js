@@ -209,6 +209,21 @@ var part_system_depth = ParticleSystem_Depth;
 
 // #############################################################################################
 /// Function:<summary>
+///          	Changes the color and alpha with which to blend the particle system.
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+///			<param name="_color"></param>
+///			<param name="_alpha"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_system_color = ParticleSystem_Color;
+var part_system_colour = ParticleSystem_Color;
+
+// #############################################################################################
+/// Function:<summary>
 ///          	Sets the position where the particle system is drawn. This is normally not 
 ///             necessary but if you want to have particles at a position relative to a moving 
 ///             object, you can set the position e.g. to that object.
@@ -223,6 +238,18 @@ var part_system_depth = ParticleSystem_Depth;
 // #############################################################################################
 var part_system_position = ParticleSystem_Position;
 
+// #############################################################################################
+/// Function:<summary>
+///          	Changes the rotation of the particle system.
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+///			<param name="_angle"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_system_rotate = ParticleSystem_Rotate;
 
 // #############################################################################################
 /// Function:<summary>

@@ -353,8 +353,24 @@ function Color_Merge(_col1, _col2, _value)
 	return Color_MergeRGB(_col1, _col2, _value);
 }
 
-
-
+// #############################################################################################
+/// Function:<summary>
+///				Multiplies two colors
+///          </summary>
+///
+/// In:		 <param name="_col1">Colour #1</param>
+///			 <param name="_col2">Colour #2</param>
+/// Out:	 <returns>
+///				Resulting color
+///			 </returns>
+// #############################################################################################
+function Color_Multiply(_col1, _col2)
+{
+    return make_color_rgb(
+		(color_get_red(_col1) * color_get_red(_col2)) / 255,
+		(color_get_green(_col1) * color_get_green(_col2)) / 255,
+		(color_get_blue(_col1) * color_get_blue(_col2)) / 255);
+}
 
 // #############################################################################################
 /// Function:<summary>
