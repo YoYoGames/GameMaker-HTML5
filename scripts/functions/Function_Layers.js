@@ -4988,12 +4988,7 @@ function fx_get_single_layer(_effect)
 		return -1;
     }
 
-    var varId = "gml" + EFFECT_AFFECT_SINGLE_LAYER_VAR;
-	if ((typeof g_var2obf !== "undefined") && (g_var2obf[EFFECT_AFFECT_SINGLE_LAYER_VAR] != undefined)) {
-		varId = g_var2obf[EFFECT_AFFECT_SINGLE_LAYER_VAR];
-	}
-
-    return _effect.instance.pEffectObj[varId];
+    return _effect.instance.GetParamVar(EFFECT_AFFECT_SINGLE_LAYER_VAR) == 1 ? true : false;
 }
 
 function fx_set_parameter(_effect, _name, _val)
@@ -5063,12 +5058,7 @@ function fx_set_single_layer(_effect, _val)
 		return -1;
     }
 
-    var varId = "gml" + EFFECT_AFFECT_SINGLE_LAYER_VAR;
-	if ((typeof g_var2obf !== "undefined") && (g_var2obf[EFFECT_AFFECT_SINGLE_LAYER_VAR] != undefined)) {
-		varId = g_var2obf[EFFECT_AFFECT_SINGLE_LAYER_VAR];
-	}
-
-    _effect.instance.pEffectObj[varId] = _val;
+    _effect.instance.SetParam(EFFECT_AFFECT_SINGLE_LAYER_VAR, FAE_PARAM_BOOL, 1, [ yyGetBool(_val) ]);
 }
 
 function layer_set_fx(_layerId, _effect)
