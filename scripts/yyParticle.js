@@ -242,6 +242,9 @@ function ParticleSystem_ClearClass()
 	this.ydraw = 0.0;               
 	this.automaticupdate = true;       	 	// whether to update automatically
 	this.automaticdraw = true;         	 	// whether to draw automatically
+	this.color = clWhite;					// the color to blend the particles with
+	this.alpha = 1.0;						// the particle system's alpha
+	this.angle = 0.0; 						// rotation in degrees
 
 	this.m_elementID = -1;                  // layer element ID (Zeus only)
 	//this.m_origLayerID = -1;                // original layer ID (Zeus only)
@@ -2137,6 +2140,26 @@ function ParticleSystem_Depth(_ps, _depth)
 	}*/
 }
 
+// #############################################################################################
+/// Function:<summary>
+///				Changes the color and alpha with which to blend the particle system.
+///          </summary>
+///
+/// In:		 <param name="ps"></param>
+///			 <param name="color"></param>
+///			 <param name="alpha"></param>
+/// Out:	 <returns>
+///				
+///			 </returns>
+// #############################################################################################
+function	ParticleSystem_Color(_ps, _color, _alpha)
+{
+	var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
+	if( pPartSys ==null || pPartSys==undefined ) return;
+
+	pPartSys.color = yyGetInt32(_color);
+	pPartSys.alpha = yyGetReal(_alpha);
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -2159,6 +2182,24 @@ function	ParticleSystem_Position(_ps, _x, _y)
 	pPartSys.ydraw = yyGetReal(_y);
 }
 
+// #############################################################################################
+/// Function:<summary>
+///				Changes the rotation of the particle system.
+///          </summary>
+///
+/// In:		 <param name="ps"></param>
+///			 <param name="angle"></param>
+/// Out:	 <returns>
+///				
+///			 </returns>
+// #############################################################################################
+function	ParticleSystem_Rotate(_ps, _angle)
+{
+	var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
+	if( pPartSys ==null || pPartSys==undefined ) return;
+
+	pPartSys.angle = yyGetReal(_angle);
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -2459,7 +2500,8 @@ function  ParticleSystem_UpdateAll()
 ///				Draws a particle
 ///          </summary>
 ///
-/// In:		 <param name="_pParticle"></param>
+/// In:		 <param name="_pPartSys"></param>
+///			 <param name="_pParticle"></param>
 ///			 <param name="_xoff"></param>
 ///			 <param name="_yoff"></param>
 ///			 <param name="_color"></param>
@@ -2468,11 +2510,14 @@ function  ParticleSystem_UpdateAll()
 ///				
 ///			 </returns>
 // #############################################################################################
-function	DrawParticle(_pParticle, _xoff, _yoff, _color, _alpha)
+function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 {
 	_color = (_color === undefined) ? 0xffffff : _color;
 	_alpha = (_alpha === undefined) ? 1.0 : _alpha;
-
+	
+	var psColor = _pPartSys.color;
+	var psAlpha = _pPartSys.alpha;
+	
 	var spr= null;
 	var pTexture=null;
 
@@ -2539,12 +2584,8 @@ function	DrawParticle(_pParticle, _xoff, _yoff, _color, _alpha)
 
 	var s = _pParticle.size + r*pParType.sizerand;   
 
-	var mulColor = make_color_rgb(
-		(color_get_red(_pParticle.color) * color_get_red(_color)) / 255.0,
-		(color_get_green(_pParticle.color) * color_get_green(_color)) / 255.0,
-		(color_get_blue(_pParticle.color) * color_get_blue(_color)) / 255.0
-	);
-	var mulAlpha = _pParticle.alpha * _alpha;
+	var mulColor = Color_Multiply(psColor, Color_Multiply(_pParticle.color, _color));
+	var mulAlpha = psAlpha * _pParticle.alpha * _alpha;
 
 	// If a built in particle, make it right here...
 	if (pTexture != null)
@@ -2632,7 +2673,7 @@ function ParticleSystem_Draw( _ps, _color, _alpha )
 			{
 				var pParticle = pParticles[i];
 				setAdditiveBlend(pParticle.additiveblend);
-				DrawParticle( pParticle, pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
+				DrawParticle(pPartSys, pParticle, pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
 			}
 		}
 		else
@@ -2641,7 +2682,7 @@ function ParticleSystem_Draw( _ps, _color, _alpha )
 			{
 				var pParticle = pParticles[i];
 				setAdditiveBlend(pParticle.additiveblend);
-				DrawParticle( pParticle, pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
+				DrawParticle(pPartSys, pParticle, pPartSys.xdraw, pPartSys.ydraw, _color, _alpha );
 			}
 		}
 	}
