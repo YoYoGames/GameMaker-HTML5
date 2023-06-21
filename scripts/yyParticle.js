@@ -2193,7 +2193,7 @@ function	ParticleSystem_Position(_ps, _x, _y)
 ///				
 ///			 </returns>
 // #############################################################################################
-function	ParticleSystem_Rotate(_ps, _angle)
+function	ParticleSystem_Angle(_ps, _angle)
 {
 	var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
 	if( pPartSys ==null || pPartSys==undefined ) return;

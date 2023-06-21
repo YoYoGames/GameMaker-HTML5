@@ -249,7 +249,7 @@ var part_system_position = ParticleSystem_Position;
 ///				
 ///			</returns>
 // #############################################################################################
-var part_system_rotate = ParticleSystem_Rotate;
+var part_system_angle = ParticleSystem_Angle;
 
 // #############################################################################################
 /// Function:<summary>
