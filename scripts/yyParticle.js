@@ -1813,23 +1813,19 @@ function ParticleSystem_Particles_Burst(_ps, _x, _y, _partsys)
 	} // end if
 
 	var system = g_ParticleSystems[_ps];
-
 	var emitterCount = asset.emitters.length;
 
-	for (var i = 0; i < emitterCount - system.emitters.length; ++i)
-	{
+	for (var i = emitterCount - system.emitters.length; i > 0; --i)
 		ParticleSystem_Emitter_Create(_ps);
-	}
 
 	for (var i = 0; i < emitterCount; ++i)
 	{
-		var ind = emitterCount - i - 1;
-		var emitterIndex = asset.emitters[i];
+		var emitterIndex = asset.emitters[emitterCount - i - 1];
 		var emitter = g_PSEmitters[emitterIndex];
 		var emitterWidth = emitter.xmax - emitter.xmin;
 		var emitterHeight = emitter.ymax - emitter.ymin;
 
-		ParticleSystem_Emitter_Burst_Impl(system, system.emitters[ind], _x + emitter.xmin, _y + emitter.ymin,
+		ParticleSystem_Emitter_Burst_Impl(system, system.emitters[i], _x + emitter.xmin, _y + emitter.ymin,
 			emitterWidth, emitterHeight, emitter.shape, emitter.posdistr, emitter.parttype, emitter.number);
 	}
 }
