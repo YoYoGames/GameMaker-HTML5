@@ -1784,7 +1784,10 @@ function	ParticleSystem_Particles_Create_Color( _ps, _x, _y, _parttype, _col, _n
 
 // #############################################################################################
 /// Function:<summary>
-///          	
+///          	This function allows you to burst all particles defined in a particle system
+///          	resource at any position in the room. The final area, distribution and number
+///          	of the particles created depends on the configuration of emitters inside of the
+///          	particle system resource.
 ///          </summary>
 ///
 /// In:		<param name="_ind"></param>
