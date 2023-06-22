@@ -348,6 +348,21 @@ var part_particles_create_colour = ParticleSystem_Particles_Create_Color;
 
 // #############################################################################################
 /// Function:<summary>
+///          	
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+///			<param name="_x"></param>
+///			<param name="_y"></param>
+///			<param name="_partsys"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_particles_burst = ParticleSystem_Particles_Burst;
+
+// #############################################################################################
+/// Function:<summary>
 ///          	This functions removes all particles in the system.
 ///          </summary>
 ///
