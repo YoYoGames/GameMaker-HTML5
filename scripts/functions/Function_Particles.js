@@ -249,7 +249,7 @@ var part_system_position = ParticleSystem_Position;
 ///				
 ///			</returns>
 // #############################################################################################
-var part_system_rotate = ParticleSystem_Rotate;
+var part_system_angle = ParticleSystem_Angle;
 
 // #############################################################################################
 /// Function:<summary>
@@ -345,6 +345,24 @@ var part_particles_create = ParticleSystem_Particles_Create;
 // #############################################################################################
 var part_particles_create_color = ParticleSystem_Particles_Create_Color;
 var part_particles_create_colour = ParticleSystem_Particles_Create_Color;
+
+// #############################################################################################
+/// Function:<summary>
+///          	This function allows you to burst all particles defined in a particle system
+///          	resource at any position in the room. The final area, distribution and number
+///          	of the particles created depends on the configuration of emitters inside of the
+///          	particle system resource.
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+///			<param name="_x"></param>
+///			<param name="_y"></param>
+///			<param name="_partsys"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_particles_burst = ParticleSystem_Particles_Burst;
 
 // #############################################################################################
 /// Function:<summary>
