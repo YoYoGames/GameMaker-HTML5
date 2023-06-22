@@ -4988,7 +4988,16 @@ function fx_get_single_layer(_effect)
 		return -1;
     }
 
-    return _effect.instance.GetParamVar(EFFECT_AFFECT_SINGLE_LAYER_VAR) == 1 ? true : false;
+    // To read the value we cannot use 'GetParamVar' because that will only return values that are defined in the 'pEffectInfo.pParams' array.
+    var varId = EFFECT_AFFECT_SINGLE_LAYER_VAR;
+    if (_effect.instance.pEffectInfo.type == FAE_TYPE_EFFECT) {
+        var varId = "gml" + EFFECT_AFFECT_SINGLE_LAYER_VAR; 
+        if ((typeof g_var2obf !== "undefined") && (g_var2obf[EFFECT_AFFECT_SINGLE_LAYER_VAR] != undefined)) { 
+            varId = g_var2obf[EFFECT_AFFECT_SINGLE_LAYER_VAR]; 
+        }
+    }
+ 
+    return _effect.instance.pEffectObj[varId] == 1 ? true : false;
 }
 
 function fx_set_parameter(_effect, _name, _val)
