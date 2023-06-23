@@ -247,7 +247,7 @@ function    ds_list_replace(_id,_pos,_val)
     if (isNaN(_pos)) yyError( "Error: index must be a number");
     var list = g_ListCollection.Get(yyGetInt32(_id));
     if( list ){
-        return list.Set(yyGetInt32(_pos), _val);
+        return list.Replace(yyGetInt32(_pos), _val);
     }
     yyError("Error: invalid ds_list ID (ds_list_replace)");
     return -1;
