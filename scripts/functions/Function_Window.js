@@ -716,7 +716,53 @@ function window_mouse_set(x,y)
     ErrorFunction("window_mouse_set()");
 }
 
+// #############################################################################################
+/// Function:<summary>
+///             Hides the mouse cursor and locks it in place
+///          </summary>
+///
+/// In:		 <param name="_enable"></param>
+/// Out:	 <returns>
+///				
+///			 </returns>
+// #############################################################################################
+function window_mouse_set_locked(_enable)
+{
+}
 
+// #############################################################################################
+/// Function:<summary>
+///             Checks whether the mouse is locked in place
+///          </summary>
+///
+/// Out:	 <returns>
+///				True if the mouse is locked in place
+///			 </returns>
+// #############################################################################################
+function window_mouse_get_locked()
+{
+	return false;
+}
+
+// #############################################################################################
+/// Out:	 <returns>
+///				Returns how many pixels has the mouse moved on the x axis since the last frame
+///			 </returns>
+// #############################################################################################
+function window_mouse_get_delta_x()
+{
+	return 0;
+}
+
+// #############################################################################################
+/// Out:	 <returns>
+///				Returns how many pixels has the mouse moved on the y axis since the last frame
+///			 </returns>
+// #############################################################################################
+function window_mouse_get_delta_y()
+{
+	return 0;
+}
 
 // #############################################################################################
 /// Function:<summary>
