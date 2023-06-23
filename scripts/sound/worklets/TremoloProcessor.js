@@ -55,9 +55,9 @@ class TremoloProcessor extends AudioWorkletProcessor
                 outputChannel[s] = inputChannel[s];
 
                 // Update LFO parameters
-                const r = rate[s] ?? rate[0];
-                const o = offset[s] ?? offset[0];
-                const sh = shape[s] ?? shape[0];
+                const r = (rate[s] !== undefined) ? rate[s] : rate[0];
+                const o = (offset[s] !== undefined) ? offset[s] : offset[0];
+                const sh = (shape[s] !== undefined) ? shape[s] : shape[0];
 
                 this.updateLFO(c, r, o, sh);
 
@@ -65,12 +65,14 @@ class TremoloProcessor extends AudioWorkletProcessor
                 const lfoOut = this.lfo[c].read();
 
                 // Check bypass state
-                if ((bypass[s] ?? bypass[0]) > 0.0) {
+                const b = (bypass[s] !== undefined) ? bypass[s] : bypass[0];
+
+                if (b > 0.0) {
                     continue;
                 }
 
                 // Scale a sample using the LFO output and intensity
-                const i = intensity[s] ?? intensity[0];
+                const i = (intensity[s] !== undefined) ? intensity[s] : intensity[0];
 
                 const out = inputChannel[s] * lfoOut * i;
 

@@ -117,7 +117,7 @@ function audio_reinit()
 
     g_AudioMainVolumeNode.disconnect();
 
-    g_AudioMainVolumeNode = new GainNode(g_WebAudioContext);
+    g_AudioMainVolumeNode = Audio_CreateGainNode(g_WebAudioContext);
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
 
     g_WebAudioContext.listener.pos = new Vector3(0,0,0);
@@ -130,21 +130,23 @@ function Audio_Init()
     if (g_AudioModel !== Audio_WebAudio)
         return;
 
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+
     g_WebAudioContext = new AudioContext();
     g_WebAudioContext.addEventListener("statechange", Audio_EngineReportState);
-
+    
     g_HandleStreamedAudioAsUnstreamed = ( g_OSPlatform == BROWSER_IOS );
     g_UseDummyAudioBus = (g_OSBrowser === BROWSER_SAFARI_MOBILE)
                       || (g_WebAudioContext.audioWorklet === undefined);
-
-    g_AudioMainVolumeNode = new GainNode(g_WebAudioContext);
+    
+    g_AudioMainVolumeNode = Audio_CreateGainNode(g_WebAudioContext);
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
 
     if (g_UseDummyAudioBus) {
         Audio_CreateMainBus();
     }
     else {
-        g_WebAudioContext.audioWorklet.addModule(g_RootDir + "/sound/worklets/audio-worklet.js")
+        g_WebAudioContext.audioWorklet.addModule(g_RootDir + "sound/worklets/audio-worklet.js")
         .then(() => {
             Audio_CreateMainBus();
         }).catch((_err) => {
@@ -195,6 +197,17 @@ function Audio_Quit()
 	g_WebAudioContext.close().then(() => {
 		g_WebAudioContext = null;
 	});
+}
+
+function Audio_CreateGainNode(_context) {
+    if (window.AudioContext !== undefined && _context instanceof window.AudioContext) {
+        return new GainNode(_context);
+    }
+    else if (window.webkitAudioContext !== undefined && _context instanceof window.webkitAudioContext) {
+        return _context.createGain();
+    }
+
+    return undefined;
 }
 
 function Audio_GetBusType() {
@@ -290,7 +303,7 @@ audioSampleData.prototype.TryDecode = function ( _rawData, _processCommands )
 /** @constructor */
 function audioSound(_props)
 {
-    this.pgainnode = g_WebAudioContext.createGain();
+    this.pgainnode = Audio_CreateGainNode(g_WebAudioContext);
     this.pemitter = null;
     this.handle=0;
 
@@ -922,7 +935,7 @@ var g_WaitingForWebAudioTouchUnlock = false;
 var g_HandleStreamedAudioAsUnstreamed = false;
 
 function Audio_ContextExists() {
-    return g_WebAudioContext instanceof AudioContext;
+        return g_WebAudioContext != null;
 }
 
 function Audio_IsPlaybackAllowed() {
@@ -1181,7 +1194,7 @@ function audio_play_sound_common(_props) {
             // Intentional fall-through
         case AudioPlaybackType.POSITIONAL_EMITTER:
             voice.pemitter = _props.emitter;
-            voice.pgainnode.connect(voice.pemitter);
+            voice.pgainnode.connect(voice.pemitter.getInput());
             break;
         default:
             debug("Warning: Unknown audio playback type => " + _props.type);
@@ -1881,15 +1894,15 @@ function audio_falloff_set_model(_model)
 
     audio_emitters.filter(_emitter => _emitter.isActive() === true)
                   .forEach(_emitter => {
-                      _emitter.distanceModel = falloff_model;
+                      _emitter.pannerNode.distanceModel = falloff_model;
 
                       //set/restore rolloff factor
                       if (g_AudioFalloffModel == DistanceModels.AUDIO_FALLOFF_NONE) {
-                          _emitter.original_rolloffFactor = _emitter.rolloffFactor;
-                          _emitter.rolloffFactor = 0;
+                          _emitter.original_rolloffFactor = _emitter.pannerNode.rolloffFactor;
+                          _emitter.pannerNode.rolloffFactor = 0;
                       }
                       else if (_emitter.original_rolloffFactor !== undefined) {
-                          _emitter.rolloffFactor = _emitter.original_rolloffFactor;
+                          _emitter.pannerNode.rolloffFactor = _emitter.original_rolloffFactor;
                           _emitter.original_rolloffFactor = undefined;
                       }
                 });
@@ -3577,7 +3590,7 @@ function audio_start_recording(_deviceNum)
                 {
                     var source = g_WebAudioContext.createMediaStreamSource(stream);
                     source.connect(gRecorder);
-                    var gainNode = g_WebAudioContext.createGain();
+                    var gainNode = Audio_CreateGainNode(g_WebAudioContext);
                     gRecorder.connect(gainNode);
                     gainNode.connect(g_WebAudioContext.destination);
                 },

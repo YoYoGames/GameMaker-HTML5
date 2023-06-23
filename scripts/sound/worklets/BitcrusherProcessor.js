@@ -66,30 +66,35 @@ class BitcrusherProcessor extends AudioWorkletProcessor
                     this.sample[c] = inputChannel[s];
 
                 // Update hold counter
+                const f = (factor[s] !== undefined) ? factor[s] : factor[0];
+
                 ++this.hold[c];
-                this.hold[c] %= (factor[s] ?? factor[0]);
+                this.hold[c] %= f;
 
                 // Check bypass state
-                if (bypass[s] ?? bypass[0])
+                const b = (bypass[s] !== undefined) ? bypass[s] : bypass[0];
+
+                if (b > 0.0) {
                     continue;
+                }
 
                 // Get the held sample
                 let val = this.sample[c];
 
                 // Apply gain and hard clip
-                const g = (gain[s] ?? gain[0]);
+                const g = (gain[s] !== undefined) ? gain[s] : gain[0];
 
                 val *= g;
                 val = Math.max(Math.min(val, 1.0), -1.0);
 
                 // Resolution reduction
-                const r = resolution[s] ?? resolution[0];
+                const r = (resolution[s] !== undefined) ? resolution[s] : resolution[0];
                 const max = (val > 0.0) ? BitcrusherProcessor.scalars[r] - 1 : BitcrusherProcessor.scalars[r];
 
                 val = Math.round(val * max) / max;
 
                 // Mix the distorted and original samples
-                const m = (mix[s] ?? mix[0]);
+                const m = (mix[s] !== undefined) ? mix[s] : mix[0];
 
                 outputChannel[s] *= (1.0 - m);
                 outputChannel[s] += (val * m);

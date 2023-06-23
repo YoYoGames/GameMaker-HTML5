@@ -27,13 +27,17 @@ class AudioBusInput extends AudioWorkletProcessor
         // 1st output is written to when not bypassed
         // 2nd output is written to when bypassed
         const input = inputs[0];
+        const bypass = parameters.bypass;
 
         for (let c = 0; c < input.length; ++c)
         {
             const inputChannel = input[c];
 
-            for (let s = 0; s < inputChannel.length; ++s)
-                outputs[parameters.bypass[s] ?? parameters.bypass[0]][c][s] = inputChannel[s];
+            for (let s = 0; s < inputChannel.length; ++s) {
+                const b = (bypass[s] !== undefined) ? bypass[s] : bypass[0];
+
+                outputs[b][c][s] = inputChannel[s];
+            }
         }
 
         return this.keepAlive;
@@ -82,8 +86,11 @@ class AudioBusOutput extends AudioWorkletProcessor
             const inputChannel = input0[c];
             const outputChannel = output[c];
 
-            for (let s = 0; s < inputChannel.length; ++s)
-                outputChannel[s] += inputChannel[s] * (gain[s] ?? gain[0]);
+            for (let s = 0; s < inputChannel.length; ++s) {
+                const g = (gain[s] !== undefined) ? gain[s] : gain[0];
+
+                outputChannel[s] += inputChannel[s] * g;
+            }
         }
 
         return this.keepAlive;

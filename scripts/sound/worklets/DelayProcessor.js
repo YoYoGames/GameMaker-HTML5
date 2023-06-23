@@ -47,18 +47,25 @@ class DelayProcessor extends AudioWorkletProcessor
                 outputChannel[s] = inputChannel[s];
 
                 // Read a sample from the delay line
-                const delayOut = this.read(c, (time[s] ?? time[0]));
+                const t = (time[s] !== undefined) ? time[s] : time[0];
+
+                const delayOut = this.read(c, t);
 
                 // Write a sample (with feedback) to the delay line
-                const delayIn = inputChannel[s] + (delayOut * (feedback[s] ?? feedback[0]));
+                const f = (feedback[s] !== undefined) ? feedback[s] : feedback[0];
+
+                const delayIn = inputChannel[s] + (delayOut * f);
                 this.write(c, delayIn);
 
                 // Check bypass state
-                if ((bypass[s] ?? bypass[0]))
+                const b = (bypass[s] !== undefined) ? bypass[s] : bypass[0];
+
+                if (b > 0.0) {
                     continue;
+                }
 
                 // Mix the delayed and original samples
-                const m = (mix[s] ?? mix[0]);
+                const m = (mix[s] !== undefined) ? mix[s] : mix[0];
                 
                 outputChannel[s] *= (1 - m);
                 outputChannel[s] += (delayOut * m);

@@ -53,8 +53,12 @@ class LPF2Processor extends AudioWorkletProcessor
 
             for (let s = 0; s < inputChannel.length; ++s) {
                 // Recalc coefficients if needed
-                if (!paramsAreConstant)
-                    this.calcCoefficients(cutoff[s] ?? cutoff[0], q[s] ?? q[0]);
+                if (paramsAreConstant === false) {
+                    const c = (cutoff[s] !== undefined) ? cutoff[s] : cutoff[0];
+                    const qs = (q[s] !== undefined) ? q[s] : q[0];
+
+                    this.calcCoefficients(c, qs);
+                }
 
                 // Calculate the new sample
                 const y0 = this.b0 * inputChannel[s]
@@ -72,7 +76,9 @@ class LPF2Processor extends AudioWorkletProcessor
                 this.y1[c] = y0;
 
                 // Write the original/filtered sample to the output
-                outputChannel[s] = (bypass[s] ?? bypass[0]) ? inputChannel[s] : y0;
+                const b = (bypass[s] !== undefined) ? bypass[s] : bypass[0];
+
+                outputChannel[s] = (b > 0) ? inputChannel[s] : y0;
             }
         }
 

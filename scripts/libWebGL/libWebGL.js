@@ -154,7 +154,7 @@ function yyWebGL(_canvas, _options) {
         g_extTextureFloatLinear = gl.getExtension('OES_texture_float_linear');
         g_extColourBufferFloat = gl.getExtension('EXT_color_buffer_float');
         
-        if (gl instanceof WebGL2RenderingContext)
+        if (!(typeof WebGL2RenderingContext === typeof undefined) && (gl instanceof WebGL2RenderingContext))        
         {
             g_isWebGL2 = true;
         }
@@ -1164,7 +1164,7 @@ function yyWebGL(_canvas, _options) {
     
         if (_handle != -1) {
             m_VBufferManager.Flush();
-            _shaderData = CopyArray(_handle, _shaderData);
+            _shaderData = this.CopyArray(_handle, _shaderData);
             m_CommandBuilder.SetUniformArrayI(_handle, _shaderData);        // shader data already copied
         }
     };    
@@ -1945,7 +1945,7 @@ function yyWebGL(_canvas, _options) {
 
 	    // Clear the command builder state
 	    m_CommandBuilder.Reset();
-	    return col;
+	    return new Long(col);
     };    
     
     // #############################################################################################
