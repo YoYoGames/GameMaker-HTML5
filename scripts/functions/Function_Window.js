@@ -728,6 +728,30 @@ function window_mouse_set(x,y)
 // #############################################################################################
 function window_mouse_set_locked(_enable)
 {
+    if (_enable)
+    {
+        var _requestPointerLock = canvas.requestPointerLock
+            || canvas.mozRequestPointerLock
+            || canvas.webkitRequestPointerLock
+            || canvas.msRequestPointerLock;
+        
+        if (!_requestPointerLock) return;
+        
+        var res = _requestPointerLock.call(canvas);
+        if (res && res.then) res.catch(function () {});
+    }
+    else
+    {
+        var _exitPointerLock = document.exitPointerLock
+            || document.mozExitPointerLock
+            || document.webkitExitPointerLock
+            || document.msExitPointerLock;
+        
+        if (!_exitPointerLock) return;
+        
+        var res = _exitPointerLock.call(document);
+        if (res && res.then) res.catch(function () {});
+    }
 }
 
 // #############################################################################################
@@ -741,7 +765,7 @@ function window_mouse_set_locked(_enable)
 // #############################################################################################
 function window_mouse_get_locked()
 {
-	return false;
+	return g_MouseLocked;
 }
 
 // #############################################################################################
@@ -751,7 +775,7 @@ function window_mouse_get_locked()
 // #############################################################################################
 function window_mouse_get_delta_x()
 {
-	return 0;
+	return g_MouseDeltaX;
 }
 
 // #############################################################################################
@@ -761,7 +785,7 @@ function window_mouse_get_delta_x()
 // #############################################################################################
 function window_mouse_get_delta_y()
 {
-	return 0;
+	return g_MouseDeltaY;
 }
 
 // #############################################################################################

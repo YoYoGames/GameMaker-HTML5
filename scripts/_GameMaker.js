@@ -2326,8 +2326,8 @@ function GameMaker_Tick()
 		    if (ErrorCount <= 0) break;
 		}
 
-
-
+        g_MouseDeltaX = 0;
+        g_MouseDeltaY = 0;
     }
     
 	// if in DEBUG mode, do debug "stuff"
