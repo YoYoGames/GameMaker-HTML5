@@ -405,16 +405,33 @@ function method_get_index( _method )
     return undefined;
 }
 
+function __yy_gml_is_typed_array(_a) {
+    return _a instanceof Int8Array ||
+        _a instanceof Uint8Array ||
+        _a instanceof Uint8ClampedArray ||
+        _a instanceof Int16Array ||
+        _a instanceof Uint16Array ||
+        _a instanceof Int32Array ||
+        _a instanceof Uint32Array ||
+        _a instanceof Float32Array ||
+        _a instanceof Float64Array ||
+        _a instanceof BigInt64Array ||
+        _a instanceof BigUint64Array;
+}
+
 function __yy_gml_array_check( _a, _b )
 {
-    if (!(_a instanceof Array)) { 
-        _a = []; 
-        _a.__yy_owner = g_CurrentArrayOwner; 
-    }
-    else if (_a.__yy_owner !== g_CurrentArrayOwner) {
+    // If it is an array with a different owner or typed array create a copy of it.
+    if ((Array.isArray(_a) && _a.__yy_owner != g_CurrentArrayOwner) || __yy_gml_is_typed_array(_a)) {
         _a = _a.slice();
-        _a.__yy_owner = g_CurrentArrayOwner;
     }
+    // If it's not an array create an empty array.
+    else if (!(_a instanceof Array)) {
+        _a = [];
+    }
+    // Set the current owner
+    _a.__yy_owner = g_CurrentArrayOwner;
+
     return _a;
 }
 
@@ -676,8 +693,9 @@ function array_insert( _array, _index )
         _index = yyGetInt32(_index);
 
         // Fill any null elements prior to the copy with 0 (real) values. 
-        // This mimics the initialisation flow of array data on VM/YYC when MemoryManager::SetLength is called. 
-        for(n = _index - 1; n >= _array.length; --n) { 
+        // This mimics the initialisation flow of array data on VM/YYC when MemoryManager::SetLength is called.
+        _length = _array.length;
+        for(n = _index - 1; n >= _length; --n) { 
             _array[n] = 0; 
         }
 
@@ -742,9 +760,9 @@ function array_sort( _array, _typeofSort )
 } // end array_sort
 
 const shuffleArray = (_array, _offset, _length) => {
-
-    _offset ??= 0;
-    _length ??= _array.length - _offset;
+    
+    _offset = _offset !== undefined ? _offset : 0;
+    _length = _length !== undefined ? _length : _array.length - _offset;
 
     for (let i = _length - 1; i > 0; --i) {
         const j = _offset + Math.floor(Math.random() * (i + 1));
@@ -752,7 +770,7 @@ const shuffleArray = (_array, _offset, _length) => {
         _array[_offset + i] = _array[j];
         _array[j] = temp;
     }
-} // end shuffleArray
+}; // end shuffleArray
 
 function array_shuffle( _array, _offset, _length )
 {
@@ -1487,10 +1505,10 @@ function array_reverse_ext(_array, _offset, _length) {
     return _ret;
 } // end array_reverse_ext
 
-function array_join(_array) {
+function array_concat(_array) {
 
     // Check array argument
-    if (!Array.isArray(_array)) yyError("array_join : argument0 is not an array");
+    if (!Array.isArray(_array)) yyError("array_concat : argument0 is not an array");
 
     var _ret = _array;
 
@@ -1498,14 +1516,14 @@ function array_join(_array) {
     for (var _idx = 1; _idx < arguments.length; _idx++) {
 
         // Check array argument
-        if (!Array.isArray(arguments[_idx])) yyError("array_join : argument" + _idx + " is not an array");
+        if (!Array.isArray(arguments[_idx])) yyError("array_concat : argument" + _idx + " is not an array");
         _ret = _ret.concat(arguments[_idx]);
     }
 
     _ret.__yy_owner = g_CurrentArrayOwner;
     return _ret;
 
-} // end array_join
+} // end array_concat
 
 function array_union(_array) {
 
@@ -2546,7 +2564,8 @@ function variable_instance_get_names( _id )
 
                 var names = __internal__get_variable_names(pInst, glob);
                 for(var n=0; n<names.length; n+=2) {
-                    ret.push( names[n] );
+                    if (names[n] != "constructor")
+                        ret.push( names[n] );
                 } // end for
 
                 return ret;
@@ -2759,7 +2778,7 @@ function variable_get_hash(_name) {
     return _name;
 } // end variable_get_hash
 
-g_CLONE_VISITED_LIST = new Map()
+g_CLONE_VISITED_LIST = new Map();
 
 function __internal_variable_clone(_val, _depth) {
 

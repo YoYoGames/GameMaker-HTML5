@@ -1,13 +1,14 @@
-class HPF2Processor extends AudioWorkletProcessor
+class LoShelfProcessor extends AudioWorkletProcessor
 {
     static get parameterDescriptors() 
     {
-        const maxCutoff = Math.min(sampleRate / 2.0, 20000.0);
+        const maxFreq = Math.min(sampleRate / 2.0, 20000.0);
 
         return [
-            { name: "bypass", automationRate: "a-rate", defaultValue: 0,                           minValue: 0,    maxValue: 1 },
-            { name: "cutoff", automationRate: "a-rate", defaultValue: Math.min(1500.0, maxCutoff), minValue: 10.0, maxValue: maxCutoff },
-            { name: "q",      automationRate: "a-rate", defaultValue: 1.5,                         minValue: 1.0,  maxValue: 100.0 }
+            { name: "bypass", automationRate: "a-rate", defaultValue: 0,                         minValue: 0,    maxValue: 1 },
+            { name: "freq",   automationRate: "a-rate", defaultValue: Math.min(500.0, maxFreq),  minValue: 10.0, maxValue: maxFreq },
+            { name: "q",      automationRate: "a-rate", defaultValue: 1.0,                       minValue: 1.0,  maxValue: 100.0 },
+            { name: "gain",   automationRate: "a-rate", defaultValue: 1e-2,                      minValue: 1e-6 }
         ];
     }
 
@@ -29,8 +30,9 @@ class HPF2Processor extends AudioWorkletProcessor
         this.y1 = new Float32Array(maxChannels);
         this.y2 = new Float32Array(maxChannels);
 
-        this.prevCutoff = -1;
+        this.prevFreq = -1;
         this.prevQ = -1;
+        this.prevGain = -1;
     }
 
     process(inputs, outputs, parameters) 
@@ -39,13 +41,14 @@ class HPF2Processor extends AudioWorkletProcessor
         const output = outputs[0];
 
         const bypass = parameters.bypass;
-        const cutoff = parameters.cutoff;
+        const freq = parameters.freq;
         const q = parameters.q;
+        const gain = parameters.gain;
 
-        const paramsAreConstant = (cutoff.length === 1 && q.length === 1);
+        const paramsAreConstant = (freq.length === 1 && q.length === 1 && gain.length === 1);
 
         if (paramsAreConstant)
-            this.calcCoefficients(cutoff[0], q[0]);
+            this.calcCoefficients(freq[0], q[0], gain[0]);
 
         for (let c = 0; c < input.length; ++c) {
             const inputChannel = input[c];
@@ -54,10 +57,11 @@ class HPF2Processor extends AudioWorkletProcessor
             for (let s = 0; s < inputChannel.length; ++s) {
                 // Recalc coefficients if needed
                 if (paramsAreConstant === false) {
-                    const c = (cutoff[s] !== undefined) ? cutoff[s] : cutoff[0];
+                    const f = (freq[s] !== undefined) ? freq[s] : freq[0];
                     const qs = (q[s] !== undefined) ? q[s] : q[0];
+                    const g = (gain[s] !== undefined) ? gain[s] : gain[0];
 
-                    this.calcCoefficients(c, qs);
+                    this.calcCoefficients(f, qs, g);
                 }
 
                 // Calculate the new sample
@@ -85,23 +89,34 @@ class HPF2Processor extends AudioWorkletProcessor
         return this.keepAlive;
     }
 
-    calcCoefficients(_cutoff, _q)
+    calcCoefficients(_freq, _q, _gain)
     {
-        if (_cutoff === this.prevCutoff && _q === this.prevQ)
+        if (_freq === this.prevFreq && _q === this.prevQ && _gain === this.prevGain)
             return;
 
-        const w0 = 2 * Math.PI * _cutoff / sampleRate;
+        const w0 = 2 * Math.PI * _freq / sampleRate;
+        const cos_w0 = Math.cos(w0);
+
+        const A = Math.sqrt(_gain);
+        const Ap1 = A + 1;
+        const Am1 = A - 1;
+
+        const Ap1_cos_w0 = Ap1 * cos_w0;
+        const Am1_cos_w0 = Am1 * cos_w0;
+
+        const Ap1_m_Am1_cos_w0 = Ap1 - Am1_cos_w0;
+        const Ap1_p_Am1_cos_w0 = Ap1 + Am1_cos_w0;
 
         const alpha = Math.sin(w0) / (2 * _q);
-        const cos_w0 = Math.cos(w0);
+        const _2_sqrt_A_alpha = (2 * Math.sqrt(A) * alpha);
     
-        const a0 = 1 + alpha;
-        const a1 = -2 * cos_w0;
-        const a2 = 1 - alpha;
+        const a0 = Ap1_p_Am1_cos_w0 + _2_sqrt_A_alpha;
+        const a1 = -2 * (Am1 + Ap1_cos_w0);
+        const a2 = Ap1_p_Am1_cos_w0 - _2_sqrt_A_alpha;
     
-        const b0 = (1 + cos_w0) / 2;
-        const b1 = -1 - cos_w0;
-        const b2 = (1 + cos_w0) / 2;
+        const b0 = A * (Ap1_m_Am1_cos_w0 + _2_sqrt_A_alpha);
+        const b1 = 2 * A * (Am1 - Ap1_cos_w0);
+        const b2 = A * (Ap1_m_Am1_cos_w0 - _2_sqrt_A_alpha);
     
         this.a1 = a1 / a0;
         this.a2 = a2 / a0;
@@ -109,9 +124,10 @@ class HPF2Processor extends AudioWorkletProcessor
         this.b1 = b1 / a0;
         this.b2 = b2 / a0;
 
-        this.prevCutoff = _cutoff;
+        this.prevFreq = _freq;
         this.prevQ = _q;
+        this.prevGain = _gain;
     }
 }
 
-registerProcessor("hpf2-processor", HPF2Processor);
+registerProcessor("lo-shelf-processor", LoShelfProcessor);

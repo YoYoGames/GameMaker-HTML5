@@ -49,10 +49,6 @@ function splash_set_stop_key(stop)          { ErrorFunction("splash_set_stop_key
 function splash_set_stop_mouse(stop)        { ErrorFunction("splash_set_stop_mouse()"); }
 function splash_set_close_button(show)      { ErrorFunction("splash_set_close_button()"); }
 function os_set_orientation_lock()			{ ErrorFunction("os_set_orientation_lock()"); }
-function extension_exists()					{ return false; }
-
-
-
 
 // general
 function screen_redraw()                            {ErrorFunction("screen_redraw()");}
@@ -442,6 +438,11 @@ function draw_get_alpha_test_ref_value()        { ErrorFunction("draw_get_alpha_
 
 
 function zip_unzip()                                { ErrorFunction("zip_unzip()"); }
+function zip_create()                               { ErrorFunction("zip_create()"); }
+function zip_add_file()                             { ErrorFunction("zip_add_file()"); }
+function zip_save()                                 { ErrorFunction("zip_save()"); }
+
+function game_change()                              { ErrorFunction("game_change()"); }
 
 function winphone_license_trial_version()           { ErrorFunction("winphone_license_trial_version()"); }
 function winphone_tile_title()                      { ErrorFunction("winphone_tile_title()"); }

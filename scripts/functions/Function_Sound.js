@@ -105,11 +105,7 @@ function audio_update()
     // Update and apply gains
     g_AudioGroups.forEach(_group => _group.gain.update());
     audio_sampledata.forEach(_asset => _asset.gain.update());
-    audio_sounds.filter(_voice => _voice.bActive === true)
-                .forEach(_voice => {
-                    _voice.gain.update();
-                    _voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(_voice);
-                });
+    audio_sounds.forEach(_voice => _voice.updateGain());
 }
 
 var g_hidden;
@@ -121,7 +117,7 @@ function audio_reinit()
 
     g_AudioMainVolumeNode.disconnect();
 
-    g_AudioMainVolumeNode = new GainNode(g_WebAudioContext);
+    g_AudioMainVolumeNode = Audio_CreateGainNode(g_WebAudioContext);
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
 
     g_WebAudioContext.listener.pos = new Vector3(0,0,0);
@@ -134,21 +130,23 @@ function Audio_Init()
     if (g_AudioModel !== Audio_WebAudio)
         return;
 
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+
     g_WebAudioContext = new AudioContext();
     g_WebAudioContext.addEventListener("statechange", Audio_EngineReportState);
-
+    
     g_HandleStreamedAudioAsUnstreamed = ( g_OSPlatform == BROWSER_IOS );
     g_UseDummyAudioBus = (g_OSBrowser === BROWSER_SAFARI_MOBILE)
                       || (g_WebAudioContext.audioWorklet === undefined);
-
-    g_AudioMainVolumeNode = new GainNode(g_WebAudioContext);
+    
+    g_AudioMainVolumeNode = Audio_CreateGainNode(g_WebAudioContext);
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
 
     if (g_UseDummyAudioBus) {
         Audio_CreateMainBus();
     }
     else {
-        g_WebAudioContext.audioWorklet.addModule(g_RootDir + "/sound/worklets/audio-worklet.js")
+        g_WebAudioContext.audioWorklet.addModule(g_RootDir + "sound/worklets/audio-worklet.js")
         .then(() => {
             Audio_CreateMainBus();
         }).catch((_err) => {
@@ -199,6 +197,17 @@ function Audio_Quit()
 	g_WebAudioContext.close().then(() => {
 		g_WebAudioContext = null;
 	});
+}
+
+function Audio_CreateGainNode(_context) {
+    if (window.AudioContext !== undefined && _context instanceof window.AudioContext) {
+        return new GainNode(_context);
+    }
+    else if (window.webkitAudioContext !== undefined && _context instanceof window.webkitAudioContext) {
+        return _context.createGain();
+    }
+
+    return undefined;
 }
 
 function Audio_GetBusType() {
@@ -294,7 +303,7 @@ audioSampleData.prototype.TryDecode = function ( _rawData, _processCommands )
 /** @constructor */
 function audioSound(_props)
 {
-    this.pgainnode = g_WebAudioContext.createGain();
+    this.pgainnode = Audio_CreateGainNode(g_WebAudioContext);
     this.pemitter = null;
     this.handle=0;
 
@@ -749,6 +758,24 @@ audioSound.prototype.setPlaybackPosition = function(_offset) {
     }
 };
 
+audioSound.prototype.setGain = function(_gain, _rampTimeMs = 0) {
+    if (this.bActive === false || this.pgainnode === null)
+        return;
+
+    this.gain.set(_gain, _rampTimeMs);
+
+    if (_rampTimeMs === 0)
+        this.updateGain();
+};
+
+audioSound.prototype.updateGain = function() {
+    if (this.bActive === false || this.pgainnode === null)
+        return;
+
+    this.gain.update();
+    this.pgainnode.gain.value = AudioPropsCalc.CalcGain(this);
+};
+
 audioSound.prototype.setPitch = function(_pitch) {
     if (this.bActive === false)
         return;
@@ -787,6 +814,24 @@ audioSound.prototype.throwOnEndedEvent = function(_wasStopped) {
     asyncNode.wasStopped = _wasStopped;
     asyncNode.m_Complete = true;
 };
+
+function ClampAndWarn(_val, _lo, _hi, _fn, _arg) {
+    let newVal = _val;
+
+    if (isNaN(newVal) === true)
+        newVal = 0.0;
+
+    if (isNaN(_lo) === false)
+        newVal = Math.max(_lo, newVal);
+
+    if (isNaN(_hi) === false)
+        newVal = Math.min(newVal, _hi);
+
+    if (newVal !== _val)
+        console.warn(_fn + ": argument '" + _arg + "' was clamped (" + _val + " => " + newVal + ").");
+
+    return newVal;
+}
 
 function GetAudioSoundFromHandle( _handle )
 {
@@ -890,7 +935,7 @@ var g_WaitingForWebAudioTouchUnlock = false;
 var g_HandleStreamedAudioAsUnstreamed = false;
 
 function Audio_ContextExists() {
-    return g_WebAudioContext instanceof AudioContext;
+        return g_WebAudioContext != null;
 }
 
 function Audio_IsPlaybackAllowed() {
@@ -1149,7 +1194,7 @@ function audio_play_sound_common(_props) {
             // Intentional fall-through
         case AudioPlaybackType.POSITIONAL_EMITTER:
             voice.pemitter = _props.emitter;
-            voice.pgainnode.connect(voice.pemitter);
+            voice.pgainnode.connect(voice.pemitter.getInput());
             break;
         default:
             debug("Warning: Unknown audio playback type => " + _props.type);
@@ -1425,45 +1470,36 @@ function audio_sound_get_gain(_index)
 
 function audio_sound_gain(_index, _gain, _timeMs)
 {
-    if (g_AudioModel != Audio_WebAudio)
-        return;
-
     _index = yyGetInt32(_index);
 
     _gain = yyGetReal(_gain);
-    _gain = Math.max(0, _gain);
+    _gain = ClampAndWarn(_gain, 0.0, undefined, "audio_sound_gain", "gain");
 
-    _timeMs = yyGetInt32(_timeMs); 
-    _timeMs = Math.max(0, _timeMs);
+    _timeMs = yyGetInt32(_timeMs);
+    _timeMs = ClampAndWarn(_timeMs, 0, undefined, "audio_sound_gain", "timeMs");
 
     if (_index >= BASE_SOUND_INDEX) {
         const voice = GetAudioSoundFromHandle(_index);
 
-        if (voice == null)
+        if (voice === null)
             return;
 
-        if (voice.bActive) {
-            voice.gain.set(_gain, _timeMs);
-
-            if (_timeMs == 0) 
-                voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(voice);
-        }
+        voice.setGain(_gain, _timeMs);
     }
     else {
         const asset = Audio_GetSound(_index);
 
-        if (asset !== undefined) {
-            asset.gain.set(_gain, _timeMs);
+        if (asset === null)
+            return;
 
-            if (_timeMs == 0) {
-                // Update all the active voices playing this asset
-                audio_sounds.forEach(_voice => {
-                    if (_voice.bActive && _voice.soundid == _index) {
-                        _voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(_voice);
-                    }
-                });
-            }
-        }
+        asset.gain.set(_gain, _timeMs);
+
+        if (_timeMs > 0.0)
+            return; /* Gain update for voices will be handled in audio_update */
+
+        /* Update all voices playing this asset */
+        audio_sounds.filter(_voice => _voice.soundid === _index)
+                    .forEach(_voice => _voice.updateGain());
     }
 }
 
@@ -1858,15 +1894,15 @@ function audio_falloff_set_model(_model)
 
     audio_emitters.filter(_emitter => _emitter.isActive() === true)
                   .forEach(_emitter => {
-                      _emitter.distanceModel = falloff_model;
+                      _emitter.pannerNode.distanceModel = falloff_model;
 
                       //set/restore rolloff factor
                       if (g_AudioFalloffModel == DistanceModels.AUDIO_FALLOFF_NONE) {
-                          _emitter.original_rolloffFactor = _emitter.rolloffFactor;
-                          _emitter.rolloffFactor = 0;
+                          _emitter.original_rolloffFactor = _emitter.pannerNode.rolloffFactor;
+                          _emitter.pannerNode.rolloffFactor = 0;
                       }
                       else if (_emitter.original_rolloffFactor !== undefined) {
-                          _emitter.rolloffFactor = _emitter.original_rolloffFactor;
+                          _emitter.pannerNode.rolloffFactor = _emitter.original_rolloffFactor;
                           _emitter.original_rolloffFactor = undefined;
                       }
                 });
@@ -3554,7 +3590,7 @@ function audio_start_recording(_deviceNum)
                 {
                     var source = g_WebAudioContext.createMediaStreamSource(stream);
                     source.connect(gRecorder);
-                    var gainNode = g_WebAudioContext.createGain();
+                    var gainNode = Audio_CreateGainNode(g_WebAudioContext);
                     gRecorder.connect(gainNode);
                     gainNode.connect(g_WebAudioContext.destination);
                 },
@@ -3651,4 +3687,16 @@ function audio_bus_clear_emitters(_bus) {
                       g_AudioBusMain.connectInput(_emitter.gainnode);
                       _emitter.bus = g_AudioBusMain;
                   });
+}
+
+function lin_to_db(_x) {
+    _x = yyGetReal(_x);
+    
+    return 20 * Math.log10(_x);
+}
+
+function db_to_lin(_x) {
+    _x = yyGetReal(_x);
+
+    return Math.pow(10, _x / 20);
 }

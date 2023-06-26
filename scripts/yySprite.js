@@ -20,6 +20,17 @@ var ePlaybackSpeedType_FramesPerSecond = 0,
 
 var SKELETON_FRAMECOUNT = 2147483647;
 
+/**
+ * Type of collision check used for this sprite.
+ * Keep in sync with GMSprite::CollisionType in GMAssetCompiler.
+*/
+var yySprite_CollisionType = {
+	AXIS_ALIGNED_RECT: 0,  /**< Bounding box collision check. */
+	PRECISE: 1,            /**< Precise per-pixel collision check using mask. */
+	ROTATED_RECT: 2,       /**< Bounding box collision check (with rotation). */
+	SPINE_MESH: 3,         /**< Spine collision mesh check. */
+};
+
 // #############################################################################################
 /// Function:<summary>
 ///             simple rect
@@ -79,8 +90,7 @@ function    yySprite()
 	this.smooth = true;									// Whether to smooth the boundaries
 	this.preload = true;								// Whether to preload the texture
 	this.bboxmode = 0;									// Bounding box mode (0=automatic, 1=full, 2=manual)
-	this.colcheck = false;								// whether to prepare for precise collision checking
-	this.rotatedBounds = false;								// whether to prepare for precise collision checking
+	this.colcheck = yySprite_CollisionType.AXIS_ALIGNED_RECT;  // whether to prepare for precise collision checking
 	this.xOrigin = 0;								    //origin of the sprite
 	this.yOrigin = 0;
 	
@@ -102,7 +112,7 @@ function    yySprite()
 	this.m_LoadedFromChunk = false;
 	this.m_LoadedFromIncludedFiles = false;
 }
-yySprite.prototype.GetCollisionChecking = function () { return this.colcheck; };
+yySprite.prototype.GetCollisionChecking = function () { return this.colcheck === yySprite_CollisionType.PRECISE; };
 yySprite.prototype.GetXOrigin = function () { return this.xOrigin; };
 yySprite.prototype.GetYOrigin = function () { return this.yOrigin; };
 yySprite.prototype.GetBoundingBox = function () { return this.bbox; };
@@ -482,7 +492,7 @@ yySprite.prototype.BuildSWFData = function (_swfIndex, _xo, _yo) {
 					byteOffset = this.SetupSWFCollisionMasks(dataView, byteOffset, littleEndian);
 					
 					if (!this.m_LoadedFromChunk) {
-                        this.colcheck = true;
+                        this.colcheck = yySprite_CollisionType.PRECISE;
                     }
                 }
                 else {
@@ -490,7 +500,7 @@ yySprite.prototype.BuildSWFData = function (_swfIndex, _xo, _yo) {
                     this.height = this.SWFTimeline.maxY;
 
                     if (!this.m_LoadedFromChunk) {
-                        this.colcheck = false;
+                        this.colcheck = yySprite_CollisionType.AXIS_ALIGNED_RECT;
                     }
 				}
 				
@@ -500,7 +510,7 @@ yySprite.prototype.BuildSWFData = function (_swfIndex, _xo, _yo) {
 					this.preload = true;
 				}
                 
-                if (!this.m_LoadedFromChunk && !this.colcheck) {
+                if (!this.m_LoadedFromChunk && this.colcheck === yySprite_CollisionType.AXIS_ALIGNED_RECT) {
                     this.bbox.left = this.SWFTimeline.minX;
 		            this.bbox.right = this.SWFTimeline.maxX;
 		            this.bbox.top = this.SWFTimeline.minY;
@@ -527,7 +537,7 @@ yySprite.prototype.BuildSWFData = function (_swfIndex, _xo, _yo) {
 // #############################################################################################
 yySprite.prototype.SetupSWFCollisionMasks = function (_dataView, _byteOffset, _littleEndian) {
 
-    if (true != this.colcheck) {
+    if (this.colcheck !== yySprite_CollisionType.PRECISE) {
         return;
     }
 
@@ -877,8 +887,7 @@ function    CreateSpriteFromStorage( _pStore )
 	if( _pStore.smooth !== undefined ) pSprite.smooth = _pStore.smooth;									// Whether to smooth the boundaries
 	if( _pStore.preload !== undefined) pSprite.preload = _pStore.preload;								    // Whether to preload the texture
 	if( _pStore.bboxMode !== undefined ) pSprite.bboxmode = _pStore.bboxMode;									// Bounding box mode (0=automatic, 1=full, 2=manual)
-	if( _pStore.colCheck !== undefined ) pSprite.colcheck = _pStore.colCheck == 1;								// whether to prepare for precise collision checking
-	if( _pStore.colCheck !== undefined ) pSprite.rotatedBounds = _pStore.colCheck == 2;			// whether to prepare for rotated bounds checking
+	if( _pStore.colCheck !== undefined ) pSprite.colcheck = _pStore.colCheck;								// whether to prepare for precise collision checking
 	if( _pStore.xOrigin !== undefined ) pSprite.xOrigin = _pStore.xOrigin;								    //origin of the sprite
 	if( _pStore.yOrigin !== undefined ) pSprite.yOrigin = _pStore.yOrigin;	
 	
@@ -1435,7 +1444,7 @@ yySprite.prototype.PreciseCollision = function (_img1, _bb1, _x1, _y1, _scale1x,
 	var bottomedge = this.bbox.bottom + 1.0;
 
 
-	if (this.colcheck)
+	if (this.colcheck === yySprite.PRECISE)
 	{
 	    //If you have precise collisions you can't have collisions outside the texture - you can only do that with rectangle collisions where it is permissible to have i_bbox.left<0 etc
 	    if (leftedge < 0) 
@@ -1454,7 +1463,7 @@ yySprite.prototype.PreciseCollision = function (_img1, _bb1, _x1, _y1, _scale1x,
 	var stopedge = _pSpr.bbox.top;
 	var sbottomedge = _pSpr.bbox.bottom + 1.0;
 	var spr = _pSpr;
-	if (spr.colcheck)
+	if (spr.colcheck === yySprite.PRECISE)
 	{
 	    if (sleftedge < 0)
 	        sleftedge = 0;
@@ -1498,7 +1507,7 @@ yySprite.prototype.PreciseCollision = function (_img1, _bb1, _x1, _y1, _scale1x,
 			
 	        for (var j = t ; j < b; j += 1.0)
 	        {	
-	            if (this.colcheck)
+	            if (this.colcheck === yySprite_CollisionType.PRECISE)
 	            {
 
 	                var v1 = ((j - _y1) * _scale1y + this.yOrigin);
@@ -1509,7 +1518,7 @@ yySprite.prototype.PreciseCollision = function (_img1, _bb1, _x1, _y1, _scale1x,
 	                }
 	            }
 				
-	            if (spr.colcheck)
+	            if (spr.colcheck === yySprite_CollisionType.PRECISE)
 	            {
 	                var v2 = ((j - _y2) * _scale2y + spr.yOrigin);
 
@@ -1568,7 +1577,7 @@ yySprite.prototype.PreciseCollision = function (_img1, _bb1, _x1, _y1, _scale1x,
 	            }
 
 	            if ((v1 < topedge) || (v1 >= bottomedge)) continue;
-	            if (this.colcheck)
+	            if (this.colcheck === yySprite_CollisionType.PRECISE)
 	            {
 	                if (this.maskcreated) 
 	                {
@@ -1589,7 +1598,7 @@ yySprite.prototype.PreciseCollision = function (_img1, _bb1, _x1, _y1, _scale1x,
 
 				
 	            if ((v2 <stopedge) || (v2 >= sbottomedge)) continue;
-	            if (spr.colcheck)
+	            if (spr.colcheck === yySprite_CollisionType.PRECISE)
 	            {
 	                if (spr.maskcreated) 
 	                {
@@ -1963,7 +1972,7 @@ yySpriteManager.prototype.Delete = function(_id) {
 			}
 			
 			// Update state manager here 
-			g_webGL.RSMan.ClearTexture(_texture); 
+			g_webGL.RSMan.ClearTexture(pTexture.webgl_textureid); 
 
 			g_webGL.DeleteTexture(pTexture.webgl_textureid.Texture);
 			pTexture.webgl_textureid = null;

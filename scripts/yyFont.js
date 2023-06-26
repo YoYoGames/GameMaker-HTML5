@@ -80,6 +80,7 @@ yyFont.prototype.CreateFromStorage = function (_pStorage) {
 	this.ascenderOffset = _pStorage.ascenderOffset;
 	this.ascender = _pStorage.ascender;
 	this.sdfSpread = _pStorage.sdfSpread;
+	this.max_glyph_height = _pStorage.lineHeight;
 	this.sdf = this.sdfSpread > 0 ? true : false;
 
 	this.antialias = 0;
@@ -108,7 +109,11 @@ yyFont.prototype.CreateFromStorage = function (_pStorage) {
 		
 		if (pGlyph.h > maxHeight) maxHeight = pGlyph.h;
 	}
-	this.max_glyph_height = maxHeight;
+	if (this.max_glyph_height == 0)
+	{
+		this.max_glyph_height = maxHeight;
+	}
+	
 	this.first = f;
 	this.last = l;
 	this.TPEntry = Graphics_GetTextureEntry(_pStorage.TPageEntry);
@@ -606,6 +611,13 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
 	    worldMatrix = WebGL_GetMatrix(MATRIX_WORLD);
 	    WebGL_SetMatrix(MATRIX_WORLD, this.BuildWorldMatrix(_x, _y, _angle));
 	}
+
+	var spreadoffset = 0;
+	if (this.sdf)
+	{
+		g_pFontManager.Start_Rendering_SDF();
+		spreadoffset = this.sdfSpread;
+	}
 	
 	var numVerts = len * 6;
 	pBuff = g_webGL.AllocVerts(yyGL.PRIM_TRIANGLE, TP.texture.webgl_textureid, g_webGL.VERTEX_FORMAT_2D, numVerts);
@@ -646,14 +658,7 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
         var invStrWidth = 1/strWidth;
         var alpha = _col1 & 0xff000000;
         bLerp = true;
-    }
-
-	var spreadoffset = 0;
-	if (this.sdf)
-	{
-		g_pFontManager.Start_Rendering_SDF();
-		spreadoffset = this.sdfSpread;
-	}
+    }	
 
     var pPrev = null;
     for (var i = 0; i < len; i++)
@@ -1218,10 +1223,9 @@ yyFontManager.prototype.Start_Rendering_SDF = function()
 
 		shader_set(this.SDF_State.SDFShader);
 
-		var sdfshaderprog = g_shaderPrograms[this.SDF_State.SDFShader];		// urk
-		var basetexstage = sdfshaderprog.fragmentTextureAttribute;
+		var basetexstage = 0;			// we always force the default texture sampler index to be 0
 
-		this.SDF_State.currTexFilter = gpu_get_texfilter_ext(basetexstage);
+		this.SDF_State.currTexFilter = gpu_get_texfilter_ext(basetexstage);		// we always force the default texture sampler index to be 0
 		gpu_set_texfilter_ext(basetexstage, true);
 
 		this.SDF_State.usingSDFShader = true;
@@ -1236,6 +1240,7 @@ yyFontManager.prototype.End_Rendering_SDF = function()
 		{
 			shader_reset();
 
+			var basetexstage = 0;			// we always force the default texture sampler index to be 0
 			gpu_set_texfilter_ext(basetexstage, this.SDF_State.currTexFilter);
 
 			this.SDF_State.usingSDFShader = false;
@@ -1464,13 +1469,13 @@ yyFontManager.prototype.Split_TextBlock = function (_pStr, linewidth, thefont) {
 		else
 		{
 			// Skip leading whitespace
-			while (end < len)
+			while (end < len && total < linewidth)
 			{
+				c = pNew[end];
 				if (pNew[end] != whitespace) break;
+				total += this.thefont.GetShift(c.charCodeAt(0));
 				end++;
 			}
-			start = end;    // we ignore whitespace at the start
-
 
 			// Loop through string and get the number of chars that will fit in the line.
 			while (end < len && total < linewidth)
@@ -1504,29 +1509,41 @@ yyFontManager.prototype.Split_TextBlock = function (_pStr, linewidth, thefont) {
 				{
 					if ((pNew[end] != whitespace) || (pNew[end] != whitespace && pNew[end + 1] != whitespace))
 					{
+						var e = end;
 						while (end > start)
 						{
-							if (pNew[--end] == whitespace) break; 				// FOUND start of word
+							if (pNew[--e] == whitespace) break; 				// FOUND start of word
 						}
+
+						if(e!=start)
+						{
+							end = e;
+						}
+						else {
+							while(pNew[end]!=whitespace)
+								end++;
+						}
+
 					}
 				}
-
-				if (end > start)
+				var _end = end;
+				if (_end > start)
 				{
-					while (pNew[end - 1] == whitespace)
+					while (pNew[_end - 1] == whitespace && _end>0)
 					{
-						end--;
+						_end--;
 					}
 				} 
-				else if (end == start) // if we're back to the START of the string... look for the next space - or string end.
-				{
-					while (pNew[end] != whitespace && end < len)
-					{
-						end++;
-					}
-				}
-				
-				sl[sl_index++] = pNew.substring(start, end);
+			//	else if (end == start) // if we're back to the START of the string... look for the next space - or string end.
+			//	{
+			//		while (pNew[end] != whitespace && end < len)
+			//		{
+			//			end++;
+			//		}
+			//	}
+			
+				if(_end!=start)
+					sl[sl_index++] = pNew.substring(start, _end);
 			}
 		}
 		start = ++end;

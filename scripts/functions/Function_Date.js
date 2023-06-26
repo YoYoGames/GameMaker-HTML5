@@ -929,6 +929,49 @@ function date_compare_time(_date1, _date2)
 	return (time1 == time2) ? 0.0 : ((time1 > time2) ? 1.0 : -1.0 );
 }
 
+
+// ##### AUX FUNCTIONS #####
+
+// These functions try to keep code as similar as possible to C++
+
+function fromGMDateTime(datetime) {
+    return (datetime - DAYS_SINCE_1900) * SECONDS_IN_A_DAY;
+}
+
+function toGMDateTime(datetime) {
+    return ((datetime + 0.5) / SECONDS_IN_A_DAY) + DAYS_SINCE_1900;
+}
+
+function timeFromTM(t) {
+    let date = new Date(t.year + 1900, t.month, t.day, t.hour, t.minute, t.second);
+    if (g_bLocalTime)
+        return date.getTime() / 1000; // JavaScript works in milliseconds
+    return date.getTime() / 1000 - date.getTimezoneOffset() * 60; // Convert local time to UTC
+}
+
+function timeToTM(time) {
+    let date = new Date(time * 1000); // JavaScript works in milliseconds
+    let tm = {
+        year: date.getUTCFullYear() - 1900, 
+        month: date.getUTCMonth(), 
+        day: date.getUTCDate(),
+        hour: date.getUTCHours(), 
+        minute: date.getUTCMinutes(), 
+        second: date.getUTCSeconds()
+    };
+    if (g_bLocalTime) {
+        tm.year = date.getFullYear() - 1900;
+        tm.month = date.getMonth();
+        tm.day = date.getDate();
+        tm.hour = date.getHours();
+        tm.minute = date.getMinutes();
+        tm.second = date.getSeconds();
+    }
+    return tm;
+}
+
+// ##### AUX FUNCTIONS ##### END
+
 // #############################################################################################
 /// Function:<summary>
 ///          	Returns the date part of the indicated date-time value, setting the time part to 0.
@@ -942,17 +985,19 @@ function date_compare_time(_date1, _date2)
 // #############################################################################################
 function date_date_of(_date) 
 {
-    return yyGetInt32(_date);
-    /*var d = new Date();
-    d.setTime(_date);
-    if( g_bLocalTime )
-        d.setHours(0, 0, 0, 0);
-    else
-        d.setUTCHours(0,0,0,0);        
-    
-    return d.getTime();*/
-}
+    let result = -1;
 
+    let tmThis = fromGMDateTime(_date);
+    let pT = timeToTM(tmThis);
+    if (pT) {
+        // Reset the time
+        pT.hour = 0;
+        pT.minute = 0;
+        pT.second = 0;
+        result = toGMDateTime(timeFromTM(pT));
+    }
+    return result;
+}
 
 // #############################################################################################
 /// Function:<summary>

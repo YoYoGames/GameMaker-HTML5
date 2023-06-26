@@ -179,7 +179,7 @@ function file_text_close(_fileid)
 
 	// If the file has changed (only happens with WRITE files), then save to local storage
 	if (pFile.m_FileName != null) {
-	    if (pFile.m_changed) {
+		if (pFile.m_changed) {
 	        SaveTextFile_Block(pFile.m_FileName, pFile.m_pFile);
 	    }
 	}
@@ -205,6 +205,9 @@ function file_text_open_write(_fname)
 	pFile.m_pFile = "";
 	pFile.m_index = 0;
 	pFile.m_write = true;
+
+	// A file that was open to write should always overwrite (changed by default)
+	pFile.m_changed = true;
 
 	return g_TextFiles.Add(pFile);
 }
@@ -234,7 +237,9 @@ function file_text_open_append(_fname)
 	}
 	var pFile = g_TextFiles.Get(f);
 	pFile.m_write = true;
-	pFile.m_index = pFile.m_pFile.length; 	// end of file is starting point
+
+	pFile.m_index = pFile.m_pFile.length; // end of file is starting point.
+	pFile.m_changed = false; // We moved the write index to not overwrite so we should turn changed to false.
 	return f;
 }
 
@@ -1244,6 +1249,9 @@ function json_encode(_map, _prettify) {
 	// Check if we want to prettify the output string
 	_prettify = _prettify == undefined ? false : yyGetReal(_prettify);
 
+	// Scrub existing list otherwise we can't encode the same map multiple times
+	// (as far as I can see json_encode should only be called from an external function so this shouldn't result in infinite recursion)
+	g_ENCODE_VISITED_LIST = new Map(); 
     var obj = _json_encode_map(yyGetInt32(_map));
 
     return JSON.stringify(obj, null, _prettify ? 2 : 0);
@@ -1262,6 +1270,8 @@ function _json_replacer(value)
 		case "number":
 			if (isNaN(value)) return "@@nan$$";
 			if (!isFinite(value)) return value > 0 ? "@@infinity$$" : "@@-infinity$$";
+			return value;
+		case "boolean":
 			return value;
 		case "object":
 			// It's null just return null
@@ -1289,7 +1299,7 @@ function _json_replacer(value)
 
 				// Remove the flag
 				g_ENCODE_VISITED_LIST.delete(value);
-				return value;
+				return ret;
 			}
 
 			// It's an object prepare to set internal values
@@ -1380,6 +1390,8 @@ function _json_reviver(_, value)
 			
 			return value;
 		case "number":
+			return value;
+		case "boolean":
 			return value;
 		case "object":
 

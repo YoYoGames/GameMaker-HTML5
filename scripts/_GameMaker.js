@@ -214,6 +214,8 @@ var GMS_API = {
     "ds_list_size": ds_list_size,
     "ds_list_find_value": ds_list_find_value,
     "json_encode": json_encode,
+    "json_decode": json_decode,
+    "extension_get_option_value": extension_get_option_value,
     "send_async_event_social": YYSendAsyncEvent_Social,
     "get_facebook_app_id": YYGetFacebookAppId,
 	"get_app_version_string": YYGetAppVersionString
@@ -1120,6 +1122,8 @@ function StartRoom( _numb, _starting )
 
     // This must be set before performing the room_end event else the event will be blocked
     New_Room = -1;
+    
+    effect_clear();
 
     g_pEffectsManager.ExecuteEffectEventsForRoom(EFFECT_ROOM_END_FUNC, g_RunRoom);
     
@@ -1503,8 +1507,6 @@ function Run_EndGame(_reset) {
 
 	g_ParticleTypes = [];
 	g_ParticleSystems = [];
-	ps_above = -1;
-	ps_below = -1;
 	types_created = 0;
 
 	// Clear all instances - including persistant ones.

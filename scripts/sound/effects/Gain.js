@@ -16,7 +16,7 @@ function GainEffectStruct(_params) {
 
                 this.nodes.forEach((_node) => {
                     const gain = _node.parameters.get("gain");
-                    gain.setTargetAtTime(this.params.gain, 0, AudioEffect.PARAM_TIME_CONSTANT);
+                    gain.value = this.params.gain;
                 });
             }
         }

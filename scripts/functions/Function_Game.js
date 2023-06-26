@@ -353,8 +353,24 @@ function Color_Merge(_col1, _col2, _value)
 	return Color_MergeRGB(_col1, _col2, _value);
 }
 
-
-
+// #############################################################################################
+/// Function:<summary>
+///				Multiplies two colors
+///          </summary>
+///
+/// In:		 <param name="_col1">Colour #1</param>
+///			 <param name="_col2">Colour #2</param>
+/// Out:	 <returns>
+///				Resulting color
+///			 </returns>
+// #############################################################################################
+function Color_Multiply(_col1, _col2)
+{
+    return make_color_rgb(
+		(color_get_red(_col1) * color_get_red(_col2)) / 255,
+		(color_get_green(_col1) * color_get_green(_col2)) / 255,
+		(color_get_blue(_col1) * color_get_blue(_col2)) / 255);
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -1621,6 +1637,18 @@ function Resource_Find(_name, _array) {
     return -1;
 }
 
+function Resource_Find_Shader(_name, _array) {
+    
+    for (var index = 0; index < _array.length; index++)
+    {
+        var pObjStorage = _array[index];
+        if (pObjStorage.name == _name) {
+            return index;
+        }
+    }
+    return -1;
+}
+
 function Resource_Find_Script(_name, _array) {
 
     var gmlName = "gml_Script_"+ _name;
@@ -1666,7 +1694,7 @@ function ResourceGetTypeIndex(_name )
 	if ((ret = Resource_Find(_name, g_pGMFile.Fonts)) >= 0)                    { typeId.type=AT_Font;       typeId.id = ret; return typeId; }
 	if ((ret = Resource_Find(_name, g_pGMFile.Timelines)) >= 0)                { typeId.type=AT_Timeline;   typeId.id = ret; return typeId; }
 	if ((ret = Resource_Find_Script(_name, g_pGMFile.ScriptNames)) >= 0)       { typeId.type=AT_Script;     typeId.id = ret; return typeId; }
-	if ((ret = Resource_Find(_name, g_pGMFile.Shaders)) >= 0)                  { typeId.type=AT_Shader;     typeId.id = ret; return typeId; }
+	if ((ret = Resource_Find_Shader(_name, g_pGMFile.Shaders)) >= 0)           { typeId.type=AT_Shader;     typeId.id = ret; return typeId; }
     if ((ret = Resource_Find(_name, g_pGMFile.Sequences)) >= 0)                { typeId.type=AT_Sequence;   typeId.id = ret; return typeId; }
     if ((ret = Resource_Find(_name, g_pGMFile.AnimCurves)) >= 0)               { typeId.type=AT_AnimCurve;  typeId.id = ret; return typeId; }
     if ((ret = CParticleSystem.Find(_name)) >= 0)                              { typeId.type=AT_ParticleSystem;  typeId.id = ret; return typeId; }

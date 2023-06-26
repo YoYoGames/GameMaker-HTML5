@@ -15,8 +15,101 @@
 // 
 // **********************************************************************************************************************
 
+// #############################################################################################
+/// Function:<summary>
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+/// Out:	<returns>
+///			</returns>
+// #############################################################################################
+function particle_get_info(_ind)
+{
+    _ind = yyGetInt32(_ind);
+    var pPS = CParticleSystem.Get(_ind);
+    var pPSI = undefined;
+    if (pPS != null)
+    {
+        pPSI = new GMLObject();
 
+        variable_struct_set(pPSI, "name", pPS.name);
+        variable_struct_set(pPSI, "xorigin", pPS.originX);
+        variable_struct_set(pPSI, "yorigin", pPS.originY);
+        variable_struct_set(pPSI, "oldtonew", (pPS.drawOrder == 0));
 
+        var emittersArray = [];
+        for (var i = 0; i < pPS.emitters.length; ++i)
+        {
+            var emitterIndex = pPS.emitters[i];
+            var templateEmitter = g_PSEmitters[emitterIndex];
+
+            var pEmitterI = new GMLObject();
+
+            variable_struct_set(pEmitterI, "name", templateEmitter.name);
+            variable_struct_set(pEmitterI, "mode", templateEmitter.mode);
+            variable_struct_set(pEmitterI, "number", templateEmitter.number);
+            variable_struct_set(pEmitterI, "xmin", templateEmitter.xmin);
+            variable_struct_set(pEmitterI, "xmax", templateEmitter.xmax);
+            variable_struct_set(pEmitterI, "ymin", templateEmitter.ymin);
+            variable_struct_set(pEmitterI, "ymax", templateEmitter.ymax);
+            variable_struct_set(pEmitterI, "distribution", templateEmitter.posdistr);
+            variable_struct_set(pEmitterI, "shape", templateEmitter.shape);
+            variable_struct_set(pEmitterI, "enabled", templateEmitter.enabled);
+
+            var pPartTypeI = new GMLObject();
+            var particleType = g_ParticleTypes[templateEmitter.parttype];
+
+            variable_struct_set(pPartTypeI, "ind", templateEmitter.parttype);
+            variable_struct_set(pPartTypeI, "sprite", particleType.sprite);
+            variable_struct_set(pPartTypeI, "frame", particleType.spritestart);
+            variable_struct_set(pPartTypeI, "animate", particleType.spriteanim);
+            variable_struct_set(pPartTypeI, "stretch", particleType.spritestretch);
+            variable_struct_set(pPartTypeI, "random", particleType.spriterandom);
+            variable_struct_set(pPartTypeI, "shape", particleType.shape);
+            variable_struct_set(pPartTypeI, "size_min", particleType.sizemin);
+            variable_struct_set(pPartTypeI, "size_max", particleType.sizemax);
+            variable_struct_set(pPartTypeI, "size_incr", particleType.sizeincr);
+            variable_struct_set(pPartTypeI, "size_wiggle", particleType.sizerand);
+            variable_struct_set(pPartTypeI, "xscale", particleType.xscale);
+            variable_struct_set(pPartTypeI, "yscale", particleType.yscale);
+            variable_struct_set(pPartTypeI, "life_min", particleType.lifemin);
+            variable_struct_set(pPartTypeI, "life_max", particleType.lifemax);
+            variable_struct_set(pPartTypeI, "death_type", particleType.deathtype);
+            variable_struct_set(pPartTypeI, "death_number", particleType.deathnumber);
+            variable_struct_set(pPartTypeI, "step_type", particleType.steptype);
+            variable_struct_set(pPartTypeI, "step_number", particleType.stepnumber);
+            variable_struct_set(pPartTypeI, "speed_min", particleType.spmin);
+            variable_struct_set(pPartTypeI, "speed_max", particleType.spmax);
+            variable_struct_set(pPartTypeI, "speed_incr", particleType.spincr);
+            variable_struct_set(pPartTypeI, "speed_wiggle", particleType.sprand);
+            variable_struct_set(pPartTypeI, "dir_min", particleType.dirmin);
+            variable_struct_set(pPartTypeI, "dir_max", particleType.dirmax);
+            variable_struct_set(pPartTypeI, "dir_incr", particleType.dirincr);
+            variable_struct_set(pPartTypeI, "dir_wiggle", particleType.dirrand);
+            variable_struct_set(pPartTypeI, "grav_amount", particleType.grav);
+            variable_struct_set(pPartTypeI, "grav_dir", particleType.gravdir);
+            variable_struct_set(pPartTypeI, "ang_min", particleType.angmin);
+            variable_struct_set(pPartTypeI, "ang_max", particleType.angmax);
+            variable_struct_set(pPartTypeI, "ang_incr", particleType.angincr);
+            variable_struct_set(pPartTypeI, "ang_wiggle", particleType.angrand);
+            variable_struct_set(pPartTypeI, "ang_relative", particleType.angdir);
+            // variable_struct_set(pPartTypeI, "color_mode", particleType.colmode);
+            variable_struct_set(pPartTypeI, "color1", particleType.colpar[0]);
+            variable_struct_set(pPartTypeI, "color2", particleType.colpar[1]);
+            variable_struct_set(pPartTypeI, "color3", particleType.colpar[2]);
+            variable_struct_set(pPartTypeI, "alpha1", particleType.alphastart);
+            variable_struct_set(pPartTypeI, "alpha2", particleType.alphamiddle);
+            variable_struct_set(pPartTypeI, "alpha3", particleType.alphaend);
+            variable_struct_set(pPartTypeI, "additive", particleType.additiveblend);
+
+            variable_struct_set(pEmitterI, "parttype", pPartTypeI);
+
+            emittersArray.push(pEmitterI);
+        }
+        variable_struct_set(pPSI, "emitters", emittersArray);
+    }
+    return pPSI;
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -116,6 +209,21 @@ var part_system_depth = ParticleSystem_Depth;
 
 // #############################################################################################
 /// Function:<summary>
+///          	Changes the color and alpha with which to blend the particle system.
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+///			<param name="_color"></param>
+///			<param name="_alpha"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_system_color = ParticleSystem_Color;
+var part_system_colour = ParticleSystem_Color;
+
+// #############################################################################################
+/// Function:<summary>
 ///          	Sets the position where the particle system is drawn. This is normally not 
 ///             necessary but if you want to have particles at a position relative to a moving 
 ///             object, you can set the position e.g. to that object.
@@ -130,6 +238,18 @@ var part_system_depth = ParticleSystem_Depth;
 // #############################################################################################
 var part_system_position = ParticleSystem_Position;
 
+// #############################################################################################
+/// Function:<summary>
+///          	Changes the rotation of the particle system.
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+///			<param name="_angle"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_system_angle = ParticleSystem_Angle;
 
 // #############################################################################################
 /// Function:<summary>
@@ -225,6 +345,24 @@ var part_particles_create = ParticleSystem_Particles_Create;
 // #############################################################################################
 var part_particles_create_color = ParticleSystem_Particles_Create_Color;
 var part_particles_create_colour = ParticleSystem_Particles_Create_Color;
+
+// #############################################################################################
+/// Function:<summary>
+///          	This function allows you to burst all particles defined in a particle system
+///          	resource at any position in the room. The final area, distribution and number
+///          	of the particles created depends on the configuration of emitters inside of the
+///          	particle system resource.
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+///			<param name="_x"></param>
+///			<param name="_y"></param>
+///			<param name="_partsys"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_particles_burst = ParticleSystem_Particles_Burst;
 
 // #############################################################################################
 /// Function:<summary>
@@ -334,6 +472,21 @@ var part_type_shape = ParticleType_Shape;
 ///			</returns>
 // #############################################################################################
 var part_type_sprite = ParticleType_Sprite;
+
+// #############################################################################################
+/// Function:<summary>
+///          	This function can be used to set a particle type to use a custom sub-image
+///             (frame) of a sprite. If the particle's sprite is animated, then this sub-image
+///             will be used as the starting frame of the animation.
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+///			<param name="_subimg"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_type_subimage = ParticleType_Subimage;
 
 // #############################################################################################
 /// Function:<summary>
@@ -703,6 +856,21 @@ var part_emitter_destroy_all = ParticleSystem_Emitter_DestroyAll;
 
 // #############################################################################################
 /// Function:<summary>
+///          	Enables or disables a particle emitter. Disabled emitters aren't updated nor
+///             rendered and they don't spawn new particles.
+///          </summary>
+///
+/// In:		<param name="_ps"></param>
+///			<param name="_ind"></param>
+///			<param name="_enable"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_emitter_enable = ParticleSystem_Emitter_Enable;
+
+// #############################################################################################
+/// Function:<summary>
 ///          	Returns whether the indicated emitter exists in the particle system.
 ///          </summary>
 ///
@@ -796,7 +964,7 @@ var part_emitter_burst = ParticleSystem_Emitter_Burst;
 ///			</returns>
 // #############################################################################################
 function effect_create_below(_kind,_x,_y,_size,_color) {
-	Effect_Create(true, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
+	Effect_Create(ps_below, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
 }
 
 // #############################################################################################
@@ -815,9 +983,78 @@ function effect_create_below(_kind,_x,_y,_size,_color) {
 ///			</returns>
 // #############################################################################################
 function effect_create_above(_kind,_x,_y,_size,_color) {
-	Effect_Create(false, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
+	Effect_Create(ps_above, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
 }
 
+// #############################################################################################
+/// Function:<summary>
+///          	Creates an effect of the given kind (see above) at the indicated position on the
+///				layer specified.
+///          </summary>
+///
+/// In:		<param name="_layerid"></param>
+///			<param name="_kind"></param>
+///			<param name="_x"></param>
+///			<param name="_y"></param>
+///			<param name="_size">0 = small, 1 = medium, 2 = large</param>
+///			<param name="_color">indicates the color to be used</param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+function effect_create_layer(_layerid,_kind,_x,_y,_size,_color) {
+
+	var layer = null;
+	if(typeof (_layerid) == "string")
+		layer = g_pLayerManager.GetLayerFromName(g_RunRoom, yyGetString(_layerid));
+	else
+		layer = g_pLayerManager.GetLayerFromID(g_RunRoom, yyGetInt32(_layerid));
+
+	if (layer == null) {
+		yyError("Specified layer does not exist");
+		return;
+	}
+
+	if (!ParticleSystem_Exists(layer.m_effectPS))
+		layer.m_effectPS = ParticleSystem_Create(layer.m_id, false);
+
+	var ps = layer.m_effectPS;
+
+	Effect_Create(ps, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
+}
+
+// #############################################################################################
+/// Function:<summary>
+///          	Creates an effect of the given kind (see above) at the indicated position at the
+///				depth specified.
+///          </summary>
+///
+/// In:		<param name="_depth"></param>
+///			<param name="_kind"></param>
+///			<param name="_x"></param>
+///			<param name="_y"></param>
+///			<param name="_size">0 = small, 1 = medium, 2 = large</param>
+///			<param name="_color">indicates the color to be used</param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+function effect_create_depth(_depth,_kind,_x,_y,_size,_color) {
+
+	_depth = yyGetInt32(_depth);
+
+	var layer = g_pLayerManager.GetLayerWithDepth(g_RunRoom, _depth, true);
+
+	if (layer == null)
+		layer = g_pLayerManager.AddDynamicLayer(g_RunRoom, _depth);
+
+	if (!ParticleSystem_Exists(layer.m_effectPS))
+		layer.m_effectPS = ParticleSystem_Create(layer.m_id, false);
+
+	var ps = layer.m_effectPS;
+
+	Effect_Create(ps, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
+}
 
 
 // #############################################################################################
@@ -827,15 +1064,8 @@ function effect_create_above(_kind,_x,_y,_size,_color) {
 // #############################################################################################
 function effect_clear() 
 {
-	// Kill the 2 particle systems that control effects
-	if (ParticleSystem_Exists(ps_below)){
-		ParticleSystem_Destroy(ps_below);
-		ps_below = -1;
-	}
-	if (ParticleSystem_Exists(ps_above)){
-		ParticleSystem_Destroy(ps_above);
-		ps_above = -1;
-	}
+	ParticleSystem_Particles_Clear(ps_below);
+	ParticleSystem_Particles_Clear(ps_above);
 }
 
 function part_system_create_layer(_layerid, _persistent, _partsys)
