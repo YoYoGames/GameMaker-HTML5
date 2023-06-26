@@ -1,4 +1,4 @@
-﻿// **********************************************************************************************************************
+// **********************************************************************************************************************
 // 
 // Copyright (c)2019, YoYo Games Ltd. All Rights reserved.
 // 
@@ -1347,9 +1347,11 @@ function yySequenceBaseTrack(_pStorage) {
         },
         gmllinkedTrack: {
             enumerable: true,
-            get: function () { return this.m_tags == null ? null : (this.m_tags[eTT_Link] != null ? this.m_tags[eTT_Link].track : null); },
+            get: function () { return this.m_tags == null ? -1 : (this.m_tags[eTT_Link] != null ? this.m_tags[eTT_Link].track : -1); },
             set: function (_val)
             {
+                if (_val == -1) _val = null;
+
                 if(this.m_tags[eTT_Disable] == null) this.m_tags[eTT_Link] = {};
                 this.m_tags[eTT_Link].track = _val;
             }
@@ -3144,7 +3146,7 @@ function yySequence(_pStorage) {
             set: function (_val)
             {
                 var val = yyGetInt32(_val);
-                if ((val >= 0) && (val < ePlaybackSpeedType_Max))
+                if (isFinite(_val) && (val >= 0) && (val < ePlaybackSpeedType_Max))
                 {
                     this.m_playbackSpeedType = val;
                 }
@@ -5018,11 +5020,14 @@ yySequenceManager.prototype.HandleParticleTrackUpdate = function (_pEl, _pSeq, _
                 {
                     for (var i = 0; i < pEmitters.length; i++)
                     {
-                        if( pEmitters[i]!=null
-                            && pEmitters[i].mode == PT_MODE_BURST
-                            && pEmitters[i].number != 0)
+                        var emitter = pEmitters[i];
+                        if (!emitter.enabled) continue;
+
+                        if (emitter.created
+                            && emitter.mode == PT_MODE_BURST
+                            && emitter.number != 0)
                         {
-                            ParticleSystem_Emitter_Burst(ps, i, pEmitters[i].parttype, pEmitters[i].number);
+                            ParticleSystem_Emitter_Burst(ps, i, emitter.parttype, emitter.number);
                         }
                     }
                 }

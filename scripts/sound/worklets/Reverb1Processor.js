@@ -179,9 +179,12 @@ class Reverb1Processor extends AudioWorkletProcessor
             const outputChannel = output[c];
 
             for (let s = 0; s < inputChannel.length; ++s) {
+                const s = (size[s] !== undefined) ? size[s] : size[0];
+                const d = (damp[s] !== undefined) ? damp[s] : damp[0];
+
                 // Update model if needed
-                this.setSize(size[s] ?? size[0]);
-                this.setDamp(damp[s] ?? damp[0]);
+                this.setSize(s);
+                this.setDamp(d);
 
                 // Copy the input to the output
                 outputChannel[s] = inputChannel[s];
@@ -198,11 +201,14 @@ class Reverb1Processor extends AudioWorkletProcessor
                     out = this.apf[c][i].process(out);
 
                 // Check bypass state
-                if (bypass[s] ?? bypass[0])
+                const b = (bypass[s] !== undefined) ? bypass[s] : bypass[0];
+
+                if (b > 0.0) {
                     continue;
+                }
 
                 // Mix the reverberated and original samples
-                const m = (mix[s] ?? mix[0]);
+                const m = (mix[s] !== undefined) ? mix[s] : mix[0];
 
                 outputChannel[s] *= (1 - m);
                 outputChannel[s] += (out * m);

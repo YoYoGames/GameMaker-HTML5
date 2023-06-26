@@ -179,7 +179,7 @@ function file_text_close(_fileid)
 
 	// If the file has changed (only happens with WRITE files), then save to local storage
 	if (pFile.m_FileName != null) {
-	    if (pFile.m_changed) {
+		if (pFile.m_changed) {
 	        SaveTextFile_Block(pFile.m_FileName, pFile.m_pFile);
 	    }
 	}
@@ -205,6 +205,9 @@ function file_text_open_write(_fname)
 	pFile.m_pFile = "";
 	pFile.m_index = 0;
 	pFile.m_write = true;
+
+	// A file that was open to write should always overwrite (changed by default)
+	pFile.m_changed = true;
 
 	return g_TextFiles.Add(pFile);
 }
@@ -234,7 +237,9 @@ function file_text_open_append(_fname)
 	}
 	var pFile = g_TextFiles.Get(f);
 	pFile.m_write = true;
-	pFile.m_index = pFile.m_pFile.length; 	// end of file is starting point
+
+	pFile.m_index = pFile.m_pFile.length; // end of file is starting point.
+	pFile.m_changed = false; // We moved the write index to not overwrite so we should turn changed to false.
 	return f;
 }
 
@@ -1294,7 +1299,7 @@ function _json_replacer(value)
 
 				// Remove the flag
 				g_ENCODE_VISITED_LIST.delete(value);
-				return value;
+				return ret;
 			}
 
 			// It's an object prepare to set internal values

@@ -494,7 +494,7 @@ function sprite_create_from_surface_RELEASE(_id, _x, _y, _w, _h, _removeback, _s
 	pNewSpr.smooth = true;
 	pNewSpr.preload = true;
 	pNewSpr.bboxmode = 0;
-	pNewSpr.colcheck = false;
+	pNewSpr.colcheck = yySprite_CollisionType.AXIS_ALIGNED_RECT;
 	pNewSpr.xOrigin = _xorig;
 	pNewSpr.yOrigin = _yorig;
 
@@ -798,7 +798,7 @@ function sprite_add(_filename, _imgnumb, _removeback, _smooth, _xorig, _yorig, _
 	pNewSpr.smooth = yyGetBool(_smooth);
 	pNewSpr.preload = true;
 	pNewSpr.bboxmode = 0;
-	pNewSpr.colcheck = false;
+	pNewSpr.colcheck = yySprite_CollisionType.AXIS_ALIGNED_RECT;
 	pNewSpr.xOrigin = yyGetInt32(_xorig);
 	pNewSpr.yOrigin = yyGetInt32(_yorig);
 
@@ -923,7 +923,7 @@ function sprite_replace(_ind, _filename, _imgnumb, _removeback, _smooth, _xorig,
 	pNewSpr.smooth = yyGetBool(_smooth);
 	pNewSpr.preload = true;
 	pNewSpr.bboxmode = 0;
-	pNewSpr.colcheck = false;
+	pNewSpr.colcheck = yySprite_CollisionType.AXIS_ALIGNED_RECT;
 	pNewSpr.xOrigin = yyGetInt32(_xorig);
 	pNewSpr.yOrigin = yyGetInt32(_yorig);
 
@@ -1135,7 +1135,7 @@ function sprite_collision_mask( _ind, _sepmasks, _bbmode,_bbleft,_bbtop,_bbright
 {
     var pSpr = g_pSpriteManager.Get(yyGetInt32(_ind));        
     if( pSpr===null) { return false; }
-    pSpr.colcheck = true;
+    pSpr.colcheck = yySprite_CollisionType.PRECISE;
 
     // Clean up if required
     pSpr.colmask = [];
@@ -1783,7 +1783,7 @@ function sprite_get_info( _spriteIndex )
         variable_struct_set(ret, "num_subimages", pSpr.numb); //ret.gmlnum_subimages = pSpr.numb;
         variable_struct_set(ret, "frame_speed", (pSpr.playbackspeed != undefined) ? pSpr.playbackspeed : -1); //ret.gmlframe_speed = (pSpr.playbackspeed != undefined) ? pSpr.playbackspeed : -1;
         variable_struct_set(ret, "frame_type", (pSpr.playbackspeedtype != undefined) ? pSpr.playbackspeedtype : -1); //ret.gmlframe_type = (pSpr.playbackspeedtype != undefined) ? pSpr.playbackspeedtype : -1;
-        variable_struct_set(ret, "use_mask", pSpr.colcheck); //ret.gmluse_mask = pSpr.colcheck;
+        variable_struct_set(ret, "use_mask", pSpr.colcheck === yySprite_CollisionType.PRECISE); //ret.gmluse_mask = pSpr.colcheck;
         variable_struct_set(ret, "num_masks", pSpr.colmask.length); //ret.gmlnum_masks  = pSpr.colmask.length;
 
         switch( type ) {
@@ -1879,6 +1879,10 @@ function sprite_get_info( _spriteIndex )
                         variable_struct_set(nslot, "dark_blue", slot.darkColor.b); //nslot.gmldark_blue = slot.darkColor.b;
                         variable_struct_set(nslot, "dark_alpha", slot.darkColor.a); //nslot.gmldark_alpha = slot.darkColor.a;
                     } // end if
+
+                    var slotAttachmentsArray = pSpr.m_skeletonSprite.GetAttachmentsForSlot(slot.name);
+                    variable_struct_set(nslot, "attachments", slotAttachmentsArray);
+
                     slotsArray.push(nslot);
                 } // end for
 				variable_struct_set(ret, "slots", slotsArray); //ret.gmlslots = slotsArray;

@@ -3596,6 +3596,10 @@ function WebGL_surface_create_RELEASE(_w, _h, _format, _forceid) {
     _w = yyGetInt32(_w);
     _h = yyGetInt32(_h);
 
+    if (_w <= 0 || _h <= 0) {
+        yyError("create_surface : Trying to create a surface with size equal to or less than zero.");
+    }
+
     if( _forceid != undefined )
     {
         _forceid = yyGetInt32(_forceid);
@@ -3740,7 +3744,7 @@ function WebGL_surface_getpixel_ext_RELEASE(_id, _x, _y) {
 	    
 	    ret = g_webGL.GetPixelFromFramebuffer(pSurf.FrameBuffer, _x, _y, pSurf.FrameBufferData.Texture.Format);
     }
-    return ret;
+    return new Long(ret);
 }
 
 
@@ -4233,7 +4237,7 @@ function WebGL_sprite_create_from_surface_RELEASE(_id, _x, _y, _w, _h, _removeba
         pNewSpr.smooth = true;
         pNewSpr.preload = true;
         pNewSpr.bboxmode = 0;
-        pNewSpr.colcheck = false;
+        pNewSpr.colcheck = yySprite_CollisionType.AXIS_ALIGNED_RECT;
         pNewSpr.xOrigin = _xorig;
         pNewSpr.yOrigin = _yorig;
         pNewSpr.copy = true;
@@ -4736,7 +4740,7 @@ function WebGL_shader_enable_corner_id_RELEASE(_on_off) {
 function WebGL_shader_set_uniform_i_array_RELEASE(_handle, _array)
 {
     if (_array instanceof Array){
-        g_webGL.SetUniformArrayI(yyGetInt32(_handle), shaderData);
+        g_webGL.SetUniformArrayI(yyGetInt32(_handle), _array);
     }
     else {
         alert('ERROR: shader_set_uniform_i_array() Data is not an array');

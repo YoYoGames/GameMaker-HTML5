@@ -1340,8 +1340,12 @@ function UpdateCamera(_x, _y, _w, _h, _angle, pCam)
 function UpdateDefaultCamera(_x, _y, _w, _h, _angle)
 {
 	var defaultcam = g_pCameraManager.GetCamera(g_DefaultCameraID);
+	if (defaultcam == null)
+		defaultcam = g_pCameraManager.GetTempCamera();
+	// Note: This may override user's camera configuration if it's a cam passed
+	// in with camera_set_default!
 	UpdateCamera(_x, _y, _w, _h, _angle, defaultcam);
-	g_pCameraManager.SetActiveCamera(g_DefaultCameraID);		
+	g_pCameraManager.SetActiveCamera(defaultcam.GetID());
 }
 
 function DrawTile(_rect,_back,_indexdata,_frame,_x,_y,_depth)
@@ -2039,20 +2043,29 @@ yyRoom.prototype.DrawLayerParticleSystem = function(_rect,_layer,_el)
 {
 	var ps = _el.m_systemID;
 
-	if (!ParticleSystem_Exists(ps) || !g_ParticleSystems[ps].automaticdraw)
-	{
-		return;
-	}
+	if (!ParticleSystem_Exists(ps)) return;
+
+	var pSystem = g_ParticleSystems[ps];
+
+	if (!pSystem.automaticdraw) return;
 
 	var matWorldOld = WebGL_GetMatrix(MATRIX_WORLD);
 
 	var matRot = new Matrix();
+	matRot.SetZRotation(_el.m_imageAngle + pSystem.angle);
+
 	var matScale = new Matrix();
-	matRot.SetZRotation(_el.m_imageAngle);
 	matScale.SetScale(_el.m_imageScaleX, _el.m_imageScaleY, 1.0);
+
+	var matScaleRot = new Matrix();
+	matScaleRot.Multiply(matScale, matRot);
+
+	var matPos = new Matrix();
+	matPos.SetTranslation(-pSystem.xdraw, -pSystem.ydraw, 0.0);
+	
 	var matWorldNew = new Matrix();
-	matWorldNew.Multiply(matScale, matRot);
-	matWorldNew.Translation(_el.m_x, _el.m_y, 0.0);
+	matWorldNew.Multiply(matPos, matScaleRot);
+	matWorldNew.Translation(pSystem.xdraw + _el.m_x, pSystem.ydraw + _el.m_y, 0.0);
 
 	WebGL_SetMatrix(MATRIX_WORLD, matWorldNew);
 	ParticleSystem_Draw(ps, _el.m_imageBlend, _el.m_imageAlpha);
@@ -3607,6 +3620,7 @@ yyRoom.prototype.DrawViews = function (r) {
 		Graphics_SetViewPort(0, 0, g_ApplicationWidth, g_ApplicationHeight);
          
 		if (g_isZeus) {
+			g_DefaultView.cameraID = g_DefaultCameraID;
 		    UpdateDefaultCamera(0, 0, g_RunRoom.m_width, g_RunRoom.m_height, 0);
 		}
 		else {

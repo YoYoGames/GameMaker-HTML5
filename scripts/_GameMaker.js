@@ -173,26 +173,26 @@ function yyUnhandledRejectionHandler( error )
 		error.promise.catch(function(err){
 			var _endGame = true;
 			try {
-                if (err.stack) {
-                    var _urlPos = err.stack.indexOf("https://");
-                    if (_urlPos < 0) _urlPos = err.stack.indexOf("http://");
-                    if (_urlPos >= 0) {
-                        var reg_line_split = new RegExp("\\r\\n|\\r|\\n", "g");
-                        var _rows = err.stack.slice(_urlPos).split(reg_line_split);
-                        if (_rows.length > 0) {
-                            var _url = _rows[0];
-                            _urlPos = _url.lastIndexOf("/");
-                            if (_urlPos > 0) {
-                                var _errUrl = new URL(_url.slice(0, _urlPos + 1));
-                                if ((_errUrl.hostname != window.location.hostname) ||
-                                    (_errUrl.pathname.indexOf(g_pGMFile.Options.GameDir) < 0)){
-                                    // The error is caused by an external resource.
-                                    _endGame = false;
-                                }
-                            }
-                        }
-                    }
-                }
+              if (err.stack) {
+                  var _urlPos = err.stack.indexOf("https://");
+                  if (_urlPos < 0) _urlPos = err.stack.indexOf("http://");
+                  if (_urlPos >= 0) {
+                      var reg_line_split = new RegExp("\\r\\n|\\r|\\n", "g");
+                      var _rows = err.stack.slice(_urlPos).split(reg_line_split);
+                      if (_rows.length > 0) {
+                          var _url = _rows[0];
+                          _urlPos = _url.lastIndexOf("/");
+                          if (_urlPos > 0) {
+                              var _errUrl = new URL(_url.slice(0, _urlPos + 1));
+                              if ((_errUrl.hostname != window.location.hostname) ||
+                                  (_errUrl.pathname.indexOf(g_pGMFile.Options.GameDir) < 0)){
+                                  // The error is caused by an external resource.
+                                  _endGame = false;
+                              }
+                          }
+                      }
+                  }
+              }
 			}
 			catch (e) {
 				console.error(e.message);
@@ -216,6 +216,8 @@ var GMS_API = {
     "ds_list_size": ds_list_size,
     "ds_list_find_value": ds_list_find_value,
     "json_encode": json_encode,
+    "json_decode": json_decode,
+    "extension_get_option_value": extension_get_option_value,
     "send_async_event_social": YYSendAsyncEvent_Social,
     "get_facebook_app_id": YYGetFacebookAppId,
 	"get_app_version_string": YYGetAppVersionString
@@ -1122,6 +1124,8 @@ function StartRoom( _numb, _starting )
 
     // This must be set before performing the room_end event else the event will be blocked
     New_Room = -1;
+    
+    effect_clear();
 
     g_pEffectsManager.ExecuteEffectEventsForRoom(EFFECT_ROOM_END_FUNC, g_RunRoom);
     
@@ -1505,8 +1509,6 @@ function Run_EndGame(_reset) {
 
 	g_ParticleTypes = [];
 	g_ParticleSystems = [];
-	ps_above = -1;
-	ps_below = -1;
 	types_created = 0;
 
 	// Clear all instances - including persistant ones.

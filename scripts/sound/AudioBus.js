@@ -78,7 +78,7 @@ AudioBus.prototype.findNextNode = function(_idx)
 	const nodes = this.nodes.slice(_idx + 1, AudioBus.NUM_EFFECT_SLOTS);
 	const nextNode = nodes.find((_node) => _node !== undefined);
 
-	return nextNode ?? this.outputNode;
+	return (nextNode !== undefined) ? nextNode.input : this.outputNode;
 };
 
 AudioBus.prototype.findPrevNode = function(_idx) 
@@ -86,14 +86,14 @@ AudioBus.prototype.findPrevNode = function(_idx)
 	const nodes = this.nodes.slice(0, _idx);
 	const prevNode = nodes.findLast((_node) => _node !== undefined);
 
-	return prevNode ?? this.inputNode;
+	return (prevNode !== undefined) ? prevNode.output : this.inputNode;
 };
 
-AudioBus.prototype.handleConnections = function(_idx, _newNode)
+AudioBus.prototype.handleConnections = function(_idx, _newNodes)
 {
 	const currentNode = this.nodes[_idx];
 
-	if (currentNode === undefined && _newNode === undefined)
+	if (currentNode === undefined && _newNodes === undefined)
 		return; // No need to change anything
 
 	const prevNode = this.findPrevNode(_idx);
@@ -113,26 +113,28 @@ AudioBus.prototype.handleConnections = function(_idx, _newNode)
 	}
 
 	// Reconnect the previous node (and any new node)
-	if (_newNode === undefined)
+	if (_newNodes === undefined)
 	{
 		prevNode.connect(nextNode, 0, 0);
 	}
 	else
 	{
-		prevNode.connect(_newNode, 0, 0);
-		_newNode.connect(nextNode, 0, 0);
+		prevNode.connect(_newNodes.input, 0, 0);
+		_newNodes.output.connect(nextNode, 0, 0);
 	}
 
-	this.nodes[_idx] = _newNode;
+	this.nodes[_idx] = _newNodes;
 };
 
 AudioBus.prototype.handleValue = function(_value)
 {
-	if (_value instanceof AudioEffectStruct)
-		return _value.addNode();
+	if (_value instanceof AudioEffectStruct) {
+		return _value.addInstance();
+	}
 
-	if (_value === undefined)
+	if (_value === undefined) {
 		return _value;
+	}
 
 	throw new Error("Value must be Struct.AudioEffect or undefined");
 };
@@ -146,7 +148,7 @@ AudioBus.isNodeIndex = function(_prop)
 };
 
 function DummyAudioBus() {
-	this.outputNode = new GainNode(g_WebAudioContext);
+	this.outputNode = Audio_CreateGainNode(g_WebAudioContext);
 
 	this.bypass = false;
 	this.gain = 1.0;

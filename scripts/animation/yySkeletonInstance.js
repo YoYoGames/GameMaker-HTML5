@@ -698,6 +698,8 @@ yySkeletonInstance.prototype.SetAnimationTransform = function (_ind, _x, _y, _sc
 	var lastFrame = this.m_lastFrame;
 	var forceUpdate = this.m_forceUpdate;
 
+	var animationUpdated = false;
+
 	_scaley *= -1.0; /* Y scale seems to be inverted somewhere... */
 
     var    updateWorldTransform = (_eventInstance !== undefined);
@@ -769,6 +771,7 @@ yySkeletonInstance.prototype.SetAnimationTransform = function (_ind, _x, _y, _sc
 	    this.m_rotationMatrix = new yyRotationMatrix(-_angle);
 	    
 	    updateWorldTransform = true;
+		animationUpdated = true;
 
 	    this.m_forceUpdate = false;
 	}
@@ -783,6 +786,8 @@ yySkeletonInstance.prototype.SetAnimationTransform = function (_ind, _x, _y, _sc
 
 	    this.UpdateWorldTransformAndBounds();
     }
+
+	return animationUpdated;
 };
 
 yySkeletonInstance.prototype.UpdateWorldTransformAndBounds = function()
@@ -1250,7 +1255,7 @@ yySkeletonInstance.prototype.SetBoneData = function (_bone, _map) {
 ///          	Access the current bone state
 ///          </summary>
 // #############################################################################################
-yySkeletonInstance.prototype.GetBoneState = function (_bone, _map) {
+yySkeletonInstance.prototype.GetBoneState = function (_inst, _bone, _map) {
 
     var bone = this.m_skeleton.findBone(_bone);
 	if (bone) 
@@ -1258,19 +1263,25 @@ yySkeletonInstance.prototype.GetBoneState = function (_bone, _map) {
 		var pMap = g_ActiveMaps.Get(_map);
 		if (pMap) 
 		{
+			var angle = _inst.image_angle;
+
+			var origin = this.GetScreenOrigin();
+			var world_xy = [ bone.worldX, bone.worldY ];
+			world_xy = RotatePointAroundOrigin(world_xy, origin, this.m_rotationMatrix);
+
 		    pMap.set( "x", bone.x);
 			pMap.set( "y", bone.y);
 			pMap.set( "angle", bone.rotation);
 			pMap.set( "xscale", bone.scaleX);
 			pMap.set( "yscale", bone.scaleY);
-			pMap.set( "worldX", bone.worldX);
-			pMap.set( "worldY", bone.worldY);
+			pMap.set( "worldX", world_xy[0]);
+			pMap.set( "worldY", world_xy[1]);
 			//pMap["worldAngle"] = bone.worldRotation;
 			//pMap["worldScaleX"] = bone.worldScaleX;
 			//pMap["worldScaleY"] = bone.worldScaleY;
 		    //pMap["parent"] = bone.parent.data.name;
-			pMap.set( "worldAngleX", bone.getWorldRotationX());
-			pMap.set( "worldAngleY", bone.getWorldRotationY());
+			pMap.set( "worldAngleX", bone.getWorldRotationX() - angle);
+			pMap.set( "worldAngleY", bone.getWorldRotationY() - angle);
 			pMap.set( "worldScaleX", bone.getWorldScaleX());
 			pMap.set( "worldScaleY", bone.getWorldScaleY());
 			pMap.set( "appliedAngle", bone.arotation);
