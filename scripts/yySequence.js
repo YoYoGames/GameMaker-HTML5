@@ -5011,6 +5011,8 @@ yySequenceManager.prototype.HandleParticleTrackUpdate = function (_pEl, _pSeq, _
 
         if (ps != -1)
         {
+            ParticleSystem_SetMatrix(ps, _matrix);
+
             // Re-burst emitters when the sequence loops
 			if (_pInst.m_wrapped)
 			{
