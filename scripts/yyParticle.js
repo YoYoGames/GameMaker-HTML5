@@ -2414,7 +2414,6 @@ function HandleLife( _ps, _em )
 				if ( YYRandom(-numb) == 0 ) numb = 1;
 			}
 			if  ( numb > 0 ){
-				console.log("EMIT!", pParticle.x, pParticle.y);
 				EmitParticles(pPartSys, pEmitter, pParticle.x, pParticle.y, pParType.deathtype, numb);
 			}
 			pParticles.splice(i,1);	// remove particle
