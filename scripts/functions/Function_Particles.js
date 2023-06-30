@@ -36,6 +36,7 @@ function particle_get_info(_ind)
         variable_struct_set(pPSI, "xorigin", pPS.originX);
         variable_struct_set(pPSI, "yorigin", pPS.originY);
         variable_struct_set(pPSI, "oldtonew", (pPS.drawOrder == 0));
+        variable_struct_set(pPSI, "global_space", pPS.globalSpaceParticles);
 
         var emittersArray = [];
         for (var i = 0; i < pPS.emitters.length; ++i)
@@ -1131,4 +1132,9 @@ function part_system_layer(_ind, _layerid)
 
     var ret = ParticleSystem_Layer(yyGetInt32(_ind), layer.m_id);
     return ret;
+}
+
+function part_system_global_space(_ind, _enable)
+{
+    ParticleSystem_GlobalSpace(yyGetInt32(_ind), yyGetBool(_enable));
 }
