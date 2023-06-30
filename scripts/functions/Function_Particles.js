@@ -36,6 +36,7 @@ function particle_get_info(_ind)
         variable_struct_set(pPSI, "xorigin", pPS.originX);
         variable_struct_set(pPSI, "yorigin", pPS.originY);
         variable_struct_set(pPSI, "oldtonew", (pPS.drawOrder == 0));
+        variable_struct_set(pPSI, "global_space", pPS.globalSpaceParticles);
 
         var emittersArray = [];
         for (var i = 0; i < pPS.emitters.length; ++i)

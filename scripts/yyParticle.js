@@ -263,6 +263,7 @@ function CParticleSystem()
 	this.originX = 0;
 	this.originY = 0;
 	this.drawOrder = 0;
+	this.globalSpaceParticles = false;
 
 	/// The index within instances where the particle system is stored.
 	this.index = -1;
@@ -295,6 +296,7 @@ CParticleSystem.CreateFromJSON = function (json)
 	system.originX = json.originX;
 	system.originY = json.originY;
 	system.drawOrder = json.drawOrder;
+	system.globalSpaceParticles = json.globalSpaceParticles;
 	for (var i = 0; i < json.emitters.length; ++i)
 	{
 		system.emitters.push(json.emitters[i]);
@@ -371,6 +373,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 
 	var system = g_ParticleSystems[ps];
 	system.oldtonew = (this.drawOrder == 0);
+	system.globalSpaceParticles = this.globalSpaceParticles;
 
 	for (var i = this.emitters.length - 1; i >= 0; --i)
 	{
