@@ -1132,3 +1132,8 @@ function part_system_layer(_ind, _layerid)
     var ret = ParticleSystem_Layer(yyGetInt32(_ind), layer.m_id);
     return ret;
 }
+
+function part_system_global_space(_ind, _enable)
+{
+    ParticleSystem_GlobalSpace(yyGetInt32(_ind), yyGetBool(_enable));
+}

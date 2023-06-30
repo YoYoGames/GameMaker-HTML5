@@ -246,8 +246,8 @@ function ParticleSystem_ClearClass()
 	this.alpha = 1.0;						// the particle system's alpha
 	this.angle = 0.0; 						// rotation in degrees
 
-	this.worldSpaceParticles = false;
-	this.matrix = new Matrix();
+	this.globalSpaceParticles = false;		// if true particles are simulated in global space
+	this.matrix = new Matrix();				// the global space matrix
 
 	this.m_elementID = -1;                  // layer element ID (Zeus only)
 	//this.m_origLayerID = -1;                // original layer ID (Zeus only)
@@ -678,7 +678,7 @@ function CreateParticle(_system, _x, _y, _parttype)
 		Result.spritestart = pParType.spritestart;
 	}
 
-	if (_system.worldSpaceParticles)
+	if (_system.globalSpaceParticles)
 	{
 		Result.dir += RAD(Math.atan2(_system.matrix.m[_21], _system.matrix.m[_11]));
 	}
@@ -1626,6 +1626,25 @@ function	ParticleSystem_Emitter_Burst_Impl(
 			return;
 		}
 	}
+	
+	var pos = new Vector3(_x, _y, 0);
+	var right = new Vector3(_width, 0, 0);
+	var down = new Vector3(0, _height, 0);
+
+	if (_system.globalSpaceParticles)
+	{
+		pos.X += _system.xdraw;
+		pos.Y += _system.ydraw;
+		pos = _system.matrix.TransformVec3(pos);
+
+		right.X = (_system.matrix.m[_11] * _width);
+		right.Y = (_system.matrix.m[_12] * _width);
+		right.Z = (_system.matrix.m[_13] * _width);
+
+		down.X = (_system.matrix.m[_21] * _height);
+		down.Y = (_system.matrix.m[_22] * _height);
+		down.Z = (_system.matrix.m[_23] * _height);
+	}
 
 	for (var i = 0; i < _numb; ++i)
 	{
@@ -1670,26 +1689,18 @@ function	ParticleSystem_Emitter_Burst_Impl(
 			}
 		}
 
-		var particleX = 0;
-		var particleY = 0;
+		var particleX;
+		var particleY;
 
 		if (_shape == PART_ESHAPE_LINE)
 		{
-			particleX = _x + _width * xx;
-			particleY = _y + _height * xx;
+			particleX = pos.X + right.X * xx + down.X * xx;
+			particleY = pos.Y + right.Y * xx + down.Y * xx;
 		}
 		else
 		{
-			particleX = _x + _width * xx;
-			particleY = _y + _height * yy;
-		}
-
-		if (_system.worldSpaceParticles)
-		{
-			var pos = new Vector3(_system.xdraw + particleX, _system.ydraw + particleY, 0);
-			var tpos = _system.matrix.TransformVec3(pos);
-			particleX = tpos.X;
-			particleY = tpos.Y;
+			particleX = pos.X + right.X * xx + down.X * yy;
+			particleY = pos.Y + right.Y * xx + down.Y * yy;
 		}
 
 		EmitParticles(_system, _emitter, particleX, particleY, _ptype, 1);
@@ -2168,6 +2179,23 @@ function ParticleSystem_Layer(_ps,_layerID)
             }
         }
     }
+}
+
+// #############################################################################################
+/// Function:<summary>
+///          	Enables or disabled global space particles
+///          </summary>
+///
+/// In:		<param name="_ps"></param>
+///			<param name="_enable"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+function ParticleSystem_GlobalSpace(_ps, _enable)
+{
+	if (!ParticleSystem_Exists(_ps)) return;
+	g_ParticleSystems[_ps].globalSpaceParticles = _enable;
 }
 
 // #############################################################################################
@@ -2774,7 +2802,7 @@ function ParticleSystem_Draw( _ps, _color, _alpha )
 	};
 
 	var xoff, yoff, matrixWorld;
-	if (pPartSys.worldSpaceParticles)
+	if (pPartSys.globalSpaceParticles)
 	{
 		xoff = 0;
 		yoff = 0;
@@ -2813,7 +2841,7 @@ function ParticleSystem_Draw( _ps, _color, _alpha )
 		}
 	}
 
-	if (pPartSys.worldSpaceParticles)
+	if (pPartSys.globalSpaceParticles)
 	{
 		WebGL_SetMatrix(MATRIX_WORLD, matrixWorld);
 	}
