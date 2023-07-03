@@ -90,10 +90,14 @@ function ParticleType_ClearClass()
 	this.spritestretch = false;    				// whether to stretch the animation
 	this.spriterandom = false;     				// whether to start at a random position
 	this.shape = PT_SHAPE_PIXEL;				// particle shape
-	this.sizemin = 1.0;							// minimal size
-	this.sizemax = 1.0;							// maximal size
-	this.sizeincr = 0.0;						// size increment and 
-	this.sizerand = 0.0;						// added randomness
+	this.sizeMinX = 1.0;						// minimal x size
+	this.sizeMaxX = 1.0;						// maximal x size
+	this.sizeMinY = 1.0;						// minimal y size
+	this.sizeMaxY = 1.0;						// maximal y size
+	this.sizeIncrX = 0.0;						// x size increment 
+	this.sizeIncrY = 0.0;						// y size increment
+	this.sizeRandX = 0.0;						// added x size randomness
+	this.sizeRandY = 0.0;						// added y size randomness
 	this.xscale = 1.0;							// additional X scale values
 	this.yscale = 1.0;							// additional Y scale values
 	this.lifemin = 100;							// minimal and maximal life
@@ -199,7 +203,8 @@ function yyParticle()
 	this.ang=0;					// angle
 	this.color=0xffffff;		// the current color
 	this.alpha=1.0;				// current alpha
-	this.size=0;				// the size of the particle
+	this.xsize=0;				// the size of the particle
+	this.ysize=0;				// the size of the particle
 	this.spritestart=0;			// the starting sprite image
 	this.ran = 0; 					// random number for different purposes
 	this.id = -1;
@@ -668,7 +673,8 @@ function CreateParticle(_system, _x, _y, _parttype)
 	Compute_Color(Result);
 		
 	Result.alpha = pParType.alphastart;
-	Result.size = MyRandom( pParType.sizemin, pParType.sizemax, 0);
+	Result.xsize = MyRandom( pParType.sizeMinX, pParType.sizeMaxX, 0);
+	Result.ysize = MyRandom( pParType.sizeMinY, pParType.sizeMaxY, 0);
 	Result.additiveblend = pParType.additiveblend;
 		
 	
@@ -859,12 +865,51 @@ function	ParticleType_Size(_ind, _sizemin, _sizemax, _sizeincr, _sizerand)
 	var pPar = g_ParticleTypes[yyGetInt32(_ind)];
 	if( pPar == null || pPar==undefined ) return;
 		
-	pPar.sizemin = yyGetReal(_sizemin);
-	pPar.sizemax = yyGetReal(_sizemax);
-	pPar.sizeincr = yyGetReal(_sizeincr);
-	pPar.sizerand = yyGetReal(_sizerand);
+	pPar.sizeMinX = yyGetReal(_sizemin);
+	pPar.sizeMaxX = yyGetReal(_sizemax);
+	pPar.sizeIncrX = yyGetReal(_sizeincr);
+	pPar.sizeRandX = yyGetReal(_sizerand);
+
+	pPar.sizeMinY = yyGetReal(_sizemin);
+	pPar.sizeMaxY = yyGetReal(_sizemax);
+	pPar.sizeIncrY = yyGetReal(_sizeincr);
+	pPar.sizeRandY = yyGetReal(_sizerand);
 }
 
+// #############################################################################################
+/// Function:<summary>
+///				Sets the size for the indicated particle type
+///          </summary>
+///
+/// In:		 <param name="ind"></param>
+///			 <param name="sizeminx"></param>
+///			 <param name="sizemaxx"></param>
+///			 <param name="sizeincrx"></param>
+///			 <param name="sizerandx"></param>
+///			 <param name="sizeminy"></param>
+///			 <param name="sizemaxy"></param>
+///			 <param name="sizeincry"></param>
+///			 <param name="sizerandy"></param>
+/// Out:	 <returns>
+///				
+///			 </returns>
+// #############################################################################################
+function	ParticleType_Size_Ext(_ind, _sizeminx, _sizemaxx, _sizeincrx, _sizerandx,
+	_sizeminy, _sizemaxy, _sizeincry, _sizerandy)
+{
+	var pPar = g_ParticleTypes[yyGetInt32(_ind)];
+	if( pPar == null || pPar==undefined ) return;
+		
+	pPar.sizeMinX = yyGetReal(_sizeminx);
+	pPar.sizeMaxX = yyGetReal(_sizemaxx);
+	pPar.sizeIncrX = yyGetReal(_sizeincrx);
+	pPar.sizeRandX = yyGetReal(_sizerandx);
+
+	pPar.sizeMinY = yyGetReal(_sizeminy);
+	pPar.sizeMaxY = yyGetReal(_sizemaxy);
+	pPar.sizeIncrY = yyGetReal(_sizeincry);
+	pPar.sizeRandY = yyGetReal(_sizerandy);
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -1314,10 +1359,14 @@ function ParticleSystem_Emitters_Load(_GameFile)
 		type.spritestretch = yypt.spriteStretch;
 		type.spriterandom = yypt.spriteRandom;
 		type.shape = yypt.texture;
-		type.sizemin = yypt.sizeMin;
-		type.sizemax = yypt.sizeMax;
-		type.sizeincr = yypt.sizeIncrease;
-		type.sizerand = yypt.sizeWiggle;
+		type.sizeMinX = yypt.sizeMinX;
+		type.sizeMaxX = yypt.sizeMaxX;
+		type.sizeMinY = yypt.sizeMinY;
+		type.sizeMaxY = yypt.sizeMaxY;
+		type.sizeIncrX = yypt.sizeIncreaseX;
+		type.sizeIncrY = yypt.sizeIncreaseY;
+		type.sizeRandX = yypt.sizeWiggleX;
+		type.sizeRandY = yypt.sizeWiggleY;
 		type.xscale = yypt.scaleX;
 		type.yscale = yypt.scaleY;
 		type.lifemin = yypt.lifetimeMin;
@@ -2535,8 +2584,11 @@ function  HandleShape(_ps, _em)
 		
 		
 		// adapt the size
-		pParticle.size = pParticle.size + pParType.sizeincr;
-		if ( pParticle.size < 0 ) { pParticle.size = 0; }
+		pParticle.xsize = pParticle.xsize + pParType.sizeIncrX;
+		if ( pParticle.xsize < 0 ) { pParticle.xsize = 0; }
+		
+		pParticle.ysize = pParticle.ysize + pParType.sizeIncrY;
+		if ( pParticle.ysize < 0 ) { pParticle.ysize = 0; }
 		
 		
 		// adapt the color
@@ -2724,7 +2776,8 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 	if ( r > 2.0 ) r = 4.0-r;
 	r = r-1.0;
 
-	var s = _pParticle.size + r*pParType.sizerand;   
+	var sx = _pParticle.xsize + r*pParType.sizeRandX;
+	var sy = _pParticle.ysize + r*pParType.sizeRandY;
 
 	var mulColor = Color_Multiply(psColor, Color_Multiply(_pParticle.color, _color));
 	var mulAlpha = psAlpha * _pParticle.alpha * _alpha;
@@ -2733,8 +2786,8 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 	if (pTexture != null)
 	{
 		var xscale,yscale,ang;
-		var xsc = pParType.xscale*s;
-		var ysc = pParType.yscale*s;
+		var xsc = pParType.xscale*sx;
+		var ysc = pParType.yscale*sy;
 		var rot = aa;
 
 		var _X = ~~(_pParticle.x+_xoff);
@@ -2750,7 +2803,7 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 	}else{
 		// If a user supplied particle, call via sprite handler to draw it.
 		spr.Draw( n,	_pParticle.x+_xoff,_pParticle.y+_yoff, 
-						g_ParticleTypes[_pParticle.parttype].xscale*s, g_ParticleTypes[_pParticle.parttype].yscale*s,
+						g_ParticleTypes[_pParticle.parttype].xscale*sx, g_ParticleTypes[_pParticle.parttype].yscale*sy,
 						aa,
 						mulColor,
 						mulAlpha

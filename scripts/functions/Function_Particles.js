@@ -67,10 +67,14 @@ function particle_get_info(_ind)
             variable_struct_set(pPartTypeI, "stretch", particleType.spritestretch);
             variable_struct_set(pPartTypeI, "random", particleType.spriterandom);
             variable_struct_set(pPartTypeI, "shape", particleType.shape);
-            variable_struct_set(pPartTypeI, "size_min", particleType.sizemin);
-            variable_struct_set(pPartTypeI, "size_max", particleType.sizemax);
-            variable_struct_set(pPartTypeI, "size_incr", particleType.sizeincr);
-            variable_struct_set(pPartTypeI, "size_wiggle", particleType.sizerand);
+            variable_struct_set(pPartTypeI, "size_xmin", particleType.sizeMinX);
+            variable_struct_set(pPartTypeI, "size_xmax", particleType.sizeMaxX);
+            variable_struct_set(pPartTypeI, "size_ymin", particleType.sizeMinY);
+            variable_struct_set(pPartTypeI, "size_ymax", particleType.sizeMaxY);
+            variable_struct_set(pPartTypeI, "size_xincr", particleType.sizeIncrX);
+            variable_struct_set(pPartTypeI, "size_yincr", particleType.sizeIncrY);
+            variable_struct_set(pPartTypeI, "size_xwiggle", particleType.sizeRandX);
+            variable_struct_set(pPartTypeI, "size_ywiggle", particleType.sizeRandY);
             variable_struct_set(pPartTypeI, "xscale", particleType.xscale);
             variable_struct_set(pPartTypeI, "yscale", particleType.yscale);
             variable_struct_set(pPartTypeI, "life_min", particleType.lifemin);
@@ -507,6 +511,29 @@ var part_type_subimage = ParticleType_Subimage;
 ///			</returns>
 // #############################################################################################
 var part_type_size = ParticleType_Size;
+
+// #############################################################################################
+/// Function:<summary>
+///          	Sets the size parameters for the particle type. You specify the minimum starting 
+///             size, the maximum starting size, the size increase in each step (use a negative 
+///             number for a decrease in size) and the amount of wiggling. 
+///             (The default size is 1 and default the size does not change.)
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+///			<param name="_size_xmin"></param>
+///			<param name="_size_xmax"></param>
+///			<param name="_size_xincr"></param>
+///			<param name="_size_xwiggle"></param>
+///			<param name="_size_ymin"></param>
+///			<param name="_size_ymax"></param>
+///			<param name="_size_yincr"></param>
+///			<param name="_size_ywiggle"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_type_size_ext = ParticleType_Size_Ext;
 
 // #############################################################################################
 /// Function:<summary>
