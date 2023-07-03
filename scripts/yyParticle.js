@@ -164,6 +164,7 @@ function Emitter_Reset()
 	
 	this.mode = PT_MODE_UNDEFINED;	// stream or burst
 	this.number = 0;				// number of particles to create
+	this.relative = false;			// if true then number of particles spawned is relative to the emitter's area
 
 	this.parttype = 0;			// type of particles	
 	this.xmin = 0.0;			// the region in which to create particles
@@ -387,6 +388,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 		instanceEmitter.enabled = templateEmitter.enabled;
 		instanceEmitter.mode = templateEmitter.mode;
 		instanceEmitter.number = templateEmitter.number;
+		instanceEmitter.relative = templateEmitter.relative;
 		instanceEmitter.posdistr = templateEmitter.posdistr;
 		instanceEmitter.shape = templateEmitter.shape;
 		instanceEmitter.xmin = templateEmitter.xmin;
@@ -400,11 +402,11 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 
 		if (instanceEmitter.mode == PT_MODE_STREAM)
 		{
-			ParticleSystem_Emitter_Stream(ps, em, templateEmitter.parttype, templateEmitter.number);
+			ParticleSystem_Emitter_Stream(ps, em, templateEmitter.parttype, EmitterGetNumber(templateEmitter));
 		}
 		else
 		{
-			ParticleSystem_Emitter_Burst(ps, em, templateEmitter.parttype, templateEmitter.number);
+			ParticleSystem_Emitter_Burst(ps, em, templateEmitter.parttype, EmitterGetNumber(templateEmitter));
 		}
 	}
 
@@ -1357,6 +1359,7 @@ function ParticleSystem_Emitters_Load(_GameFile)
 		emitter.enabled = yypse.enabled;
 		emitter.mode = yypse.mode;
 		emitter.number = yypse.emitCount;
+		emitter.relative = yypse.emitRelative;
 		emitter.posdistr = yypse.distribution;
 		emitter.shape = yypse.shape;
 		emitter.xmin = yypse.regionX - yypse.regionW * 0.5;
@@ -1568,6 +1571,22 @@ function	ParticleSystem_Emitter_Region(_ps, _ind, _xmin, _xmax, _ymin, _ymax, _s
 	pEmitter.ymax = yyGetReal(_ymax);
 	pEmitter.shape = yyGetInt32(_shape);
 	pEmitter.posdistr = yyGetInt32(_posdistr);
+}
+
+function EmitterGetNumber(emitter)
+{
+	if (!emitter.relative)
+	{
+		return emitter.number;
+	}
+
+	// FIXME: Formula for density based emitters
+	var width = Math.abs(emitter.xmax - emitter.xmin);
+	var height = Math.abs(emitter.ymax - emitter.ymin);
+	var area = width * height;
+	var res = 32 * 32;
+
+	return ~~(area * 1/res * emitter.number);
 }
 
 function EmitParticles(_system, _emitter, _x, _y, _parttype, _numb, _applyColor, _col)
@@ -1870,7 +1889,8 @@ function ParticleSystem_Particles_Burst(_ps, _x, _y, _partsys)
 		var emitterHeight = emitter.ymax - emitter.ymin;
 
 		ParticleSystem_Emitter_Burst_Impl(system, system.emitters[i], _x + emitter.xmin, _y + emitter.ymin,
-			emitterWidth, emitterHeight, emitter.shape, emitter.posdistr, emitter.parttype, emitter.number);
+			emitterWidth, emitterHeight, emitter.shape, emitter.posdistr, emitter.parttype,
+			EmitterGetNumber(emitter));
 	}
 }
 
@@ -2592,10 +2612,13 @@ function ParticleSystem_Update(_ps)
 			HandleMotion(_ps, i);
 			HandleShape(_ps, i);
 
-			if (pEmitter.mode != PT_MODE_BURST
-				&& pEmitter.number != 0)
+			if (pEmitter.mode != PT_MODE_BURST)
 			{
-				ParticleSystem_Emitter_Burst(_ps, i, pEmitter.parttype, pEmitter.number);
+				var emitterNumber = EmitterGetNumber(pEmitter);
+				if (emitterNumber != 0)
+				{
+					ParticleSystem_Emitter_Burst(_ps, i, pEmitter.parttype, emitterNumber);
+				}
 			}
 
 			if (pEmitter.particles.length == 0)
