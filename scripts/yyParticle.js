@@ -165,6 +165,16 @@ function Emitter_Reset()
 	this.mode = PT_MODE_UNDEFINED;	// stream or burst
 	this.number = 0;				// number of particles to create
 
+	this.delayMin = 0;			// minimum delay before the first burst
+	this.delayMax = 0;			// maximum delay before the first burst
+	this.delayCurrent = 0;		// how much time is currently left before the first burst
+	this.delayUnit = 0;			// 0 = frames or 1 = seconds
+	
+	this.intervalMin = 0;		// minimum interval between bursts
+	this.intervalMax = 0;		// maximum interval between bursts
+	this.intervalCurrent = 0;	// how much time is currently left before the next burst
+	this.intervalUnit = 0;		// 0 = frames or 1 = seconds
+	
 	this.parttype = 0;			// type of particles	
 	this.xmin = 0.0;			// the region in which to create particles
 	this.xmax = 0.0; 
@@ -396,13 +406,18 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 		//instanceEmitter.rotation = templateEmitter.rotation;
 		instanceEmitter.parttype = templateEmitter.parttype;
 
+		ParticleSystem_Emitter_Delay(
+			ps, em, templateEmitter.delayMin, templateEmitter.delayMax, templateEmitter.delayUnit);
+		ParticleSystem_Emitter_Interval(
+			ps, em, templateEmitter.intervalMin, templateEmitter.intervalMax, templateEmitter.intervalUnit);
+
 		if (!instanceEmitter.enabled) continue;
 
 		if (instanceEmitter.mode == PT_MODE_STREAM)
 		{
 			ParticleSystem_Emitter_Stream(ps, em, templateEmitter.parttype, templateEmitter.number);
 		}
-		else
+		else if (instanceEmitter.delayCurrent <= 0.0)
 		{
 			ParticleSystem_Emitter_Burst(ps, em, templateEmitter.parttype, templateEmitter.number);
 		}
@@ -1357,6 +1372,12 @@ function ParticleSystem_Emitters_Load(_GameFile)
 		emitter.enabled = yypse.enabled;
 		emitter.mode = yypse.mode;
 		emitter.number = yypse.emitCount;
+		emitter.delayMin = yypse.delayMin;
+		emitter.delayMax = yypse.delayMax;
+		emitter.delayUnit = yypse.delayUnit;
+		emitter.intervalMin = yypse.intervalMin;
+		emitter.intervalMax = yypse.intervalMax;
+		emitter.intervalUnit = yypse.intervalUnit;
 		emitter.posdistr = yypse.distribution;
 		emitter.shape = yypse.shape;
 		emitter.xmin = yypse.regionX - yypse.regionW * 0.5;
@@ -1768,6 +1789,75 @@ function	ParticleSystem_Emitter_Stream( _ps, _ind, _ptype, _numb)
 	pEmitter.parttype = yyGetInt32(_ptype);
 }
 
+function EmitterRandomizeDelay(_emitter)
+{
+	if (_emitter.delayMin == 0 && _emitter.delayMax == 0)
+	{
+		_emitter.delayCurrent = 0;
+		return;
+	}
+
+	_emitter.delayCurrent = (_emitter.delayUnit == 0)
+		? irandom_range(~~_emitter.delayMin, ~~_emitter.delayMax)
+		: random_range(_emitter.delayMin, _emitter.delayMax);
+}
+
+// #############################################################################################
+/// Function:<summary>
+///				
+///          </summary>
+///
+/// In:		 <param name="_ps"></param>
+///			 <param name="_ind"></param>
+///			 <param name="_delay_min"></param>
+///			 <param name="_delay_max"></param>
+///			 <param name="_delay_unit"></param>
+///				
+// #############################################################################################
+function	ParticleSystem_Emitter_Delay( _ps, _ind, _delay_min, _delay_max, _delay_unit)
+{
+	if (!ParticleSystem_Emitter_Exists(_ps, _ind)) return;
+	var pEmitter = g_ParticleSystems[_ps].emitters[_ind];
+	pEmitter.delayMin = yyGetInt32(_delay_min);
+	pEmitter.delayMax = yyGetReal(_delay_max);
+	pEmitter.delayUnit = yyGetReal(_delay_unit);
+	EmitterRandomizeDelay(pEmitter);
+}
+
+function EmitterRandomizeInterval(_emitter)
+{
+	if (_emitter.intervalMin == 0 && _emitter.intervalMax == 0)
+	{
+		_emitter.intervalCurrent = 0;
+		return;
+	}
+
+	_emitter.intervalCurrent = (_emitter.intervalUnit == 0)
+		? irandom_range(~~_emitter.intervalMin, ~~_emitter.intervalMax)
+		: random_range(_emitter.intervalMin, _emitter.intervalMax);
+}
+
+// #############################################################################################
+/// Function:<summary>
+///				
+///          </summary>
+///
+/// In:		 <param name="_ps"></param>
+///			 <param name="_ind"></param>
+///			 <param name="_interval_min"></param>
+///			 <param name="_interval_max"></param>
+///			 <param name="_interval_unit"></param>
+///				
+// #############################################################################################
+function	ParticleSystem_Emitter_Interval( _ps, _ind, _interval_min, _interval_max, _interval_unit)
+{
+	if (!ParticleSystem_Emitter_Exists(_ps, _ind)) return;
+	var pEmitter = g_ParticleSystems[_ps].emitters[_ind];
+	pEmitter.intervalMin = yyGetInt32(_interval_min);
+	pEmitter.intervalMax = yyGetReal(_interval_max);
+	pEmitter.intervalUnit = yyGetReal(_interval_unit);
+	EmitterRandomizeInterval(pEmitter);
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -2592,10 +2682,31 @@ function ParticleSystem_Update(_ps)
 			HandleMotion(_ps, i);
 			HandleShape(_ps, i);
 
-			if (pEmitter.mode != PT_MODE_BURST
-				&& pEmitter.number != 0)
+			if (pEmitter.number == 0) continue;
+
+			if (pEmitter.delayCurrent > 0.0)
 			{
-				ParticleSystem_Emitter_Burst(_ps, i, pEmitter.parttype, pEmitter.number);
+				pEmitter.delayCurrent -= (pEmitter.delayUnit == 0)
+					? 1.0 : (g_pBuiltIn.delta_time * 0.001);
+
+				if (pEmitter.delayCurrent <= 0.0)
+				{
+					ParticleSystem_Emitter_Burst(_ps, i, pEmitter.parttype, pEmitter.number);
+				}
+
+				continue;
+			}
+
+			if (pEmitter.mode != PT_MODE_BURST)
+			{
+				pEmitter.intervalCurrent -= (pEmitter.intervalUnit == 0)
+					? 1.0 : (g_pBuiltIn.delta_time * 0.001);
+
+				if (pEmitter.intervalCurrent <= 0.0)
+				{
+					ParticleSystem_Emitter_Burst(_ps, i, pEmitter.parttype, pEmitter.number);
+					EmitterRandomizeInterval(pEmitter);
+				}
 			}
 
 			if (pEmitter.particles.length == 0)
