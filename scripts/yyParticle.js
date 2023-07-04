@@ -882,33 +882,48 @@ function	ParticleType_Size(_ind, _sizemin, _sizemax, _sizeincr, _sizerand)
 ///          </summary>
 ///
 /// In:		 <param name="ind"></param>
-///			 <param name="sizeminx"></param>
-///			 <param name="sizemaxx"></param>
-///			 <param name="sizeincrx"></param>
-///			 <param name="sizerandx"></param>
-///			 <param name="sizeminy"></param>
-///			 <param name="sizemaxy"></param>
-///			 <param name="sizeincry"></param>
-///			 <param name="sizerandy"></param>
+///			 <param name="sizemin"></param>
+///			 <param name="sizemax"></param>
+///			 <param name="sizeincr"></param>
+///			 <param name="sizerand"></param>
 /// Out:	 <returns>
 ///				
 ///			 </returns>
 // #############################################################################################
-function	ParticleType_Size_Ext(_ind, _sizeminx, _sizemaxx, _sizeincrx, _sizerandx,
-	_sizeminy, _sizemaxy, _sizeincry, _sizerandy)
+function	ParticleType_Size_X(_ind, _sizemin, _sizemax, _sizeincr, _sizerand)
 {
 	var pPar = g_ParticleTypes[yyGetInt32(_ind)];
 	if( pPar == null || pPar==undefined ) return;
-		
-	pPar.sizeMinX = yyGetReal(_sizeminx);
-	pPar.sizeMaxX = yyGetReal(_sizemaxx);
-	pPar.sizeIncrX = yyGetReal(_sizeincrx);
-	pPar.sizeRandX = yyGetReal(_sizerandx);
 
-	pPar.sizeMinY = yyGetReal(_sizeminy);
-	pPar.sizeMaxY = yyGetReal(_sizemaxy);
-	pPar.sizeIncrY = yyGetReal(_sizeincry);
-	pPar.sizeRandY = yyGetReal(_sizerandy);
+	pPar.sizeMinX = yyGetReal(_sizemin);
+	pPar.sizeMaxX = yyGetReal(_sizemax);
+	pPar.sizeIncrX = yyGetReal(_sizeincr);
+	pPar.sizeRandX = yyGetReal(_sizerand);
+}
+
+// #############################################################################################
+/// Function:<summary>
+///				Sets the size for the indicated particle type
+///          </summary>
+///
+/// In:		 <param name="ind"></param>
+///			 <param name="sizemin"></param>
+///			 <param name="sizemax"></param>
+///			 <param name="sizeincr"></param>
+///			 <param name="sizerand"></param>
+/// Out:	 <returns>
+///				
+///			 </returns>
+// #############################################################################################
+function	ParticleType_Size_Y(_ind, _sizemin, _sizemax, _sizeincr, _sizerand)
+{
+	var pPar = g_ParticleTypes[yyGetInt32(_ind)];
+	if( pPar == null || pPar==undefined ) return;
+
+	pPar.sizeMinY = yyGetReal(_sizemin);
+	pPar.sizeMaxY = yyGetReal(_sizemax);
+	pPar.sizeIncrY = yyGetReal(_sizeincr);
+	pPar.sizeRandY = yyGetReal(_sizerand);
 }
 
 // #############################################################################################

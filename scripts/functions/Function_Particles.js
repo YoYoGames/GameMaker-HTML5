@@ -521,19 +521,34 @@ var part_type_size = ParticleType_Size;
 ///          </summary>
 ///
 /// In:		<param name="_ind"></param>
-///			<param name="_size_xmin"></param>
-///			<param name="_size_xmax"></param>
-///			<param name="_size_xincr"></param>
-///			<param name="_size_xwiggle"></param>
-///			<param name="_size_ymin"></param>
-///			<param name="_size_ymax"></param>
-///			<param name="_size_yincr"></param>
-///			<param name="_size_ywiggle"></param>
+///			<param name="_size_min"></param>
+///			<param name="_size_max"></param>
+///			<param name="_size_incr"></param>
+///			<param name="_size_wiggle"></param>
 /// Out:	<returns>
 ///				
 ///			</returns>
 // #############################################################################################
-var part_type_size_ext = ParticleType_Size_Ext;
+var part_type_size_x = ParticleType_Size_X;
+
+// #############################################################################################
+/// Function:<summary>
+///          	Sets the size parameters for the particle type. You specify the minimum starting 
+///             size, the maximum starting size, the size increase in each step (use a negative 
+///             number for a decrease in size) and the amount of wiggling. 
+///             (The default size is 1 and default the size does not change.)
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+///			<param name="_size_min"></param>
+///			<param name="_size_max"></param>
+///			<param name="_size_incr"></param>
+///			<param name="_size_wiggle"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_type_size_y = ParticleType_Size_Y;
 
 // #############################################################################################
 /// Function:<summary>
