@@ -49,6 +49,7 @@ function particle_get_info(_ind)
             variable_struct_set(pEmitterI, "name", templateEmitter.name);
             variable_struct_set(pEmitterI, "mode", templateEmitter.mode);
             variable_struct_set(pEmitterI, "number", templateEmitter.number);
+            variable_struct_set(pEmitterI, "relative", templateEmitter.relative);
             variable_struct_set(pEmitterI, "xmin", templateEmitter.xmin);
             variable_struct_set(pEmitterI, "xmax", templateEmitter.xmax);
             variable_struct_set(pEmitterI, "ymin", templateEmitter.ymin);
@@ -948,6 +949,19 @@ var part_emitter_burst = ParticleSystem_Emitter_Burst;
 // #############################################################################################
  var part_emitter_stream = ParticleSystem_Emitter_Stream;
 
+// #############################################################################################
+/// Function:<summary>
+///          	Enable or disable relative/density based mode.
+///          </summary>
+///
+/// In:		<param name="_ps"></param>
+///			<param name="_ind"></param>
+///			<param name="_enable"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_emitter_relative = ParticleSystem_Emitter_Relative;
 
 // #############################################################################################
 /// Function:<summary>
