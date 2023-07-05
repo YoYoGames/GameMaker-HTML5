@@ -168,6 +168,7 @@ function Emitter_Reset()
 	
 	this.mode = PT_MODE_UNDEFINED;	// stream or burst
 	this.number = 0;				// number of particles to create
+	this.relative = false;			// if true then number of particles spawned is relative to the emitter's area
 
 	this.parttype = 0;			// type of particles	
 	this.xmin = 0.0;			// the region in which to create particles
@@ -392,6 +393,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 		instanceEmitter.enabled = templateEmitter.enabled;
 		instanceEmitter.mode = templateEmitter.mode;
 		instanceEmitter.number = templateEmitter.number;
+		instanceEmitter.relative = templateEmitter.relative;
 		instanceEmitter.posdistr = templateEmitter.posdistr;
 		instanceEmitter.shape = templateEmitter.shape;
 		instanceEmitter.xmin = templateEmitter.xmin;
@@ -1421,6 +1423,7 @@ function ParticleSystem_Emitters_Load(_GameFile)
 		emitter.enabled = yypse.enabled;
 		emitter.mode = yypse.mode;
 		emitter.number = yypse.emitCount;
+		emitter.relative = yypse.emitRelative;
 		emitter.posdistr = yypse.distribution;
 		emitter.shape = yypse.shape;
 		emitter.xmin = yypse.regionX - yypse.regionW * 0.5;
@@ -1683,6 +1686,11 @@ function EmitParticles(_system, _emitter, _x, _y, _parttype, _numb, _applyColor,
 function	ParticleSystem_Emitter_Burst_Impl(
 	_system, _emitter, _x, _y, _width, _height, _shape, _distr, _ptype, _numb)
 {
+	if (_emitter.relative)
+	{
+		_numb = _width * _height * _numb * 0.00003;
+	}
+
 	if (_numb < 0)
 	{
 		// Cast to an integer
@@ -1694,6 +1702,16 @@ function	ParticleSystem_Emitter_Burst_Impl(
 		}
 	}
 	
+	var fract = _numb - ~~_numb;
+	_numb = ~~_numb;
+
+	if (fract > 0.0 && Math.random() <= fract)
+	{
+		_numb += 1.0;
+	}
+
+	if (_numb == 0.0) return;
+
 	var pos = new Vector3(_x, _y, 0);
 	var right = new Vector3(_width, 0, 0);
 	var down = new Vector3(0, _height, 0);
@@ -1800,7 +1818,7 @@ function	ParticleSystem_Emitter_Burst(_ps, _ind, _ptype, _numb)
 	var emitterHeight = emitter.ymax - emitter.ymin;
 	
 	_ptype = yyGetInt32(_ptype);
-	_numb = yyGetInt32(_numb);
+	_numb = yyGetReal(_numb);
 
 	ParticleSystem_Emitter_Burst_Impl(system, emitter, emitter.xmin, emitter.ymin,
 		emitterWidth, emitterHeight, emitter.shape, emitter.posdistr, _ptype, _numb);
@@ -1828,10 +1846,29 @@ function	ParticleSystem_Emitter_Stream( _ps, _ind, _ptype, _numb)
 
 	var pEmitter = g_ParticleSystems[_ps].emitters[_ind];
 
-	pEmitter.number = yyGetInt32(_numb);
 	pEmitter.parttype = yyGetInt32(_ptype);
+	pEmitter.number = yyGetReal(_numb);
 }
 
+// #############################################################################################
+/// Function:<summary>
+///				Enable or disable relative/density based mode.
+///          </summary>
+///
+/// In:		 <param name="_ps"></param>
+///			 <param name="_ind"></param>
+///			 <param name="_enable"></param>
+///				
+// #############################################################################################
+function	ParticleSystem_Emitter_Relative(_ps, _ind, _enable)
+{
+	_ps = yyGetInt32(_ps);
+	_ind = yyGetInt32(_ind);
+
+	if (!ParticleSystem_Emitter_Exists(_ps, _ind)) return;
+
+	g_ParticleSystems[_ps].emitters[_ind].relative = yyGetBool(_enable);
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -2659,8 +2696,7 @@ function ParticleSystem_Update(_ps)
 			HandleMotion(_ps, i);
 			HandleShape(_ps, i);
 
-			if (pEmitter.mode != PT_MODE_BURST
-				&& pEmitter.number != 0)
+			if (pEmitter.mode != PT_MODE_BURST)
 			{
 				ParticleSystem_Emitter_Burst(_ps, i, pEmitter.parttype, pEmitter.number);
 			}
