@@ -402,11 +402,11 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 
 		if (instanceEmitter.mode == PT_MODE_STREAM)
 		{
-			ParticleSystem_Emitter_Stream(ps, em, templateEmitter.parttype, EmitterGetNumber(templateEmitter));
+			ParticleSystem_Emitter_Stream(ps, em, templateEmitter.parttype, templateEmitter.number);
 		}
 		else
 		{
-			ParticleSystem_Emitter_Burst(ps, em, templateEmitter.parttype, EmitterGetNumber(templateEmitter));
+			ParticleSystem_Emitter_Burst(ps, em, templateEmitter.parttype, templateEmitter.number);
 		}
 	}
 
@@ -1573,18 +1573,6 @@ function	ParticleSystem_Emitter_Region(_ps, _ind, _xmin, _xmax, _ymin, _ymax, _s
 	pEmitter.posdistr = yyGetInt32(_posdistr);
 }
 
-function EmitterGetNumber(_emitter)
-{
-	if (!_emitter.relative)
-	{
-		return _emitter.number;
-	}
-
-	var width = Math.abs(_emitter.xmax - _emitter.xmin);
-	var height = Math.abs(_emitter.ymax - _emitter.ymin);
-	return width * height * _emitter.number * 0.00003;
-}
-
 function EmitParticles(_system, _emitter, _x, _y, _parttype, _numb, _applyColor, _col)
 {
 	var particles = _emitter.particles;
@@ -1634,6 +1622,11 @@ function EmitParticles(_system, _emitter, _x, _y, _parttype, _numb, _applyColor,
 function	ParticleSystem_Emitter_Burst_Impl(
 	_system, _emitter, _x, _y, _width, _height, _shape, _distr, _ptype, _numb)
 {
+	if (_emitter.relative)
+	{
+		_numb = _width * _height * _numb * 0.00003;
+	}
+
 	if (_numb < 0)
 	{
 		// Cast to an integer
@@ -1652,6 +1645,8 @@ function	ParticleSystem_Emitter_Burst_Impl(
 	{
 		_numb += 1.0;
 	}
+
+	if (_numb == 0.0) return;
 
 	var pos = new Vector3(_x, _y, 0);
 	var right = new Vector3(_width, 0, 0);
@@ -1791,6 +1786,25 @@ function	ParticleSystem_Emitter_Stream( _ps, _ind, _ptype, _numb)
 	pEmitter.number = yyGetReal(_numb);
 }
 
+// #############################################################################################
+/// Function:<summary>
+///				Enable or disable relative/density based mode.
+///          </summary>
+///
+/// In:		 <param name="_ps"></param>
+///			 <param name="_ind"></param>
+///			 <param name="_enable"></param>
+///				
+// #############################################################################################
+function	ParticleSystem_Emitter_Relative(_ps, _ind, _enable)
+{
+	_ps = yyGetInt32(_ps);
+	_ind = yyGetInt32(_ind);
+
+	if (!ParticleSystem_Emitter_Exists(_ps, _ind)) return;
+
+	g_ParticleSystems[_ps].emitters[_ind].relative = yyGetBool(_enable);
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -1893,8 +1907,7 @@ function ParticleSystem_Particles_Burst(_ps, _x, _y, _partsys)
 		var emitterHeight = emitter.ymax - emitter.ymin;
 
 		ParticleSystem_Emitter_Burst_Impl(system, system.emitters[i], _x + emitter.xmin, _y + emitter.ymin,
-			emitterWidth, emitterHeight, emitter.shape, emitter.posdistr, emitter.parttype,
-			EmitterGetNumber(emitter));
+			emitterWidth, emitterHeight, emitter.shape, emitter.posdistr, emitter.parttype, emitter.number);
 	}
 }
 
@@ -2618,11 +2631,7 @@ function ParticleSystem_Update(_ps)
 
 			if (pEmitter.mode != PT_MODE_BURST)
 			{
-				var emitterNumber = EmitterGetNumber(pEmitter);
-				if (emitterNumber != 0)
-				{
-					ParticleSystem_Emitter_Burst(_ps, i, pEmitter.parttype, emitterNumber);
-				}
+				ParticleSystem_Emitter_Burst(_ps, i, pEmitter.parttype, pEmitter.number);
 			}
 
 			if (pEmitter.particles.length == 0)

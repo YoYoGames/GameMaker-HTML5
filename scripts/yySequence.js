@@ -5031,11 +5031,7 @@ yySequenceManager.prototype.HandleParticleTrackUpdate = function (_pEl, _pSeq, _
                             continue;
                         }
 
-                        var emitterNumber = EmitterGetNumber(emitter);
-                        if (emitterNumber != 0)
-                        {
-                            ParticleSystem_Emitter_Burst(ps, i, emitter.parttype, emitterNumber);
-                        }
+                        ParticleSystem_Emitter_Burst(ps, i, emitter.parttype, emitter.number);
                     }
                 }
 			}
