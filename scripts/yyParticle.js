@@ -168,12 +168,12 @@ function Emitter_Reset()
 	this.delayMin = 0;			// minimum delay before the first burst
 	this.delayMax = 0;			// maximum delay before the first burst
 	this.delayCurrent = 0;		// how much time is currently left before the first burst
-	this.delayUnit = 0;			// 0 = frames or 1 = seconds
+	this.delayUnit = 1;			// 0 = seconds or 1 = frames
 	
 	this.intervalMin = 0;		// minimum interval between bursts
 	this.intervalMax = 0;		// maximum interval between bursts
 	this.intervalCurrent = 0;	// how much time is currently left before the next burst
-	this.intervalUnit = 0;		// 0 = frames or 1 = seconds
+	this.intervalUnit = 1;		// 0 = seconds or 1 = frames
 	
 	this.parttype = 0;			// type of particles	
 	this.xmin = 0.0;			// the region in which to create particles
@@ -1797,7 +1797,7 @@ function EmitterRandomizeDelay(_emitter)
 		return;
 	}
 
-	_emitter.delayCurrent = (_emitter.delayUnit == 0)
+	_emitter.delayCurrent = (_emitter.delayUnit == 1)
 		? irandom_range(~~_emitter.delayMin, ~~_emitter.delayMax)
 		: random_range(_emitter.delayMin, _emitter.delayMax);
 }
@@ -1832,7 +1832,7 @@ function EmitterRandomizeInterval(_emitter)
 		return;
 	}
 
-	_emitter.intervalCurrent = (_emitter.intervalUnit == 0)
+	_emitter.intervalCurrent = (_emitter.intervalUnit == 1)
 		? irandom_range(~~_emitter.intervalMin, ~~_emitter.intervalMax)
 		: random_range(_emitter.intervalMin, _emitter.intervalMax);
 }
@@ -2686,8 +2686,8 @@ function ParticleSystem_Update(_ps)
 
 			if (pEmitter.delayCurrent > 0.0)
 			{
-				pEmitter.delayCurrent -= (pEmitter.delayUnit == 0)
-					? 1.0 : (g_pBuiltIn.delta_time * 0.001);
+				pEmitter.delayCurrent -= (pEmitter.delayUnit == 1)
+					? 1.0 : (g_pBuiltIn.delta_time * 0.000001);
 
 				if (pEmitter.delayCurrent <= 0.0)
 				{
@@ -2699,8 +2699,8 @@ function ParticleSystem_Update(_ps)
 
 			if (pEmitter.mode != PT_MODE_BURST)
 			{
-				pEmitter.intervalCurrent -= (pEmitter.intervalUnit == 0)
-					? 1.0 : (g_pBuiltIn.delta_time * 0.001);
+				pEmitter.intervalCurrent -= (pEmitter.intervalUnit == 1)
+					? 1.0 : (g_pBuiltIn.delta_time * 0.000001);
 
 				if (pEmitter.intervalCurrent <= 0.0)
 				{
