@@ -1573,20 +1573,16 @@ function	ParticleSystem_Emitter_Region(_ps, _ind, _xmin, _xmax, _ymin, _ymax, _s
 	pEmitter.posdistr = yyGetInt32(_posdistr);
 }
 
-function EmitterGetNumber(emitter)
+function EmitterGetNumber(_emitter)
 {
-	if (!emitter.relative)
+	if (!_emitter.relative)
 	{
-		return emitter.number;
+		return _emitter.number;
 	}
 
-	// FIXME: Formula for density based emitters
-	var width = Math.abs(emitter.xmax - emitter.xmin);
-	var height = Math.abs(emitter.ymax - emitter.ymin);
-	var area = width * height;
-	var res = 32 * 32;
-
-	return ~~(area * 1/res * emitter.number);
+	var width = Math.abs(_emitter.xmax - _emitter.xmin);
+	var height = Math.abs(_emitter.ymax - _emitter.ymin);
+	return width * height * _emitter.number * 0.00003;
 }
 
 function EmitParticles(_system, _emitter, _x, _y, _parttype, _numb, _applyColor, _col)
@@ -1649,6 +1645,14 @@ function	ParticleSystem_Emitter_Burst_Impl(
 		}
 	}
 	
+	var fract = _numb - ~~_numb;
+	_numb = ~~_numb;
+
+	if (fract > 0.0 && Math.random() <= fract)
+	{
+		_numb += 1.0;
+	}
+
 	var pos = new Vector3(_x, _y, 0);
 	var right = new Vector3(_width, 0, 0);
 	var down = new Vector3(0, _height, 0);
@@ -1755,7 +1759,7 @@ function	ParticleSystem_Emitter_Burst(_ps, _ind, _ptype, _numb)
 	var emitterHeight = emitter.ymax - emitter.ymin;
 	
 	_ptype = yyGetInt32(_ptype);
-	_numb = yyGetInt32(_numb);
+	_numb = yyGetReal(_numb);
 
 	ParticleSystem_Emitter_Burst_Impl(system, emitter, emitter.xmin, emitter.ymin,
 		emitterWidth, emitterHeight, emitter.shape, emitter.posdistr, _ptype, _numb);
@@ -1783,8 +1787,8 @@ function	ParticleSystem_Emitter_Stream( _ps, _ind, _ptype, _numb)
 
 	var pEmitter = g_ParticleSystems[_ps].emitters[_ind];
 
-	pEmitter.number = yyGetInt32(_numb);
 	pEmitter.parttype = yyGetInt32(_ptype);
+	pEmitter.number = yyGetReal(_numb);
 }
 
 
