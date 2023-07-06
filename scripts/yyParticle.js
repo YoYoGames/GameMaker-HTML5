@@ -675,8 +675,9 @@ function CreateParticle(_system, _x, _y, _parttype)
 	Compute_Color(Result);
 		
 	Result.alpha = pParType.alphastart;
-	Result.xsize = MyRandom( pParType.sizeMinX, pParType.sizeMaxX, 0);
-	Result.ysize = MyRandom( pParType.sizeMinY, pParType.sizeMaxY, 0);
+	var random = Math.random();
+	Result.xsize = pPartType.sizeMinX + ((pPartType.sizeMaxX - pPartType.sizeMinX) * random);
+	Result.ysize = pPartType.sizeMinY + ((pPartType.sizeMaxY - pPartType.sizeMinY) * random);
 	Result.additiveblend = pParType.additiveblend;
 		
 	
