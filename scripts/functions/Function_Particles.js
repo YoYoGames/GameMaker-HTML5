@@ -49,6 +49,12 @@ function particle_get_info(_ind)
             variable_struct_set(pEmitterI, "name", templateEmitter.name);
             variable_struct_set(pEmitterI, "mode", templateEmitter.mode);
             variable_struct_set(pEmitterI, "number", templateEmitter.number);
+            variable_struct_set(pEmitterI, "delay_min", templateEmitter.delayMin);
+            variable_struct_set(pEmitterI, "delay_max", templateEmitter.delayMax);
+            variable_struct_set(pEmitterI, "delay_unit", templateEmitter.delayUnit);
+            variable_struct_set(pEmitterI, "interval_min", templateEmitter.intervalMin);
+            variable_struct_set(pEmitterI, "interval_max", templateEmitter.intervalMax);
+            variable_struct_set(pEmitterI, "interval_unit", templateEmitter.intervalUnit);
             variable_struct_set(pEmitterI, "relative", templateEmitter.relative);
             variable_struct_set(pEmitterI, "xmin", templateEmitter.xmin);
             variable_struct_set(pEmitterI, "xmax", templateEmitter.xmax);
@@ -989,7 +995,39 @@ var part_emitter_burst = ParticleSystem_Emitter_Burst;
 ///				
 ///			</returns>
 // #############################################################################################
- var part_emitter_stream = ParticleSystem_Emitter_Stream;
+var part_emitter_stream = ParticleSystem_Emitter_Stream;
+
+// #############################################################################################
+/// Function:<summary>
+///          	
+///          </summary>
+///
+/// In:		<param name="_ps"></param>
+///			<param name="_ind"></param>
+///			<param name="_delay_min"></param>
+///			<param name="_delay_max"></param>
+///			<param name="_delay_unit"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_emitter_delay = ParticleSystem_Emitter_Delay;
+
+// #############################################################################################
+/// Function:<summary>
+///          	
+///          </summary>
+///
+/// In:		<param name="_ps"></param>
+///			<param name="_ind"></param>
+///			<param name="_interval_min"></param>
+///			<param name="_interval_max"></param>
+///			<param name="_interval_unit"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_emitter_interval = ParticleSystem_Emitter_Interval;
 
 // #############################################################################################
 /// Function:<summary>

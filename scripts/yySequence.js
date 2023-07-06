@@ -5024,14 +5024,15 @@ yySequenceManager.prototype.HandleParticleTrackUpdate = function (_pEl, _pSeq, _
                     {
                         var emitter = pEmitters[i];
 
-                        if (!emitter.enabled
-                            || !emitter.created
-                            || emitter.mode != PT_MODE_BURST)
-                        {
-                            continue;
-                        }
+                        EmitterRandomizeDelay(emitter);
 
-                        ParticleSystem_Emitter_Burst(ps, i, emitter.parttype, emitter.number);
+                        if (emitter.created
+                            && emitter.enabled
+                            && emitter.mode == PT_MODE_BURST
+                            && emitter.delayCurrent <= 0.0)
+                        {
+                            ParticleSystem_Emitter_Burst(ps, i, emitter.parttype, emitter.number);
+                        }
                     }
                 }
 			}
