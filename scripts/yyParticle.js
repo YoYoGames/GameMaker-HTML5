@@ -90,10 +90,14 @@ function ParticleType_ClearClass()
 	this.spritestretch = false;    				// whether to stretch the animation
 	this.spriterandom = false;     				// whether to start at a random position
 	this.shape = PT_SHAPE_PIXEL;				// particle shape
-	this.sizemin = 1.0;							// minimal size
-	this.sizemax = 1.0;							// maximal size
-	this.sizeincr = 0.0;						// size increment and 
-	this.sizerand = 0.0;						// added randomness
+	this.sizeMinX = 1.0;						// minimal x size
+	this.sizeMaxX = 1.0;						// maximal x size
+	this.sizeMinY = 1.0;						// minimal y size
+	this.sizeMaxY = 1.0;						// maximal y size
+	this.sizeIncrX = 0.0;						// x size increment 
+	this.sizeIncrY = 0.0;						// y size increment
+	this.sizeRandX = 0.0;						// added x size randomness
+	this.sizeRandY = 0.0;						// added y size randomness
 	this.xscale = 1.0;							// additional X scale values
 	this.yscale = 1.0;							// additional Y scale values
 	this.lifemin = 100;							// minimal and maximal life
@@ -164,6 +168,7 @@ function Emitter_Reset()
 	
 	this.mode = PT_MODE_UNDEFINED;	// stream or burst
 	this.number = 0;				// number of particles to create
+	this.relative = false;			// if true then number of particles spawned is relative to the emitter's area
 
 	this.delayMin = 0;			// minimum delay before the first burst
 	this.delayMax = 0;			// maximum delay before the first burst
@@ -209,7 +214,8 @@ function yyParticle()
 	this.ang=0;					// angle
 	this.color=0xffffff;		// the current color
 	this.alpha=1.0;				// current alpha
-	this.size=0;				// the size of the particle
+	this.xsize=0;				// the size of the particle
+	this.ysize=0;				// the size of the particle
 	this.spritestart=0;			// the starting sprite image
 	this.ran = 0; 					// random number for different purposes
 	this.id = -1;
@@ -397,6 +403,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 		instanceEmitter.enabled = templateEmitter.enabled;
 		instanceEmitter.mode = templateEmitter.mode;
 		instanceEmitter.number = templateEmitter.number;
+		instanceEmitter.relative = templateEmitter.relative;
 		instanceEmitter.posdistr = templateEmitter.posdistr;
 		instanceEmitter.shape = templateEmitter.shape;
 		instanceEmitter.xmin = templateEmitter.xmin;
@@ -683,7 +690,9 @@ function CreateParticle(_system, _x, _y, _parttype)
 	Compute_Color(Result);
 		
 	Result.alpha = pParType.alphastart;
-	Result.size = MyRandom( pParType.sizemin, pParType.sizemax, 0);
+	var random = Math.random();
+	Result.xsize = pParType.sizeMinX + ((pParType.sizeMaxX - pParType.sizeMinX) * random);
+	Result.ysize = pParType.sizeMinY + ((pParType.sizeMaxY - pParType.sizeMinY) * random);
 	Result.additiveblend = pParType.additiveblend;
 		
 	
@@ -874,12 +883,66 @@ function	ParticleType_Size(_ind, _sizemin, _sizemax, _sizeincr, _sizerand)
 	var pPar = g_ParticleTypes[yyGetInt32(_ind)];
 	if( pPar == null || pPar==undefined ) return;
 		
-	pPar.sizemin = yyGetReal(_sizemin);
-	pPar.sizemax = yyGetReal(_sizemax);
-	pPar.sizeincr = yyGetReal(_sizeincr);
-	pPar.sizerand = yyGetReal(_sizerand);
+	pPar.sizeMinX = yyGetReal(_sizemin);
+	pPar.sizeMaxX = yyGetReal(_sizemax);
+	pPar.sizeIncrX = yyGetReal(_sizeincr);
+	pPar.sizeRandX = yyGetReal(_sizerand);
+
+	pPar.sizeMinY = yyGetReal(_sizemin);
+	pPar.sizeMaxY = yyGetReal(_sizemax);
+	pPar.sizeIncrY = yyGetReal(_sizeincr);
+	pPar.sizeRandY = yyGetReal(_sizerand);
 }
 
+// #############################################################################################
+/// Function:<summary>
+///				Sets the size for the indicated particle type
+///          </summary>
+///
+/// In:		 <param name="ind"></param>
+///			 <param name="sizemin"></param>
+///			 <param name="sizemax"></param>
+///			 <param name="sizeincr"></param>
+///			 <param name="sizerand"></param>
+/// Out:	 <returns>
+///				
+///			 </returns>
+// #############################################################################################
+function	ParticleType_Size_X(_ind, _sizemin, _sizemax, _sizeincr, _sizerand)
+{
+	var pPar = g_ParticleTypes[yyGetInt32(_ind)];
+	if( pPar == null || pPar==undefined ) return;
+
+	pPar.sizeMinX = yyGetReal(_sizemin);
+	pPar.sizeMaxX = yyGetReal(_sizemax);
+	pPar.sizeIncrX = yyGetReal(_sizeincr);
+	pPar.sizeRandX = yyGetReal(_sizerand);
+}
+
+// #############################################################################################
+/// Function:<summary>
+///				Sets the size for the indicated particle type
+///          </summary>
+///
+/// In:		 <param name="ind"></param>
+///			 <param name="sizemin"></param>
+///			 <param name="sizemax"></param>
+///			 <param name="sizeincr"></param>
+///			 <param name="sizerand"></param>
+/// Out:	 <returns>
+///				
+///			 </returns>
+// #############################################################################################
+function	ParticleType_Size_Y(_ind, _sizemin, _sizemax, _sizeincr, _sizerand)
+{
+	var pPar = g_ParticleTypes[yyGetInt32(_ind)];
+	if( pPar == null || pPar==undefined ) return;
+
+	pPar.sizeMinY = yyGetReal(_sizemin);
+	pPar.sizeMaxY = yyGetReal(_sizemax);
+	pPar.sizeIncrY = yyGetReal(_sizeincr);
+	pPar.sizeRandY = yyGetReal(_sizerand);
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -1329,10 +1392,14 @@ function ParticleSystem_Emitters_Load(_GameFile)
 		type.spritestretch = yypt.spriteStretch;
 		type.spriterandom = yypt.spriteRandom;
 		type.shape = yypt.texture;
-		type.sizemin = yypt.sizeMin;
-		type.sizemax = yypt.sizeMax;
-		type.sizeincr = yypt.sizeIncrease;
-		type.sizerand = yypt.sizeWiggle;
+		type.sizeMinX = yypt.sizeMinX;
+		type.sizeMaxX = yypt.sizeMaxX;
+		type.sizeMinY = yypt.sizeMinY;
+		type.sizeMaxY = yypt.sizeMaxY;
+		type.sizeIncrX = yypt.sizeIncreaseX;
+		type.sizeIncrY = yypt.sizeIncreaseY;
+		type.sizeRandX = yypt.sizeWiggleX;
+		type.sizeRandY = yypt.sizeWiggleY;
 		type.xscale = yypt.scaleX;
 		type.yscale = yypt.scaleY;
 		type.lifemin = yypt.lifetimeMin;
@@ -1378,6 +1445,7 @@ function ParticleSystem_Emitters_Load(_GameFile)
 		emitter.intervalMin = yypse.intervalMin;
 		emitter.intervalMax = yypse.intervalMax;
 		emitter.intervalUnit = yypse.intervalUnit;
+		emitter.relative = yypse.emitRelative;
 		emitter.posdistr = yypse.distribution;
 		emitter.shape = yypse.shape;
 		emitter.xmin = yypse.regionX - yypse.regionW * 0.5;
@@ -1640,6 +1708,11 @@ function EmitParticles(_system, _emitter, _x, _y, _parttype, _numb, _applyColor,
 function	ParticleSystem_Emitter_Burst_Impl(
 	_system, _emitter, _x, _y, _width, _height, _shape, _distr, _ptype, _numb)
 {
+	if (_emitter.relative)
+	{
+		_numb = _width * _height * _numb * 0.00003;
+	}
+
 	if (_numb < 0)
 	{
 		// Cast to an integer
@@ -1651,6 +1724,16 @@ function	ParticleSystem_Emitter_Burst_Impl(
 		}
 	}
 	
+	var fract = _numb - ~~_numb;
+	_numb = ~~_numb;
+
+	if (fract > 0.0 && Math.random() <= fract)
+	{
+		_numb += 1.0;
+	}
+
+	if (_numb == 0.0) return;
+
 	var pos = new Vector3(_x, _y, 0);
 	var right = new Vector3(_width, 0, 0);
 	var down = new Vector3(0, _height, 0);
@@ -1757,7 +1840,7 @@ function	ParticleSystem_Emitter_Burst(_ps, _ind, _ptype, _numb)
 	var emitterHeight = emitter.ymax - emitter.ymin;
 	
 	_ptype = yyGetInt32(_ptype);
-	_numb = yyGetInt32(_numb);
+	_numb = yyGetReal(_numb);
 
 	ParticleSystem_Emitter_Burst_Impl(system, emitter, emitter.xmin, emitter.ymin,
 		emitterWidth, emitterHeight, emitter.shape, emitter.posdistr, _ptype, _numb);
@@ -1785,8 +1868,8 @@ function	ParticleSystem_Emitter_Stream( _ps, _ind, _ptype, _numb)
 
 	var pEmitter = g_ParticleSystems[_ps].emitters[_ind];
 
-	pEmitter.number = yyGetInt32(_numb);
 	pEmitter.parttype = yyGetInt32(_ptype);
+	pEmitter.number = yyGetReal(_numb);
 }
 
 function EmitterRandomizeDelay(_emitter)
@@ -1858,6 +1941,23 @@ function	ParticleSystem_Emitter_Interval( _ps, _ind, _interval_min, _interval_ma
 	pEmitter.intervalUnit = yyGetReal(_interval_unit);
 	EmitterRandomizeInterval(pEmitter);
 }
+
+// #############################################################################################
+/// Function:<summary>
+///				Enable or disable relative/density based mode.
+///			 <param name="_enable"></param>
+///				
+// #############################################################################################
+function	ParticleSystem_Emitter_Relative(_ps, _ind, _enable)
+{
+	_ps = yyGetInt32(_ps);
+	_ind = yyGetInt32(_ind);
+
+	if (!ParticleSystem_Emitter_Exists(_ps, _ind)) return;
+
+	g_ParticleSystems[_ps].emitters[_ind].relative = yyGetBool(_enable);
+}
+
 
 // #############################################################################################
 /// Function:<summary>
@@ -2625,8 +2725,11 @@ function  HandleShape(_ps, _em)
 		
 		
 		// adapt the size
-		pParticle.size = pParticle.size + pParType.sizeincr;
-		if ( pParticle.size < 0 ) { pParticle.size = 0; }
+		pParticle.xsize = pParticle.xsize + pParType.sizeIncrX;
+		if ( pParticle.xsize < 0 ) { pParticle.xsize = 0; }
+		
+		pParticle.ysize = pParticle.ysize + pParType.sizeIncrY;
+		if ( pParticle.ysize < 0 ) { pParticle.ysize = 0; }
 		
 		
 		// adapt the color
@@ -2681,8 +2784,6 @@ function ParticleSystem_Update(_ps)
 			HandleLife(_ps, i);
 			HandleMotion(_ps, i);
 			HandleShape(_ps, i);
-
-			if (pEmitter.number == 0) continue;
 
 			if (pEmitter.delayCurrent > 0.0)
 			{
@@ -2835,7 +2936,8 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 	if ( r > 2.0 ) r = 4.0-r;
 	r = r-1.0;
 
-	var s = _pParticle.size + r*pParType.sizerand;   
+	var sx = _pParticle.xsize + r*pParType.sizeRandX;
+	var sy = _pParticle.ysize + r*pParType.sizeRandY;
 
 	var mulColor = Color_Multiply(psColor, Color_Multiply(_pParticle.color, _color));
 	var mulAlpha = psAlpha * _pParticle.alpha * _alpha;
@@ -2844,8 +2946,8 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 	if (pTexture != null)
 	{
 		var xscale,yscale,ang;
-		var xsc = pParType.xscale*s;
-		var ysc = pParType.yscale*s;
+		var xsc = pParType.xscale*sx;
+		var ysc = pParType.yscale*sy;
 		var rot = aa;
 
 		var _X = ~~(_pParticle.x+_xoff);
@@ -2861,7 +2963,7 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 	}else{
 		// If a user supplied particle, call via sprite handler to draw it.
 		spr.Draw( n,	_pParticle.x+_xoff,_pParticle.y+_yoff, 
-						g_ParticleTypes[_pParticle.parttype].xscale*s, g_ParticleTypes[_pParticle.parttype].yscale*s,
+						g_ParticleTypes[_pParticle.parttype].xscale*sx, g_ParticleTypes[_pParticle.parttype].yscale*sy,
 						aa,
 						mulColor,
 						mulAlpha

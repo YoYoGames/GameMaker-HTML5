@@ -230,7 +230,7 @@ yyList.prototype.Set = function (_index, _val) {
 // #############################################################################################
 yyList.prototype.Replace = function (_index, _val) {
 	if (_index < 0 || _index >= this.pool.length) {
-        yyError("ds_list_replace :: Trying to access an out-of-bounds index [| " + _index + "]")
+        yyError("ds_list_replace :: Trying to access an out-of-bounds index [| " + _index + "]");
         return;
     }
 	this.pool[_index] = _val;

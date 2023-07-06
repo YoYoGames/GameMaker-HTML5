@@ -55,6 +55,7 @@ function particle_get_info(_ind)
             variable_struct_set(pEmitterI, "interval_min", templateEmitter.intervalMin);
             variable_struct_set(pEmitterI, "interval_max", templateEmitter.intervalMax);
             variable_struct_set(pEmitterI, "interval_unit", templateEmitter.intervalUnit);
+            variable_struct_set(pEmitterI, "relative", templateEmitter.relative);
             variable_struct_set(pEmitterI, "xmin", templateEmitter.xmin);
             variable_struct_set(pEmitterI, "xmax", templateEmitter.xmax);
             variable_struct_set(pEmitterI, "ymin", templateEmitter.ymin);
@@ -73,10 +74,14 @@ function particle_get_info(_ind)
             variable_struct_set(pPartTypeI, "stretch", particleType.spritestretch);
             variable_struct_set(pPartTypeI, "random", particleType.spriterandom);
             variable_struct_set(pPartTypeI, "shape", particleType.shape);
-            variable_struct_set(pPartTypeI, "size_min", particleType.sizemin);
-            variable_struct_set(pPartTypeI, "size_max", particleType.sizemax);
-            variable_struct_set(pPartTypeI, "size_incr", particleType.sizeincr);
-            variable_struct_set(pPartTypeI, "size_wiggle", particleType.sizerand);
+            variable_struct_set(pPartTypeI, "size_xmin", particleType.sizeMinX);
+            variable_struct_set(pPartTypeI, "size_xmax", particleType.sizeMaxX);
+            variable_struct_set(pPartTypeI, "size_ymin", particleType.sizeMinY);
+            variable_struct_set(pPartTypeI, "size_ymax", particleType.sizeMaxY);
+            variable_struct_set(pPartTypeI, "size_xincr", particleType.sizeIncrX);
+            variable_struct_set(pPartTypeI, "size_yincr", particleType.sizeIncrY);
+            variable_struct_set(pPartTypeI, "size_xwiggle", particleType.sizeRandX);
+            variable_struct_set(pPartTypeI, "size_ywiggle", particleType.sizeRandY);
             variable_struct_set(pPartTypeI, "xscale", particleType.xscale);
             variable_struct_set(pPartTypeI, "yscale", particleType.yscale);
             variable_struct_set(pPartTypeI, "life_min", particleType.lifemin);
@@ -513,6 +518,44 @@ var part_type_subimage = ParticleType_Subimage;
 ///			</returns>
 // #############################################################################################
 var part_type_size = ParticleType_Size;
+
+// #############################################################################################
+/// Function:<summary>
+///          	Sets the size parameters for the particle type. You specify the minimum starting 
+///             size, the maximum starting size, the size increase in each step (use a negative 
+///             number for a decrease in size) and the amount of wiggling. 
+///             (The default size is 1 and default the size does not change.)
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+///			<param name="_size_min"></param>
+///			<param name="_size_max"></param>
+///			<param name="_size_incr"></param>
+///			<param name="_size_wiggle"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_type_size_x = ParticleType_Size_X;
+
+// #############################################################################################
+/// Function:<summary>
+///          	Sets the size parameters for the particle type. You specify the minimum starting 
+///             size, the maximum starting size, the size increase in each step (use a negative 
+///             number for a decrease in size) and the amount of wiggling. 
+///             (The default size is 1 and default the size does not change.)
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+///			<param name="_size_min"></param>
+///			<param name="_size_max"></param>
+///			<param name="_size_incr"></param>
+///			<param name="_size_wiggle"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_type_size_y = ParticleType_Size_Y;
 
 // #############################################################################################
 /// Function:<summary>
@@ -985,6 +1028,20 @@ var part_emitter_delay = ParticleSystem_Emitter_Delay;
 ///			</returns>
 // #############################################################################################
 var part_emitter_interval = ParticleSystem_Emitter_Interval;
+
+// #############################################################################################
+/// Function:<summary>
+///          	Enable or disable relative/density based mode.
+///          </summary>
+///
+/// In:		<param name="_ps"></param>
+///			<param name="_ind"></param>
+///			<param name="_enable"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+var part_emitter_relative = ParticleSystem_Emitter_Relative;
 
 // #############################################################################################
 /// Function:<summary>
