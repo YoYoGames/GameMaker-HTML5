@@ -1263,6 +1263,12 @@ function StartRoom( _numb, _starting )
     // Initialise effects
     g_pEffectsManager.Init();
 
+    // Set up runtime data for this room's layers
+    if(g_pLayerManager!=null)
+        g_pLayerManager.BuildRoomLayerRuntimeData(g_RunRoom);
+
+    ParticleSystem_AddAllToLayers();
+
 	// If this room is NOT persistent then we need to recreate all instances EXCEPT those that already exist in the persistent list
 	// Any instance created in here will perform the create event... including "new" PERSISTENT instances
 	if (ispersistent === false)
@@ -1382,12 +1388,6 @@ function StartRoom( _numb, _starting )
         }
     }
     
-    // Set up runtime data for this room's layers
-    if(g_pLayerManager!=null)
-        g_pLayerManager.BuildRoomLayerRuntimeData(g_RunRoom);
-
-    ParticleSystem_AddAllToLayers();
-	
     // Start the room, performing the correct events
     if (_starting) {
         g_pInstanceManager.PerformEvent(EVENT_OTHER_STARTGAME, 0 );
