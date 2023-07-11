@@ -1188,6 +1188,8 @@ function StartRoom( _numb, _starting )
         		var pInst = g_CurrentRoom.m_Active.Get(i);
         		pInst.pObject.RemoveInstance(pInst);
         	}
+
+            g_pLayerManager.CleanRoomLayerRuntimeData(g_CurrentRoom);
         }
     }
 

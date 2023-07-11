@@ -4247,7 +4247,7 @@ yyRoom.prototype.ProcessParticleDepthChange = function () {
 	            var pPartEl = new CLayerParticleElement();
 	            pPartEl.m_systemID = id;
 	            //pPartEl.m_origLayerID = -1;  // scrub any associated layer ID if we're manually changing depth
-	            pPartEl.m_elementID = g_pLayerManager.AddNewElementAtDepth(g_RunRoom, pPartSys.depth, pPartEl, true, true);
+	            pPartSys.m_elementID = g_pLayerManager.AddNewElementAtDepth(g_RunRoom, pPartSys.depth, pPartEl, true, true);
 	        }
         }
 	}

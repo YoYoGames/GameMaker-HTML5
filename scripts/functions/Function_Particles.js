@@ -186,7 +186,10 @@ var part_system_exists = ParticleSystem_Exists;
 ///				
 ///			</returns>
 // #############################################################################################
-var part_system_clear = ParticleSystem_Clear;
+var part_system_clear = function (_ind)
+{
+    ParticleSystem_Clear(_ind, true);
+};
 
 // #############################################################################################
 /// Function:<summary>

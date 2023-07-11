@@ -630,7 +630,7 @@ LayerManager.prototype.BuildParticleElementRuntimeData = function( _room ,_layer
 {
     if (_element.m_ps != -1 && _element.m_systemID == -1)
     {
-        CParticleSystem.Get(_element.m_ps).MakeInstance(-1, false, _element);
+        CParticleSystem.Get(_element.m_ps).MakeInstance(_layer.m_id, false, _element);
     }
 
     _element.m_bRuntimeDataInitialised=true;
@@ -1590,6 +1590,26 @@ LayerManager.prototype.CleanRoomLayers = function(_room)
         }
 
         this.RemoveLayer(_room, pLayer.m_id, false);        
+    }
+};
+
+LayerManager.prototype.CleanRoomLayerRuntimeData = function (_room)
+{
+    if(_room==null)
+        return;
+
+    if (_room.m_Layers == null)
+        return;
+
+    for (var l = 0; l < _room.m_Layers.pool.length; ++l)
+    {
+        var _layer = _room.m_Layers.pool[l];
+        for (var e = 0; e < _layer.m_elements.pool.length; ++e)
+        {
+            console.log(_layer);
+            var _element = _layer.m_elements.pool[e];
+            this.CleanElementRuntimeData(_element);
+        }
     }
 };
 

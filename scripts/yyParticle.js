@@ -374,12 +374,12 @@ CParticleSystem.prototype.GetIndex = function ()
 CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pParticleEl)
 {
 	if (_layerID === undefined) _layerID = -1;
-	if (_persistent === undefined) _persistent = false;
+	if (_persistent === undefined) _persistent = true;
 	if (_pParticleEl === undefined) _pParticleEl = null;
 
 	var ps = (_pParticleEl == null)
 		? ParticleSystem_Create(_layerID, _persistent)
-		: ParticleSystem_Create_OnLayer(-1, _persistent, _pParticleEl);
+		: ParticleSystem_Create_OnLayer(_layerID, _persistent, _pParticleEl);
 
 	if (ps == -1)
 	{
@@ -2173,23 +2173,26 @@ function ParticleSystem_Create_GetLayer(_layerID)
 
 function ParticleSystem_Create_OnLayer(_layerID, _persistent, _pPartEl)
 {
-	var layer = null;
-	var index = g_ParticleSystems.length;
+	var index;
+	for (index = 0; index < g_ParticleSystems.length; ++index)
+	{
+		if (g_ParticleSystems[index] == null)
+		{
+			break;
+		}
+	}
 	g_ParticleSystems[index] = new yyParticleSystem();
 	g_ParticleSystems[index].id = index;                    // remember the ID
 	g_ParticleSystems[index].m_elementID = -1;
-	g_ParticleSystems[index].Clear();
+	ParticleSystem_Clear(index, false);
 	_pPartEl.m_systemID = index;
 	g_ParticleSystems[index].m_elementID = _pPartEl.m_id;
 	g_ParticleSystems[index].m_volatile = !_persistent;
 
 	if (_layerID != -1)
 	{
-		var room = g_pLayerManager.GetTargetRoomObj();
-		layer = g_pLayerManager.GetLayerFromID(room, _layerID);
-
 		//g_ParticleSystems[index].m_origLayerID = _layerID;
-		g_ParticleSystems[index].depth = layer.depth;
+		g_ParticleSystems[index].depth = _pPartEl.m_layer.depth;
 	}
 
 	return index;
@@ -2261,7 +2264,13 @@ function  ParticleSystem_Destroy( _ps )
 	var pPartSys = g_ParticleSystems[_ps];
 	if (pPartSys == null || pPartSys == undefined) return;
 
-	ParticleSystem_Clear(_ps);
+	ParticleSystem_Clear(_ps, false);
+
+	if (g_isZeus)
+	{
+		// Remove this from any layer it happens to be on
+		g_pLayerManager.RemoveElementById(g_RunRoom, g_ParticleSystems[_ps].m_elementID, true);
+	}
 
 	g_ParticleSystems[_ps] = null;
 	return true;
@@ -2277,9 +2286,7 @@ function ParticleSystem_DestroyAll()
 {
     for (var i = 0; i < g_ParticleSystems.length; i++)
     {
-        if ((g_ParticleSystems[i] != null) && (g_ParticleSystems[i] != undefined)) {
-            ParticleSystem_Clear(i);
-        }
+		ParticleSystem_Destroy(i);
     }
 
 	g_ParticleSystems = [];
@@ -2296,24 +2303,46 @@ function ParticleSystem_DestroyAll()
 ///				
 ///			</returns>
 // #############################################################################################
-function ParticleSystem_Clear( _ps )
+function ParticleSystem_Clear(_ps, _reset_element_depth)
 {
-    _ps = yyGetInt32(_ps);
+	_ps = yyGetInt32(_ps);
 
 	var pPartSys = g_ParticleSystems[_ps];
 	if (pPartSys == null || pPartSys == undefined) return;
 
-	if (g_isZeus)
+	pPartSys.emitters = [];
+
+	pPartSys.oldtonew = true;
+	pPartSys.depth = 0.0;
+	pPartSys.xdraw = 0.0;
+	pPartSys.ydraw = 0.0;
+	pPartSys.automaticupdate = true;
+	pPartSys.automaticdraw = true;
+	pPartSys.color = clWhite;
+	pPartSys.alpha = 1.0;
+	pPartSys.angle = 0.0;
+	pPartSys.globalSpaceParticles = false;
+	pPartSys.matrix = new Matrix();
+
+	var pLayer = null;
+	var pElement = null;
+	var elementAndLayer = g_pLayerManager.GetElementAndLayerFromID(g_RunRoom, pPartSys.m_elementID);
+	if (elementAndLayer != null)
 	{
-	    // Remove this from any layer it happens to be on
-	    if (g_ParticleSystems[_ps].m_elementID !== undefined) {
-	        g_pLayerManager.RemoveElementById(g_RunRoom, g_ParticleSystems[_ps].m_elementID, true);
-	    }
-	    g_ParticleSystems[_ps].m_elementID = -1;
-	    //g_ParticleSystems[_ps].m_origLayerID = -1;
-	    g_ParticleSystems[_ps].m_volatile = false;
+		pLayer = elementAndLayer.layer;
+		pElement = elementAndLayer.element;
 	}
-	pPartSys.Clear();
+	if (!_reset_element_depth || (pLayer != null && pLayer.depth == 0))
+		return;
+	
+	g_pLayerManager.RemoveElementById(g_RunRoom, pPartSys.m_elementID, true);
+	var pPartEl = new CLayerParticleElement();
+	// if (pPartEl)
+	{
+		g_pLayerManager.AddNewElementAtDepth(g_RunRoom, 0, pPartEl, true, true);
+		pPartSys.m_elementID = pPartEl.m_id;
+		pPartEl.m_systemID = _ps;
+	}
 }
 
 function ParticleSystem_GetLayer(_ps)
@@ -3095,109 +3124,110 @@ function ParticleSystem_DrawDepth(_d)
 
 
 function ParticleSystem_AddAllToLayers() {
-    if (g_isZeus)
-    {
-        if (persistentsystemlayernames.length < g_ParticleSystems.length)
-        {
-            var oldlength = persistentsystemlayernames.length;
-            for(var i = oldlength; i < g_ParticleSystems.length; i++)
-            {
-                persistentsystemlayernames[i] = null;
-            }
-        }
-        for(var i = 0; i < g_ParticleSystems.length; i++)
-        {
-            var pPartSys = g_ParticleSystems[i];
-            if (pPartSys != null)
-            {
-                if (pPartSys.m_elementID == -1)
-                {
-                    var pTempLayer = null;
-                    var pLayerName = persistentsystemlayernames[i];
-                    if (pLayerName != null)
-                    {
-                        // Use the same logic as persistent objects to look for a layer with a matching name	
-                        pTempLayer = g_pLayerManager.GetLayerFromName(g_RunRoom, pLayerName);
-                        if (pTempLayer == null)
-                        {
-                            // We didn't find a matching layer, so create one with that name and the particle system's depth
-                            pTempLayer = g_pLayerManager.AddLayer(g_RunRoom, pPartSys.depth, pLayerName);
-                        }
-                    }
+	if (!g_isZeus) return;
 
-                    // Add this particle system to the layer system
-                    var pPartEl = new CLayerParticleElement();
-                    pPartEl.m_systemID = i;
+	if (persistentsystemlayernames.length < g_ParticleSystems.length)
+	{
+		var oldlength = persistentsystemlayernames.length;
+		for(var i = oldlength; i < g_ParticleSystems.length; i++)
+		{
+			persistentsystemlayernames[i] = null;
+		}
+	}
 
-                    if (pTempLayer != null)
-                    {
-                        pPartSys.m_elementID = g_pLayerManager.AddNewElement(g_RunRoom, pTempLayer, pPartEl, true);
-                    }                    
+	for(var i = 0; i < g_ParticleSystems.length; i++)
+	{
+		var pSystem = g_ParticleSystems[i];
 
-                    if (pPartSys.m_elementID == -1)
-                    {
-                        // If no layer was specified, or if the specified layer doesn't exist in the current room, add the element at the system depth
-                        pPartSys.m_elementID = g_pLayerManager.AddNewElementAtDepth(g_RunRoom, pPartSys.depth, pPartEl, true, true);
-                    }                    
-                }
-            }
-        }
+		if (!pSystem || pSystem.m_elementID != -1) continue;
 
-        persistentsystemlayernames = [];
-    }
+		var pTempLayer = null;
+		var pLayerName = persistentsystemlayernames[i];
+		if (pLayerName != null)
+		{
+			// Use the same logic as persistent objects to look for a layer with a matching name	
+			pTempLayer = g_pLayerManager.GetLayerFromName(g_RunRoom, pLayerName);
+			if (pTempLayer == null)
+			{
+				// We didn't find a matching layer, so create one with that name and the particle system's depth
+				pTempLayer = g_pLayerManager.AddLayer(g_RunRoom, pSystem.depth, pLayerName);
+			}
+		}
+
+		// Add this particle system to the layer system
+		var pPartEl = new CLayerParticleElement();
+		pPartEl.m_systemID = i;
+
+		if (pTempLayer != null)
+		{
+			pSystem.m_elementID = g_pLayerManager.AddNewElement(g_RunRoom, pTempLayer, pPartEl, true);
+		}
+
+		if (pSystem.m_elementID == -1)
+		{
+			// If no layer was specified, or if the specified layer doesn't exist in the current room, add the element at the system depth
+			pSystem.m_elementID = g_pLayerManager.AddNewElementAtDepth(g_RunRoom, pSystem.depth, pPartEl, true, true);
+		}
+	}
+
+	persistentsystemlayernames = [];
 };
 
 function ParticleSystem_RemoveAllFromLayers()
 {
-    if (g_isZeus)
-    {
-        for(var i = 0; i < g_ParticleSystems.length; i++)
-        {
-            var pPartSys = g_ParticleSystems[i];
-            if (pPartSys != null)
-            {
-                var pTempLayer = null;
+	if (!g_isZeus) return;
 
-                if (pPartSys.m_elementID != -1)
-                {
-                    // Get layer
-                    var elandlay = g_pLayerManager.GetElementAndLayerFromID(g_RunRoom, pPartSys.m_elementID);
-                    if (elandlay != null)
-                    {
-                        pTempLayer = elandlay.layer;
-                    }
+	persistentsystemlayernames = new Array(g_ParticleSystems.length).fill(null);
 
-                    g_pLayerManager.RemoveElementById(g_RunRoom, g_ParticleSystems[i].m_elementID, true);
-                    pPartSys.m_elementID = -1;
-                }
+	for (var i = 0; i < g_ParticleSystems.length; ++i)
+	{
+		var pSystem = g_ParticleSystems[i];
 
-                if (pPartSys.m_volatile == true)
-                {
-                    ParticleSystem_Destroy(i);  // this particle system is volatile so nuke it
+		if (!pSystem) continue;
 
-                    persistentsystemlayernames[i] = null;
-                }
-                else
-                {
-                    if (pTempLayer != null)
-                    {
-                        if (pTempLayer.m_dynamic == true)
-                        {
-                            persistentsystemlayernames[i] = null;
-                        }
-                        else
-                        {
-                            persistentsystemlayernames[i] = pTempLayer.m_pName;
-                        }
-                    }
-                    else
-                    {
-                        persistentsystemlayernames[i] = null;
-                    }
-                }
-            }
-        }
-    }
+		// Get layer and element that the particle system is on
+		var pLayer = null;
+		var pLayerElement = null;
+
+		if (pSystem.m_elementID != -1)
+		{
+			var layerAndElement = g_pLayerManager.GetElementAndLayerFromID(g_RunRoom, pSystem.m_elementID);
+			if (layerAndElement != null)
+			{
+				pLayer = layerAndElement.layer;
+				pLayerElement = layerAndElement.element;
+			}
+		}
+
+		// Handle volatile particle system
+		if (pSystem.m_volatile)
+		{
+			var isOnPersistentRoomLayer = (pLayer && !pLayer.m_dynamic && pLayerElement);
+
+			if (isOnPersistentRoomLayer)
+			{
+				pLayerElement.m_systemID = -1;
+				pSystem.m_elementID = -1;
+			}
+
+			ParticleSystem_Destroy(i);
+			persistentsystemlayernames[i] = null;
+			continue;
+		}
+
+		// Handle persistent particle systems
+		g_pLayerManager.RemoveElementById(g_RunRoom, pSystem.m_elementID, true);
+		pSystem.m_elementID = -1;
+		
+		if (pLayer && pLayer.m_pName && !pLayer.m_dynamic)
+		{
+			persistentsystemlayernames[i] = pLayer.m_pName;
+		}
+		else
+		{
+			persistentsystemlayernames[i] = null;
+		}
+	}
 }
 
 function ParticleSystem_AutoDraw(_ps) {
