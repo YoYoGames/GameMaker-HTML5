@@ -1606,7 +1606,6 @@ LayerManager.prototype.CleanRoomLayerRuntimeData = function (_room)
         var _layer = _room.m_Layers.pool[l];
         for (var e = 0; e < _layer.m_elements.pool.length; ++e)
         {
-            console.log(_layer);
             var _element = _layer.m_elements.pool[e];
             this.CleanElementRuntimeData(_element);
         }
