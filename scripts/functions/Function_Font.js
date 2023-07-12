@@ -635,6 +635,342 @@ function font_get_sdf_spread(id)
 	return 0;
 }
 
+function font_enable_effects(id,enable)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			font.effect_params.enabled = yyGetBool(enable);
+		}		
+	}	
+}
+
+function font_thickness(id,thickness)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);		
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			thickness = yyGetReal(thickness);
+			thickness = thickness < -32.0 ? -32.0 : (thickness > 32.0 ? 32.0 : thickness);
+
+			var font = g_pFontManager.Fonts[id];
+			font.effect_params.thicknessMod = thickness;
+		}		
+	}	
+}
+
+function font_core_colour(id,colour)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);		
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			font.effect_params.coreCol = yyGetInt32(colour);		
+		}		
+	}	
+}
+
+
+function font_core_color(id,color)
+{
+	return font_core_colour(id, color);
+}
+
+
+function font_enable_glow(id,enable)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			font.effect_params.glowEnabled = yyGetBool(enable);
+		}		
+	}	
+}
+
+
+function font_glow_start(id,distance)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);		
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			distance = yyGetReal(distance);
+			distance = distance < 0.0 ? 0.0 : (distance > 64.0 ? 64.0 : distance);
+
+			var font = g_pFontManager.Fonts[id];
+			font.effect_params.glowStart = distance;
+		}		
+	}	
+}
+
+
+function font_glow_end(id,distance)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);		
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			distance = yyGetReal(distance);
+			distance = distance < 0.0 ? 0.0 : (distance > 64.0 ? 64.0 : distance);
+
+			var font = g_pFontManager.Fonts[id];
+			font.effect_params.glowEnd = distance;
+		}		
+	}	
+}
+
+
+function font_glow_colour(id,colour)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);		
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			font.effect_params.glowCol = yyGetInt32(colour);		
+		}		
+	}	
+}
+
+
+function font_glow_color(id,color)
+{
+	return font_glow_colour(id, color);
+}
+
+
+function font_enable_outline(id,enable)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			font.effect_params.outlineEnabled = yyGetBool(enable);
+		}		
+	}	
+}
+
+
+function font_outline_distance(id,distance)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);		
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			distance = yyGetReal(distance);
+			distance = distance < 0.0 ? 0.0 : (distance > 64.0 ? 64.0 : distance);
+
+			var font = g_pFontManager.Fonts[id];
+			font.effect_params.outlineDist = distance;
+		}		
+	}	
+}
+
+
+function font_outline_colour(id,colour)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);		
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			font.effect_params.outlineCol = yyGetInt32(colour);		
+		}		
+	}	
+}
+
+
+function font_outline_color(id,color)
+{
+	return font_outline_colour(id, color);
+}
+
+
+function font_get_effects_enabled(id)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			return font.effect_params.enabled;
+		}		
+	}
+	return false;
+}
+
+
+function font_get_thickness(id)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			return font.effect_params.thicknessMod;
+		}		
+	}
+	return -1;
+}
+
+
+function font_get_core_colour(id)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			return font.effect_params.coreCol;
+		}		
+	}
+	return -1;
+}
+
+
+function font_get_core_color(id)
+{
+	return font_get_core_colour(id);
+}
+
+
+function font_get_glow_enabled(id)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			return font.effect_params.glowEnabled;
+		}		
+	}
+	return false;
+}
+
+
+function font_get_glow_start(id)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			return font.effect_params.glowStart;
+		}		
+	}
+	return -1;
+}
+
+
+function font_get_glow_end(id)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			return font.effect_params.glowEnd;
+		}		
+	}
+	return -1;
+}
+
+
+function font_get_glow_colour(id)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			return font.effect_params.glowCol;
+		}		
+	}
+	return -1;
+}
+
+
+function font_get_glow_color(id)
+{
+	return font_get_glow_colour(id);
+}
+
+
+function font_get_outline_enabled(id)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			return font.effect_params.outlineEnabled;
+		}		
+	}
+	return false;
+}
+
+
+function font_get_outline_distance(id)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			return font.effect_params.outlineDist;
+		}		
+	}
+	return -1;
+}
+
+
+function font_get_outline_colour(id)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			return font.effect_params.outlineCol;
+		}		
+	}
+	return -1;
+}
+
+
+function font_get_outline_color(id)
+{
+	return font_get_outline_colour(id);
+}
+
+
 
 // #############################################################################################
 /// Function:<summary>

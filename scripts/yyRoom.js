@@ -2981,6 +2981,8 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 		paraSpacing = _node.value.ParagraphSpacing;
 	}
 
+	var pFontParams = _node.value.pFontEffectParams;
+
 	g_pFontManager.SetFont();
 	var sldata = g_pFontManager.Split_TextBlock_IDEstyle(text, frameWidth, frameHeight, alignment, wrap, charSpacing, lineSpacing, paraSpacing);
 
@@ -3092,7 +3094,7 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 		}
 	}
 	
-	g_pFontManager.GR_StringList_Draw_IDEstyle(sldata.sl, 0.0, 0.0, charSpacing, 0.0, sldata.totalW);
+	g_pFontManager.GR_StringList_Draw_IDEstyle(sldata.sl, 0.0, 0.0, charSpacing, 0.0, sldata.totalW, pFontParams);
 
 	if (mask)
 	{

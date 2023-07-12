@@ -5769,6 +5769,7 @@ function TrackEval() {
     this.LineSpacing = 0;
     this.ParagraphSpacing = 0;
 
+    this.pFontEffectParams = new FontEffectParams();
 }
 
 TrackEval.prototype.ApplyCreationMask = function (_creationmask)
