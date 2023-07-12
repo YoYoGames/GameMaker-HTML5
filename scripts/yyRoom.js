@@ -3565,7 +3565,7 @@ yyRoom.prototype.SetApplicationSurface = function () {
     if( g_bUsingAppSurface )
     {
         //Create Application Surface?
-        if( g_ApplicationSurface < 0 )
+        if( (g_ApplicationSurface < 0) || !surface_exists(g_ApplicationSurface) )
         {
             g_ApplicationSurface = surface_create( g_ApplicationWidth, g_ApplicationHeight, eTextureFormat_A8R8G8B8 );
             g_pBuiltIn.application_surface = g_ApplicationSurface;
