@@ -447,96 +447,101 @@ function surface_set_target_RELEASE(_id)
     _id = yyGetInt32(_id);
 
     var pSurf = g_Surfaces.Get(_id);
-    if( pSurf != null)
+
+    if (pSurf == null)
     {
-        if (!g_webGL) Graphics_Save();
+        return false;
+    }
 
-        var currcam = g_pCameraManager.GetActiveCamera();
-        
-        if (currcam != null)
-        {
-            g_SurfaceStack.push({
-                FrameBuffer: g_CurrentFrameBuffer,
-                RenderTargetActive: g_RenderTargetActive,                
+    if (!g_webGL) Graphics_Save();
 
-                viewportx: g_clipx,
-                viewporty: g_clipy,
-                viewportw: g_clipw,
-                viewporth: g_cliph,
+    var currcam = g_pCameraManager.GetActiveCamera();
+    
+    if (currcam != null)
+    {
+        g_SurfaceStack.push({
+            FrameBuffer: g_CurrentFrameBuffer,
+            RenderTargetActive: g_RenderTargetActive,                
 
-                worldx: g_worldx,
-                worldy: g_worldy,
-                worldw: g_worldw,
-                worldh: g_worldh,                
+            viewportx: g_clipx,
+            viewporty: g_clipy,
+            viewportw: g_clipw,
+            viewporth: g_cliph,
 
-                cannvas_graphics: graphics,
+            worldx: g_worldx,
+            worldy: g_worldy,
+            worldw: g_worldw,
+            worldh: g_worldh,                
 
-                ActiveCam: true,
+            cannvas_graphics: graphics,
 
-                camx: currcam.m_viewX,
-                camy: currcam.m_viewY,
-                camw: currcam.m_viewWidth,
-                camh: currcam.m_viewHeight,
+            ActiveCam: true,
 
-                cama: currcam.m_viewAngle,
+            camx: currcam.m_viewX,
+            camy: currcam.m_viewY,
+            camw: currcam.m_viewWidth,
+            camh: currcam.m_viewHeight,
 
-                camviewmat: new Matrix(currcam.m_viewMat),
-                camprojmat: new Matrix(currcam.m_projMat),
-            });
-        }
-        else
-        {
-            g_SurfaceStack.push({
-                FrameBuffer: g_CurrentFrameBuffer,
-                RenderTargetActive: g_RenderTargetActive,                
+            cama: currcam.m_viewAngle,
 
-                viewportx: g_clipx,
-                viewporty: g_clipy,
-                viewportw: g_clipw,
-                viewporth: g_cliph,
+            camviewmat: new Matrix(currcam.m_viewMat),
+            camprojmat: new Matrix(currcam.m_projMat),
+        });
+    }
+    else
+    {
+        g_SurfaceStack.push({
+            FrameBuffer: g_CurrentFrameBuffer,
+            RenderTargetActive: g_RenderTargetActive,                
 
-                worldx: g_worldx,
-                worldy: g_worldy,
-                worldw: g_worldw,
-                worldh: g_worldh,
+            viewportx: g_clipx,
+            viewporty: g_clipy,
+            viewportw: g_clipw,
+            viewporth: g_cliph,
 
-                cannvas_graphics: graphics,
+            worldx: g_worldx,
+            worldy: g_worldy,
+            worldw: g_worldw,
+            worldh: g_worldh,
 
-                ActiveCam: false,
-            });
-        }
-        g_CurrentSurfaceIdStack.push(g_CurrentSurfaceId);
-        g_CurrentSurfaceId = _id;
+            cannvas_graphics: graphics,
 
-
-        if (g_webGL) {
-            g_CurrentFrameBuffer = pSurf.FrameBuffer;
-            g_webGL.SetRenderTarget(pSurf.FrameBuffer);
-            g_RenderTargetActive = -1;
-        } else {
-            g_CurrentGraphics = pSurf.graphics;
-            graphics = pSurf.graphics;
-            Graphics_SetInterpolation_Auto(graphics);
-        }
+            ActiveCam: false,
+        });
+    }
+    g_CurrentSurfaceIdStack.push(g_CurrentSurfaceId);
+    g_CurrentSurfaceId = _id;
 
 
-        Graphics_SetViewPort(0, 0, pSurf.m_Width, pSurf.m_Height);
-
-        if (g_isZeus) {
-            UpdateDefaultCamera(0, 0, pSurf.m_Width, pSurf.m_Height, 0);
-        }
-        else {
-            Graphics_SetViewArea(0, 0, pSurf.m_Width, pSurf.m_Height, 0);
-        }
-
-        if (g_webGL) g_webGL.Flush();
-        DirtyRoomExtents();
+    if (g_webGL) {
+        g_CurrentFrameBuffer = pSurf.FrameBuffer;
+        g_webGL.SetRenderTarget(pSurf.FrameBuffer);
+        g_RenderTargetActive = -1;
+    } else {
+        g_CurrentGraphics = pSurf.graphics;
+        graphics = pSurf.graphics;
+        Graphics_SetInterpolation_Auto(graphics);
+    }
 
 
-        if (!g_webGL) {
-            Graphics_SetInterpolation_Auto(graphics);
-        }
-	}	
+    Graphics_SetViewPort(0, 0, pSurf.m_Width, pSurf.m_Height);
+
+    if (g_isZeus) {
+        UpdateDefaultCamera(0, 0, pSurf.m_Width, pSurf.m_Height, 0);
+    }
+    else {
+        Graphics_SetViewArea(0, 0, pSurf.m_Width, pSurf.m_Height, 0);
+    }
+
+    if (g_webGL) g_webGL.Flush();
+    DirtyRoomExtents();
+
+
+    if (!g_webGL) {
+        Graphics_SetInterpolation_Auto(graphics);
+    }
+	
+    return true;
 }
 
 function surface_get_target() {
