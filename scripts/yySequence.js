@@ -1247,8 +1247,8 @@ function yySequenceBaseTrack(_pStorage) {
         if(_pStorage.tags !== undefined && _pStorage.tags.length > 0)
         {            
             for(var tagI = 0; tagI < _pStorage.tags.length; tagI++)
-            {
-                this.m_tags[_pStorage.tags[tagI]["UniqueTagTypeId"]] = _pStorage.tags[tagI];
+            {                
+                this.m_tags[_pStorage.tags[tagI].UniqueTagTypeId] = _pStorage.tags[tagI];
             }
         }
 
