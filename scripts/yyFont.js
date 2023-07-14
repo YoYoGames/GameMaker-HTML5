@@ -1793,9 +1793,9 @@ yyFontManager.prototype.Split_TextBlock_IDEstyle = function (_pStr, _boundsWidth
 	{ 
 		var yoffs = 0.0; 
 		if (alignmentV == TTALIGN_VCentre)		// middle 
-			yoffs = (boundsHeight - totalH) * 0.5; 
+			yoffs = (_boundsHeight - totalH) * 0.5; 
 		else if (alignmentV == TTALIGN_Bottom)	// bottom 
-			yoffs = (boundsHeight - totalH); 
+			yoffs = (_boundsHeight - totalH); 
  
 		if (yoffs != 0.0) 
 		{ 
