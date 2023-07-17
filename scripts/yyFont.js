@@ -88,7 +88,7 @@ yyFont.prototype.SetEffectParams = function (_pParamObj)
 	var pVal = null;
 
 	pVal = variable_struct_get(_pParamObj, "thickness");
-	if (pVal != null)
+	if ((pVal != undefined) && (pVal != null))
 	{
 		var thickness = yyGetReal(pVal);
 		thickness = thickness < -32.0 ? -32.0 : (thickness > 32.0 ? 32.0 : thickness);		
@@ -96,20 +96,28 @@ yyFont.prototype.SetEffectParams = function (_pParamObj)
 	}
 
 	pVal = variable_struct_get(_pParamObj, "coreColour");
-	if (pVal == null) pVal = variable_struct_get(_pParamObj, "coreColor");
-	if (pVal != null)
+	if ((pVal == undefined) || (pVal == null)) pVal = variable_struct_get(_pParamObj, "coreColor");
+	if ((pVal != undefined) && (pVal != null))
 	{
 		this.effect_params.coreCol = yyGetInt32(pVal);
 	}
 
+	pVal = variable_struct_get(_pParamObj, "coreAlpha");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		var alpha = yyGetReal(pVal);
+		alpha = alpha < 0.0 ? 0.0 : (alpha > 1.0 ? 1.0 : alpha);		
+		this.effect_params.coreAlpha = alpha;
+	}
+
 	pVal = variable_struct_get(_pParamObj, "glowEnable");
-	if (pVal != null)
+	if ((pVal != undefined) && (pVal != null))
 	{
 		this.effect_params.glowEnabled = yyGetBool(pVal);
 	}
 
 	pVal = variable_struct_get(_pParamObj, "glowStart");
-	if (pVal != null)
+	if ((pVal != undefined) && (pVal != null))
 	{
 		var distance = yyGetReal(pVal);
 		distance = distance < 0.0 ? 0.0 : (distance > 64.0 ? 64.0 : distance);
@@ -117,7 +125,7 @@ yyFont.prototype.SetEffectParams = function (_pParamObj)
 	}
 
 	pVal = variable_struct_get(_pParamObj, "glowEnd");
-	if (pVal != null)
+	if ((pVal != undefined) && (pVal != null))
 	{
 		var distance = yyGetReal(pVal);
 		distance = distance < 0.0 ? 0.0 : (distance > 64.0 ? 64.0 : distance);
@@ -125,20 +133,28 @@ yyFont.prototype.SetEffectParams = function (_pParamObj)
 	}
 
 	pVal = variable_struct_get(_pParamObj, "glowColour");
-	if (pVal == null) pVal = variable_struct_get(_pParamObj, "glowColor");
-	if (pVal != null)
+	if ((pVal == undefined) || (pVal == null)) pVal = variable_struct_get(_pParamObj, "glowColor");
+	if ((pVal != undefined) && (pVal != null))
 	{
 		this.effect_params.glowCol = yyGetInt32(pVal);
 	}
 
+	pVal = variable_struct_get(_pParamObj, "glowAlpha");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		var alpha = yyGetReal(pVal);
+		alpha = alpha < 0.0 ? 0.0 : (alpha > 1.0 ? 1.0 : alpha);		
+		this.effect_params.glowAlpha = alpha;
+	}
+
 	pVal = variable_struct_get(_pParamObj, "outlineEnable");
-	if (pVal != null)
+	if ((pVal != undefined) && (pVal != null))
 	{
 		this.effect_params.outlineEnabled = yyGetBool(pVal);
 	}
 
 	pVal = variable_struct_get(_pParamObj, "outlineDistance");
-	if (pVal != null)
+	if ((pVal != undefined) && (pVal != null))
 	{
 		var distance = yyGetReal(pVal);
 		distance = distance < 0.0 ? 0.0 : (distance > 64.0 ? 64.0 : distance);
@@ -146,10 +162,18 @@ yyFont.prototype.SetEffectParams = function (_pParamObj)
 	}
 
 	pVal = variable_struct_get(_pParamObj, "outlineColour");
-	if (pVal == null) pVal = variable_struct_get(_pParamObj, "outlineColor");
-	if (pVal != null)
+	if ((pVal == undefined) || (pVal == null)) pVal = variable_struct_get(_pParamObj, "outlineColor");
+	if ((pVal != undefined) && (pVal != null))
 	{
 		this.effect_params.outlineCol = yyGetInt32(pVal);
+	}
+
+	pVal = variable_struct_get(_pParamObj, "outlineAlpha");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		var alpha = yyGetReal(pVal);
+		alpha = alpha < 0.0 ? 0.0 : (alpha > 1.0 ? 1.0 : alpha);		
+		this.effect_params.outlineAlpha = alpha;
 	}
 };
 
@@ -159,13 +183,16 @@ yyFont.prototype.GetEffectParams = function()
 	
 	variable_struct_set(pParamObj, "thickness", this.effect_params.thicknessMod);
 	variable_struct_set(pParamObj, "coreColour", this.effect_params.coreCol);
+	variable_struct_set(pParamObj, "coreAlpha", this.effect_params.coreAlpha);
 	variable_struct_set(pParamObj, "glowEnable", this.effect_params.glowEnabled);
 	variable_struct_set(pParamObj, "glowStart", this.effect_params.glowStart);
 	variable_struct_set(pParamObj, "glowEnd", this.effect_params.glowEnd);
 	variable_struct_set(pParamObj, "glowColour", this.effect_params.glowCol);
+	variable_struct_set(pParamObj, "glowAlpha", this.effect_params.glowAlpha);
 	variable_struct_set(pParamObj, "outlineEnable", this.effect_params.outlineEnabled);
 	variable_struct_set(pParamObj, "outlineDistance", this.effect_params.outlineDist);
 	variable_struct_set(pParamObj, "outlineColour", this.effect_params.outlineCol);
+	variable_struct_set(pParamObj, "outlineAlpha", this.effect_params.outlineAlpha);
 
 	return pParamObj;
 };
