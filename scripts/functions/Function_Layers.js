@@ -1283,6 +1283,8 @@ LayerManager.prototype.ChangeLayerDepth = function(_room, _layer, _newDepth, _al
 
 LayerManager.prototype.GetLayerWithDepth=function(_room,_depth,_dynamicOnly)
 {
+    if (_room == null) return null;
+
     //c++ uses a hash map for this but we'll just blit through for now...    
     for(var i=0;i<_room.m_Layers.length;i++)
     {        
@@ -2036,6 +2038,8 @@ function layerGetObj(room, id_or_name) {
 
 function layerGetFromTargetRoom(_id_or_name) {
     var room = g_pLayerManager.GetTargetRoomObj();
+    if (room == null) return null;
+    
     return layerGetObj(room, _id_or_name);
 };
 
