@@ -1,4 +1,4 @@
-﻿// **********************************************************************************************************************
+// **********************************************************************************************************************
 // 
 // Copyright (c)2019, YoYo Games Ltd. All Rights reserved.
 // 
@@ -1262,8 +1262,8 @@ function yySequenceBaseTrack(_pStorage) {
         if(_pStorage.tags !== undefined && _pStorage.tags.length > 0)
         {            
             for(var tagI = 0; tagI < _pStorage.tags.length; tagI++)
-            {
-                this.m_tags[_pStorage.tags[tagI]["UniqueTagTypeId"]] = _pStorage.tags[tagI];
+            {                
+                this.m_tags[_pStorage.tags[tagI].UniqueTagTypeId] = _pStorage.tags[tagI];
             }
         }
 
@@ -1347,9 +1347,11 @@ function yySequenceBaseTrack(_pStorage) {
         },
         gmllinkedTrack: {
             enumerable: true,
-            get: function () { return this.m_tags == null ? null : (this.m_tags[eTT_Link] != null ? this.m_tags[eTT_Link].track : null); },
+            get: function () { return this.m_tags == null ? -1 : (this.m_tags[eTT_Link] != null ? this.m_tags[eTT_Link].track : -1); },
             set: function (_val)
             {
+                if (_val == -1) _val = null;
+
                 if(this.m_tags[eTT_Disable] == null) this.m_tags[eTT_Link] = {};
                 this.m_tags[eTT_Link].track = _val;
             }
@@ -3144,7 +3146,7 @@ function yySequence(_pStorage) {
             set: function (_val)
             {
                 var val = yyGetInt32(_val);
-                if ((val >= 0) && (val < ePlaybackSpeedType_Max))
+                if (isFinite(_val) && (val >= 0) && (val < ePlaybackSpeedType_Max))
                 {
                     this.m_playbackSpeedType = val;
                 }
@@ -5009,6 +5011,8 @@ yySequenceManager.prototype.HandleParticleTrackUpdate = function (_pEl, _pSeq, _
 
         if (ps != -1)
         {
+            ParticleSystem_SetMatrix(ps, _matrix);
+
             // Re-burst emitters when the sequence loops
 			if (_pInst.m_wrapped)
 			{
@@ -5019,11 +5023,13 @@ yySequenceManager.prototype.HandleParticleTrackUpdate = function (_pEl, _pSeq, _
                     for (var i = 0; i < pEmitters.length; i++)
                     {
                         var emitter = pEmitters[i];
-                        if (!emitter.enabled) continue;
+
+                        EmitterRandomizeDelay(emitter);
 
                         if (emitter.created
+                            && emitter.enabled
                             && emitter.mode == PT_MODE_BURST
-                            && emitter.number != 0)
+                            && emitter.delayCurrent <= 0.0)
                         {
                             ParticleSystem_Emitter_Burst(ps, i, emitter.parttype, emitter.number);
                         }

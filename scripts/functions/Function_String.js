@@ -140,6 +140,10 @@ function real(_v) {
     {
         yyError("real() argument is array");
     }
+    else if (_v instanceof ArrayBuffer)
+    {
+        yyError("real() argument is ptr")
+    }
 
     return parseFloat(_v);
 }
@@ -147,7 +151,7 @@ function real(_v) {
 function bool(_v) {
     if (_v == undefined)
     {
-        return 0;
+        return false;
     }
     else if (_v == null)
     {

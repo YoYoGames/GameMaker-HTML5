@@ -39,7 +39,10 @@ var g_audioSoundCount=0;	//size of audio_sounds[] array
 var g_handleMap = [];			//map of [handleid] -> audioSound object
 var g_fadingSounds = [];    //array of currently fading sounds
 
-var g_UseDummyAudioBus = false;
+var g_UseDummyAudioBus = {
+    val: false,
+    reason: undefined
+};
 
 var DistanceModels = {
     AUDIO_FALLOFF_NONE:0,
@@ -136,21 +139,21 @@ function Audio_Init()
     g_WebAudioContext.addEventListener("statechange", Audio_EngineReportState);
     
     g_HandleStreamedAudioAsUnstreamed = ( g_OSPlatform == BROWSER_IOS );
-    g_UseDummyAudioBus = (g_OSBrowser === BROWSER_SAFARI_MOBILE)
-                      || (g_WebAudioContext.audioWorklet === undefined);
-    
+    g_UseDummyAudioBus = Audio_ShouldUseDummyBuses();
+
     g_AudioMainVolumeNode = Audio_CreateGainNode(g_WebAudioContext);
     g_AudioMainVolumeNode.connect(g_WebAudioContext.destination);
 
-    if (g_UseDummyAudioBus) {
+    if (g_UseDummyAudioBus.val === true) {
         Audio_CreateMainBus();
     }
     else {
         g_WebAudioContext.audioWorklet.addModule(g_RootDir + "sound/worklets/audio-worklet.js")
-        .then(() => {
+        .catch((_err) => {
+            g_UseDummyAudioBus.val = true;
+            g_UseDummyAudioBus.reason = _err;
+        }).finally(() => {
             Audio_CreateMainBus();
-        }).catch((_err) => {
-            console.error("Failed to load audio worklets => " + _err);
         });
     }
     
@@ -210,8 +213,35 @@ function Audio_CreateGainNode(_context) {
     return undefined;
 }
 
+function Audio_ShouldUseDummyBuses() {
+    const ret = {
+        val: false,
+        reason: undefined
+    };
+
+    if (g_OSBrowser === BROWSER_SAFARI_MOBILE) {
+        ret.val = true;
+        ret.reason = "Using Safari on iOS.";
+        return ret;
+    }
+
+    if (g_WebAudioContext.audioWorklet === undefined) {
+        ret.val = true;
+        ret.reason = "Audio worklets are not supported on this browser.";
+        return ret;
+    }
+
+    if (isSecureContext === false) {
+        ret.val = true;
+        ret.reason = "Audio worklets require a secure context.";
+        return ret;
+    }
+
+    return ret;
+}
+
 function Audio_GetBusType() {
-    return (g_UseDummyAudioBus === true) ? DummyAudioBus : AudioBus; 
+    return (g_UseDummyAudioBus.val === true) ? DummyAudioBus : AudioBus; 
 }
 
 function Audio_CreateBus() {
@@ -226,6 +256,10 @@ function Audio_CreateBus() {
 }
 
 function Audio_CreateMainBus() {
+    if (g_UseDummyAudioBus.val === true) {
+        console.warn("Audio Engine: Using audio worklet fallback.\nReason => " + g_UseDummyAudioBus.reason);
+    }
+
     g_AudioBusMain = Audio_CreateBus();
     g_AudioBusMain.connectOutput(g_AudioMainVolumeNode);
     g_pBuiltIn.audio_bus_main = g_AudioBusMain;
@@ -935,7 +969,7 @@ var g_WaitingForWebAudioTouchUnlock = false;
 var g_HandleStreamedAudioAsUnstreamed = false;
 
 function Audio_ContextExists() {
-    return g_WebAudioContext instanceof AudioContext || g_WebAudioContext instanceof webkitAudioContext;
+        return g_WebAudioContext != null;
 }
 
 function Audio_IsPlaybackAllowed() {

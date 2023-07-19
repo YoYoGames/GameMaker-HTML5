@@ -848,12 +848,14 @@ function font_get_info( _ind )
 	variable_struct_set(ret, "ascenderOffset", pFont.ascenderOffset); //ret.gmlascenderOffset = pFont.ascenderOffset;
 	variable_struct_set(ret, "ascender", pFont.ascender); //ret.gmlascender = pFont.ascender;
 	variable_struct_set(ret, "sdfSpread", pFont.sdfSpread); //ret.gmlsdfSpread = pFont.sdfSpread;
+	variable_struct_set(ret, "sdfEnabled", pFont.sdf); 	
+	variable_struct_set(ret, "freetype", false); // we don't support freetype fonts on HTML5 but adding this so it has the same fields as the C++ runner	
     variable_struct_set(ret, "size", pFont.size); //ret.gmlsize = pFont.size;
     variable_struct_set(ret, "spriteIndex", pFont.spriteIndex); //ret.gmlspriteIndex = pFont.spriteIndex;
     variable_struct_set(ret, "texture", pTPE != null ? pTPE.tp : -1); //ret.gmltexture = pTPE != null ? pTPE.tp : -1;
     variable_struct_set(ret, "name", pFont.pName); //ret.gmlname = pFont.pName;
     variable_struct_set(ret, "bold", pFont.bold); //ret.gmlbold = pFont.bold;
-    variable_struct_set(ret, "italic", pFont.italic); //ret.gmlitalic = pFont.italic;
+    variable_struct_set(ret, "italic", pFont.italic); //ret.gmlitalic = pFont.italic;	
     variable_struct_set(ret, "glyphs", new GMLObject()); //ret.gmlglyphs = new GMLObject();
     var glyphs = variable_struct_get(ret, "glyphs");
 

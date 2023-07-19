@@ -1997,11 +1997,11 @@ function ds_grid_sort(_id, _column, _ascending) {
 function ds_grid_to_mp_grid(_src, _dest, _predicate) {
 
     var pGrid = g_ActiveGrids.Get(yyGetInt32(_src));
-    var pMPGrid = g_ActiveGrids.Get(yyGetInt32(_dest));
+    var pMPGrid = g_MPGridColletion.Get(yyGetInt32(_dest));
 
     if (pMPGrid == null || pGrid == null)
     {
-        yyError("Error: Invalid source or destination grid (ds_grid_to_mp_grid)");
+        yyError("ds_grid_to_mp_grid :: Invalid source or destination grid");
         return; 
     }
 
@@ -2013,7 +2013,7 @@ function ds_grid_to_mp_grid(_src, _dest, _predicate) {
 
     if (w != gw || h != gh ) 
     {
-        yyError("Error: Grid sizes do not match (ds_grid_to_mp_grid) ");
+        yyError("ds_grid_to_mp_grid :: Grid sizes do not match");
         return; 
     }
 	
@@ -2026,7 +2026,7 @@ function ds_grid_to_mp_grid(_src, _dest, _predicate) {
 			for (var x = 0; x < w; ++x)
 			{
 				var val = yyGetReal(pGrid.m_pGrid[x + (y * pGrid.m_Width)]);
-				pMPGrid.m_cells[(x * pMPGrid.m_vcells) + y] = val == 0 ? 0 : -1;
+				pMPGrid.m_cells[(x * pMPGrid.m_vcells) + y] = val === 0 ? 0 : -1;
 			}
 		}
 	}

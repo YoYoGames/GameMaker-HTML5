@@ -153,6 +153,7 @@ document.write('<script type="text/javascript" src="scripts/sound/AudioEmitter.j
 document.write('<script type="text/javascript" src="scripts/sound/AudioPlaybackProps.js"></script>');
 document.write('<script type="text/javascript" src="scripts/sound/AudioPropsCalc.js"></script>');
 document.write('<script type="text/javascript" src="scripts/sound/effects/Bitcrusher.js"></script>');
+document.write('<script type="text/javascript" src="scripts/sound/effects/Compressor.js"></script>');
 document.write('<script type="text/javascript" src="scripts/sound/effects/Delay.js"></script>');
 document.write('<script type="text/javascript" src="scripts/sound/effects/EQ.js"></script>');
 document.write('<script type="text/javascript" src="scripts/sound/effects/Gain.js"></script>');
