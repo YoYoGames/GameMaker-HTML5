@@ -1262,8 +1262,8 @@ function yySequenceBaseTrack(_pStorage) {
         if(_pStorage.tags !== undefined && _pStorage.tags.length > 0)
         {            
             for(var tagI = 0; tagI < _pStorage.tags.length; tagI++)
-            {
-                this.m_tags[_pStorage.tags[tagI]["UniqueTagTypeId"]] = _pStorage.tags[tagI];
+            {                
+                this.m_tags[_pStorage.tags[tagI].UniqueTagTypeId] = _pStorage.tags[tagI];
             }
         }
 
@@ -5011,6 +5011,8 @@ yySequenceManager.prototype.HandleParticleTrackUpdate = function (_pEl, _pSeq, _
 
         if (ps != -1)
         {
+            ParticleSystem_SetMatrix(ps, _matrix);
+
             // Re-burst emitters when the sequence loops
 			if (_pInst.m_wrapped)
 			{
@@ -5021,11 +5023,13 @@ yySequenceManager.prototype.HandleParticleTrackUpdate = function (_pEl, _pSeq, _
                     for (var i = 0; i < pEmitters.length; i++)
                     {
                         var emitter = pEmitters[i];
-                        if (!emitter.enabled) continue;
+
+                        EmitterRandomizeDelay(emitter);
 
                         if (emitter.created
+                            && emitter.enabled
                             && emitter.mode == PT_MODE_BURST
-                            && emitter.number != 0)
+                            && emitter.delayCurrent <= 0.0)
                         {
                             ParticleSystem_Emitter_Burst(ps, i, emitter.parttype, emitter.number);
                         }

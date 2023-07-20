@@ -168,10 +168,39 @@ function yyUnhandledExceptionHandler( event )
 function yyUnhandledRejectionHandler( error )
 {
 	var string =  "Unhandled Rejection - " + error.message;
-	print( string );
-	//alert( string );
-	game_end(-2);
-	debugger;
+	console.error(string);
+	if (error && error.promise) {
+		error.promise.catch(function(err){
+			var _endGame = true;
+			try {
+				var _urlPos = err.stack.indexOf("https://");
+				if (_urlPos < 0) _urlPos = err.stack.indexOf("http://");
+				if (_urlPos >= 0) {
+                    var reg_line_split = new RegExp("\\r\\n|\\r|\\n", "g");
+					var _rows = err.stack.slice(_urlPos).split(reg_line_split);
+					if (_rows.length > 0) {
+						var _url = _rows[0];
+						_urlPos = _url.lastIndexOf("/");
+						if (_urlPos > 0) {
+							var _errUrl = new URL(_url.slice(0, _urlPos + 1));
+							if ((_errUrl.hostname != window.location.hostname) ||
+								(_errUrl.pathname.indexOf(g_pGMFile.Options.GameDir) < 0)){
+								// The error is caused by an external resource.
+								_endGame = false;
+							}
+						}
+					}
+				}
+			}
+			catch (e) {
+				console.error(e.message);
+			}
+			if (_endGame) {
+				game_end(-2);
+				debugger;
+			}
+		});
+	}
 	return false;
 }
 
@@ -1093,6 +1122,8 @@ function StartRoom( _numb, _starting )
 
     // This must be set before performing the room_end event else the event will be blocked
     New_Room = -1;
+    
+    effect_clear();
 
     g_pEffectsManager.ExecuteEffectEventsForRoom(EFFECT_ROOM_END_FUNC, g_RunRoom);
     
@@ -1157,6 +1188,8 @@ function StartRoom( _numb, _starting )
         		var pInst = g_CurrentRoom.m_Active.Get(i);
         		pInst.pObject.RemoveInstance(pInst);
         	}
+
+            g_pLayerManager.CleanRoomLayerRuntimeData(g_CurrentRoom);
         }
     }
 
@@ -1229,6 +1262,12 @@ function StartRoom( _numb, _starting )
     
     // Initialise effects
     g_pEffectsManager.Init();
+
+    // Set up runtime data for this room's layers
+    if(g_pLayerManager!=null)
+        g_pLayerManager.BuildRoomLayerRuntimeData(g_RunRoom);
+
+    ParticleSystem_AddAllToLayers();
 
 	// If this room is NOT persistent then we need to recreate all instances EXCEPT those that already exist in the persistent list
 	// Any instance created in here will perform the create event... including "new" PERSISTENT instances
@@ -1349,12 +1388,6 @@ function StartRoom( _numb, _starting )
         }
     }
     
-    // Set up runtime data for this room's layers
-    if(g_pLayerManager!=null)
-        g_pLayerManager.BuildRoomLayerRuntimeData(g_RunRoom);
-
-    ParticleSystem_AddAllToLayers();
-	
     // Start the room, performing the correct events
     if (_starting) {
         g_pInstanceManager.PerformEvent(EVENT_OTHER_STARTGAME, 0 );
@@ -1476,8 +1509,6 @@ function Run_EndGame(_reset) {
 
 	g_ParticleTypes = [];
 	g_ParticleSystems = [];
-	ps_above = -1;
-	ps_below = -1;
 	types_created = 0;
 
 	// Clear all instances - including persistant ones.
@@ -2297,8 +2328,8 @@ function GameMaker_Tick()
 		    if (ErrorCount <= 0) break;
 		}
 
-
-
+        g_MouseDeltaX = 0;
+        g_MouseDeltaY = 0;
     }
     
 	// if in DEBUG mode, do debug "stuff"

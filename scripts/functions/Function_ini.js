@@ -102,7 +102,7 @@ function ini_close()
 // #############################################################################################
 function ini_read_string(_section,_key,_default)
 {
-    if (!g_IniFile) return yyGetString(_default);
+    if (!g_IniFile) yyError("ini_read_string : Trying to read from undefined INI file");
     return g_IniFile.ReadString(yyGetString(_section), yyGetString(_key), yyGetString(_default));
 }
 
@@ -122,7 +122,7 @@ function ini_read_string(_section,_key,_default)
 // #############################################################################################
 function ini_read_real(_section,_key,_default) 
 {
-    if (!g_IniFile) return yyGetString(_default);
+    if (!g_IniFile) yyError("ini_read_real : Trying to read from undefined INI file");
     return g_IniFile.ReadFloat(yyGetString(_section), yyGetString(_key), yyGetString(_default));
 }
 
@@ -141,7 +141,7 @@ function ini_read_real(_section,_key,_default)
 // #############################################################################################
 function ini_write_string(_section,_key,_value) 
 {
-    if( !g_IniFile ) return false;
+    if (!g_IniFile) yyError("ini_write_string : Trying to write to undefined INI file");
     g_IniFile.SetKey(yyGetString(_section), yyGetString(_key), yyGetString(_value));
     return true;
 }
@@ -160,7 +160,7 @@ function ini_write_string(_section,_key,_value)
 // #############################################################################################
 function ini_write_real(_section,_key,_value) 
 {
-    if( !g_IniFile ) return false;
+    if (!g_IniFile) yyError("ini_write_real : Trying to write to undefined INI file");
     g_IniFile.SetKey( yyGetString(_section), yyGetString(_key), ""+yyGetReal(_value));
     return true;
 }
@@ -178,7 +178,7 @@ function ini_write_real(_section,_key,_value)
 // #############################################################################################
 function ini_key_exists(_section,_key)
 {
-    if( !g_IniFile ) return false;
+    if (!g_IniFile) yyError("ini_key_exists : Trying to read from undefined INI file");
     var pKey = g_IniFile.FindKey(yyGetString(_section),yyGetString(_key));
     if( pKey!=null && pKey!=undefined ) return true;
     return false;
@@ -196,7 +196,7 @@ function ini_key_exists(_section,_key)
 // #############################################################################################
 function ini_section_exists(_section) 
 {
-    if( !g_IniFile ) return false;
+    if (!g_IniFile) yyError("ini_section_exists : Trying to read from undefined INI file");
     var pSection = g_IniFile.m_Keys[yyGetString(_section)];
     if( pSection!=null && pSection!=undefined ) return true;
     return false;
@@ -215,7 +215,7 @@ function ini_section_exists(_section)
 // #############################################################################################
 function ini_key_delete(_section,_key) 
 {
-    if( !g_IniFile ) return false;
+    if (!g_IniFile) yyError("ini_key_delete : Trying to write to undefined INI file");
     return g_IniFile.DeleteKey(yyGetString(_section),yyGetString(_key));
 }
 
@@ -231,7 +231,7 @@ function ini_key_delete(_section,_key)
 // #############################################################################################
 function ini_section_delete(_section) 
 {
-    if( !g_IniFile ) return false;
+    if (!g_IniFile) yyError("ini_section_delete : Trying to write to undefined INI file");
     return g_IniFile.DeleteSection(yyGetString(_section));
 }
 

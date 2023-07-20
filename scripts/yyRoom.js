@@ -2043,22 +2043,32 @@ yyRoom.prototype.DrawLayerParticleSystem = function(_rect,_layer,_el)
 {
 	var ps = _el.m_systemID;
 
-	if (!ParticleSystem_Exists(ps) || !g_ParticleSystems[ps].automaticdraw)
-	{
-		return;
-	}
+	if (!ParticleSystem_Exists(ps)) return;
+
+	var pSystem = g_ParticleSystems[ps];
+
+	if (!pSystem.automaticdraw) return;
 
 	var matWorldOld = WebGL_GetMatrix(MATRIX_WORLD);
 
 	var matRot = new Matrix();
+	matRot.SetZRotation(_el.m_imageAngle + pSystem.angle);
+
 	var matScale = new Matrix();
-	matRot.SetZRotation(_el.m_imageAngle);
 	matScale.SetScale(_el.m_imageScaleX, _el.m_imageScaleY, 1.0);
+
+	var matScaleRot = new Matrix();
+	matScaleRot.Multiply(matScale, matRot);
+
+	var matPos = new Matrix();
+	matPos.SetTranslation(-pSystem.xdraw, -pSystem.ydraw, 0.0);
+	
 	var matWorldNew = new Matrix();
-	matWorldNew.Multiply(matScale, matRot);
-	matWorldNew.Translation(_el.m_x, _el.m_y, 0.0);
+	matWorldNew.Multiply(matPos, matScaleRot);
+	matWorldNew.Translation(pSystem.xdraw + _el.m_x, pSystem.ydraw + _el.m_y, 0.0);
 
 	WebGL_SetMatrix(MATRIX_WORLD, matWorldNew);
+	ParticleSystem_SetMatrix(ps, matWorldNew);
 	ParticleSystem_Draw(ps, _el.m_imageBlend, _el.m_imageAlpha);
 	WebGL_SetMatrix(MATRIX_WORLD, matWorldOld);
 };
@@ -3555,7 +3565,7 @@ yyRoom.prototype.SetApplicationSurface = function () {
     if( g_bUsingAppSurface )
     {
         //Create Application Surface?
-        if( g_ApplicationSurface < 0 )
+        if( (g_ApplicationSurface < 0) || !surface_exists(g_ApplicationSurface) )
         {
             g_ApplicationSurface = surface_create( g_ApplicationWidth, g_ApplicationHeight, eTextureFormat_A8R8G8B8 );
             g_pBuiltIn.application_surface = g_ApplicationSurface;
@@ -4237,7 +4247,7 @@ yyRoom.prototype.ProcessParticleDepthChange = function () {
 	            var pPartEl = new CLayerParticleElement();
 	            pPartEl.m_systemID = id;
 	            //pPartEl.m_origLayerID = -1;  // scrub any associated layer ID if we're manually changing depth
-	            pPartEl.m_elementID = g_pLayerManager.AddNewElementAtDepth(g_RunRoom, pPartSys.depth, pPartEl, true, true);
+	            pPartSys.m_elementID = g_pLayerManager.AddNewElementAtDepth(g_RunRoom, pPartSys.depth, pPartEl, true, true);
 	        }
         }
 	}

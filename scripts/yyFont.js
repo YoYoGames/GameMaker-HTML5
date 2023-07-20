@@ -1469,13 +1469,13 @@ yyFontManager.prototype.Split_TextBlock = function (_pStr, linewidth, thefont) {
 		else
 		{
 			// Skip leading whitespace
-			while (end < len)
+			while (end < len && total < linewidth)
 			{
+				c = pNew[end];
 				if (pNew[end] != whitespace) break;
+				total += this.thefont.GetShift(c.charCodeAt(0));
 				end++;
 			}
-			start = end;    // we ignore whitespace at the start
-
 
 			// Loop through string and get the number of chars that will fit in the line.
 			while (end < len && total < linewidth)
@@ -1509,29 +1509,41 @@ yyFontManager.prototype.Split_TextBlock = function (_pStr, linewidth, thefont) {
 				{
 					if ((pNew[end] != whitespace) || (pNew[end] != whitespace && pNew[end + 1] != whitespace))
 					{
+						var e = end;
 						while (end > start)
 						{
-							if (pNew[--end] == whitespace) break; 				// FOUND start of word
+							if (pNew[--e] == whitespace) break; 				// FOUND start of word
 						}
+
+						if(e!=start)
+						{
+							end = e;
+						}
+						else {
+							while(pNew[end]!=whitespace)
+								end++;
+						}
+
 					}
 				}
-
-				if (end > start)
+				var _end = end;
+				if (_end > start)
 				{
-					while (pNew[end - 1] == whitespace)
+					while (pNew[_end - 1] == whitespace && _end>0)
 					{
-						end--;
+						_end--;
 					}
 				} 
-				else if (end == start) // if we're back to the START of the string... look for the next space - or string end.
-				{
-					while (pNew[end] != whitespace && end < len)
-					{
-						end++;
-					}
-				}
-				
-				sl[sl_index++] = pNew.substring(start, end);
+			//	else if (end == start) // if we're back to the START of the string... look for the next space - or string end.
+			//	{
+			//		while (pNew[end] != whitespace && end < len)
+			//		{
+			//			end++;
+			//		}
+			//	}
+			
+				if(_end!=start)
+					sl[sl_index++] = pNew.substring(start, _end);
 			}
 		}
 		start = ++end;
@@ -1798,9 +1810,9 @@ yyFontManager.prototype.Split_TextBlock_IDEstyle = function (_pStr, _boundsWidth
 	{ 
 		var yoffs = 0.0; 
 		if (alignmentV == TTALIGN_VCentre)		// middle 
-			yoffs = (boundsHeight - totalH) * 0.5; 
+			yoffs = (_boundsHeight - totalH) * 0.5; 
 		else if (alignmentV == TTALIGN_Bottom)	// bottom 
-			yoffs = (boundsHeight - totalH); 
+			yoffs = (_boundsHeight - totalH); 
  
 		if (yoffs != 0.0) 
 		{ 

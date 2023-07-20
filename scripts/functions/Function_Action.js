@@ -1411,13 +1411,15 @@ function action_if_sound(_snd) {
 
 function action_effect(_inst, _kind, _x, _y, _size, _col, _below)
 {
+    var ps = (_below < 0.5) ? ps_above : ps_false;
+    
     if (Argument_Relative)
     {
-        Effect_Create((_below < 0.5) ? true : false, Round(_kind), _x + _inst.x, _y + _inst.y, Round(_size), Round(_col));
+        Effect_Create(ps, Round(_kind), _x + _inst.x, _y + _inst.y, Round(_size), Round(_col));
     }
     else
     {
-        Effect_Create((_below < 0.5) ? true : false, Round(_kind), _x, _y, Round(_size), Round(_col));
+        Effect_Create(ps, Round(_kind), _x, _y, Round(_size), Round(_col));
     }
 }
 

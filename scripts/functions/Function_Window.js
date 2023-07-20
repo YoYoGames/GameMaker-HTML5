@@ -716,7 +716,77 @@ function window_mouse_set(x,y)
     ErrorFunction("window_mouse_set()");
 }
 
+// #############################################################################################
+/// Function:<summary>
+///             Hides the mouse cursor and locks it in place
+///          </summary>
+///
+/// In:		 <param name="_enable"></param>
+/// Out:	 <returns>
+///				
+///			 </returns>
+// #############################################################################################
+function window_mouse_set_locked(_enable)
+{
+    if (_enable)
+    {
+        var _requestPointerLock = canvas.requestPointerLock
+            || canvas.mozRequestPointerLock
+            || canvas.webkitRequestPointerLock
+            || canvas.msRequestPointerLock;
+        
+        if (!_requestPointerLock) return;
+        
+        var res = _requestPointerLock.call(canvas);
+        if (res && res.then) res.catch(function () {});
+    }
+    else
+    {
+        var _exitPointerLock = document.exitPointerLock
+            || document.mozExitPointerLock
+            || document.webkitExitPointerLock
+            || document.msExitPointerLock;
+        
+        if (!_exitPointerLock) return;
+        
+        var res = _exitPointerLock.call(document);
+        if (res && res.then) res.catch(function () {});
+    }
+}
 
+// #############################################################################################
+/// Function:<summary>
+///             Checks whether the mouse is locked in place
+///          </summary>
+///
+/// Out:	 <returns>
+///				True if the mouse is locked in place
+///			 </returns>
+// #############################################################################################
+function window_mouse_get_locked()
+{
+	return g_MouseLocked;
+}
+
+// #############################################################################################
+/// Out:	 <returns>
+///				Returns how many pixels has the mouse moved on the x axis since the last frame
+///			 </returns>
+// #############################################################################################
+function window_mouse_get_delta_x()
+{
+	return g_MouseDeltaX;
+}
+
+// #############################################################################################
+/// Out:	 <returns>
+///				Returns how many pixels has the mouse moved on the y axis since the last frame
+///			 </returns>
+// #############################################################################################
+function window_mouse_get_delta_y()
+{
+	return g_MouseDeltaY;
+}
 
 // #############################################################################################
 /// Function:<summary>
