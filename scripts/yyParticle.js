@@ -2056,6 +2056,9 @@ function ParticleSystem_Particles_Burst(_ps, _x, _y, _partsys)
 	{
 		var emitterIndex = asset.emitters[emitterCount - i - 1];
 		var emitter = g_PSEmitters[emitterIndex];
+
+		if (!emitter.enabled) continue;
+
 		var emitterWidth = emitter.xmax - emitter.xmin;
 		var emitterHeight = emitter.ymax - emitter.ymin;
 
