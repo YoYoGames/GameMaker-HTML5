@@ -1836,6 +1836,9 @@ function	ParticleSystem_Emitter_Burst(_ps, _ind, _ptype, _numb)
 
 	var system = g_ParticleSystems[_ps];
 	var emitter = system.emitters[_ind];
+
+	if (!emitter.enabled) return;
+
 	var emitterWidth = emitter.xmax - emitter.xmin;
 	var emitterHeight = emitter.ymax - emitter.ymin;
 	
