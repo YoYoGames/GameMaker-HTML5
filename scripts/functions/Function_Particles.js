@@ -27,16 +27,7 @@ function GetParticleSystemResourceIndex(_arg)
 
 function GetParticleSystemInstanceIndex(_arg, _optional)
 {
-    var index = yyGetInt32(_arg);
-
-    // UGH... Based on docs, indices 0 and 1 are supposed to be reserved for
-    // particle systems used by the effect_create_above and effect_create_below
-    // functions, se we need to have an exception for these...
-    if (index != 0 && index != 1)
-    {
-        index -= PART_SYSTEM_START_ID;
-    }
-
+    var index = yyGetInt32(_arg) - PART_SYSTEM_START_ID;
     if (!_optional)
     {
         if (index < 0 || index >= g_ParticleSystems.length || !g_ParticleSystems[index])
@@ -44,7 +35,6 @@ function GetParticleSystemInstanceIndex(_arg, _optional)
             YYError("invalid reference to particle system instance");
         }
     }
-
     return index;
 }
 
