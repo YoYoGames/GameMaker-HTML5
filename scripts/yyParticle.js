@@ -248,6 +248,8 @@ function yyParticleSystem()
 /**@constructor*/
 function ParticleSystem_ClearClass()
 {
+	this.m_resourceID = -1;					// the id of the particle system resource that this system was created from
+
 	this.created = false;					// whether created
 	
 	this.emitters = []; 						// the emitters
@@ -388,6 +390,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 	}
 
 	var system = g_ParticleSystems[ps];
+	system.m_resourceID = this.index;
 	system.oldtonew = (this.drawOrder == 0);
 	system.globalSpaceParticles = this.globalSpaceParticles;
 
@@ -400,6 +403,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 		var em = ParticleSystem_Emitter_Create(ps);
 		var instanceEmitter = system.emitters[em];
 
+		instanceEmitter.name = templateEmitter.name;
 		instanceEmitter.enabled = templateEmitter.enabled;
 		instanceEmitter.mode = templateEmitter.mode;
 		instanceEmitter.number = templateEmitter.number;
