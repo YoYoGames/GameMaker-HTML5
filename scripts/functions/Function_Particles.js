@@ -549,6 +549,7 @@ var part_particles_create_colour = part_particles_create_color;
 function part_particles_burst(_ind, _x, _y, _partsys)
 {
     _ind = GetParticleSystemInstanceIndex(_ind);
+    _partsys = GetParticleSystemResourceIndex(_partsys);
     return ParticleSystem_Particles_Burst(_ind, _x, _y, _partsys);
 }
 
@@ -1045,6 +1046,7 @@ function part_type_life(_ind, _life_min, _life_max)
 function part_type_step(_ind, _step_number, _step_type)
 {
     _ind = GetParticleTypeIndex(_ind);
+    _step_type = GetParticleTypeIndex(_step_type, true);
     return ParticleType_Step(_ind, _step_number, _step_type);
 }
 
@@ -1067,6 +1069,7 @@ function part_type_step(_ind, _step_number, _step_type)
 function part_type_death(_ind, _death_number, _death_type)
 {
     _ind = GetParticleTypeIndex(_ind);
+    _death_type = GetParticleTypeIndex(_death_type, true);
     return ParticleType_Death(_ind, _death_number, _death_type);
 }
 
@@ -1316,7 +1319,7 @@ function part_emitter_burst(_ps, _ind, _parttype, _number)
     _ps = GetParticleSystemInstanceIndex(_ps);
     _ind = GetParticleEmitterIndex(_ps, _ind);
     _parttype = GetParticleTypeIndex(_parttype);
-    ParticleSystem_Emitter_Burst(_ps, _ind, _parttype, _number);
+    return ParticleSystem_Emitter_Burst(_ps, _ind, _parttype, _number);
 }
 
 // #############################################################################################
@@ -1559,5 +1562,5 @@ function part_system_layer(_ind, _layerid)
 function part_system_global_space(_ind, _enable)
 {
     _ind = GetParticleSystemInstanceIndex(_ind);
-    ParticleSystem_GlobalSpace(_ind, yyGetBool(_enable));
+    return ParticleSystem_GlobalSpace(_ind, _enable);
 }
