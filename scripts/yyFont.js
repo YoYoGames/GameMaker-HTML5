@@ -806,7 +806,6 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
 	var spreadoffset = 0;
 	if (this.sdf)
 	{
-		g_pFontManager.Start_Rendering_SDF(this, _pFontParams);
 		spreadoffset = this.sdfSpread;
 	}
 	
@@ -933,11 +932,6 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
 			_x += wordSpacing;
     }
     pBuff.Current -= skip*6;  // claim back unused space
-
-	if (this.sdf)
-	{
-		g_pFontManager.End_Rendering_SDF();
-	}
     
 
     // Reset the world matrix    
