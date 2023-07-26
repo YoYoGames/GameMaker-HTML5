@@ -78,7 +78,16 @@ function YYASSET_REF(a)
 {
     var index = a & 0x00ffffff;
     var type = (a >> 24) & 0xff | REFCAT_RESOURCE;
-    return MAKE_REF(type, index);
+
+    switch (type)
+    {
+    // TODO: Move resources to references
+    case REFID_PARTICLESYSTEM:
+        return MAKE_REF(type, index);
+    
+    default:
+        return index;
+    }
 }
 
 function RefName(_ref)
