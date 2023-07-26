@@ -15,60 +15,38 @@
 // 
 // **********************************************************************************************************************
 
-var PART_SYSTEM_START_ID = 100000;
-
 function GetParticleSystemResourceIndex(_arg)
 {
-    var _index = yyGetInt32(_arg);
-    if (_index < 0 || _index >= CParticleSystem.instances.length)
-        YYError("invalid reference to particle system resource");
-    return _index;
+    return yyGetRef(_arg, REFID_PARTICLESYSTEM, CParticleSystem.instances.length, CParticleSystem.instances);
 }
 
 function GetParticleSystemInstanceIndex(_arg, _optional)
 {
-    var index = yyGetInt32(_arg) - PART_SYSTEM_START_ID;
-    if (!_optional)
-    {
-        if (index < 0 || index >= g_ParticleSystems.length || !g_ParticleSystems[index])
-        {
-            YYError("invalid reference to particle system instance");
-        }
-    }
-    return index;
+    return yyGetRef(_arg, REFID_PART_SYSTEM, g_ParticleSystems.length, g_ParticleSystems, _optional);
 }
 
 function GetParticleEmitterIndex(_ps, _arg, _optional)
 {
-    var index = yyGetInt32(_arg);
+    var count = 0;
+    var arr = null;
     if (!_optional)
     {
-        if (index < 0 || index >= g_ParticleSystems[_ps].emitters.length || !g_ParticleSystems[_ps].emitters[index])
-        {
-            YYError("invalid reference to particle emitter");
-        }
+        arr = g_ParticleSystems[_ps].emitters;
+        count = arr.length;
     }
-    return index;
+    return yyGetRef(_arg, REFID_PART_EMITTER, count, arr, _optional);
 }
 
 function GetParticleTypeIndex(_arg, _optional)
 {
-    var index = yyGetInt32(_arg);
-    if (!_optional)
-    {
-        if (index < 0 || index >= g_ParticleTypes.length || !g_ParticleTypes[index])
-        {
-            YYError("invalid reference to particle type");
-        }
-    }
-    return index;
+    return yyGetRef(_arg, REFID_PART_TYPE, g_ParticleTypes.length, g_ParticleTypes, _optional);
 }
 
 function GetSpriteIndex(_arg)
 {
     var index = yyGetInt32(_spriteIndex);
     if (g_pSpriteManager.Get(index) == null)
-        YYError("invalid reference to sprite");
+        yyError("invalid reference to sprite");
     return index;
 }
 
@@ -76,24 +54,24 @@ function GetTimeSourceUnit(arg)
 {
     var unit = yyGetInt32(arg);
     if (unit < 0 || unit > 1)
-        YYError("invalid argument, expecting a time source unit");
+        yyError("invalid argument, expecting a time source unit");
     return unit;
 }
 
-function GetLayer(_layerid)
+function GetLayer(_layerID)
 {
-    var layerIsString = (typeof (_layerid) == "string");
+    var layerIsString = (typeof _layerID == "string");
     var room = g_pLayerManager.GetTargetRoomObj()
     var layer = layerIsString
-        ? g_pLayerManager.GetLayerFromName(room, yyGetString(_layerid))
-        : g_pLayerManager.GetLayerFromID(room, yyGetInt32(_layerid));
+        ? g_pLayerManager.GetLayerFromName(room, yyGetString(_layerID))
+        : g_pLayerManager.GetLayerFromID(room, yyGetInt32(_layerID));
 
     if (!layer)
     {
         if (layerIsString)
-            YYError("invalid argument, layer name (" + _layerid + ") does not exist");
+            yyError("invalid argument, layer name (" + _layerID + ") does not exist");
         else
-            YYError("invalid argument, layer ID (" + _layerid + ") does not exist");
+            yyError("invalid argument, layer ID (" + _layerID + ") does not exist");
     }
 
     return layer;
@@ -112,7 +90,8 @@ function particle_get_info(_ind)
     var pPSI = undefined;
     var emitters = [];
 
-    if (yyGetInt32(_ind) < PART_SYSTEM_START_ID)
+    if (_ind instanceof YYRef
+        && _ind.type == REFID_PARTICLESYSTEM)
     {
         // Particle system RESOURCE
         _ind = GetParticleSystemResourceIndex(_ind);
@@ -282,7 +261,7 @@ function part_system_create(_partsys)
         }
     }
 
-    return (id != -1) ? (id + PART_SYSTEM_START_ID) : -1;
+    return MAKE_REF(REFID_PART_SYSTEM, (id != -1) ? id : 0xffffffff);
 }
 
 // #############################################################################################
@@ -618,7 +597,10 @@ function part_particles_count(_ind)
 ///				
 ///			</returns>
 // #############################################################################################
-var part_type_create = ParticleType_Create;
+function part_type_create()
+{
+    return MAKE_REF(REFID_PART_TYPE, ParticleType_Create());
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -1198,7 +1180,7 @@ function part_type_gravity(_ind, _grav_amount, _grav_dir)
 function part_emitter_create(_ps)
 {
     _ps = GetParticleSystemInstanceIndex(_ps);
-    return ParticleSystem_Emitter_Create(_ps);
+    return MAKE_REF(REFID_PART_EMITTER, ParticleSystem_Emitter_Create(_ps));
 }
 
 // #############################################################################################
@@ -1427,7 +1409,7 @@ function part_emitter_relative(_ps, _ind, _enable)
 // #############################################################################################
 /// Function:<summary>
 ///          	Creates an effect of the given kind (see above) at the indicated position. 
-///             The effect is created below the instances, that is, at a depth of PART_SYSTEM_START_ID.
+///             The effect is created below the instances, that is, at a depth of 100000.
 ///          </summary>
 ///
 /// In:		<param name="_kind"></param>
@@ -1447,7 +1429,7 @@ function effect_create_below(_kind, _x, _y, _size, _color)
 // #############################################################################################
 /// Function:<summary>
 ///          	Similar to effect_create_below() function but this time the effect is created on 
-///             top of the instances, that is, at a depth of -PART_SYSTEM_START_ID.
+///             top of the instances, that is, at a depth of -100000.
 ///          </summary>
 ///
 /// In:		<param name="_kind"></param>
@@ -1557,7 +1539,7 @@ function part_system_create_layer(_layerid, _persistent, _partsys)
         }
     }
 
-    return (id != -1) ? (id + PART_SYSTEM_START_ID) : -1;
+    return MAKE_REF(REFID_PART_SYSTEM, (id != -1) ? id : 0xffffffff);
 }
 
 function part_system_get_layer(_ind)
