@@ -14,6 +14,30 @@
 // 
 // **********************************************************************************************************************
 
+/** @constructor */
+function    FontEffectParams( )
+{	
+	this.enabled = false;
+	this.thicknessMod = 0.0;
+	this.coreCol = 0xffffffff;
+	this.coreAlpha = 1.0; 
+	this.glowEnabled = false;
+	this.glowStart = 0.0;
+	this.glowEnd = 32.0;
+	this.glowCol = 0xffffffff;
+	this.glowAlpha = 1.0; 
+	this.outlineEnabled = false;
+	this.outlineDist = 1.0;
+	this.outlineCol = 0xffffffff;
+	this.outlineAlpha = 1.0; 
+	this.dropShadowEnabled = false;
+	this.shadowWidth = 0;
+	this.shadowOffsetX = 0.0;
+	this.shadowOffsetY = 0.0;
+	this.shadowCol = 0xff000000;
+	this.shadowAlpha = 1.0;
+}
+
 // #############################################################################################
 /// Function:<summary>
 ///             Initialise a Font from storage
@@ -58,8 +82,175 @@ function    yyFont( )
 
 	this.sdf = false;
 	this.sdfSpread = 0;
-    
+
+	this.effect_params = new FontEffectParams();	    
 }
+
+yyFont.prototype.SetEffectParams = function (_pParamObj)
+{
+	if ((_pParamObj == undefined) || (_pParamObj == null))
+		return;
+
+	var pVal = null;
+
+	pVal = variable_struct_get(_pParamObj, "thickness");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		var thickness = yyGetReal(pVal);
+		thickness = thickness < -32.0 ? -32.0 : (thickness > 32.0 ? 32.0 : thickness);		
+		this.effect_params.thicknessMod = thickness;
+	}
+
+	pVal = variable_struct_get(_pParamObj, "coreColour");
+	if ((pVal == undefined) || (pVal == null)) pVal = variable_struct_get(_pParamObj, "coreColor");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		this.effect_params.coreCol = yyGetInt32(pVal);
+	}
+
+	pVal = variable_struct_get(_pParamObj, "coreAlpha");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		var alpha = yyGetReal(pVal);
+		alpha = alpha < 0.0 ? 0.0 : (alpha > 1.0 ? 1.0 : alpha);		
+		this.effect_params.coreAlpha = alpha;
+	}
+
+	pVal = variable_struct_get(_pParamObj, "glowEnable");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		this.effect_params.glowEnabled = yyGetBool(pVal);
+	}
+
+	pVal = variable_struct_get(_pParamObj, "glowStart");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		var distance = yyGetReal(pVal);
+		distance = distance < 0.0 ? 0.0 : (distance > 64.0 ? 64.0 : distance);
+		this.effect_params.glowStart = distance;
+	}
+
+	pVal = variable_struct_get(_pParamObj, "glowEnd");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		var distance = yyGetReal(pVal);
+		distance = distance < 0.0 ? 0.0 : (distance > 64.0 ? 64.0 : distance);
+		this.effect_params.glowEnd = distance;
+	}
+
+	pVal = variable_struct_get(_pParamObj, "glowColour");
+	if ((pVal == undefined) || (pVal == null)) pVal = variable_struct_get(_pParamObj, "glowColor");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		this.effect_params.glowCol = yyGetInt32(pVal);
+	}
+
+	pVal = variable_struct_get(_pParamObj, "glowAlpha");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		var alpha = yyGetReal(pVal);
+		alpha = alpha < 0.0 ? 0.0 : (alpha > 1.0 ? 1.0 : alpha);		
+		this.effect_params.glowAlpha = alpha;
+	}
+
+	pVal = variable_struct_get(_pParamObj, "outlineEnable");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		this.effect_params.outlineEnabled = yyGetBool(pVal);
+	}
+
+	pVal = variable_struct_get(_pParamObj, "outlineDistance");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		var distance = yyGetReal(pVal);
+		distance = distance < 0.0 ? 0.0 : (distance > 64.0 ? 64.0 : distance);
+		this.effect_params.outlineDist = distance;
+	}
+
+	pVal = variable_struct_get(_pParamObj, "outlineColour");
+	if ((pVal == undefined) || (pVal == null)) pVal = variable_struct_get(_pParamObj, "outlineColor");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		this.effect_params.outlineCol = yyGetInt32(pVal);
+	}
+
+	pVal = variable_struct_get(_pParamObj, "outlineAlpha");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		var alpha = yyGetReal(pVal);
+		alpha = alpha < 0.0 ? 0.0 : (alpha > 1.0 ? 1.0 : alpha);		
+		this.effect_params.outlineAlpha = alpha;
+	}
+
+	pVal = variable_struct_get(_pParamObj, "dropShadowEnable");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		this.effect_params.dropShadowEnabled = yyGetBool(pVal);
+	}
+
+	pVal = variable_struct_get(_pParamObj, "dropShadowSoftness");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		var width = yyGetReal(pVal);
+		width = width < 0.0 ? 0.0 : (width > 64.0 ? 64.0 : width);
+		this.effect_params.shadowWidth = width;
+	}
+
+	pVal = variable_struct_get(_pParamObj, "dropShadowOffsetX");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		var offset = yyGetReal(pVal);		
+		this.effect_params.shadowOffsetX = offset;
+	}
+
+	pVal = variable_struct_get(_pParamObj, "dropShadowOffsetY");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		var offset = yyGetReal(pVal);		
+		this.effect_params.shadowOffsetY = offset;
+	}
+
+	pVal = variable_struct_get(_pParamObj, "dropShadowColour");
+	if ((pVal == undefined) || (pVal == null)) pVal = variable_struct_get(_pParamObj, "dropShadowColor");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		this.effect_params.shadowCol = yyGetInt32(pVal);
+	}
+
+	pVal = variable_struct_get(_pParamObj, "dropShadowAlpha");
+	if ((pVal != undefined) && (pVal != null))
+	{
+		var alpha = yyGetReal(pVal);
+		alpha = alpha < 0.0 ? 0.0 : (alpha > 1.0 ? 1.0 : alpha);		
+		this.effect_params.shadowAlpha = alpha;
+	}
+};
+
+yyFont.prototype.GetEffectParams = function()
+{
+	var pParamObj = new GMLObject();	
+	
+	variable_struct_set(pParamObj, "thickness", this.effect_params.thicknessMod);
+	variable_struct_set(pParamObj, "coreColour", this.effect_params.coreCol);
+	variable_struct_set(pParamObj, "coreAlpha", this.effect_params.coreAlpha);
+	variable_struct_set(pParamObj, "glowEnable", this.effect_params.glowEnabled);
+	variable_struct_set(pParamObj, "glowStart", this.effect_params.glowStart);
+	variable_struct_set(pParamObj, "glowEnd", this.effect_params.glowEnd);
+	variable_struct_set(pParamObj, "glowColour", this.effect_params.glowCol);
+	variable_struct_set(pParamObj, "glowAlpha", this.effect_params.glowAlpha);
+	variable_struct_set(pParamObj, "outlineEnable", this.effect_params.outlineEnabled);
+	variable_struct_set(pParamObj, "outlineDistance", this.effect_params.outlineDist);
+	variable_struct_set(pParamObj, "outlineColour", this.effect_params.outlineCol);
+	variable_struct_set(pParamObj, "outlineAlpha", this.effect_params.outlineAlpha);
+	variable_struct_set(pParamObj, "dropShadowEnable", this.effect_params.dropShadowEnabled);
+	variable_struct_set(pParamObj, "dropShadowSoftness", this.effect_params.shadowWidth);
+	variable_struct_set(pParamObj, "dropShadowOffsetX", this.effect_params.shadowOffsetX);
+	variable_struct_set(pParamObj, "dropShadowOffsetY", this.effect_params.shadowOffsetY);
+	variable_struct_set(pParamObj, "dropShadowColour", this.effect_params.shadowCol);
+	variable_struct_set(pParamObj, "dropShadowAlpha", this.effect_params.shadowAlpha);
+
+	return pParamObj;
+};
 
 // #############################################################################################
 /// Function: <summary>
@@ -562,7 +753,7 @@ yyFont.prototype.BuildWorldMatrix = function(_x, _y, _angle) {
 ///				Draw a string in the indicated color at the indicated place for WebGL
 ///          </summary>
 // #############################################################################################
-yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _angle, _col1, _col2,_col3,_col4, _charSpacing, _wordSpacing) //, _alpha) 
+yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _angle, _col1, _col2,_col3,_col4, _charSpacing, _wordSpacing, _pFontParams) //, _alpha) 
 {
     if( this.runtime_created)
     {
@@ -615,7 +806,6 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
 	var spreadoffset = 0;
 	if (this.sdf)
 	{
-		g_pFontManager.Start_Rendering_SDF();
 		spreadoffset = this.sdfSpread;
 	}
 	
@@ -742,11 +932,6 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
 			_x += wordSpacing;
     }
     pBuff.Current -= skip*6;  // claim back unused space
-
-	if (this.sdf)
-	{
-		g_pFontManager.End_Rendering_SDF();
-	}
     
 
     // Reset the world matrix    
@@ -1164,20 +1349,11 @@ yyFont.prototype.Draw_Sprite_String_GL = function (_x, _y, _pStr, _xscale, _ysca
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+var FONTSDFSHADER_DISABLED = -1,
+	FONTSDFSHADER_BASIC = 0,
+	FONTSDFSHADER_EFFECT = 1,
+	FONTSDFSHADER_BLUR = 2,
+	FONTSDFSHADER_MAX = 3;
 
 // #############################################################################################
 /// Function:<summary>
@@ -1198,37 +1374,171 @@ function    yyFontManager( )
     this.fontid = g_DefaultFont;   
 	
 	this.SDF_State = new Object();
-	this.SDF_State.SDFShader = -1;
-	this.SDF_State.usingSDFShader = false;
+	this.SDF_State.SDFShaders = [];
+	this.SDF_State.usingSDFShader = FONTSDFSHADER_DISABLED;
+
+	// Uniform indices (effect shader)
+	this.SDF_State.gm_SDF_DrawGlow = -1;
+	this.SDF_State.gm_SDF_Glow_MinMax = -1;
+	this.SDF_State.gm_SDF_Glow_Col = -1;
+	
+	this.SDF_State.gm_SDF_DrawOutline = -1;
+	this.SDF_State.gm_SDF_Outline_Thresh = -1;
+	this.SDF_State.gm_SDF_Outline_Col = -1;
+	
+	this.SDF_State.gm_SDF_Core_Thresh = -1;
+	this.SDF_State.gm_SDF_Core_Col = -1;
+
+	// Uniform incides (blur shader)
+	this.SDF_State.gm_SDF_Blur_MinMax = -1;
+	this.SDF_State.gm_SDF_Blur_Col = -1; 
+
+	// Save state
 	this.SDF_State.currTexFilter = -1;	
+
+	var i;
+	for(i = 0; i < FONTSDFSHADER_MAX; i++)
+	{
+		this.SDF_State.SDFShaders[i] = -1;
+	}
 
 	if (g_webGL)
 	{
-		this.SDF_State.SDFShader = asset_get_index("__yy_sdf_shader");
+		this.SDF_State.SDFShaders[FONTSDFSHADER_BASIC] = asset_get_index("__yy_sdf_shader");
+		this.SDF_State.SDFShaders[FONTSDFSHADER_EFFECT] = asset_get_index("__yy_sdf_effect_shader");
+		this.SDF_State.SDFShaders[FONTSDFSHADER_BLUR] = asset_get_index("__yy_sdf_blur_shader");
+
+		if (this.SDF_State.SDFShaders[FONTSDFSHADER_EFFECT] != -1)
+		{
+			var shaderID = this.SDF_State.SDFShaders[FONTSDFSHADER_EFFECT];
+			this.SDF_State.gm_SDF_DrawGlow = shader_get_uniform(shaderID, "gm_SDF_DrawGlow");
+			this.SDF_State.gm_SDF_Glow_MinMax = shader_get_uniform(shaderID, "gm_SDF_Glow_MinMax");
+			this.SDF_State.gm_SDF_Glow_Col = shader_get_uniform(shaderID, "gm_SDF_Glow_Col");
+			
+			this.SDF_State.gm_SDF_DrawOutline = shader_get_uniform(shaderID, "gm_SDF_DrawOutline");
+			this.SDF_State.gm_SDF_Outline_Thresh = shader_get_uniform(shaderID, "gm_SDF_Outline_Thresh");
+			this.SDF_State.gm_SDF_Outline_Col = shader_get_uniform(shaderID, "gm_SDF_Outline_Col");
+			
+			this.SDF_State.gm_SDF_Core_Thresh = shader_get_uniform(shaderID, "gm_SDF_Core_Thresh");
+			this.SDF_State.gm_SDF_Core_Col = shader_get_uniform(shaderID, "gm_SDF_Core_Col");
+		}
+
+		if (this.SDF_State.SDFShaders[FONTSDFSHADER_BLUR] != -1)
+		{
+			var shaderID = this.SDF_State.SDFShaders[FONTSDFSHADER_BLUR];
+			this.SDF_State.gm_SDF_Blur_MinMax = shader_get_uniform(shaderID, "gm_SDF_Blur_MinMax");
+			this.SDF_State.gm_SDF_Blur_Col = shader_get_uniform(shaderID, "gm_SDF_Blur_Col");
+		}
 	}
 }
 
-yyFontManager.prototype.Start_Rendering_SDF = function()
+yyFontManager.prototype.Start_Rendering_SDF = function(_pFont, _shadowPass, _pEffectOverride)
 {
 	if (g_webGL)
 	{
 		if (shader_current() != -1)
 			return;							// don't override existing user shader
 
-		if ((this.SDF_State.SDFShader == -1) || (shader_is_compiled(this.SDF_State.SDFShader) == false))
+		var pEffectParams = _pEffectOverride;
+		if ((pEffectParams == undefined) || (pEffectParams == null))
+		{
+			pEffectParams = _pFont.effect_params;
+		}
+
+		var shadertype = FONTSDFSHADER_BASIC;
+		if (pEffectParams.enabled)
+		{
+			if (_shadowPass && pEffectParams.dropShadowEnabled)
+			{
+				shadertype = FONTSDFSHADER_BLUR;
+			}
+			else
+			{
+				shadertype = FONTSDFSHADER_EFFECT;
+			}
+		}
+
+		var SDFshader = this.SDF_State.SDFShaders[shadertype];
+		if ((SDFshader == -1) || (shader_is_compiled(SDFshader) == false))
 			return;							// our SDF shader either doesn't exist or hasn't been compiled
 
-		if (this.SDF_State.usingSDFShader)
-			return;							// already enabled
+		if (this.SDF_State.usingSDFShader != FONTSDFSHADER_DISABLED)
+			return;							// already enabled (these calls can't be nested) 
 
-		shader_set(this.SDF_State.SDFShader);
+		shader_set(SDFshader);
+
+		if (shadertype == FONTSDFSHADER_EFFECT)
+		{
+			var distscale = 1.0 / (_pFont.sdfSpread * 2.0); // the SDF ranges from -32 to 32 
+			var distbias = 0.5;			
+
+			var corethickness = pEffectParams.thicknessMod; 			
+	
+			// Glow params 
+			var glowmin = 1.0 - (((pEffectParams.glowEnd + corethickness) * distscale) + distbias); 
+			var glowmax = 1.0 - (((pEffectParams.glowStart + corethickness) * distscale) + distbias); 
+			glowmin = glowmin < 0.001 ? 0.001 : (glowmin > 0.9999 ? 0.9999 : glowmin);	// we need to leave a margin on either side to prevent artifacts 
+			glowmax = glowmax < 0.001 ? 0.001 : (glowmax > 0.9999 ? 0.9999 : glowmax);  // we need to leave a margin on either side to prevent artifacts 
+			shader_set_uniform_i(this.SDF_State.gm_SDF_DrawGlow, pEffectParams.glowEnabled ? 1 : 0); 
+			shader_set_uniform_f(this.SDF_State.gm_SDF_Glow_MinMax, glowmin, glowmax); 
+			var glow_r, glow_g, glow_b, glow_a; 
+			glow_r = (pEffectParams.glowCol & 0xff) / 255.0; 
+			glow_g = ((pEffectParams.glowCol >> 8) & 0xff) / 255.0; 
+			glow_b = ((pEffectParams.glowCol >> 16) & 0xff) / 255.0; 
+			glow_a = pEffectParams.glowAlpha; 
+			shader_set_uniform_f(this.SDF_State.gm_SDF_Glow_Col, glow_r, glow_g, glow_b, glow_a); 
+	
+			// Outline params 
+			var outlinedist = 1.0 - (((pEffectParams.outlineDist + corethickness) * distscale) + distbias); 
+			outlinedist = outlinedist < 0.001 ? 0.001 : (outlinedist > 0.9999 ? 0.9999 : outlinedist); // we need to leave a margin on either side to prevent artifacts 
+			shader_set_uniform_i(this.SDF_State.gm_SDF_DrawOutline, pEffectParams.outlineEnabled ? 1 : 0); 
+			shader_set_uniform_f(this.SDF_State.gm_SDF_Outline_Thresh, outlinedist); 
+			var outline_r, outline_g, outline_b, outline_a; 
+			outline_r = (pEffectParams.outlineCol & 0xff) / 255.0; 
+			outline_g = ((pEffectParams.outlineCol >> 8) & 0xff) / 255.0; 
+			outline_b = ((pEffectParams.outlineCol >> 16) & 0xff) / 255.0; 
+			outline_a = pEffectParams.outlineAlpha; 
+			shader_set_uniform_f(this.SDF_State.gm_SDF_Outline_Col, outline_r, outline_g, outline_b, outline_a); 
+	
+			// Core params 
+			var corethresh = 1.0 - ((corethickness * distscale) + distbias); 
+			corethresh = corethresh < 0.001 ? 0.001 : (corethresh > 0.9999 ? 0.9999 : corethresh); // we need to leave a margin on either side to prevent artifacts 
+			shader_set_uniform_f(this.SDF_State.gm_SDF_Core_Thresh, corethresh); 
+			var core_r, core_g, core_b, core_a; 
+			core_r = (pEffectParams.coreCol & 0xff) / 255.0; 
+			core_g = ((pEffectParams.coreCol >> 8) & 0xff) / 255.0; 
+			core_b = ((pEffectParams.coreCol >> 16) & 0xff) / 255.0; 
+			core_a = pEffectParams.coreAlpha; 
+			shader_set_uniform_f(this.SDF_State.gm_SDF_Core_Col, core_r, core_g, core_b, core_a); 
+		}
+		else if (shadertype == FONTSDFSHADER_BLUR)
+		{
+			var distscale = 1.0 / (_pFont.sdfSpread * 2.0); // the SDF ranges from -32 to 32 
+			var distbias = 0.5;			
+
+			var corethickness = pEffectParams.thicknessMod;
+			var blurhalfwidth = pEffectParams.shadowWidth * 0.5;
+
+			// Blur params 
+			var blurmin = 1.0 - (((corethickness + blurhalfwidth) * distscale) + distbias); 
+			var blurmax = 1.0 - (((corethickness - blurhalfwidth) * distscale) + distbias); 
+			blurmin = blurmin < 0.001 ? 0.001 : (blurmin > 0.9999 ? 0.9999 : blurmin);	// we need to clamp min but we can leave max unclamped in order to support softer shadows 
+			//blurmax = blurmax < 0.001 ? 0.001 : (blurmax > 0.9999 ? 0.9999 : blurmax);  // we need to leave a margin on either side to prevent artifacts 			
+			shader_set_uniform_f(this.SDF_State.gm_SDF_Blur_MinMax, blurmin, blurmax); 
+			var blur_r, blur_g, blur_b, blur_a; 
+			blur_r = (pEffectParams.shadowCol & 0xff) / 255.0; 
+			blur_g = ((pEffectParams.shadowCol >> 8) & 0xff) / 255.0; 
+			blur_b = ((pEffectParams.shadowCol >> 16) & 0xff) / 255.0; 
+			blur_a = pEffectParams.shadowAlpha; 
+			shader_set_uniform_f(this.SDF_State.gm_SDF_Blur_Col, blur_r, blur_g, blur_b, blur_a); 
+		}
 
 		var basetexstage = 0;			// we always force the default texture sampler index to be 0
 
 		this.SDF_State.currTexFilter = gpu_get_texfilter_ext(basetexstage);		// we always force the default texture sampler index to be 0
 		gpu_set_texfilter_ext(basetexstage, true);
 
-		this.SDF_State.usingSDFShader = true;
+		this.SDF_State.usingSDFShader = shadertype;
 	}
 };
 
@@ -1236,16 +1546,38 @@ yyFontManager.prototype.End_Rendering_SDF = function()
 {
 	if (g_webGL)
 	{
-		if (this.SDF_State.usingSDFShader)	
+		if (this.SDF_State.usingSDFShader != FONTSDFSHADER_DISABLED)	
 		{
 			shader_reset();
 
 			var basetexstage = 0;			// we always force the default texture sampler index to be 0
 			gpu_set_texfilter_ext(basetexstage, this.SDF_State.currTexFilter);
 
-			this.SDF_State.usingSDFShader = false;
+			this.SDF_State.usingSDFShader = FONTSDFSHADER_DISABLED;
 		}
 	}
+};
+
+yyFontManager.prototype.Should_Render_Drop_Shadow = function(_pFont, _pEffectOverride)
+{
+	if ((_pFont == undefined) || (_pFont == null))
+		return false;
+	
+	if (g_webGL)
+	{
+		var pEffectParams = _pEffectOverride;
+		if ((pEffectParams == undefined) || (pEffectParams == null))
+		{
+			pEffectParams = _pFont.effect_params;
+		}		
+
+		if ((shader_current() == -1) && (_pFont.sdf) && (pEffectParams.enabled) && (pEffectParams.dropShadowEnabled))
+		{
+			return true;
+		}
+	}
+	
+	return false;
 };
 
 // #############################################################################################
@@ -1948,57 +2280,91 @@ yyFontManager.prototype.GR_Text_Draw = function (_str, x, y, linesep, linewidth,
 	}
 	else
 	{
-	    for (i = 0; i <= sl.length - 1; i++)
-		{
-			xoff = 0;
-			yoff = 0;
+		var hasDropShadow = false; 
+		if (this.Should_Render_Drop_Shadow(thefont)) 
+		{ 
+			hasDropShadow = true; 
+		} 
 
-			if(thefont.ascenderOffset != undefined)
+		var xscD = xscale * thefont.scalex;
+		var yscD = yscale * thefont.scaley;
+		
+		for (var j = hasDropShadow ? 0 : 1; j < 2; j++) 
+		{ 
+			var shadowPass = (j == 0); 
+			if (thefont.sdf) 
+			{ 
+				this.Start_Rendering_SDF(thefont, shadowPass); 
+			} 
+	
+			var passx = x; 
+			var passy = y; 
+			if (shadowPass) 
+			{ 
+				var shadowOffsetX = xscD * thefont.effect_params.shadowOffsetX; 
+				var shadowOffsetY = yscD * thefont.effect_params.shadowOffsetY; 
+
+				passx = passx + cc * shadowOffsetX + ss * shadowOffsetY;
+				passy = passy - ss * shadowOffsetX + cc * shadowOffsetY;
+			} 
+
+			for (i = 0; i <= sl.length - 1; i++)
 			{
-				yoff -= thefont.ascenderOffset * yscale;
-			}
-			
-			var pStr = sl[i]; 
+				xoff = 0;
+				yoff = 0;
 
-
-			if (pStr != null)
-			{				
-			    if (this.halign == 1) xoff = -(xscale * thefont.TextWidth(pStr, true) / 2);
-			    if (this.halign == 2) xoff = -(xscale * thefont.TextWidth(pStr, true));
-
-				var xx = x + (cc * xoff) + (ss * yoff);
-				var yy = y - (ss * xoff) + (cc * yoff);
-				if (thefont.runtime_created)
+				if(thefont.ascenderOffset != undefined)
 				{
-					if (thefont.spritefont)
+					yoff -= thefont.ascenderOffset * yscale;
+				}
+				
+				var pStr = sl[i]; 
+
+
+				if (pStr != null)
+				{				
+					if (this.halign == 1) xoff = -(xscale * thefont.TextWidth(pStr, true) / 2);
+					if (this.halign == 2) xoff = -(xscale * thefont.TextWidth(pStr, true));
+
+					var xx = passx + (cc * xoff) + (ss * yoff);
+					var yy = passy - (ss * xoff) + (cc * yoff);
+					if (thefont.runtime_created)
 					{
-						if(!g_webGL)
+						if (thefont.spritefont)
 						{
-						    thefont.Draw_Sprite_String(xx, yy, pStr, xscale, yscale, _angle, _c1,_c2,_c3,_c4); //g_GlobalColour, g_GlobalAlpha);
+							if(!g_webGL)
+							{
+								thefont.Draw_Sprite_String(xx, yy, pStr, xscale, yscale, _angle, _c1,_c2,_c3,_c4); //g_GlobalColour, g_GlobalAlpha);
+							} else
+							{
+								thefont.Draw_Sprite_String_GL(xx, yy, pStr, xscale, yscale, _angle, _c1, _c2, _c3, _c4); //g_GlobalColour, g_GlobalAlpha);
+							}
 						} else
 						{
-						    thefont.Draw_Sprite_String_GL(xx, yy, pStr, xscale, yscale, _angle, _c1, _c2, _c3, _c4); //g_GlobalColour, g_GlobalAlpha);
+							if (thefont.loaded) {
+								Graphics_DrawText(thefont.fontstyle, pStr, xx, yy, 1, 1, ang, _c1, _c2, _c3, _c4); //g_GlobalColour, g_GlobalAlpha);
+							} // end if
 						}
 					} else
 					{
-					    if (thefont.loaded) {
-					        Graphics_DrawText(thefont.fontstyle, pStr, xx, yy, 1, 1, ang, _c1, _c2, _c3, _c4); //g_GlobalColour, g_GlobalAlpha);
-						} // end if
-					}
-				} else
-				{
-					if (g_webGL)
-					{
-					    thefont.Draw_String_GL(xx, yy, pStr, xscale, yscale, _angle, _c1, _c2, _c3, _c4); // g_GlobalColour, g_GlobalAlpha);
-					} else
-					{
-					    thefont.Draw_String(xx, yy, pStr, xscale, yscale, _angle, _c1, _c2, _c3, _c4); //g_GlobalColour, g_GlobalAlpha);
+						if (g_webGL)
+						{
+							thefont.Draw_String_GL(xx, yy, pStr, xscale, yscale, _angle, _c1, _c2, _c3, _c4); // g_GlobalColour, g_GlobalAlpha);
+						} else
+						{
+							thefont.Draw_String(xx, yy, pStr, xscale, yscale, _angle, _c1, _c2, _c3, _c4); //g_GlobalColour, g_GlobalAlpha);
+						}
 					}
 				}
+
+				passy = passy + ysep;
+				passx = passx + xsep;
 			}
 
-			y = y + ysep;
-			x = x + xsep;
+			if (thefont.sdf) 
+			{ 
+				this.End_Rendering_SDF(); 
+			} 
 		}
 	}	
 };
@@ -2019,7 +2385,7 @@ yyFontManager.prototype.GR_Text_Draw = function (_str, x, y, linesep, linewidth,
 ///				
 ///			 </returns>
 // #############################################################################################
-yyFontManager.prototype.GR_StringList_Draw_IDEstyle = function (_sl, _x, _y, _charSpacing, _clipLeft, _clipRight)
+yyFontManager.prototype.GR_StringList_Draw_IDEstyle = function (_sl, _x, _y, _charSpacing, _clipLeft, _clipRight, _pFontParams)
 {
 	if (_sl == null)
 		return;
@@ -2086,59 +2452,89 @@ yyFontManager.prototype.GR_StringList_Draw_IDEstyle = function (_sl, _x, _y, _ch
 			basey -= thefont.ascender;
 		}
 
-	    for (i = 0; i <= sl.length - 1; i++)
+		var hasDropShadow = false; 
+		//if (this.Should_Render_Drop_Shadow(thefont, _pFontParams)) 
+		if (this.Should_Render_Drop_Shadow(thefont)) 	// currently don't override font settings (change this back once the sequence stuff has been done)
+		{ 
+			hasDropShadow = true; 
+		} 
+
+		for (var j = hasDropShadow ? 0 : 1; j < 2; j++) 
 		{
-			var pStr = sl[i].pString; 
-			var xoff = sl[i].x;
-			var yoff = sl[i].y;	
-			var wordSpacing = sl[i].wordSpacing;		
+			var shadowPass = (j == 0); 
+			if (thefont.sdf) 
+			{ 
+				//this.Start_Rendering_SDF(thefont, shadowPass, _pFontParams); 
+				this.Start_Rendering_SDF(thefont, shadowPass); 		// currently don't override font settings (change this back once the sequence stuff has been done)
+			} 
+	
+			var passx = _x; 
+			var passy = basey; 
+			if (shadowPass) 
+			{ 
+				passx += thefont.effect_params.shadowOffsetX; 
+				passy += thefont.effect_params.shadowOffsetY; 
+			} 
 
-			if (pStr != null)
-			{							    				
-				// Adjust offsets to allow for the (x,y) origin of sprite fonts
-				if (thefont.spritefont) {
-				    xoff -= (thefont.pSprites.xOrigin);
-				    yoff -= (thefont.pSprites.yOrigin);
-				}
+			for (i = 0; i <= sl.length - 1; i++)
+			{
+				var pStr = sl[i].pString; 
+				var xoff = sl[i].x;
+				var yoff = sl[i].y;	
+				var wordSpacing = sl[i].wordSpacing;		
 
-				var xx = _x + xoff;
-				var yy = basey + yoff;
-			
-				var transposvec = null;
-				if (!g_webGL)
-				{
-					var posvec = new Vector3(xx, yy, 0);
-					transposvec = worldMatrix.TransformVec3(posvec);
-				}
+				if (pStr != null)
+				{							    				
+					// Adjust offsets to allow for the (x,y) origin of sprite fonts
+					if (thefont.spritefont) {
+						xoff -= (thefont.pSprites.xOrigin);
+						yoff -= (thefont.pSprites.yOrigin);
+					}
 
-				if (thefont.runtime_created)
-				{
-					if (thefont.spritefont)
+					var xx = passx + xoff;
+					var yy = passy + yoff;
+				
+					var transposvec = null;
+					if (!g_webGL)
 					{
-						if(!g_webGL)
+						var posvec = new Vector3(xx, yy, 0);
+						transposvec = worldMatrix.TransformVec3(posvec);
+					}
+
+					if (thefont.runtime_created)
+					{
+						if (thefont.spritefont)
 						{
-						    thefont.Draw_Sprite_String(transposvec.X, transposvec.Y, pStr, xscale, yscale, angle, col,col,col,col, _charSpacing, wordSpacing); //g_GlobalColour, g_GlobalAlpha);
+							if(!g_webGL)
+							{
+								thefont.Draw_Sprite_String(transposvec.X, transposvec.Y, pStr, xscale, yscale, angle, col,col,col,col, _charSpacing, wordSpacing); //g_GlobalColour, g_GlobalAlpha);
+							} else
+							{
+								thefont.Draw_Sprite_String_GL(xx, yy, pStr, xscale, yscale, angle, col, col, col, col, _charSpacing, wordSpacing); //g_GlobalColour, g_GlobalAlpha);
+							}
 						} else
 						{
-						    thefont.Draw_Sprite_String_GL(xx, yy, pStr, xscale, yscale, angle, col, col, col, col, _charSpacing, wordSpacing); //g_GlobalColour, g_GlobalAlpha);
+							if (thefont.loaded) {
+								Graphics_DrawText(thefont.fontstyle, pStr, xx, yy, 1, 1, angle, col, col, col, col); //g_GlobalColour, g_GlobalAlpha);
+							} // end if
 						}
 					} else
 					{
-					    if (thefont.loaded) {
-					        Graphics_DrawText(thefont.fontstyle, pStr, xx, yy, 1, 1, angle, col, col, col, col); //g_GlobalColour, g_GlobalAlpha);
-						} // end if
-					}
-				} else
-				{
-					if (g_webGL)
-					{
-					    thefont.Draw_String_GL(xx, yy, pStr, xscale, yscale, angle, col, col, col, col, _charSpacing, wordSpacing); // g_GlobalColour, g_GlobalAlpha);
-					} else
-					{
-					    thefont.Draw_String(transposvec.X, transposvec.Y, pStr, xscale, yscale, angle, col, col, col, col, _charSpacing, wordSpacing); //g_GlobalColour, g_GlobalAlpha);
+						if (g_webGL)
+						{
+							thefont.Draw_String_GL(xx, yy, pStr, xscale, yscale, angle, col, col, col, col, _charSpacing, wordSpacing, _pFontParams); // g_GlobalColour, g_GlobalAlpha);
+						} else
+						{
+							thefont.Draw_String(transposvec.X, transposvec.Y, pStr, xscale, yscale, angle, col, col, col, col, _charSpacing, wordSpacing); //g_GlobalColour, g_GlobalAlpha);
+						}
 					}
 				}
 			}
+
+			if (thefont.sdf) 
+			{ 
+				this.End_Rendering_SDF(); 
+			} 
 		}
 	}	
 };
