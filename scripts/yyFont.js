@@ -2459,7 +2459,8 @@ yyFontManager.prototype.GR_StringList_Draw_IDEstyle = function (_sl, _x, _y, _ch
 		}
 
 		var hasDropShadow = false; 
-		if (this.Should_Render_Drop_Shadow(thefont, _pFontParams)) 
+		//if (this.Should_Render_Drop_Shadow(thefont, _pFontParams)) 
+		if (this.Should_Render_Drop_Shadow(thefont)) 	// currently don't override font settings (change this back once the sequence stuff has been done)
 		{ 
 			hasDropShadow = true; 
 		} 
@@ -2469,7 +2470,8 @@ yyFontManager.prototype.GR_StringList_Draw_IDEstyle = function (_sl, _x, _y, _ch
 			var shadowPass = (j == 0); 
 			if (thefont.sdf) 
 			{ 
-				this.Start_Rendering_SDF(thefont, shadowPass, _pFontParams); 
+				//this.Start_Rendering_SDF(thefont, shadowPass, _pFontParams); 
+				this.Start_Rendering_SDF(thefont, shadowPass); 		// currently don't override font settings (change this back once the sequence stuff has been done)
 			} 
 	
 			var passx = _x; 
