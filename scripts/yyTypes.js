@@ -63,10 +63,10 @@ var REFID_DS_QUEUE		= (0x00000008 | REFCAT_DATA_STRUCTURE);
 var REFID_DS_STACK		= (0x00000010 | REFCAT_DATA_STRUCTURE);
 var REFID_DS_PRIORITY	= (0x00000020 | REFCAT_DATA_STRUCTURE);
 
-function YYRef(_type, _index)
+function YYRef(_type, _value)
 {
     this.type = _type;
-    this.index = _index;
+    this.value = _value;
 }
 
 function MAKE_REF(a, b)
@@ -139,7 +139,7 @@ function RefName(_ref)
 function yyGetReal(_v)
 {
     if (_v instanceof YYRef)
-        return _v.index;
+        return _v.value;
     else if (typeof _v === "number")
         return _v;
     else if (typeof _v === "boolean") 
@@ -187,7 +187,7 @@ function yyGetReal(_v)
 // #############################################################################################
 function yyGetInt64(_v) {
     if (_v instanceof YYRef)
-        return _v.index;
+        return _v.value;
     else if (typeof _v === "number")
         return Long.fromValue(_v, false);
     else if (typeof _v === "boolean") 
@@ -235,7 +235,7 @@ function yyGetInt64(_v) {
 // #############################################################################################
 function yyGetInt32(_v) {
     if (_v instanceof YYRef)
-        return _v.index;
+        return _v.value;
     else if (typeof _v === "number")
         return ~~_v;
     else if (typeof _v === "boolean") 
@@ -283,7 +283,7 @@ function yyGetInt32(_v) {
 // #############################################################################################
 function yyGetBool(_v) {
     if (_v instanceof YYRef)
-        return _v.index > 0;
+        return _v.value > 0;
     else if (typeof _v === "boolean") 
         return _v;
     else if (_v === undefined) 
@@ -338,7 +338,7 @@ function yyGetRef(_value, _ref, _maxNum, _array, _allowOutOfRange) {
         if (type != _ref) {
             yyError("incorrect type (" + RefName(type) + ") expecting a " + RefName(_ref));
         }
-        ret = _value.index;
+        ret = _value.value;
     }
     else {
         ret = yyGetInt32(_value);
@@ -389,7 +389,7 @@ function STRING_RemoveVisited( _v )
 
 function yyGetString(_v) {
     if (_v instanceof YYRef)
-        return "ref " + _v.index;
+        return "ref " + _v.value;
     else if (typeof _v === "string") {
         var ret = "";
         if (g_incQuotesSTRING_RValue > 0)
