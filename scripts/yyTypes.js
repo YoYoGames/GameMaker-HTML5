@@ -82,6 +82,7 @@ function YYASSET_REF(a)
     switch (type)
     {
     // TODO: Move resources to references
+    case REFID_OBJECT:
     case REFID_PARTICLESYSTEM:
         return MAKE_REF(type, index);
     
