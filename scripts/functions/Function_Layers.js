@@ -4005,6 +4005,7 @@ function instance_create_depth( _x,_y,_depth,_objind, _basis)
 
 	if(_depth == undefined)
 		_depth = 0;
+    _objind = yyGetInt32(_objind);
 	
     var o = g_pObjectManager.Get(_objind);
 	if (!o)
@@ -4012,7 +4013,7 @@ function instance_create_depth( _x,_y,_depth,_objind, _basis)
 		yyError("Error: Trying to create an instance using non-existent object type (" + _objind + ")");
 		return OBJECT_NOONE;
 	}
-    var inst =g_RunRoom.GML_AddInstanceDepth(yyGetReal(_x), yyGetReal(_y), yyGetInt32(_depth), yyGetInt32(_objind));
+    var inst =g_RunRoom.GML_AddInstanceDepth(yyGetReal(_x), yyGetReal(_y), yyGetInt32(_depth), _objind);
   
     if(inst!=null)
     {
