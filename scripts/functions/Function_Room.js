@@ -398,7 +398,7 @@ function room_instance_add(_ind,_x,_y,_obj)
             index: yyGetInt32(_obj), 
             id: instance_id };
 
-		return instance_id;
+		return MAKE_REF(REFID_INSTANCE, instance_id);
 	}
 	
 	return 0;

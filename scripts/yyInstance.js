@@ -3639,7 +3639,11 @@ yyInstanceManager.prototype.PerformEvent = function (_event, _index) {
 // #############################################################################################
 var yyInst = yyInst_DEBUG;
 function yyInst_RELEASE(_inst, _other, _id) {
-	if (typeof _id === "object" || typeof _id === "function" ) return _id;
+	if (_id instanceof YYRef) {
+		_id = yyGetInt32(_id);
+	} else {
+		if (typeof _id === "object" || typeof _id === "function" ) return _id;
+	}
     if (_id == -1) return _inst;
     if (_id == -2) return _other;
     if (_id == -3) return _inst;
@@ -3652,7 +3656,11 @@ function yyInst_RELEASE(_inst, _other, _id) {
 }
 
 function yyInst_DEBUG(_inst, _other, _id) {
-	if (typeof _id === "object" || typeof _id === "function" ) return _id;
+	if (_id instanceof YYRef) {
+		_id = yyGetInt32(_id);
+	} else {
+		if (typeof _id === "object" || typeof _id === "function" ) return _id;
+	}
     if (_id == -1) return _inst;
     if (_id == -2) return _other;
     if (_id == -3) return _inst;

@@ -2246,7 +2246,7 @@ function layer_instance_get_instance(_id) {
     if (room != null) {
         var el = g_pLayerManager.GetElementFromID(room, yyGetInt32(_id));
         if (el != null && el.m_type === eLayerElementType_Instance) {
-            return el.m_instanceID;
+            return MAKE_REF(REFID_INSTANCE, el.m_instanceID);
         }
     }
     return OBJECT_NOONE;
@@ -4020,7 +4020,7 @@ function instance_create_depth( _x,_y,_depth,_objind, _basis)
         inst.PerformEvent(EVENT_PRE_CREATE, 0, inst, inst );
         ShallowCopyVars( inst, _basis );
         inst.PerformEvent(EVENT_CREATE, 0, inst, inst );
-	    return inst.id;
+	    return MAKE_REF(REFID_INSTANCE, inst.id);
     }
 
 	return OBJECT_NOONE;
@@ -4053,7 +4053,7 @@ function instance_create_layer( _x,_y,_layerid,_obj, _basis)
         pInst.PerformEvent(EVENT_PRE_CREATE, 0, pInst, pInst);
         ShallowCopyVars( pInst, _basis );
         pInst.PerformEvent(EVENT_CREATE, 0, pInst, pInst);
-        return pInst.id;
+        return MAKE_REF(REFID_INSTANCE, pInst.id);
     } else {
         yyError("Error: Trying to create an instance on a non-existant layer");
     }

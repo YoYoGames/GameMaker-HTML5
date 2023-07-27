@@ -1491,6 +1491,7 @@ function Instance_SearchLoop(_pInst, _obj, _notme,  _error_code )
         	if (!pInst.active) continue;
 
         	r = _pFunction(pInst);
+			if (r instanceof YYRef) r = yyGetInt32(r);
         	if (r > 0) return r;
         }
     }
@@ -1500,7 +1501,7 @@ function Instance_SearchLoop(_pInst, _obj, _notme,  _error_code )
         var pObj = g_pObjectManager.Get(_obj);
         if (pObj === null)  {
             return _error_code;
-    }
+    	}
         
         // Now get all the objects instances, including inherited.
         pool = pObj.GetRPool();
@@ -1513,6 +1514,7 @@ function Instance_SearchLoop(_pInst, _obj, _notme,  _error_code )
         	if (!pInst.active) continue;
         	// If we HIT this instance, then return it.          
         	r = _pFunction(pInst);
+			if (r instanceof YYRef) r = yyGetInt32(r);
         	if (r > 0) return r;
         }
     }
@@ -1529,7 +1531,9 @@ function Instance_SearchLoop(_pInst, _obj, _notme,  _error_code )
             return _error_code;
         }
 
-        return _pFunction( pInst );
+        r = _pFunction( pInst );
+		if (r instanceof YYRef) r = yyGetInt32(r);
+		return r;
     }
 	return _error_code;
 }

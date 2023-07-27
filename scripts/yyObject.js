@@ -1472,7 +1472,7 @@ function  GetWithArray( _ID )
 {
     var candidates = [];
 
-    if ((typeof _ID === "object") && !((_ID instanceof Array) || (_ID instanceof ArrayBuffer))) {
+    if ((typeof _ID === "object" && !(_ID instanceof YYRef)) && !((_ID instanceof Array) || (_ID instanceof ArrayBuffer))) {
         candidates[0] =  _ID;
     } // end if
     else

@@ -46,7 +46,7 @@ function collision_point(_pInst, _x,_y,_obj,_prec,_notme)
             if (!coll) {
                 return OBJECT_NOONE;
             }
-            return _pInstance.id;
+            return MAKE_REF(REFID_INSTANCE, _pInstance.id);
         }
     );
 }
@@ -74,7 +74,7 @@ function AppendCollisionResults(_instArray, _destList, _px, _py) {
     sortArr.sort(function (a, b) { return a.dist - b.dist; });
 
     for (var i = 0; i < sortArr.length; ++i) {
-        _destList.Add(sortArr[i].instId);
+        _destList.Add(MAKE_REF(REFID_INSTANCE, sortArr[i].instId));
     }
 }
 
@@ -98,7 +98,7 @@ function collision_point_list(_pInst, _x, _y, _obj, _prec, _notme, _list, _order
                 if (sort)
                     arr[found] = _pInstance;
                 else
-                    list.Add(_pInstance.id);
+                    list.Add(MAKE_REF(REFID_INSTANCE, _pInstance.id));
                 found += 1;
             }
             return OBJECT_NOONE;
@@ -144,7 +144,7 @@ function collision_rectangle(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
         	if (!coll) {
         	    return OBJECT_NOONE;
         	}
-        	return _pInstance.id;
+        	return MAKE_REF(REFID_INSTANCE, _pInstance.id);
         }
     );
 }
@@ -170,7 +170,7 @@ function collision_rectangle_list(_pInst, _x1, _y1, _x2, _y2, _obj, _prec, _notm
         	    if (sort)
         	        arr[found] = _pInstance;
                 else
-        	        list.Add(_pInstance.id);
+        	        list.Add(MAKE_REF(REFID_INSTANCE, _pInstance.id));
                 found += 1;
             }
             return OBJECT_NOONE;
@@ -260,7 +260,7 @@ function collision_ellipse(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
         	if (!coll) {
         	    return OBJECT_NOONE;
         	}
-        	return _pInstance.id;
+        	return MAKE_REF(REFID_INSTANCE, _pInstance.id);
         }
     );
 }
@@ -286,7 +286,7 @@ function collision_ellipse_list(_pInst, _x1, _y1, _x2, _y2, _obj, _prec, _notme,
                 if (sort)
                     arr[found] = _pInstance;
                 else
-                    list.Add(_pInstance.id);
+                    list.Add(MAKE_REF(REFID_INSTANCE, _pInstance.id));
                 found += 1;
             }
         	return OBJECT_NOONE;
@@ -337,7 +337,7 @@ function collision_line(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
         	if (!coll) {
         	    return OBJECT_NOONE;        	
         	}
-        	return _pInstance.id;
+        	return MAKE_REF(REFID_INSTANCE, _pInstance.id);
         }
     );
 }
@@ -363,7 +363,7 @@ function collision_line_list(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,_list,_or
                 if (sort)
                     arr[found] = _pInstance;
                 else
-                    list.Add(_pInstance.id);
+                    list.Add(MAKE_REF(REFID_INSTANCE, _pInstance.id));
                 found += 1;
             }
         	return OBJECT_NOONE;

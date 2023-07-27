@@ -42,7 +42,7 @@ function instance_find(_obj,_n)
     var inst = pInstArray[_n];
 
     if((inst.active) && (!inst.marked))
-        return inst.id;
+        return MAKE_REF(REFID_INSTANCE, inst.id);
 
     return OBJECT_NOONE;
 }
@@ -124,7 +124,7 @@ function instance_position(_x,_y,_obj)
         function(_pInstance)
         {
             if( _pInstance.Collision_Point(_x,_y,true) ) 
-                return _pInstance.id; 
+                return MAKE_REF(REFID_INSTANCE, _pInstance.id); 
             else 
                 return OBJECT_NOONE;
         }
@@ -150,7 +150,7 @@ function instance_position_list(_x, _y, _obj, _list, _ordered)
 			    if (sort)
 			        arr[found] = _pInstance;
                 else
-			        list.Add(_pInstance.id);
+			        list.Add(MAKE_REF(REFID_INSTANCE, _pInstance.id));
 				found += 1;
 			} 
 			return OBJECT_NOONE;
@@ -191,7 +191,7 @@ function instance_nearest(_inst,_x,_y,_obj)
                 
             var d = Math.sqrt(xx*xx + yy*yy);
             if( d<dist){
-            	i = _pInstance.id;
+            	i = MAKE_REF(REFID_INSTANCE, _pInstance.id);
             	dist = d;
             }
         }
@@ -227,7 +227,7 @@ function instance_furthest( _inst, _x,_y,_obj )
                 
             var d = Math.sqrt(xx*xx + yy*yy);
             if( d>dist){
-                i = _pInstance.id;
+                i = MAKE_REF(REFID_INSTANCE, _pInstance.id);
                 dist = d;
             }
         }
@@ -262,7 +262,7 @@ function instance_place( _pInst, _x,_y,_obj)
         function (_pInstance) {
             if (_pInstance.Collision_Instance(_pInst, true))
             {
-            	return _pInstance.id;
+            	return MAKE_REF(REFID_INSTANCE, _pInstance.id);
             }
             else
             {
@@ -296,7 +296,7 @@ function instance_place_list(_pInst, _x, _y, _obj, _list, _ordered)
 			    if (sort)
 			        arr[found] = _pInstance;
                 else
-                    list.Add(_pInstance.id);
+                    list.Add(MAKE_REF(REFID_INSTANCE, _pInstance.id));
                 
 				found += 1;
 			}
@@ -495,7 +495,7 @@ function instance_copy(_inst, _performevent)
 	    pNewInst.PerformEvent(EVENT_PRE_CREATE, 0, pNewInst, pNewInst );
 	    pNewInst.PerformEvent(EVENT_CREATE, 0, pNewInst, pNewInst );
 	}
-	return pNewInst.id;
+	return MAKE_REF(REFID_INSTANCE, pNewInst.id);
 }
 
 
