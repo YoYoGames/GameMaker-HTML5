@@ -730,7 +730,7 @@ function yyCommandBuilder(_interpolatePixels) {
 	        break;
             
 	        case yyGL.RenderState_ZWriteEnable:
-                setDepthMask(_renderStateData);
+                SetDepthMask(_renderStateData);
 	        break;
 
             case yyGL.RenderState_AlphaTestEnable:
@@ -838,7 +838,7 @@ function yyCommandBuilder(_interpolatePixels) {
             break;
     	    
 	        case yyGL.RenderState_ColourWriteEnable:	        
-	            setColorMask(_renderStateData.red, _renderStateData.green, _renderStateData.blue, _renderStateData.alpha);
+	            SetColorMask(_renderStateData.red, _renderStateData.green, _renderStateData.blue, _renderStateData.alpha);
 	        break;	   	     
     	        
 	        case yyGL.RenderState_StencilEnable:
@@ -1287,7 +1287,7 @@ function yyCommandBuilder(_interpolatePixels) {
         }
     }
 
-    function setDepthMask(_value) {
+    function SetDepthMask(_value) {
         if (g_createsurfacedepthbuffers) {
             gl.depthMask(_value);
             m_depthMask = _value;
@@ -1296,22 +1296,22 @@ function yyCommandBuilder(_interpolatePixels) {
         }
     }
 
-    function setColorMask(_r,_g,_b,_a) {
+    function SetColorMask(_r,_g,_b,_a) {
         gl.colorMask(_r,_g,_b,_a);
         m_colorMask = [_r,_g,_b,_a];
     }
 
-    function getDepthMask() {
+    function GetDepthMask() {
         if (g_createsurfacedepthbuffers) {
-            return m_depthMask || gl.getParameter(gl.DEPTH_WRITEMASK);
+            return (m_depthMask !== null && m_depthMask !== undefined) ? m_depthMask : (m_depthMask = gl.getParameter(gl.DEPTH_WRITEMASK));
         } else {
             m_depthMask = false;
             return m_depthMask;
         }
     }
 
-    function getColorMask() {
-        return m_colorMask || gl.getParameter(gl.COLOR_WRITEMASK);
+    function GetColorMask() {
+        return (m_colorMask !== null && m_colorMask !== undefined) ? m_colorMask : (m_colorMask = gl.getParameter(gl.COLOR_WRITEMASK));
     }
 
     // #############################################################################################
@@ -1352,8 +1352,8 @@ function yyCommandBuilder(_interpolatePixels) {
                 // Clear the screen
                 case CMD_CLEARSCREEN:
                     {
-                        var depthMask = getDepthMask();
-                        var colorMask = getColorMask();
+                        var depthMask = GetDepthMask();
+                        var colorMask = GetColorMask();
                         gl.depthMask(true);
                         gl.colorMask(true, true, true, true);
                         col = m_commandList[i + 2];
@@ -1492,7 +1492,7 @@ function yyCommandBuilder(_interpolatePixels) {
                 // Render states
                 case CMD_SET_COLOUR_MASK:
                     {
-                        setColorMask(m_commandList[i + 2], m_commandList[i + 3], m_commandList[i + 4], m_commandList[i + 1]);
+                        SetColorMask(m_commandList[i + 2], m_commandList[i + 3], m_commandList[i + 4], m_commandList[i + 1]);
                         i += 5;
                         break;
                     }
