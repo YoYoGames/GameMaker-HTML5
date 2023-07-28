@@ -42,6 +42,7 @@ function    yyBackgroundImage()
 	
 	this.frames=0;
 	this.tilecount=0;
+	this.spriteindex=0;
 	this.framelength=0;
 	this.framedata=[];
 	
@@ -75,6 +76,7 @@ function CreateBackgroundImageFromStorage(_pStorage) {
 	
 	if (_pStorage.frames != undefined) pImage.frames = _pStorage.frames;
 	if (_pStorage.tilecount != undefined) pImage.tilecount = _pStorage.tilecount;
+	if (_pStorage.spriteindex != undefined) pImage.spriteindex = _pStorage.spriteindex;
 	if (_pStorage.framelength != undefined) pImage.framelength = _pStorage.framelength;
 	
 	for (var i = 0; i < _pStorage.frames * _pStorage.tilecount; i++)
@@ -123,6 +125,7 @@ function    yyBackground( _pStorage )
     
     if (_pStorage.frames!= undefined) this.frames = _pStorage.frames;
     if (_pStorage.tilecount!= undefined) this.tilecount = _pStorage.tilecount;
+	if (_pStorage.spriteindex!= undefined) this.spriteindex = _pStorage.spriteindex;
     if (_pStorage.framelength_micros!= undefined) this.framelength_micros = _pStorage.framelength_micros;
     if (_pStorage.pFrameData!= undefined) this.pFrameData = _pStorage.pFrameData;
 	

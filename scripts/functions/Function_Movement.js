@@ -505,7 +505,7 @@ function move_contact(_inst, _dir, _maxdist, _useall)
 		    return;
     }
 }
-function Command_InstancePlace(_pInst,_x,_y,_obj)
+function Command_InstancePlace(_pInst,_x,_y,_obj,_list)
 {
 	var xx = _pInst.x;
 	var yy = _pInst.y;
@@ -515,7 +515,12 @@ function Command_InstancePlace(_pInst,_x,_y,_obj)
 	var pInstance = Instance_SearchLoop(_pInst, yyGetInt32(_obj), false, OBJECT_NOONE,
 		function (_pInstance) {
 			if (_pInstance.Collision_Instance(_pInst, true)) {
-			    return _pInstance.id;
+				if(_list)
+				{
+					_list.Add(_pInstance.id);
+					return OBJECT_NOONE;
+				}	
+           		return MAKE_REF(REFID_INSTANCE, _pInstance.id);
 			}
 			return OBJECT_NOONE;
 		}
@@ -533,7 +538,7 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint
 		return ret;
 	}
 
-	var res = Command_InstancePlace(selfinst,selfinst.x,selfinst.y,ind);
+	var res = Command_InstancePlace(selfinst,selfinst.x,selfinst.y,ind,null);
 	if(res!=OBJECT_NOONE)
 		return ret;
 
@@ -617,7 +622,7 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint
 			ty = clamp(ty, clamp_miny, clamp_maxy); 
 		} 
  
-		res = Command_InstancePlace(selfinst, tx, ty, ind);
+		res = Command_InstancePlace(selfinst, tx, ty, ind,null);
 		if (res == OBJECT_NOONE)
 		{
 			selfinst.x =tx;
@@ -647,7 +652,7 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint
 						ty = clamp(ty, clamp_miny, clamp_maxy); 
 					} 
  
-					res = Command_InstancePlace(selfinst, tx, ty, ind);
+					res = Command_InstancePlace(selfinst, tx, ty, ind,null);
 					if (res==OBJECT_NOONE)
 					{
 						dist_to_travel -= this_step_dist*j; 
@@ -675,7 +680,7 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint
 					} 
  
 					
-					res = Command_InstancePlace(selfinst, tx, ty, ind);
+					res = Command_InstancePlace(selfinst, tx, ty, ind,null);
 					if (res==OBJECT_NOONE)
 					{
 						dist_to_travel -= this_step_dist*j; 
@@ -708,7 +713,7 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint
 						ty = clamp(ty, clamp_miny, clamp_maxy); 
 					} 
 					
-					res = Command_InstancePlace(selfinst, tx, ty, ind);
+					res = Command_InstancePlace(selfinst, tx, ty, ind,null);
 					if (res==OBJECT_NOONE)
 					{
 

@@ -31,6 +31,22 @@ var yySprite_CollisionType = {
 	SPINE_MESH: 3,         /**< Spine collision mesh check. */
 };
 
+
+/** @constructor */
+function ColVertPos()
+{
+	this.x=0;
+	this.y=0;
+}
+
+/** @constructor */
+function ColVertTex()
+{
+	this.u=0;
+	this.v=0;
+}
+
+
 // #############################################################################################
 /// Function:<summary>
 ///             simple rect
@@ -118,6 +134,9 @@ yySprite.prototype.GetYOrigin = function () { return this.yOrigin; };
 yySprite.prototype.GetBoundingBox = function () { return this.bbox; };
 yySprite.prototype.GetCount = function () { return this.numb; };
 
+
+yySprite.prototype.GetWidth = function () { return this.width; };
+yySprite.prototype.GetHeight = function () { return this.height; };
 /** Truncates a floating point value into an integer. */
 var __floatToInt = function (x) { return ~~x; };
 
@@ -1155,7 +1174,9 @@ yySprite.prototype.Sprite_DrawSimplePos = function (_sub_image, _x1, _y1, _x2, _
 
 
 
-
+yySprite.prototype.PreciseCollisionTilemap = function (img1, bb1, _x1, _y1, scale1x, scale1y, angle1, bb2, t_ibox,tMaskData,sprwidth) {
+	return true;
+}
 // #############################################################################################
 /// Function:<summary>
 ///				Returns whether img1 of the sprite at position (x1,y1), scaled with scalex,scaley 

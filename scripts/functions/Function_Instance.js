@@ -235,6 +235,310 @@ function instance_furthest( _inst, _x,_y,_obj )
 	return i;
 }
 
+function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
+{
+	var xx, yy;
+	var old_bbox = new YYRECT();
+	old_bbox = inst.bbox;
+	xx = inst.x;
+	yy = inst.y;
+	inst.SetPosition(_x, _y);
+
+	if (inst.bbox_dirty) inst.Compute_BoundingBox(false);
+
+
+
+	// Bounding box's overlap - deal with precise collision checking if necessary
+	
+	var  spr2 = null;
+	
+	if (inst.mask_index < 0)
+	{
+		spr2 = g_pSpriteManager.Get(inst.sprite_index);
+	}
+	else
+	{
+		spr2 = g_pSpriteManager.Get(inst.mask_index);
+	}
+
+
+	if ((spr2 == null) || (spr2.count == 0)) {
+		return false;
+	}
+
+
+    var pRoom = g_pLayerManager.GetTargetRoomObj();
+
+
+	var pLayer = null;
+	var el = null;
+	var elementAndLayer = g_pLayerManager.GetElementFromID( pRoom,tilemapind.value);
+	if (elementAndLayer != null)
+	{
+		pLayer = elementAndLayer.layer;
+		el = elementAndLayer.element;
+	}
+
+    if((el!=null) && (el.m_type ===eLayerElementType_Tilemap)&& (el.m_pTiles != null )&& (pLayer!=null))
+	{
+
+		//int sprindex = pTilemapEl->m_pBackground;
+		var pBack = g_pBackgroundManager.GetImage(el.m_backgroundIndex);
+
+		if (pBack == null)
+		{
+			inst.SetPosition(xx, yy);
+			inst.bbox = old_bbox;
+			yyError("Tilemap_InstancePlace() - could not find tileset for this map", false);
+			return false;
+		}
+
+		var spr = g_pSpriteManager.Get(pBack.spriteindex);
+		if ((spr == null) || (spr.count == 0)) {
+			return false;
+		}
+		var numtilesperrow = spr.GetWidth() / pBack.tilewidth;
+		var sprwidth = spr.GetWidth();
+
+		var tilewidth, tileheight;
+
+		var tmaskdata = spr.colmask[0];
+
+		tilewidth = pBack.tilewidth; 
+		tileheight = pBack.tileheight;
+
+		var rcpTileWidth = 1.0 / tilewidth;
+		var rcpTileHeight = 1.0 / tileheight;
+
+		var tmapbb= new YYRECT();
+
+		tmapbb.left = el.m_x + pLayer.m_xoffset;
+		tmapbb.top = el.m_y + pLayer.m_yoffset;
+
+		tmapbb.right =tmapbb.left + (el.m_mapWidth * tilewidth);
+		tmapbb.bottom = tmapbb.top +(el.m_mapHeight * tileheight);
+
+
+		//Do check at this point, don't return as we need to restore bound box (as it currently is)
+		var bb1 = (inst.bbox);
+
+		var l = (yymax(bb1.left, tmapbb.left));
+		var t = (yymax(bb1.top, tmapbb.top));
+		var r = (yymin(bb1.right, tmapbb.right));
+		var b = (yymin(bb1.bottom, tmapbb.bottom));
+
+		//Convert into tilemap cell space
+
+		var tilemaptopleftX = el.m_x + pLayer.m_xoffset;
+		var tilemaptopleftY = el.m_y + pLayer.m_yoffset;
+		
+		l -= tilemaptopleftX;
+		r -= tilemaptopleftX;
+
+		l *= rcpTileWidth;
+		r *= rcpTileHeight;
+
+		t -= tilemaptopleftY;
+		b -= tilemaptopleftY;
+
+		t *= rcpTileHeight;
+		b *= rcpTileHeight;
+
+		var tiledatamask = g_pLayerManager.GetTiledataMask();
+		tiledatamask &= el.m_tiledataMask;
+		r = yymin(r, tilewidth - 1);
+		b = yymin(b, tileheight - 1);
+		l = yymax(l, 0);
+		t = yymax(t, 0);
+		for (var x = l; x <= r; x++)
+		{
+			for (var y = t; y <= b; y++)
+			{
+				var index = (y * el.m_mapWidth) + x;
+				//int tmapindex = pTilemapEl->m_pTiles[index];
+
+
+				var tiledata = el.m_pTiles[index];
+				tiledata &= tiledatamask;	// and with our user mask
+				var tileindex = (tiledata >> TileIndex_Shift) & TileIndex_ShiftedMask;
+				if (tileindex == 0)
+					continue;
+
+				tileindex = pBack.GetAnimatedTileIndex(tileindex, el.m_frame);
+
+
+				if (tileindex > 0)
+				{
+					if (spr.GetCollisionChecking() || spr2.GetCollisionChecking() && prec)
+					{
+						//We have a set tile that overlaps our boundbox
+
+
+						var  CVert= new ColVertPos[4];
+						var  CTVert= new ColVertTex[4];
+
+						CVert[3].x = CVert[0].x = tmapbb.left + tilewidth * x;
+						CVert[1].x = CVert[2].x = CVert[0].x + tilewidth;
+
+						CVert[0].y = CVert[1].y = tmapbb.top + tileheight * y;
+						CVert[2].y = CVert[3].y = CVert[1].y + tileheight;
+
+
+						var trow = tileindex / numtilesperrow;
+						var rcol = tileindex % numtilesperrow;
+
+						CTVert[3].u = CTVert[0].u  = rcol * tilewidth;
+						CTVert[1].u = CTVert[2].u = CTVert[0].u + tilewidth;
+
+						CTVert[0].v = CTVert[1].v = trow * tileheight;
+						CTVert[2].v = CTVert[3].v = CTVert[0].v + tileheight;
+
+
+						if (tiledata & TileScaleRot_Mask)
+						{
+							if (tiledata & TileMirror_Mask)
+							{
+								var  temp= new ColVertTex();
+								temp = CTVert[1];
+								CTVert[1] = CTVert[0];
+								CTVert[0] = temp;
+								temp = CTVert[2];
+								CTVert[2] = CTVert[3];
+								CTVert[3] = temp;
+							}
+
+							if (tiledata & TileFlip_Mask)
+							{
+								var  temp= new ColVertTex();
+								temp = CTVert[3];
+								CTVert[3] = CTVert[0];
+								CTVert[0] = temp;
+								temp = CTVert[2];
+								CTVert[2] = CTVert[1];
+								CTVert[1] = temp;
+							}
+							var _TileRotate_Mask = (3 << TileRotate_Shift);
+							var rot = (tiledata & _TileRotate_Mask)>> TileRotate_Shift;
+							if (rot==1)
+							{
+								var  temp= new ColVertTex();
+								temp = CTVert[3];
+								CTVert[3] = CTVert[2];
+								CTVert[2] = CTVert[1];
+								CTVert[1] = CTVert[0];
+								CTVert[0] = temp;
+								
+							}
+							else if (rot == 2)
+							{
+								var  temp= new ColVertTex();
+								var  temp2= new ColVertTex();
+								temp = CTVert[3];
+								temp2 = CTVert[0];
+								CTVert[3] = CTVert[1];
+								CTVert[0] = CTVert[2];
+								CTVert[2] = temp2;
+								CTVert[1] = temp;
+			
+							}
+							else if (rot == 3)
+							{
+								var  temp= new ColVertTex();
+								var  temp2= new ColVertTex();
+								temp = CTVert[3];
+								temp2 = CTVert[0];
+								CTVert[1] = CTVert[2];
+								CTVert[0] = CTVert[1];
+								CTVert[3] = temp2;
+								CTVert[2] = temp;
+
+							}
+						}
+
+						if (spr2.PreciseCollisionTilemap(inst.imageindex, bb1, inst.x, inst.y, inst.imagescalex, inst.imagescaley, inst.imageangle, CVert,  CTVert, tmaskdata,sprwidth))
+						{
+
+							inst.SetPosition(xx, yy);
+							inst.bbox = old_bbox;
+							if (instlist != NULL)
+							{
+								instlist.Add(tilemapind);
+							}
+							return true;
+						}
+					}
+					else
+					{
+
+						inst.SetPosition(xx, yy);
+						inst.bbox = old_bbox;
+						if (instlist != NULL)
+						{
+							instlist.Add(tilemapind);
+						}
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	inst.SetPosition(xx, yy);
+	inst.bbox = old_bbox;
+	
+	return false;
+}
+
+
+function PerformColTest(_selfinst,_x,_y,_obj,_list)
+{
+	if(_obj instanceof YYRef)
+	{
+		var reftype = _obj.type;
+		if (reftype == REFID_BACKGROUND)
+		{
+			if (Tilemap_InstancePlace(_selfinst, _x, _y, _obj, null,true))
+			{
+				return _obj;
+			}
+			return -1;
+		}
+		else
+		{
+			var id = Command_InstancePlace(_selfinst,_x,_y,_obj,_list);
+		
+			return id;
+		}
+	}
+	else if (_obj instanceof Array)
+	{
+		for (var obj2 in _obj) 
+		{
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			{
+				if (Tilemap_InstancePlace(_selfinst, _x, _y, _obj, null,true))
+				{
+					return _obj;
+				}
+				return -1;
+			}
+			else
+			{
+				var id = Command_InstancePlace(_selfinst,_x,_y,obj2,_list);
+			
+				return id;
+			}
+		}
+
+	}
+	else
+	{
+		var id = Command_InstancePlace(_selfinst,_x,_y,_obj,_list);
+		
+		return id;
+	}
+}
+
 // #############################################################################################
 /// Function:<summary>
 ///          	Returns the id of the instance of type obj met when the current instance is 
@@ -251,26 +555,7 @@ function instance_furthest( _inst, _x,_y,_obj )
 // #############################################################################################
 function instance_place( _pInst, _x,_y,_obj) 
 {
-    _x = yyGetReal(_x);
-    _y = yyGetReal(_y);
-
-    var xx = _pInst.x;
-    var yy = _pInst.y;
-    _pInst.SetPosition(_x,_y);
-
-    var id = Instance_SearchLoop(null, yyGetInt32(_obj), false, OBJECT_NOONE, _x, _y,
-        function (_pInstance) {
-            if (_pInstance.Collision_Instance(_pInst, true))
-            {
-            	return MAKE_REF(REFID_INSTANCE, _pInstance.id);
-            }
-            else
-            {
-            	return OBJECT_NOONE;
-            }
-        }
-    );
-    _pInst.SetPosition(xx,yy);
+    var id = PerformColTest(_pInst,_x,_y,_obj,null);
     return id;
 }
 function instance_place_list(_pInst, _x, _y, _obj, _list, _ordered)
@@ -283,40 +568,13 @@ function instance_place_list(_pInst, _x, _y, _obj, _list, _ordered)
 	    yyError("Error: invalid ds_list ID (instance_place_list)");
 		return 0;
 	}
-	var xx = _pInst.x;
-	var yy = _pInst.y;
-	_pInst.SetPosition(_x,_y);
-	var found = 0;
-	var sort = yyGetBool(_ordered);
-	var arr = [];
+	PerformColTest(_pInst,_x,_y,_obj,list);
 
-	Instance_SearchLoop(null, yyGetInt32(_obj), false, OBJECT_NOONE, _x, _y,
-		function (_pInstance) {
-			if (_pInstance.Collision_Instance(_pInst, true)) {
-			    if (sort)
-			        arr[found] = _pInstance;
-                else
-                    list.Add(MAKE_REF(REFID_INSTANCE, _pInstance.id));
-                
-				found += 1;
-			}
-			return OBJECT_NOONE;
-		}
-	);
-	_pInst.SetPosition(xx, yy);
+// Need to fix the sorting of the list
+//	if (sort)
+//	    AppendCollisionResults(arr, list, _x, _y);
 
-    //Fritz: Looks like the C++ runner no longer appends the calling instance, so removing this here
-	// LB: YYC/VM also include the searching instance if "all" is used as the object type, even though
-	// its technically only there because we moved it there for the check. Add 1 to the found value match.
-//	if (_obj == OBJECT_ALL) {
-//		list.Add(_pInst.id);
-//		found++;
-//	}
-
-	if (sort)
-	    AppendCollisionResults(arr, list, _x, _y);
-
-	return found;
+	return list.count;
 }
 
 function DoDestroy(_pInst, _executeEvent)
