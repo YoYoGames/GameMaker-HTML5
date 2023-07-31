@@ -537,7 +537,7 @@ LayerManager.prototype.MoveElement = function(_room, _element, _targetlayer)
     if (_room == null)
         return;
 
-    if (_element = null)
+    if (_element == null)
         return;
 
     if (_targetlayer == null)
