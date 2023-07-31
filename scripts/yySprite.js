@@ -1172,10 +1172,166 @@ yySprite.prototype.Sprite_DrawSimplePos = function (_sub_image, _x1, _y1, _x2, _
 	Graphics_TextureDrawPos(this.ppTPE[_sub_image], _x1, _y1, _x2, _y2, _x3, _y3, _x4, _y4, _alpha);
 };
 
+function _ColMaskSet(u, v, pMaskBase,width)
+{
+	//HTML5 Doesn't have compressed masks so this is simpler
+	return pMaskBase[u + (v * width)]
+}
 
 
-yySprite.prototype.PreciseCollisionTilemap = function (img1, bb1, _x1, _y1, scale1x, scale1y, angle1, bb2, t_ibox,tMaskData,sprwidth) {
-	return true;
+yySprite.prototype.PreciseCollisionTilemap = function (img1, bb1, _x1, _y1, scale1x, scale1y, angle1, bb2, t_ibbox,tMaskData,sprwidth) {
+
+
+	// Compute overlapping bounding box
+	var l = yymax(bb1.left, bb2[0].x);
+
+	l = Math.floor(l) + 0.5;
+
+	var r = yymin(bb1.right, bb2[2].x);
+	var t = yymax(bb1.top, bb2[0].y);
+
+	t = Math.floor(t) + 0.5;
+	var b = yymin(bb1.bottom, bb2[2].y);
+
+
+	var leftedge = this.bbox.left;
+	var rightedge = this.bbox.right + 1.0;
+	var topedge = this.bbox.top;
+	var bottomedge = this.bbox.bottom + 1.0;
+
+
+	if (this.colcheck === yySprite.PRECISE)
+	{
+	    //If you have precise collisions you can't have collisions outside the texture - you can only do that with rectangle collisions where it is permissible to have i_bbox.left<0 etc
+	    if (leftedge < 0) 
+	        leftedge = 0;
+	    if (rightedge > this.width)
+	        rightedge = this.width;
+
+	    if (topedge < 0)
+	        topedge = 0;
+	    if (bottomedge > this.height)
+	        bottomedge = this.height;
+
+	}
+	var hasrot1 = false;
+
+	if (angle1 > g_GMLMathEpsilon || angle1 < -g_GMLMathEpsilon)
+		hasrot1 = true;
+
+	var sleftedge = t_ibbox[0].u;
+	var stopedge = t_ibbox[0].v;
+
+	scale1x = 1.0 / scale1x;
+	scale1y = 1.0 / scale1y;
+
+	var tuscalex = (t_ibbox[1].u - t_ibbox[0].u) / (bb2[1].x - bb2[0].x);
+	var tuscaley = (t_ibbox[3].u - t_ibbox[0].u) / (bb2[3].y - bb2[0].y);
+
+	var tvscalex = (t_ibbox[1].v - t_ibbox[0].v) / (bb2[1].x - bb2[0].x);
+	var tvscaley = (t_ibbox[3].v - t_ibbox[0].v) / (bb2[3].y - bb2[0].y);
+
+	var maskdata = null;
+	var maskdata2 = null;
+
+	maskdata = this.colmask[img1];//GetMaskData(img1);
+	maskdata2 = tMaskData;
+
+	var _sleftedge = yymin(t_ibbox[0].u, yymin(t_ibbox[1].u, t_ibbox[2].u));// sleftedge;
+	var _srightedge = yymax(t_ibbox[0].u, yymax(t_ibbox[1].u, t_ibbox[2].u));
+	var _stopedge = yymin(t_ibbox[0].v, yymin(t_ibbox[1].v, t_ibbox[2].v));
+	var  _sbottomedge = yymax(t_ibbox[0].v, yymax(t_ibbox[1].v, t_ibbox[2].v));
+
+	if (!hasrot1 )
+	{
+
+		var du1 = scale1x;
+		var du2 = tuscalex;
+		var u1 = ((l - _x1) * scale1x + this.GetXOrigin());
+		
+		for (var i = l; i < r; i += 1.0, u1 += du1)
+		{
+			var u2 = (((i) - bb2[0].x) * tuscalex + sleftedge) + (((t) - bb2[0].y) * tuscaley);
+			var v2 = (((t) - bb2[0].y) * tvscaley + stopedge) + (((i) - bb2[0].x) * tvscalex);
+
+			if ((u1 < leftedge) || (u1 >= rightedge)) continue;
+
+			var u1i = ~~u1;
+			
+			for (var j = t; j < b; j += 1.0, v2 += tvscaley, u2 += tuscaley)
+			{
+				if (maskdata != null)
+				{
+					var v1 = ((j - _y1) * scale1y + this.GetYOrigin());
+
+					if ((v1 < topedge) || (v1 >= bottomedge)) continue;
+					if (!ColMaskSet(u1i, ~~v1, maskdata))
+						continue;
+				}
+
+				if (maskdata2 != null)
+				{
+					if ((v2 < _stopedge) || (v2 >= _sbottomedge)) continue;
+					if ((u2 < _sleftedge) || (u2 >= _srightedge)) continue;
+
+					if (!_ColMaskSet(~~u2, ~~v2, maskdata2,sprwidth))
+						continue;
+
+				}
+				return true;
+			}
+		}
+	}
+	else
+	{
+		var ss1, cc1,  u1,  v1;
+
+		// "Do Everything" case - rotation AND scaling!
+		if (hasrot1)
+		{
+			ss1 = Math.sin(-angle1 * Pi / 180.0);
+			cc1 = Math.cos(-angle1 * Pi / 180.0);
+		}
+
+
+
+		for (var i = l; i < r; i += 1.0)
+		{
+			
+			var u2 = (((i) - bb2[0].x) * tuscalex + sleftedge) + (((t) - bb2[0].y) * tuscaley);
+			var v2 = (((t) - bb2[0].y) * tvscaley + stopedge) + (((i) - bb2[0].x) * tvscalex);
+			
+
+			for (var j = t; j < b; j += 1.0, v2 += tvscaley, u2 += tuscaley)
+			{
+
+				u1 = ((cc1 * (i - _x1) + ss1 * (j - _y1)) * scale1x + this.GetXOrigin());
+				if ((u1 < leftedge) || (u1 >= rightedge)) continue;
+				v1 = ((cc1 * (j - _y1) - ss1 * (i - _x1)) * scale1y + this.GetYOrigin());
+				
+
+				if ((v1 < topedge) || (v1 >= bottomedge)) continue;
+				if (maskdata != null)
+				{
+					if (!_ColMaskSet(~~u1, ~~v1, maskdata,this.GetWidth()))
+						continue;
+				}
+
+				if (maskdata2 != null)
+				{
+					if ((v2 < _stopedge) || (v2 >= _sbottomedge)) continue;
+					if ((u2 < _sleftedge) || (u2 >= _srightedge)) continue;
+
+					if (!_ColMaskSet(~~u2, ~~v2, maskdata2, sprwidth))
+						continue;
+
+				}
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 // #############################################################################################
 /// Function:<summary>

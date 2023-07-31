@@ -88,7 +88,9 @@ function CreateBackgroundImageFromStorage(_pStorage) {
 	return pImage;
 }
 
-
+yyBackgroundImage.prototype.GetAnimatedTileIndex = function (_sourceIndex,_frame) {
+	return this.framedata[(_sourceIndex * this.frames) + _frame]
+};
 // #############################################################################################
 /// Function:<summary>
 ///             Initialise a background from storage
@@ -281,6 +283,7 @@ yyBackgroundManager.prototype.Add = function (_pStorage) {
 	}
 	this.background[this.background.length] = pBack;
 };
+
 
 
 

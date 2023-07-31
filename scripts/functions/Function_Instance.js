@@ -275,8 +275,8 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 	var elementAndLayer = g_pLayerManager.GetElementFromID( pRoom,tilemapind.value);
 	if (elementAndLayer != null)
 	{
-		pLayer = elementAndLayer.layer;
-		el = elementAndLayer.element;
+		pLayer = elementAndLayer.m_layer;
+		el = elementAndLayer;
 	}
 
     if((el!=null) && (el.m_type ===eLayerElementType_Tilemap)&& (el.m_pTiles != null )&& (pLayer!=null))
@@ -346,17 +346,17 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 
 		var tiledatamask = g_pLayerManager.GetTiledataMask();
 		tiledatamask &= el.m_tiledataMask;
-		r = yymin(r, tilewidth - 1);
-		b = yymin(b, tileheight - 1);
-		l = yymax(l, 0);
-		t = yymax(t, 0);
+		r = ~~yymin(r, tilewidth - 1);
+		b = ~~yymin(b, tileheight - 1);
+		l = ~~yymax(l, 0);
+		t = ~~yymax(t, 0);
 		for (var x = l; x <= r; x++)
 		{
 			for (var y = t; y <= b; y++)
 			{
 				var index = (y * el.m_mapWidth) + x;
 				//int tmapindex = pTilemapEl->m_pTiles[index];
-
+				index = ~~index;
 
 				var tiledata = el.m_pTiles[index];
 				tiledata &= tiledatamask;	// and with our user mask
@@ -374,8 +374,8 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 						//We have a set tile that overlaps our boundbox
 
 
-						var  CVert= new ColVertPos[4];
-						var  CTVert= new ColVertTex[4];
+						var  CVert= [new ColVertPos(),new ColVertPos(),new ColVertPos(),new ColVertPos()];
+						var  CTVert= [new ColVertTex(),new ColVertTex(),new ColVertTex(),new ColVertTex()];
 
 						CVert[3].x = CVert[0].x = tmapbb.left + tilewidth * x;
 						CVert[1].x = CVert[2].x = CVert[0].x + tilewidth;
@@ -455,12 +455,12 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 							}
 						}
 
-						if (spr2.PreciseCollisionTilemap(inst.imageindex, bb1, inst.x, inst.y, inst.imagescalex, inst.imagescaley, inst.imageangle, CVert,  CTVert, tmaskdata,sprwidth))
+						if (spr2.PreciseCollisionTilemap(inst.image_index, bb1, inst.x, inst.y, inst.image_xscale, inst.image_yscale, inst.image_angle, CVert,  CTVert, tmaskdata,sprwidth))
 						{
 
 							inst.SetPosition(xx, yy);
 							inst.bbox = old_bbox;
-							if (instlist != NULL)
+							if (instlist != null)
 							{
 								instlist.Add(tilemapind);
 							}
@@ -472,7 +472,7 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 
 						inst.SetPosition(xx, yy);
 						inst.bbox = old_bbox;
-						if (instlist != NULL)
+						if (instlist != null)
 						{
 							instlist.Add(tilemapind);
 						}
@@ -490,7 +490,7 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 }
 
 
-function PerformColTest(_selfinst,_x,_y,_obj,_list)
+function PerformColTest(_selfinst,_x,_y,_obj)
 {
 	if(_obj instanceof YYRef)
 	{
@@ -505,7 +505,7 @@ function PerformColTest(_selfinst,_x,_y,_obj,_list)
 		}
 		else
 		{
-			var id = Command_InstancePlace(_selfinst,_x,_y,_obj,_list);
+			var id = Command_InstancePlace(_selfinst,_x,_y,_obj,null);
 		
 			return id;
 		}
@@ -520,20 +520,20 @@ function PerformColTest(_selfinst,_x,_y,_obj,_list)
 				{
 					return _obj;
 				}
-				return -1;
+				
 			}
 			else
 			{
-				var id = Command_InstancePlace(_selfinst,_x,_y,obj2,_list);
+				var id = Command_InstancePlace(_selfinst,_x,_y,obj2,null);
 			
 				return id;
 			}
 		}
-
+		return -1;
 	}
 	else
 	{
-		var id = Command_InstancePlace(_selfinst,_x,_y,_obj,_list);
+		var id = Command_InstancePlace(_selfinst,_x,_y,_obj,null);
 		
 		return id;
 	}
@@ -568,7 +568,8 @@ function instance_place_list(_pInst, _x, _y, _obj, _list, _ordered)
 	    yyError("Error: invalid ds_list ID (instance_place_list)");
 		return 0;
 	}
-	PerformColTest(_pInst,_x,_y,_obj,list);
+	//PerformColTest(_pInst,_x,_y,_obj,list);
+	//Doesn't work with lists
 
 // Need to fix the sorting of the list
 //	if (sort)
