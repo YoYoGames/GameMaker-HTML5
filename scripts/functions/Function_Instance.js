@@ -462,7 +462,7 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 							inst.bbox = old_bbox;
 							if (instlist != null)
 							{
-								instlist.Add(tilemapind);
+								instlist.push(tilemapind);
 							}
 							return true;
 						}
@@ -474,7 +474,7 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 						inst.bbox = old_bbox;
 						if (instlist != null)
 						{
-							instlist.Add(tilemapind);
+							instlist.push(tilemapind);
 						}
 						return true;
 					}
@@ -568,14 +568,46 @@ function instance_place_list(_pInst, _x, _y, _obj, _list, _ordered)
 	    yyError("Error: invalid ds_list ID (instance_place_list)");
 		return 0;
 	}
-	//PerformColTest(_pInst,_x,_y,_obj,list);
-	//Doesn't work with lists
 
-// Need to fix the sorting of the list
-//	if (sort)
-//	    AppendCollisionResults(arr, list, _x, _y);
+	var instList = [];
 
-	return list.count;
+
+
+	var skipafterswitch = false;
+	if(_obj instanceof YYRef)
+	{
+		var reftype = _obj.type;
+		if (reftype == REFID_BACKGROUND)
+		{
+			Tilemap_InstancePlace(_pInst, _x, _y, _obj, instList,true);
+			skipafterswitch = true;
+		}
+		
+	}
+	else if (_obj instanceof Array)
+	{
+		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
+		{
+			var obj2 = _obj[i]; 
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			{
+				Tilemap_InstancePlace(_pInst, _x, _y, obj2, instList,true);
+			}
+			else
+			{
+				Command_InstancePlace(_pInst,_x,_y,obj2,instList);
+			}
+		}
+		skipafterswitch = true;
+	}
+		
+	if(!skipafterswitch) //If we've been passed an array or a tilemap ref don't do this call
+		Command_InstancePlace(_pInst, _x, _y, _obj, instList);
+	
+	var count = instList.length;
+	AppendCollisionResults(instList, list, _x, _y, _ordered);
+
+	return count;
 }
 
 function DoDestroy(_pInst, _executeEvent)

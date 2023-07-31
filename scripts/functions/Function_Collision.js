@@ -65,16 +65,39 @@ function AppendCollisionResults(_instArray, _destList, _px, _py) {
     var sortArr = [];
     for (var i = 0; i < _instArray.length; ++i) {
         var pInst = _instArray[i];
-        var dx = pInst.x - _px;
-        var dy = pInst.y - _py;
-        var distSq = (dx * dx) + (dy * dy);
-        var obj = { instId: pInst.id, dist: distSq };
-        sortArr.push(obj);
+
+        if(pInst instanceof YYRef)
+        {
+            var reftype = pInst.type;
+		    if (reftype == REFID_BACKGROUND)
+            {
+                var pRoom = g_pLayerManager.GetTargetRoomObj();
+                var elementAndLayer = g_pLayerManager.GetElementFromID( pRoom,pInst.value);
+                var dx = elementAndLayer.x - _px;
+                var dy = elementAndLayer.y - _py;
+                var distSq = (dx * dx) + (dy * dy);
+                var obj = { ref:pInst, dist: distSq };
+                sortArr.push(obj);
+                pInst = null;
+            }
+            else
+                pInst = yyInst(null,null,yyGetInt32(pInst));
+        }
+    
+        if(pInst)
+        {
+            var dx = pInst.x - _px;
+            var dy = pInst.y - _py;
+            var distSq = (dx * dx) + (dy * dy);
+            var obj = { ref:MAKE_REF(REFID_INSTANCE, pInst.id), dist: distSq };
+            sortArr.push(obj);
+        }
+
     }
     sortArr.sort(function (a, b) { return a.dist - b.dist; });
 
     for (var i = 0; i < sortArr.length; ++i) {
-        _destList.Add(MAKE_REF(REFID_INSTANCE, sortArr[i].instId));
+        _destList.Add( sortArr[i].ref);
     }
 }
 

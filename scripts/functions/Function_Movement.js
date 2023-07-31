@@ -517,7 +517,7 @@ function Command_InstancePlace(_pInst,_x,_y,_obj,_list)
 			if (_pInstance.Collision_Instance(_pInst, true)) {
 				if(_list)
 				{
-					_list.Add(_pInstance.id);
+					_list.push(MAKE_REF(REFID_INSTANCE, _pInstance.id));
 					return OBJECT_NOONE;
 				}	
            		return MAKE_REF(REFID_INSTANCE, _pInstance.id);
