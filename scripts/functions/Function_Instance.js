@@ -182,7 +182,7 @@ function instance_position_list(_x, _y, _obj, _list, _ordered)
 	}
 	var skipafterswitch = false;
 	var instList = [];
-	
+
 	if(_obj instanceof YYRef)
 	{
 		var reftype = _obj.type;
@@ -796,7 +796,7 @@ function PerformColTest(_selfinst,_x,_y,_obj)
 			var obj2 = _obj[i]; 
 			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
 			{
-				if (Tilemap_InstancePlace(_selfinst, _x, _y, _obj, null,true))
+				if (Tilemap_InstancePlace(_selfinst, _x, _y, obj2, null,true))
 				{
 					return _obj;
 				}
@@ -805,8 +805,8 @@ function PerformColTest(_selfinst,_x,_y,_obj)
 			else
 			{
 				var id = Command_InstancePlace(_selfinst,_x,_y,obj2,null);
-			
-				return id;
+				if(id!=OBJECT_NOONE)
+					return id;
 			}
 		}
 		return -1;

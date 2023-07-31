@@ -126,27 +126,15 @@ function place_empty(_pInst,_x,_y,_obj)
 // #############################################################################################
 function place_meeting(_pInst,_x,_y,_obj) 
 {
-	var xx,yy, Result,pInstance;
 
-    Result=false;
-	xx = _pInst.x;  
-	yy = _pInst.y;
-	_pInst.SetPosition(yyGetReal(_x), yyGetReal(_y));
+	var res = PerformColTest(_pInst, _x, _y, _obj);
 
-
-	var pool = GetWithArray(yyGetInt32(_obj));
-	for (var inst = 0; inst < pool.length; inst++) 
+	if(res<0)
 	{
-	    pInstance = pool[inst];
-	    if ((pInstance.active) && (!pInstance.Marked)) {
-	        if (_pInst.Collision_Instance(pInstance, true)) {
-	            Result = true;
-	            break;
-	        }
-	    }
+		return false;
 	}
-	_pInst.SetPosition(xx,yy);
-    return Result;
+	else
+		return true;
 }
 
 // #############################################################################################
