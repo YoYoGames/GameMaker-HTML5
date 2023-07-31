@@ -4148,7 +4148,7 @@ function layer_element_move(_elid, _targetlayerID) {
         return -1;
     }
 
-    var targetlayer = g_pLayerManager.GetLayerFromID(yyGetInt32(_targetlayerID));
+    var targetlayer = g_pLayerManager.GetLayerFromID(room, yyGetInt32(_targetlayerID));
     if (targetlayer != null)
     {
         g_pLayerManager.MoveElement(room, elandlay.element, targetlayer);
