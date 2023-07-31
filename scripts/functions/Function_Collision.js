@@ -118,10 +118,7 @@ function collision_point_list(_pInst, _x, _y, _obj, _prec, _notme, _list, _order
     Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x, _y, _prec,  
         function( _pInstance ) {
             if (_pInstance.Collision_Point(_x,_y,_prec)) {
-                if (sort)
-                    arr[found] = _pInstance;
-                else
-                    list.Add(MAKE_REF(REFID_INSTANCE, _pInstance.id));
+                list.Add(MAKE_REF(REFID_INSTANCE, _pInstance.id));
                 found += 1;
             }
             return OBJECT_NOONE;
@@ -190,10 +187,7 @@ function collision_rectangle_list(_pInst, _x1, _y1, _x2, _y2, _obj, _prec, _notm
     Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
         function (_pInstance) {
         	if (_pInstance.Collision_Rectangle(_x1, _y1, _x2, _y2, _prec)) {
-        	    if (sort)
-        	        arr[found] = _pInstance;
-                else
-        	        list.Add(MAKE_REF(REFID_INSTANCE, _pInstance.id));
+      	        list.Add(MAKE_REF(REFID_INSTANCE, _pInstance.id));
                 found += 1;
             }
             return OBJECT_NOONE;
@@ -306,10 +300,7 @@ function collision_ellipse_list(_pInst, _x1, _y1, _x2, _y2, _obj, _prec, _notme,
 	Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,  
         function(_pInstance) {
             if (_pInstance.Collision_Ellipse(_x1,_y1,_x2,_y2,_prec)) {
-                if (sort)
-                    arr[found] = _pInstance;
-                else
-                    list.Add(MAKE_REF(REFID_INSTANCE, _pInstance.id));
+                list.Add(MAKE_REF(REFID_INSTANCE, _pInstance.id));
                 found += 1;
             }
         	return OBJECT_NOONE;
@@ -383,10 +374,7 @@ function collision_line_list(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,_list,_or
     Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
         function(_pInstance) {
             if (_pInstance.Collision_Line(_x1, _y1, _x2, _y2, _prec)) {
-                if (sort)
-                    arr[found] = _pInstance;
-                else
-                    list.Add(MAKE_REF(REFID_INSTANCE, _pInstance.id));
+                list.Add(MAKE_REF(REFID_INSTANCE, _pInstance.id));
                 found += 1;
             }
         	return OBJECT_NOONE;

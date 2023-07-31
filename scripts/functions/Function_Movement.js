@@ -529,6 +529,26 @@ function Command_InstancePlace(_pInst,_x,_y,_obj,_list)
 	return pInstance;
 };
 
+
+function Command_InstancePosition(_x,_y,_obj,_list)
+{
+	var pInstance = Instance_SearchLoop(null, yyGetInt32(_obj), false, OBJECT_NOONE,
+		function (_pInstance) {
+			if (_pInstance.Collision_Point(_x,_y, true)) {
+				if(_list)
+				{
+					_list.push(MAKE_REF(REFID_INSTANCE, _pInstance.id));
+					return OBJECT_NOONE;
+				}	
+           		return MAKE_REF(REFID_INSTANCE, _pInstance.id);
+			}
+			return OBJECT_NOONE;
+		}
+	);
+	
+	return pInstance;
+};
+
 function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint,_y_constraint)
 {
 	var ret =[];
