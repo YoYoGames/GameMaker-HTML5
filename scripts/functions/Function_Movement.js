@@ -72,39 +72,15 @@ function place_free(_pInst, _x,_y)
 // #############################################################################################
 function place_empty(_pInst,_x,_y,_obj) 
 {
-	var xx,yy, Result,pInstance;
 
-    Result=true;
-	xx = _pInst.x;  
-	yy = _pInst.y;
-	_pInst.SetPosition(yyGetReal(_x),yyGetReal(_y));
- 
+	if (is_undefined(_obj))
+		_obj = OBJECT_ALL;
+	
+	var res = PerformColTest(_pInst, _x, _y, _obj);
 
-	if (is_undefined(_obj)) {
-	    _obj = OBJECT_ALL;
-	}
-	else {
-	    _obj = yyGetInt32(_obj);
-	}
-
-
-	Result = Instance_SearchLoop(_pInst, Math.floor(_obj), true, false,
-        function (_pInstance) {
-            var coll = _pInst.Collision_Instance(_pInstance, true);
-            if (!coll) {
-                return false; //Has to be this way round as Instance_SearchLoop bails on positive result
-            }
-            return true;
-        }
-    );
-
-
-	_pInst.SetPosition(xx, yy);
-
-	if (Result)
-	    return false;
-	else
-	    return true;
+	if(res<0)
+		return true;
+	return false;
 	
 }
 
