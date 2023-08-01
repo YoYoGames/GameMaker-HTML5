@@ -1177,7 +1177,91 @@ function _ColMaskSet(u, v, pMaskBase,width)
 	//HTML5 Doesn't have compressed masks so this is simpler
 	return pMaskBase[u + (v * width)]
 }
+yySprite.prototype.CollisionTilemapEllipse= function (bb2,xl,yl,xr,yr)
+{
+	var l = yymax(xl, bb2[0].x);
 
+	l = ~~(Math.floor(l) + 0.5);
+
+	var r = ~~yymin(xr, bb2[2].x);
+	var t = yymax(yl, bb2[0].y);
+
+	t = ~~(Math.floor(t) + 0.5);
+	var b = ~~yymin(yr, bb2[2].y);
+
+
+	var mx = ((xl+xr) / 2);
+	var my = ((yl+yr) / 2);
+	var ww = ((xr - xl) / 2);
+	var hh = ((yr - yl) / 2);
+
+	for (var i = l; i <= r; i++)
+	{
+		for (var j = t; j <= b; j++)
+		{
+			if (Sqr((i - mx) / ww) + Sqr((j - my) / hh) > 1) 
+				continue;   // outside ellipse
+
+			return true;
+		}
+	}
+	return false;
+
+}
+yySprite.prototype.PreciseCollisionTilemapEllipse= function ( tMaskData, bb2, t_ibbox,  xl,  yl,  xr, yr,  sprwidth)
+{
+	var l = yymax(xl, bb2[0].x);
+
+	l = ~~(Math.floor(l) + 0.5);
+
+	var r = ~~yymin(xr, bb2[2].x);
+	var t = yymax(yl, bb2[0].y);
+
+	t = ~~(Math.floor(t) + 0.5);
+	var b = ~~yymin(yr, bb2[2].y);
+
+	var sleftedge = t_ibbox[0].u;
+	var stopedge = t_ibbox[0].v;
+
+
+	var tuscalex = (t_ibbox[1].u - t_ibbox[0].u) / (bb2[1].x - bb2[0].x);
+	var tuscaley = (t_ibbox[3].u - t_ibbox[0].u) / (bb2[3].y - bb2[0].y);
+
+	var tvscalex = (t_ibbox[1].v - t_ibbox[0].v) / (bb2[1].x - bb2[0].x);
+	var tvscaley = (t_ibbox[3].v - t_ibbox[0].v) / (bb2[3].y - bb2[0].y);
+
+	var _sleftedge = yymin(t_ibbox[0].u, yymin(t_ibbox[1].u, t_ibbox[2].u));// sleftedge;
+	var _srightedge = yymax(t_ibbox[0].u, yymax(t_ibbox[1].u, t_ibbox[2].u));
+	var _stopedge = yymin(t_ibbox[0].v, yymin(t_ibbox[1].v, t_ibbox[2].v));
+	var  _sbottomedge = yymax(t_ibbox[0].v, yymax(t_ibbox[1].v, t_ibbox[2].v));
+
+	var mx = ((xl+xr) / 2);
+	var my = ((yl+yr) / 2);
+	var ww = ((xr - xl) / 2);
+	var hh = ((yr - yl) / 2);
+
+	
+	for (var i = l; i <= r; i++)
+	{
+		var u2 = (((i)-bb2[0].x) * tuscalex + sleftedge) + (((t)-bb2[0].y) * tuscaley);
+		var v2 = (((t)-bb2[0].y) * tvscaley + stopedge) + (((i)-bb2[0].x) * tvscalex);
+
+		for (var j = t; j <= b; j++, v2 += tvscaley, u2 += tuscaley)
+		{
+			if (Sqr((i - mx) / ww) + Sqr((j - my) / hh) > 1) continue;   // outside ellipse
+
+			if ((v2 < _stopedge) || (v2 >= _sbottomedge)) continue;
+			if ((u2 < _sleftedge) || (u2 >= _srightedge)) continue;
+
+			if (_ColMaskSet(~~u2, ~~v2, tMaskData,sprwidth))
+				return true;
+
+
+		}
+	}
+	return false;
+
+}
 
 yySprite.prototype.PreciseCollisionTilemap = function (img1, bb1, _x1, _y1, scale1x, scale1y, angle1, bb2, t_ibbox,tMaskData,sprwidth) {
 
@@ -1265,7 +1349,7 @@ yySprite.prototype.PreciseCollisionTilemap = function (img1, bb1, _x1, _y1, scal
 					var v1 = ((j - _y1) * scale1y + this.GetYOrigin());
 
 					if ((v1 < topedge) || (v1 >= bottomedge)) continue;
-					if (!ColMaskSet(u1i, ~~v1, maskdata))
+					if (!_ColMaskSet(u1i, ~~v1, maskdata,sprwidth))
 						continue;
 				}
 
