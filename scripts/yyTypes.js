@@ -336,9 +336,11 @@ function yyGetRef(_value, _ref, _maxNum, _array, _allowOutOfRange) {
     if (_value instanceof YYRef) {
         var type = _value.type;
         if (type != _ref) {
-            yyError("incorrect type (" + RefName(type) + ") expecting a " + RefName(_ref));
+            if(!_allowOutOfRange)
+                yyError("incorrect type (" + RefName(type) + ") expecting a " + RefName(_ref));
         }
-        ret = _value.value;
+        else
+            ret = _value.value;
     }
     else {
         ret = yyGetInt32(_value);
