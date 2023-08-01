@@ -469,6 +469,39 @@ function move_contact(_inst, _dir, _maxdist, _useall)
 		    return;
     }
 }
+
+function Command_CollisionPoint(_pInst,_x,_y,_obj)
+{
+
+    _obj = yyGetInt32(_obj);
+
+	var Result,pInstance;
+
+    Result=false;
+ 
+    if (_obj == OBJECT_SELF) _obj = _pInst.id;
+
+    var x = yyGetReal(_x);
+    var y = yyGetReal(_y);
+
+    x = ~~x;
+    y = ~~y;
+
+    var pool = GetWithArray(_obj);
+	for (var inst = 0; inst < pool.length; inst++) 
+	{
+	    pInstance = pool[inst];
+	    if ((pInstance.active) && (!pInstance.Marked)) {
+	        if (pInstance.Collision_Point(x, y, true)) {
+	            Result = true;
+	            break;
+	        }
+	    }
+	}
+    return Result;
+
+}
+
 function Command_InstancePlace(_pInst,_x,_y,_obj,_list)
 {
 	var xx = _pInst.x;
@@ -949,32 +982,52 @@ function position_empty(_inst,_x,_y)
 // #############################################################################################
 function position_meeting(_pInst,_x,_y,_obj) 
 {
-    _obj = yyGetInt32(_obj);
-
-	var Result,pInstance;
-
-    Result=false;
- 
-    if (_obj == OBJECT_SELF) _obj = _pInst.id;
-
-    var x = yyGetReal(_x);
-    var y = yyGetReal(_y);
-
-    x = ~~x;
-    y = ~~y;
-
-    var pool = GetWithArray(_obj);
-	for (var inst = 0; inst < pool.length; inst++) 
+	if(_obj instanceof YYRef)
 	{
-	    pInstance = pool[inst];
-	    if ((pInstance.active) && (!pInstance.Marked)) {
-	        if (pInstance.Collision_Point(x, y, true)) {
-	            Result = true;
-	            break;
-	        }
-	    }
+		var reftype = _obj.type;
+		if (reftype == REFID_BACKGROUND)
+		{
+			if (Tilemap_PointPlace( _x, _y, _obj, null,true))
+			{
+				return true;
+			}
+			return false;
+		}
+		else
+		{
+			var id = Command_CollisionPoint(_pInst,_x,_y,_obj);
+			
+			return id;
+		}
 	}
-    return Result;
+	else if (_obj instanceof Array)
+	{
+		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
+		{
+			var obj2 = _obj[i]; 
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			{
+				if (Tilemap_PointPlace( _x, _y, obj2, null,true))
+				{
+					return true;
+				}
+				
+			}
+			else
+			{
+				var id = Command_CollisionPoint(_pInst,_x,_y,obj2);
+				if(id==true)
+					return true;
+			}
+		}
+		return false;
+	}
+	else
+	{
+		var id = Command_CollisionPoint(_pInst,_x,_y,_obj);
+		
+		return id;
+	}
 }
 
 
