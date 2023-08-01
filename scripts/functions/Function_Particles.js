@@ -61,7 +61,7 @@ function GetTimeSourceUnit(arg)
 function GetLayer(_layerID)
 {
     var layerIsString = (typeof _layerID == "string");
-    var room = g_pLayerManager.GetTargetRoomObj()
+    var room = g_pLayerManager.GetTargetRoomObj();
     var layer = layerIsString
         ? g_pLayerManager.GetLayerFromName(room, yyGetString(_layerID))
         : g_pLayerManager.GetLayerFromID(room, yyGetInt32(_layerID));
