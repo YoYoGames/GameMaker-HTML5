@@ -1537,6 +1537,7 @@ yySprite.prototype.PreciseCollisionTilemap = function (img1, bb1, _x1, _y1, scal
 	var _srightedge = yymax(t_ibbox[0].u, yymax(t_ibbox[1].u, t_ibbox[2].u));
 	var _stopedge = yymin(t_ibbox[0].v, yymin(t_ibbox[1].v, t_ibbox[2].v));
 	var  _sbottomedge = yymax(t_ibbox[0].v, yymax(t_ibbox[1].v, t_ibbox[2].v));
+	var ourwidth = this.GetWidth();
 
 	if (!hasrot1 )
 	{
@@ -1561,7 +1562,7 @@ yySprite.prototype.PreciseCollisionTilemap = function (img1, bb1, _x1, _y1, scal
 					var v1 = ((j - _y1) * scale1y + this.GetYOrigin());
 
 					if ((v1 < topedge) || (v1 >= bottomedge)) continue;
-					if (!_ColMaskSet(u1i, ~~v1, maskdata,sprwidth))
+					if (!_ColMaskSet(u1i, ~~v1, maskdata,ourwidth))
 						continue;
 				}
 
@@ -1609,7 +1610,7 @@ yySprite.prototype.PreciseCollisionTilemap = function (img1, bb1, _x1, _y1, scal
 				if ((v1 < topedge) || (v1 >= bottomedge)) continue;
 				if (maskdata != null)
 				{
-					if (!_ColMaskSet(~~u1, ~~v1, maskdata,this.GetWidth()))
+					if (!_ColMaskSet(~~u1, ~~v1, maskdata,ourwidth))
 						continue;
 				}
 

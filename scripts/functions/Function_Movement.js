@@ -549,14 +549,17 @@ function Command_InstancePosition(_x,_y,_obj,_list)
 function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint,_y_constraint)
 {
 	var ret =[];
-	if ((ind == OBJECT_SELF) && (selfinst != NULL)) ind = selfinst.id;
-	if (ind == OBJECT_NOONE)
+	if(ind instanceof Long)
 	{
-		return ret;
+		if ((ind == OBJECT_SELF) && (selfinst != NULL)) ind = selfinst.id;
+		if (ind == OBJECT_NOONE)
+		{
+			return ret;
+		}
 	}
 
-	var res = Command_InstancePlace(selfinst,selfinst.x,selfinst.y,ind,null);
-	if(res!=OBJECT_NOONE)
+	var res = PerformColTest(selfinst,selfinst.x,selfinst.y,ind);
+	if(res>=0)
 		return ret;
 
 	if ((dx == 0) && (dy == 0))
@@ -639,8 +642,8 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint
 			ty = clamp(ty, clamp_miny, clamp_maxy); 
 		} 
  
-		res = Command_InstancePlace(selfinst, tx, ty, ind,null);
-		if (res == OBJECT_NOONE)
+		res = PerformColTest(selfinst, tx, ty, ind);
+		if (res <0)
 		{
 			selfinst.x =tx;
 			selfinst.y =ty;
@@ -669,8 +672,8 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint
 						ty = clamp(ty, clamp_miny, clamp_maxy); 
 					} 
  
-					res = Command_InstancePlace(selfinst, tx, ty, ind,null);
-					if (res==OBJECT_NOONE)
+					res = PerformColTest(selfinst, tx, ty, ind);
+					if (res<0)
 					{
 						dist_to_travel -= this_step_dist*j; 
 						has_moved = true;
@@ -697,8 +700,8 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint
 					} 
  
 					
-					res = Command_InstancePlace(selfinst, tx, ty, ind,null);
-					if (res==OBJECT_NOONE)
+					res = PerformColTest(selfinst, tx, ty, ind);
+					if (res<0)
 					{
 						dist_to_travel -= this_step_dist*j; 
 						has_moved = true;
@@ -730,8 +733,8 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint
 						ty = clamp(ty, clamp_miny, clamp_maxy); 
 					} 
 					
-					res = Command_InstancePlace(selfinst, tx, ty, ind,null);
-					if (res==OBJECT_NOONE)
+					res = PerformColTest(selfinst, tx, ty, ind);
+					if (res<0)
 					{
 
 						dist_to_travel -= this_step_dist*j; 
