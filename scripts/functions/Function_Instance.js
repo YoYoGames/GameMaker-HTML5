@@ -291,6 +291,77 @@ function instance_furthest( _inst, _x,_y,_obj )
 	return i;
 }
 
+function GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata)
+{
+	CTVert[3].u = CTVert[0].u  = rcol * tilewidth;
+	CTVert[1].u = CTVert[2].u = CTVert[0].u + tilewidth;
+
+	CTVert[0].v = CTVert[1].v = trow * tileheight;
+	CTVert[2].v = CTVert[3].v = CTVert[0].v + tileheight;
+
+
+	if (tiledata & TileScaleRot_Mask)
+	{
+		if (tiledata & TileMirror_Mask)
+		{
+			var  temp= new ColVertTex();
+			temp = CTVert[1];
+			CTVert[1] = CTVert[0];
+			CTVert[0] = temp;
+			temp = CTVert[2];
+			CTVert[2] = CTVert[3];
+			CTVert[3] = temp;
+		}
+
+		if (tiledata & TileFlip_Mask)
+		{
+			var  temp= new ColVertTex();
+			temp = CTVert[3];
+			CTVert[3] = CTVert[0];
+			CTVert[0] = temp;
+			temp = CTVert[2];
+			CTVert[2] = CTVert[1];
+			CTVert[1] = temp;
+		}
+		var _TileRotate_Mask = (3 << TileRotate_Shift);
+		var rot = (tiledata & _TileRotate_Mask)>> TileRotate_Shift;
+		if (rot==1)
+		{
+			var  temp= new ColVertTex();
+			temp = CTVert[3];
+			CTVert[3] = CTVert[2];
+			CTVert[2] = CTVert[1];
+			CTVert[1] = CTVert[0];
+			CTVert[0] = temp;
+			
+		}
+		else if (rot == 2)
+		{
+			var  temp= new ColVertTex();
+			var  temp2= new ColVertTex();
+			temp = CTVert[3];
+			temp2 = CTVert[0];
+			CTVert[3] = CTVert[1];
+			CTVert[0] = CTVert[2];
+			CTVert[2] = temp2;
+			CTVert[1] = temp;
+
+		}
+		else if (rot == 3)
+		{
+			var  temp= new ColVertTex();
+			var  temp2= new ColVertTex();
+			temp = CTVert[3];
+			temp2 = CTVert[0];
+			CTVert[1] = CTVert[2];
+			CTVert[0] = CTVert[1];
+			CTVert[3] = temp2;
+			CTVert[2] = temp;
+
+		}
+	}
+}
+
 function Tilemap_CollisionRectangle(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 {
 	var pRoom = g_pLayerManager.GetTargetRoomObj();
@@ -424,73 +495,8 @@ function Tilemap_CollisionRectangle(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 
 						var trow = ~~(tileindex / numtilesperrow);
 						var rcol = ~~(tileindex % numtilesperrow);
-
-						CTVert[3].u = CTVert[0].u  = rcol * tilewidth;
-						CTVert[1].u = CTVert[2].u = CTVert[0].u + tilewidth;
-
-						CTVert[0].v = CTVert[1].v = trow * tileheight;
-						CTVert[2].v = CTVert[3].v = CTVert[0].v + tileheight;
-
-						if (tiledata & TileScaleRot_Mask)
-						{
-							if (tiledata & TileMirror_Mask)
-							{
-								var  temp= new ColVertTex();
-								temp = CTVert[1];
-								CTVert[1] = CTVert[0];
-								CTVert[0] = temp;
-								temp = CTVert[2];
-								CTVert[2] = CTVert[3];
-								CTVert[3] = temp;
-							}
-
-							if (tiledata & TileFlip_Mask)
-							{
-								var  temp= new ColVertTex();
-								temp = CTVert[3];
-								CTVert[3] = CTVert[0];
-								CTVert[0] = temp;
-								temp = CTVert[2];
-								CTVert[2] = CTVert[1];
-								CTVert[1] = temp;
-							}
-							var _TileRotate_Mask = (3 << TileRotate_Shift);
-							var rot = (tiledata & _TileRotate_Mask)>> TileRotate_Shift;
-							if (rot==1)
-							{
-								var  temp= new ColVertTex();
-								temp = CTVert[3];
-								CTVert[3] = CTVert[2];
-								CTVert[2] = CTVert[1];
-								CTVert[1] = CTVert[0];
-								CTVert[0] = temp;
-								
-							}
-							else if (rot == 2)
-							{
-								var  temp= new ColVertTex();
-								var  temp2= new ColVertTex();
-								temp = CTVert[3];
-								temp2 = CTVert[0];
-								CTVert[3] = CTVert[1];
-								CTVert[0] = CTVert[2];
-								CTVert[2] = temp2;
-								CTVert[1] = temp;
-			
-							}
-							else if (rot == 3)
-							{
-								var  temp= new ColVertTex();
-								var  temp2= new ColVertTex();
-								temp = CTVert[3];
-								temp2 = CTVert[0];
-								CTVert[1] = CTVert[2];
-								CTVert[0] = CTVert[1];
-								CTVert[3] = temp2;
-								CTVert[2] = temp;
-
-							}
-						}
+						GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata);
+						
 						
 						if (spr.PreciseCollisionTilemapRect(tmaskdata, CVert, CTVert, x1, y1, x2, y2, spr.GetWidth()))
 						{
@@ -654,73 +660,7 @@ function Tilemap_CollisionLine(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 						var trow = ~~(tileindex / numtilesperrow);
 						var rcol = ~~(tileindex % numtilesperrow);
 
-						CTVert[3].u = CTVert[0].u  = rcol * tilewidth;
-						CTVert[1].u = CTVert[2].u = CTVert[0].u + tilewidth;
-
-						CTVert[0].v = CTVert[1].v = trow * tileheight;
-						CTVert[2].v = CTVert[3].v = CTVert[0].v + tileheight;
-
-						if (tiledata & TileScaleRot_Mask)
-						{
-							if (tiledata & TileMirror_Mask)
-							{
-								var  temp= new ColVertTex();
-								temp = CTVert[1];
-								CTVert[1] = CTVert[0];
-								CTVert[0] = temp;
-								temp = CTVert[2];
-								CTVert[2] = CTVert[3];
-								CTVert[3] = temp;
-							}
-
-							if (tiledata & TileFlip_Mask)
-							{
-								var  temp= new ColVertTex();
-								temp = CTVert[3];
-								CTVert[3] = CTVert[0];
-								CTVert[0] = temp;
-								temp = CTVert[2];
-								CTVert[2] = CTVert[1];
-								CTVert[1] = temp;
-							}
-							var _TileRotate_Mask = (3 << TileRotate_Shift);
-							var rot = (tiledata & _TileRotate_Mask)>> TileRotate_Shift;
-							if (rot==1)
-							{
-								var  temp= new ColVertTex();
-								temp = CTVert[3];
-								CTVert[3] = CTVert[2];
-								CTVert[2] = CTVert[1];
-								CTVert[1] = CTVert[0];
-								CTVert[0] = temp;
-								
-							}
-							else if (rot == 2)
-							{
-								var  temp= new ColVertTex();
-								var  temp2= new ColVertTex();
-								temp = CTVert[3];
-								temp2 = CTVert[0];
-								CTVert[3] = CTVert[1];
-								CTVert[0] = CTVert[2];
-								CTVert[2] = temp2;
-								CTVert[1] = temp;
-			
-							}
-							else if (rot == 3)
-							{
-								var  temp= new ColVertTex();
-								var  temp2= new ColVertTex();
-								temp = CTVert[3];
-								temp2 = CTVert[0];
-								CTVert[1] = CTVert[2];
-								CTVert[0] = CTVert[1];
-								CTVert[3] = temp2;
-								CTVert[2] = temp;
-
-							}
-						}
-
+						GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata);
 						
 						if (spr.PreciseCollisionTilemapLine(tmaskdata, CVert, CTVert, x1, y1, x2, y2, spr.GetWidth()))
 						{
@@ -878,73 +818,7 @@ function Tilemap_CollisionEllipse(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 						var trow = ~~(tileindex / numtilesperrow);
 						var rcol = ~~(tileindex % numtilesperrow);
 
-						CTVert[3].u = CTVert[0].u  = rcol * tilewidth;
-						CTVert[1].u = CTVert[2].u = CTVert[0].u + tilewidth;
-
-						CTVert[0].v = CTVert[1].v = trow * tileheight;
-						CTVert[2].v = CTVert[3].v = CTVert[0].v + tileheight;
-
-						if (tiledata & TileScaleRot_Mask)
-						{
-							if (tiledata & TileMirror_Mask)
-							{
-								var  temp= new ColVertTex();
-								temp = CTVert[1];
-								CTVert[1] = CTVert[0];
-								CTVert[0] = temp;
-								temp = CTVert[2];
-								CTVert[2] = CTVert[3];
-								CTVert[3] = temp;
-							}
-
-							if (tiledata & TileFlip_Mask)
-							{
-								var  temp= new ColVertTex();
-								temp = CTVert[3];
-								CTVert[3] = CTVert[0];
-								CTVert[0] = temp;
-								temp = CTVert[2];
-								CTVert[2] = CTVert[1];
-								CTVert[1] = temp;
-							}
-							var _TileRotate_Mask = (3 << TileRotate_Shift);
-							var rot = (tiledata & _TileRotate_Mask)>> TileRotate_Shift;
-							if (rot==1)
-							{
-								var  temp= new ColVertTex();
-								temp = CTVert[3];
-								CTVert[3] = CTVert[2];
-								CTVert[2] = CTVert[1];
-								CTVert[1] = CTVert[0];
-								CTVert[0] = temp;
-								
-							}
-							else if (rot == 2)
-							{
-								var  temp= new ColVertTex();
-								var  temp2= new ColVertTex();
-								temp = CTVert[3];
-								temp2 = CTVert[0];
-								CTVert[3] = CTVert[1];
-								CTVert[0] = CTVert[2];
-								CTVert[2] = temp2;
-								CTVert[1] = temp;
-			
-							}
-							else if (rot == 3)
-							{
-								var  temp= new ColVertTex();
-								var  temp2= new ColVertTex();
-								temp = CTVert[3];
-								temp2 = CTVert[0];
-								CTVert[1] = CTVert[2];
-								CTVert[0] = CTVert[1];
-								CTVert[3] = temp2;
-								CTVert[2] = temp;
-
-							}
-						}
-
+						GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata);
 						
 						if (spr.PreciseCollisionTilemapEllipse(tmaskdata, CVert, CTVert, x1, y1, x2, y2, spr.GetWidth()))
 						{
@@ -1090,74 +964,8 @@ function Tilemap_PointPlace( _x, _y, tilemapind, instlist,prec)
 				var trow = ~~(tileindex / numtilesperrow);
 				var rcol = ~~(tileindex % numtilesperrow);
 
-				CTVert[3].u = CTVert[0].u  = rcol * tilewidth;
-				CTVert[1].u = CTVert[2].u = CTVert[0].u + tilewidth;
-
-				CTVert[0].v = CTVert[1].v = trow * tileheight;
-				CTVert[2].v = CTVert[3].v = CTVert[0].v + tileheight;
-
-
-
-				if (tiledata & TileScaleRot_Mask)
-				{
-					if (tiledata & TileMirror_Mask)
-					{
-						var  temp= new ColVertTex();
-						temp = CTVert[1];
-						CTVert[1] = CTVert[0];
-						CTVert[0] = temp;
-						temp = CTVert[2];
-						CTVert[2] = CTVert[3];
-						CTVert[3] = temp;
-					}
-
-					if (tiledata & TileFlip_Mask)
-					{
-						var  temp= new ColVertTex();
-						temp = CTVert[3];
-						CTVert[3] = CTVert[0];
-						CTVert[0] = temp;
-						temp = CTVert[2];
-						CTVert[2] = CTVert[1];
-						CTVert[1] = temp;
-					}
-					var _TileRotate_Mask = (3 << TileRotate_Shift);
-					var rot = (tiledata & _TileRotate_Mask)>> TileRotate_Shift;
-					if (rot==1)
-					{
-						var  temp= new ColVertTex();
-						temp = CTVert[3];
-						CTVert[3] = CTVert[2];
-						CTVert[2] = CTVert[1];
-						CTVert[1] = CTVert[0];
-						CTVert[0] = temp;
-						
-					}
-					else if (rot == 2)
-					{
-						var  temp= new ColVertTex();
-						var  temp2= new ColVertTex();
-						temp = CTVert[3];
-						temp2 = CTVert[0];
-						CTVert[3] = CTVert[1];
-						CTVert[0] = CTVert[2];
-						CTVert[2] = temp2;
-						CTVert[1] = temp;
-	
-					}
-					else if (rot == 3)
-					{
-						var  temp= new ColVertTex();
-						var  temp2= new ColVertTex();
-						temp = CTVert[3];
-						temp2 = CTVert[0];
-						CTVert[1] = CTVert[2];
-						CTVert[0] = CTVert[1];
-						CTVert[3] = temp2;
-						CTVert[2] = temp;
-
-					}
-				}
+				GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata);
+				
 				var xfrac = (_x - CVert[0].x) / tilewidth;
 				var yfrac = (_y - CVert[0].y) / tileheight;
 				var upoint = CTVert[0].u + xfrac * (CTVert[1].u - CTVert[0].u) + yfrac*(CTVert[3].u-CTVert[0].u);
@@ -1343,73 +1151,8 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 						var trow = ~~(tileindex / numtilesperrow);
 						var rcol = ~~(tileindex % numtilesperrow);
 
-						CTVert[3].u = CTVert[0].u  = rcol * tilewidth;
-						CTVert[1].u = CTVert[2].u = CTVert[0].u + tilewidth;
-
-						CTVert[0].v = CTVert[1].v = trow * tileheight;
-						CTVert[2].v = CTVert[3].v = CTVert[0].v + tileheight;
-
-
-						if (tiledata & TileScaleRot_Mask)
-						{
-							if (tiledata & TileMirror_Mask)
-							{
-								var  temp= new ColVertTex();
-								temp = CTVert[1];
-								CTVert[1] = CTVert[0];
-								CTVert[0] = temp;
-								temp = CTVert[2];
-								CTVert[2] = CTVert[3];
-								CTVert[3] = temp;
-							}
-
-							if (tiledata & TileFlip_Mask)
-							{
-								var  temp= new ColVertTex();
-								temp = CTVert[3];
-								CTVert[3] = CTVert[0];
-								CTVert[0] = temp;
-								temp = CTVert[2];
-								CTVert[2] = CTVert[1];
-								CTVert[1] = temp;
-							}
-							var _TileRotate_Mask = (3 << TileRotate_Shift);
-							var rot = (tiledata & _TileRotate_Mask)>> TileRotate_Shift;
-							if (rot==1)
-							{
-								var  temp= new ColVertTex();
-								temp = CTVert[3];
-								CTVert[3] = CTVert[2];
-								CTVert[2] = CTVert[1];
-								CTVert[1] = CTVert[0];
-								CTVert[0] = temp;
-								
-							}
-							else if (rot == 2)
-							{
-								var  temp= new ColVertTex();
-								var  temp2= new ColVertTex();
-								temp = CTVert[3];
-								temp2 = CTVert[0];
-								CTVert[3] = CTVert[1];
-								CTVert[0] = CTVert[2];
-								CTVert[2] = temp2;
-								CTVert[1] = temp;
-			
-							}
-							else if (rot == 3)
-							{
-								var  temp= new ColVertTex();
-								var  temp2= new ColVertTex();
-								temp = CTVert[3];
-								temp2 = CTVert[0];
-								CTVert[1] = CTVert[2];
-								CTVert[0] = CTVert[1];
-								CTVert[3] = temp2;
-								CTVert[2] = temp;
-
-							}
-						}
+						GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata);
+						
 
 						if (spr2.PreciseCollisionTilemap(inst.image_index, bb1, inst.x, inst.y, inst.image_xscale, inst.image_yscale, inst.image_angle, CVert,  CTVert, tmaskdata,sprwidth))
 						{
