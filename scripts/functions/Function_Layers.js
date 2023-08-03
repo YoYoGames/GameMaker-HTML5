@@ -2246,7 +2246,7 @@ function layer_instance_get_instance(_id) {
     if (room != null) {
         var el = g_pLayerManager.GetElementFromID(room, yyGetInt32(_id));
         if (el != null && el.m_type === eLayerElementType_Instance) {
-            return el.m_instanceID;
+            return MAKE_REF(REFID_INSTANCE, el.m_instanceID);
         }
     }
     return OBJECT_NOONE;
@@ -3008,7 +3008,7 @@ function layerTilemapGetElement(tm_element_id)
 function layer_tilemap_get_id( arg1) 
 {
     var room = g_pLayerManager.GetTargetRoomObj();
-    if (room === null) return -1;
+    if (room === null) MAKE_REF(REFID_BACKGROUND,-1);
 
     var layer = layerGetObj(room, arg1); 
     if(layer!=null)
@@ -3016,10 +3016,10 @@ function layer_tilemap_get_id( arg1)
         var element = g_pLayerManager.GetElementFromName(layer,layer.m_pName);
         if(element!=null && element.m_type == eLayerElementType_Tilemap)
         {
-            return element.m_id;
+            return MAKE_REF(REFID_BACKGROUND,element.m_id);
         }
     }
-    return -1;
+    return MAKE_REF(REFID_BACKGROUND,-1);
 
 };
 function layer_tilemap_exists( arg1,arg2) 
@@ -3396,6 +3396,7 @@ function tileset_get_info(_ind) {
         variable_struct_set(ret, "tile_vertical_separator", pDest.tilevsep); 
         variable_struct_set(ret, "tile_columns", pDest.tilecolumns); 
         variable_struct_set(ret, "tile_count", pDest.tilecount); 
+        variable_struct_set(ret, "sprite_index", pDest.spriteindex); 
         variable_struct_set(ret, "frame_count", pDest.frames); 
         variable_struct_set(ret, "frame_length_ms", pDest.framelength); 
 
@@ -3860,6 +3861,7 @@ function draw_tilemap(inst, arg1,arg2,arg3)
     var el = layerTilemapGetElement(yyGetInt32(arg1));
     if (el != null)
     {
+        var room = g_pLayerManager.GetTargetRoomObj();
         var x = yyGetReal(arg2);
         var y = yyGetReal(arg3);
         var depth = GetInstanceDepth(inst);
@@ -4005,6 +4007,7 @@ function instance_create_depth( _x,_y,_depth,_objind, _basis)
 
 	if(_depth == undefined)
 		_depth = 0;
+    _objind = yyGetInt32(_objind);
 	
     var o = g_pObjectManager.Get(_objind);
 	if (!o)
@@ -4012,14 +4015,14 @@ function instance_create_depth( _x,_y,_depth,_objind, _basis)
 		yyError("Error: Trying to create an instance using non-existent object type (" + _objind + ")");
 		return OBJECT_NOONE;
 	}
-    var inst =g_RunRoom.GML_AddInstanceDepth(yyGetReal(_x), yyGetReal(_y), yyGetInt32(_depth), yyGetInt32(_objind));
+    var inst =g_RunRoom.GML_AddInstanceDepth(yyGetReal(_x), yyGetReal(_y), yyGetInt32(_depth), _objind);
   
     if(inst!=null)
     {
         inst.PerformEvent(EVENT_PRE_CREATE, 0, inst, inst );
         ShallowCopyVars( inst, _basis );
         inst.PerformEvent(EVENT_CREATE, 0, inst, inst );
-	    return inst.id;
+	    return MAKE_REF(REFID_INSTANCE, inst.id);
     }
 
 	return OBJECT_NOONE;
@@ -4052,7 +4055,7 @@ function instance_create_layer( _x,_y,_layerid,_obj, _basis)
         pInst.PerformEvent(EVENT_PRE_CREATE, 0, pInst, pInst);
         ShallowCopyVars( pInst, _basis );
         pInst.PerformEvent(EVENT_CREATE, 0, pInst, pInst);
-        return pInst.id;
+        return MAKE_REF(REFID_INSTANCE, pInst.id);
     } else {
         yyError("Error: Trying to create an instance on a non-existant layer");
     }

@@ -31,6 +31,22 @@ var yySprite_CollisionType = {
 	SPINE_MESH: 3,         /**< Spine collision mesh check. */
 };
 
+
+/** @constructor */
+function ColVertPos()
+{
+	this.x=0;
+	this.y=0;
+}
+
+/** @constructor */
+function ColVertTex()
+{
+	this.u=0;
+	this.v=0;
+}
+
+
 // #############################################################################################
 /// Function:<summary>
 ///             simple rect
@@ -118,6 +134,9 @@ yySprite.prototype.GetYOrigin = function () { return this.yOrigin; };
 yySprite.prototype.GetBoundingBox = function () { return this.bbox; };
 yySprite.prototype.GetCount = function () { return this.numb; };
 
+
+yySprite.prototype.GetWidth = function () { return this.width; };
+yySprite.prototype.GetHeight = function () { return this.height; };
 /** Truncates a floating point value into an integer. */
 var __floatToInt = function (x) { return ~~x; };
 
@@ -1153,9 +1172,464 @@ yySprite.prototype.Sprite_DrawSimplePos = function (_sub_image, _x1, _y1, _x2, _
 	Graphics_TextureDrawPos(this.ppTPE[_sub_image], _x1, _y1, _x2, _y2, _x3, _y3, _x4, _y4, _alpha);
 };
 
+function _ColMaskSet(u, v, pMaskBase,width)
+{
+	//HTML5 Doesn't have compressed masks so this is simpler
+	return pMaskBase[u + (v * width)]
+}
+
+
+yySprite.prototype.CollisionTilemapLine= function (bb2,xl,yl,xr,yr)
+{
+	if ((xr - xl == 0) && (yr - yl == 0))
+	{
+
+		if ((xl < bb2[0].x) || (xl >= bb2[1].x)) return false;
+		if ((yr < bb2[0].y) || (yr >= bb2[2].y)) return false;
+
+		return true;
+	}
+
+	if (abs(xr - xl) >= abs(yr - yl))
+	{
+
+		var sx = ~~yymax(bb2[0].x, xl);
+		//therefore proportion along line is 
+		var prop = (sx - xl) / (xr - xl);
+		//therefore starty is
+		var sy = yl + prop * (yr - yl);
+		var ex = ~~yymin(bb2[1].x, xr);
+		var dy = (yl - yr) / (xl - xr);
+		for (var i = sx; i <= ex; i++, sy += dy)
+		{
+			if ((sx < bb2[0].x) || (sx >= bb2[1].x)) continue;
+			if ((sy < bb2[0].y) || (sy >= bb2[2].y)) continue;
+	
+			return true;
+		}
+	}
+	else
+	{
+		// make sure line runs from top to bottom
+		if (yr < yl)
+		{
+			var val = yr; yr = yl; yl = val;
+			val = xr; xr = xl; xl = val;
+		}
+
+		var sy = ~~yymax(bb2[0].y, yl);
+		//therefore proportion along line is 
+		var prop = (sy - yl) / (yr - yl);
+		//therefore startx is
+		var sx = xl + prop * (xr - xl);
+
+		var ey = ~~yymin(bb2[2].y, yr);
+
+		var dx = (xr - xl) / (yr - yl);
+
+		for (var i = sy; i <= ey; i++, sx += dx)
+		{
+			if ((sx < bb2[0].x) || (sx >= bb2[1].x)) continue;
+			if ((sy < bb2[0].y) || (sy >= bb2[2].y)) continue;
+
+			return true;
+		}
+	}
+
+	return false;
+
+}
+
+yySprite.prototype.CollisionTilemapEllipse= function (bb2,xl,yl,xr,yr)
+{
+	var l = yymax(xl, bb2[0].x);
+
+	l = ~~(Math.floor(l) + 0.5);
+
+	var r = ~~yymin(xr, bb2[2].x);
+	var t = yymax(yl, bb2[0].y);
+
+	t = ~~(Math.floor(t) + 0.5);
+	var b = ~~yymin(yr, bb2[2].y);
+
+
+	var mx = ((xl+xr) / 2);
+	var my = ((yl+yr) / 2);
+	var ww = ((xr - xl) / 2);
+	var hh = ((yr - yl) / 2);
+
+	for (var i = l; i <= r; i++)
+	{
+		for (var j = t; j <= b; j++)
+		{
+			if (Sqr((i - mx) / ww) + Sqr((j - my) / hh) > 1) 
+				continue;   // outside ellipse
+
+			return true;
+		}
+	}
+	return false;
+}
+
+yySprite.prototype.PreciseCollisionTilemapRect= function ( tMaskData, bb2, t_ibbox,  xl,  yl,  xr, yr,  sprwidth)
+{
+
+	var l = yymax(xl, bb2[0].x);
+
+	l = ~~(Math.floor(l) + 0.5);
+
+	var r = ~~yymin(xr, bb2[2].x);
+	var t = yymax(yl, bb2[0].y);
+
+	t = ~~(Math.floor(t) + 0.5);
+	var b = ~~yymin(yr, bb2[2].y);
+
+	var sleftedge = t_ibbox[0].u;
+	var stopedge = t_ibbox[0].v;
+
+
+	var tuscalex = (t_ibbox[1].u - t_ibbox[0].u) / (bb2[1].x - bb2[0].x);
+	var tuscaley = (t_ibbox[3].u - t_ibbox[0].u) / (bb2[3].y - bb2[0].y);
+
+	var tvscalex = (t_ibbox[1].v - t_ibbox[0].v) / (bb2[1].x - bb2[0].x);
+	var tvscaley = (t_ibbox[3].v - t_ibbox[0].v) / (bb2[3].y - bb2[0].y);
+
+	var _sleftedge = yymin(t_ibbox[0].u, yymin(t_ibbox[1].u, t_ibbox[2].u));// sleftedge;
+	var _srightedge = yymax(t_ibbox[0].u, yymax(t_ibbox[1].u, t_ibbox[2].u));
+	var _stopedge = yymin(t_ibbox[0].v, yymin(t_ibbox[1].v, t_ibbox[2].v));
+	var  _sbottomedge = yymax(t_ibbox[0].v, yymax(t_ibbox[1].v, t_ibbox[2].v));
+
+	for (var i = l; i < r; i += 1.0)
+	{
+		var u2 = (((i)-bb2[0].x) * tuscalex + sleftedge) + (((t)-bb2[0].y) * tuscaley);
+		var v2 = (((t)-bb2[0].y) * tvscaley + stopedge) + (((i)-bb2[0].x) * tvscalex);
+
+		for (var j = t; j < b; j += 1.0, v2 += tvscaley, u2 += tuscaley)
+		{
+			if (tMaskData != null)
+			{
+				if ((v2 < _stopedge) || (v2 >= _sbottomedge)) continue;
+				if ((u2 < _sleftedge) || (u2 >= _srightedge)) continue;
+
+				if (!_ColMaskSet(~~u2, ~~v2, tMaskData, sprwidth))
+					continue;
+
+			}
+			return true;
+		}
+	}
+
+	return false;
+
+}
+
+
+yySprite.prototype.PreciseCollisionTilemapLine= function ( tMaskData, bb2, t_ibbox,  xl,  yl,  xr, yr,  sprwidth)
+{
+
+
+	var sleftedge = t_ibbox[0].u;
+	var stopedge = t_ibbox[0].v;
+
+
+	var tuscalex = (t_ibbox[1].u - t_ibbox[0].u) / (bb2[1].x - bb2[0].x);
+	var tuscaley = (t_ibbox[3].u - t_ibbox[0].u) / (bb2[3].y - bb2[0].y);
+
+	var tvscalex = (t_ibbox[1].v - t_ibbox[0].v) / (bb2[1].x - bb2[0].x);
+	var tvscaley = (t_ibbox[3].v - t_ibbox[0].v) / (bb2[3].y - bb2[0].y);
+
+	var _sleftedge = yymin(t_ibbox[0].u, yymin(t_ibbox[1].u, t_ibbox[2].u));// sleftedge;
+	var _srightedge = yymax(t_ibbox[0].u, yymax(t_ibbox[1].u, t_ibbox[2].u));
+	var _stopedge = yymin(t_ibbox[0].v, yymin(t_ibbox[1].v, t_ibbox[2].v));
+	var  _sbottomedge = yymax(t_ibbox[0].v, yymax(t_ibbox[1].v, t_ibbox[2].v));
+
+	if ((xr - xl == 0) && (yr - yl == 0))
+	{
+		var u2 = (((xr)-bb2[0].x) * tuscalex + sleftedge) + (((yr)-bb2[0].y) * tuscaley);
+		var v2 = (((yr)-bb2[0].y) * tvscaley + stopedge) + (((xr)-bb2[0].x) * tvscalex);
+		if ((v2 < _stopedge) || (v2 >= _sbottomedge)) return false;
+		if ((u2 < _sleftedge) || (u2 >= _srightedge)) return false;
+
+		if (_ColMaskSet(~~u2, ~~v2, tMaskData,sprwidth))
+			return true;
+
+		return false;
+	}
+
+	// Check shallow
+	if (abs(xr - xl) >= abs(yr - yl))
+	{
+
+		var sx =~~yymax(bb2[0].x, xl);
+		//therefore proportion along line is 
+		var prop = (sx - xl) / (xr - xl);
+		//therefore starty is
+		var sy = yl + prop * (yr - yl);
+
+		var ex = ~~yymin(bb2[1].x, xr);
+		var dy =  (yl - yr)/ (xl - xr) ;
+		for (var i = sx; i <=ex ; i++, sy += dy)
+		{
+			
+			var u2 = (((i)-bb2[0].x) * tuscalex + sleftedge) + (((sy)-bb2[0].y) * tuscaley);
+			var v2 = (((sy)-bb2[0].y) * tvscaley + stopedge) + (((i)-bb2[0].x) * tvscalex);
+
+			if ((v2 < _stopedge) || (v2 >= _sbottomedge)) continue;
+			if ((u2 < _sleftedge) || (u2 >= _srightedge)) continue;
+
+			if (_ColMaskSet(~~u2, ~~v2, tMaskData,sprwidth))
+				return true;		
+		}
+	}
+	else
+	{
+		// make sure line runs from top to bottom
+		if (yr < yl)
+		{
+			var val = yr; yr = yl; yl = val;
+			val = xr; xr = xl; xl = val;
+		}
+
+
+		var sy = ~~yymax(bb2[0].y, yl);
+		//therefore proportion along line is 
+		var prop = (sy - yl) / (yr - yl);
+		//therefore startx is
+		var sx = xl + prop * (xr - xl);
+
+		var ey = ~~yymin(bb2[2].y, yr);
+
+		var dx = (xr - xl) / (yr - yl);
+
+		for (var i = sy; i <= ey; i++, sx += dx)
+		{
+			
+			var u2 = (((sx)-bb2[0].x) * tuscalex + sleftedge) + (((i)-bb2[0].y) * tuscaley);
+			var v2 = (((i)-bb2[0].y) * tvscaley + stopedge) + (((sx)-bb2[0].x) * tvscalex);
+
+			if ((v2 < _stopedge) || (v2 >= _sbottomedge)) continue;
+			if ((u2 < _sleftedge) || (u2 >= _srightedge)) continue;
+
+			if (_ColMaskSet(~~u2, ~~v2, tMaskData,sprwidth))
+				return true;
+		}
+
+	}
+
+	return false;
+
+}
+
+yySprite.prototype.PreciseCollisionTilemapEllipse= function ( tMaskData, bb2, t_ibbox,  xl,  yl,  xr, yr,  sprwidth)
+{
+	var l = yymax(xl, bb2[0].x);
+
+	l = ~~(Math.floor(l) + 0.5);
+
+	var r = ~~yymin(xr, bb2[2].x);
+	var t = yymax(yl, bb2[0].y);
+
+	t = ~~(Math.floor(t) + 0.5);
+	var b = ~~yymin(yr, bb2[2].y);
+
+	var sleftedge = t_ibbox[0].u;
+	var stopedge = t_ibbox[0].v;
+
+
+	var tuscalex = (t_ibbox[1].u - t_ibbox[0].u) / (bb2[1].x - bb2[0].x);
+	var tuscaley = (t_ibbox[3].u - t_ibbox[0].u) / (bb2[3].y - bb2[0].y);
+
+	var tvscalex = (t_ibbox[1].v - t_ibbox[0].v) / (bb2[1].x - bb2[0].x);
+	var tvscaley = (t_ibbox[3].v - t_ibbox[0].v) / (bb2[3].y - bb2[0].y);
+
+	var _sleftedge = yymin(t_ibbox[0].u, yymin(t_ibbox[1].u, t_ibbox[2].u));// sleftedge;
+	var _srightedge = yymax(t_ibbox[0].u, yymax(t_ibbox[1].u, t_ibbox[2].u));
+	var _stopedge = yymin(t_ibbox[0].v, yymin(t_ibbox[1].v, t_ibbox[2].v));
+	var  _sbottomedge = yymax(t_ibbox[0].v, yymax(t_ibbox[1].v, t_ibbox[2].v));
+
+	var mx = ((xl+xr) / 2);
+	var my = ((yl+yr) / 2);
+	var ww = ((xr - xl) / 2);
+	var hh = ((yr - yl) / 2);
+
+	
+	for (var i = l; i <= r; i++)
+	{
+		var u2 = (((i)-bb2[0].x) * tuscalex + sleftedge) + (((t)-bb2[0].y) * tuscaley);
+		var v2 = (((t)-bb2[0].y) * tvscaley + stopedge) + (((i)-bb2[0].x) * tvscalex);
+
+		for (var j = t; j <= b; j++, v2 += tvscaley, u2 += tuscaley)
+		{
+			if (Sqr((i - mx) / ww) + Sqr((j - my) / hh) > 1) continue;   // outside ellipse
+
+			if ((v2 < _stopedge) || (v2 >= _sbottomedge)) continue;
+			if ((u2 < _sleftedge) || (u2 >= _srightedge)) continue;
+
+			if (_ColMaskSet(~~u2, ~~v2, tMaskData,sprwidth))
+				return true;
+
+
+		}
+	}
+	return false;
+
+}
+
+yySprite.prototype.PreciseCollisionTilemap = function (img1, bb1, _x1, _y1, scale1x, scale1y, angle1, bb2, t_ibbox,tMaskData,sprwidth) {
+
+
+	// Compute overlapping bounding box
+	var l = yymax(bb1.left, bb2[0].x);
+
+	l = Math.floor(l) + 0.5;
+
+	var r = yymin(bb1.right, bb2[2].x);
+	var t = yymax(bb1.top, bb2[0].y);
+
+	t = Math.floor(t) + 0.5;
+	var b = yymin(bb1.bottom, bb2[2].y);
+
+
+	var leftedge = this.bbox.left;
+	var rightedge = this.bbox.right + 1.0;
+	var topedge = this.bbox.top;
+	var bottomedge = this.bbox.bottom + 1.0;
+
+
+	if (this.colcheck === yySprite.PRECISE)
+	{
+	    //If you have precise collisions you can't have collisions outside the texture - you can only do that with rectangle collisions where it is permissible to have i_bbox.left<0 etc
+	    if (leftedge < 0) 
+	        leftedge = 0;
+	    if (rightedge > this.width)
+	        rightedge = this.width;
+
+	    if (topedge < 0)
+	        topedge = 0;
+	    if (bottomedge > this.height)
+	        bottomedge = this.height;
+
+	}
+	var hasrot1 = false;
+
+	if (angle1 > g_GMLMathEpsilon || angle1 < -g_GMLMathEpsilon)
+		hasrot1 = true;
+
+	var sleftedge = t_ibbox[0].u;
+	var stopedge = t_ibbox[0].v;
+
+	scale1x = 1.0 / scale1x;
+	scale1y = 1.0 / scale1y;
+
+	var tuscalex = (t_ibbox[1].u - t_ibbox[0].u) / (bb2[1].x - bb2[0].x);
+	var tuscaley = (t_ibbox[3].u - t_ibbox[0].u) / (bb2[3].y - bb2[0].y);
+
+	var tvscalex = (t_ibbox[1].v - t_ibbox[0].v) / (bb2[1].x - bb2[0].x);
+	var tvscaley = (t_ibbox[3].v - t_ibbox[0].v) / (bb2[3].y - bb2[0].y);
+
+	var maskdata = null;
+	var maskdata2 = null;
+
+	maskdata = this.colmask[img1];//GetMaskData(img1);
+	maskdata2 = tMaskData;
+
+	var _sleftedge = yymin(t_ibbox[0].u, yymin(t_ibbox[1].u, t_ibbox[2].u));// sleftedge;
+	var _srightedge = yymax(t_ibbox[0].u, yymax(t_ibbox[1].u, t_ibbox[2].u));
+	var _stopedge = yymin(t_ibbox[0].v, yymin(t_ibbox[1].v, t_ibbox[2].v));
+	var  _sbottomedge = yymax(t_ibbox[0].v, yymax(t_ibbox[1].v, t_ibbox[2].v));
+	var ourwidth = this.GetWidth();
+
+	if (!hasrot1 )
+	{
+
+		var du1 = scale1x;
+		var du2 = tuscalex;
+		var u1 = ((l - _x1) * scale1x + this.GetXOrigin());
+		
+		for (var i = l; i < r; i += 1.0, u1 += du1)
+		{
+			var u2 = (((i) - bb2[0].x) * tuscalex + sleftedge) + (((t) - bb2[0].y) * tuscaley);
+			var v2 = (((t) - bb2[0].y) * tvscaley + stopedge) + (((i) - bb2[0].x) * tvscalex);
+
+			if ((u1 < leftedge) || (u1 >= rightedge)) continue;
+
+			var u1i = ~~u1;
+			
+			for (var j = t; j < b; j += 1.0, v2 += tvscaley, u2 += tuscaley)
+			{
+				if (maskdata != null)
+				{
+					var v1 = ((j - _y1) * scale1y + this.GetYOrigin());
+
+					if ((v1 < topedge) || (v1 >= bottomedge)) continue;
+					if (!_ColMaskSet(u1i, ~~v1, maskdata,ourwidth))
+						continue;
+				}
+
+				if (maskdata2 != null)
+				{
+					if ((v2 < _stopedge) || (v2 >= _sbottomedge)) continue;
+					if ((u2 < _sleftedge) || (u2 >= _srightedge)) continue;
+
+					if (!_ColMaskSet(~~u2, ~~v2, maskdata2,sprwidth))
+						continue;
+
+				}
+				return true;
+			}
+		}
+	}
+	else
+	{
+		var ss1, cc1,  u1,  v1;
+
+		// "Do Everything" case - rotation AND scaling!
+		if (hasrot1)
+		{
+			ss1 = Math.sin(-angle1 * Pi / 180.0);
+			cc1 = Math.cos(-angle1 * Pi / 180.0);
+		}
 
 
 
+		for (var i = l; i < r; i += 1.0)
+		{
+			
+			var u2 = (((i) - bb2[0].x) * tuscalex + sleftedge) + (((t) - bb2[0].y) * tuscaley);
+			var v2 = (((t) - bb2[0].y) * tvscaley + stopedge) + (((i) - bb2[0].x) * tvscalex);
+			
+
+			for (var j = t; j < b; j += 1.0, v2 += tvscaley, u2 += tuscaley)
+			{
+
+				u1 = ((cc1 * (i - _x1) + ss1 * (j - _y1)) * scale1x + this.GetXOrigin());
+				if ((u1 < leftedge) || (u1 >= rightedge)) continue;
+				v1 = ((cc1 * (j - _y1) - ss1 * (i - _x1)) * scale1y + this.GetYOrigin());
+				
+
+				if ((v1 < topedge) || (v1 >= bottomedge)) continue;
+				if (maskdata != null)
+				{
+					if (!_ColMaskSet(~~u1, ~~v1, maskdata,ourwidth))
+						continue;
+				}
+
+				if (maskdata2 != null)
+				{
+					if ((v2 < _stopedge) || (v2 >= _sbottomedge)) continue;
+					if ((u2 < _sleftedge) || (u2 >= _srightedge)) continue;
+
+					if (!_ColMaskSet(~~u2, ~~v2, maskdata2, sprwidth))
+						continue;
+
+				}
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
 // #############################################################################################
 /// Function:<summary>
 ///				Returns whether img1 of the sprite at position (x1,y1), scaled with scalex,scaley 
