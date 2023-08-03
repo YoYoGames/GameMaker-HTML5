@@ -549,7 +549,7 @@ function Command_InstancePosition(_x,_y,_obj,_list)
 function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint,_y_constraint)
 {
 	var ret =[];
-	if(ind instanceof Long)
+	if(typeof ind === "number")
 	{
 		if ((ind == OBJECT_SELF) && (selfinst != NULL)) ind = selfinst.id;
 		if (ind == OBJECT_NOONE)
