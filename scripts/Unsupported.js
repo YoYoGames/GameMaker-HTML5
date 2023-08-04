@@ -115,66 +115,13 @@ function keyboard_set_numlock(on)                   {ErrorFunction("keyboard_set
 
 
 // Sprites. Backgrounds
-function background_save(ind,fname)     {ErrorFunction("background_save()");}
 function sprite_save_strip(ind,fname)   {ErrorFunction("sprite_save_strip()");}
-
-
-// Objects
-function object_add()                                   {ErrorFunction("object_add()");}
-function object_delete(ind)                             {ErrorFunction("object_delete()");}
-function object_event_add(ind,evtype,evnumb,codestr)    {ErrorFunction("object_event_add()");}
-function object_event_clear(ind,evtype,evnumb)          {ErrorFunction("object_event_clear()");}
-
-
-// Particles
-function part_changer_create(_ps)										{ ErrorFunction("part_changer_create()"); }
-function part_changer_destroy(_ps,_ind)									{ ErrorFunction("part_changer_destroy()"); }
-function part_changer_destroy_all(_ps)									{ ErrorFunction("part_changer_destroy_all()"); }
-function part_changer_exists(_ps,_ind)									{ ErrorFunction("part_changer_exists()"); }
-function part_changer_clear(_ps,_ind)									{ ErrorFunction("part_changer_clear()"); }
-function part_changer_region(_ps,_ind,_xmin,_xmax,_ymin,_ymax,_shape)	{ ErrorFunction("part_changer_region()"); }
-function part_changer_types(_ps,_ind,_parttype1,_parttype2)				{ ErrorFunction("part_changer_types()"); }
-function part_changer_kind(_ps,_ind,_kind)								{ ErrorFunction("part_changer_kind()"); }
-
-function part_deflector_create(ps)									{ ErrorFunction("part_deflector_create()"); }
-function part_deflector_destroy(ps,ind)								{ ErrorFunction("part_deflector_destroy()"); }
-function part_deflector_destroy_all(ps)								{ ErrorFunction("part_deflector_destroy_all()"); }
-function part_deflector_exists(ps,ind)								{ ErrorFunction("part_deflector_exists()"); }
-function part_deflector_clear(ps,ind)								{ ErrorFunction("part_deflector_clear()"); }
-function part_deflector_region(ps,ind,xmin,xmax,ymin,ymax)			{ ErrorFunction("part_deflector_region()"); }
-function part_deflector_kind(ps,ind,kind)							{ ErrorFunction("part_deflector_kind()"); }
-function part_deflector_friction(ps,ind,friction)					{ ErrorFunction("part_deflector_friction()"); }
-
-function part_destroyer_create(ps)									{ ErrorFunction("part_destroyer_create()"); }
-function part_destroyer_destroy(ps,ind)								{ ErrorFunction("part_destroyer_destroy()"); }
-function part_destroyer_destroy_all(ps)								{ ErrorFunction("part_destroyer_destroy_all()"); }
-function part_destroyer_exists(ps,ind)								{ ErrorFunction("part_destroyer_exists()"); }
-function part_destroyer_clear(ps,ind)								{ ErrorFunction("part_destroyer_clear()"); }
-function part_destroyer_region(ps,ind,xmin,xmax,ymin,ymax,shape)    { ErrorFunction("part_destroyer_region()"); }
-
-function part_attractor_create(ps)								{ ErrorFunction("part_attractor_create()"); }
-function part_attractor_destroy(ps,ind)							{ ErrorFunction("part_attractor_destroy()"); }
-function part_attractor_destroy_all(ps)							{ ErrorFunction("part_attractor_destroy_all()"); }
-function part_attractor_exists(ps,ind)							{ ErrorFunction("part_attractor_exists()"); }
-function part_attractor_clear(ps,ind)							{ ErrorFunction("part_attractor_clear()"); }
-function part_attractor_position(ps,ind,x,y)					{ ErrorFunction("part_attractor_position()"); }
-function part_attractor_force(ps,ind,force,dist,kind,aditive)   { ErrorFunction("part_attractor_force()"); }
-
-
-
-// executing programs
-function execute_program(prog,arg,wait)     { ErrorFunction("execute_program()"); }
-function execute_shell(prog,arg)            { ErrorFunction("execute_shell()"); }
-var secure_mode = true;
 
 // Message boxes/dialogs etc.
 function get_open_filename(filter, fname)		{ ErrorFunction("get_open_filename()"); }
 function get_save_filename(filter, fname)		{ ErrorFunction("get_save_filename()"); }
 function get_open_filename_ext(filter, fname, dir, title) { ErrorFunction("get_open_filename_ext()"); }
 function get_save_filename_ext(filter, fname, dir, title) { ErrorFunction("get_save_filename_ext()"); }
-function get_directory(dname) { ErrorFunction("get_directory()"); }
-function get_directory_alt(capt, root)			{ ErrorFunction("get_directory_alt()"); }
-//function show_error(str, abort)					{ ErrorFunction("show_error()"); }
 
 
 // sound
