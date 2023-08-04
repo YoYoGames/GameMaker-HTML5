@@ -12,18 +12,11 @@
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------
 // WebGL supported
-function d3d_start()                                                                            { ErrorFunction("d3d_start()"); }
-function d3d_end()                                                                              { ErrorFunction("d3d_end()"); }
-
-function d3d_set_hidden(enable)                                                                 { ErrorFunction("d3d_set_hidden()"); }
-function d3d_set_culling(cull)                                                                  { ErrorFunction("d3d_set_culling()"); }
-function d3d_set_shading(smooth)                                                                { ErrorFunction("d3d_set_shading()"); }
-function d3d_set_zwriteenable(on_off)															{ ErrorFunction("d3d_set_zwriteenable()"); }
 function d3d_set_depth(depth)                                                                   { ErrorFunction("d3d_set_depth()"); }
 function draw_set_color_write_enable(red, green, blue, alpha)                                   { ErrorFunction("draw_set_color_write_enable()"); }
 var draw_set_colour_write_enable = draw_set_color_write_enable;
 
-function d3d_set_lighting(enable)                                                               { ErrorFunction("d3d_set_shading()"); }
+function d3d_set_lighting(enable)                                                               { ErrorFunction("d3d_set_lighting()"); }
 function d3d_light_define_direction(ind,dx,dy,dz,col)                                           { ErrorFunction("d3d_light_define_direction()"); }
 function d3d_light_define_point(ind,x,y,z,range,col)                                            { ErrorFunction("d3d_light_define_point()"); }
 function d3d_light_enable(ind,enable)                                                           { ErrorFunction("d3d_light_enable()"); }
@@ -185,14 +178,7 @@ function InitD3DFunctions() {
         return;
     }
     // 3D state
-    d3d_start = WebGL_d3d_start_RELEASE;
-    d3d_end = WebGL_d3d_end_RELEASE;
-    
-    d3d_set_culling = WebGL_d3d_set_culling_RELEASE;
-    d3d_set_shading = WebGL_d3d_set_shading_RELEASE;
-    d3d_set_zwriteenable = WebGL_d3d_set_zwriteenable_RELEASE;
     d3d_set_depth = WebGL_d3d_set_depth_RELEASE;
-    d3d_set_hidden = WebGL_d3d_set_hidden_RELEASE;
     draw_set_color_write_enable = WebGL_draw_set_color_write_enable_RELEASE;
     draw_set_colour_write_enable = WebGL_draw_set_color_write_enable_RELEASE;
         
@@ -332,66 +318,6 @@ function InitD3DFunctions() {
 
 // #############################################################################################
 /// Function:<summary>
-///             Indicate we should use perspective projection matrices and 3D vertices
-///          </summary>
-// #############################################################################################
-function WebGL_d3d_start_RELEASE() {
-
-    GR_3DMode = true;
-    
-    // Force in 3D specific states
-    g_webGL.SetZEnable(GR_ZEnable);
-    g_webGL.SetZWriteEnable(GR_ZWriteEnable);
-    g_webGL.SetCull(GR_Cull);
-}
-
-// #############################################################################################
-/// Function:<summary>
-///             Indicate we're dropping back to 2D rendering
-///          </summary>
-// #############################################################################################
-function WebGL_d3d_end_RELEASE() {
- 
-    GR_3DMode = false;    
-    
-    // Force in states that're default to 2D mode
-    g_webGL.SetZEnable(false);   
-    g_webGL.SetZWriteEnable(false);
-    g_webGL.SetCull(false); 
-}
-
-// #############################################################################################
-/// Function:<summary>
-///             Set back face culling state
-///          </summary>
-// #############################################################################################
-function WebGL_d3d_set_culling_RELEASE(_cull) {
-
-    GR_Cull = _cull > 0.5;
-    g_webGL.SetCull(GR_Cull);
-}
-
-// #############################################################################################
-///  Function:<summary>
-///          </summary>
-// #############################################################################################
-function WebGL_d3d_set_shading_RELEASE(_smooth) {
-
-    // shadeModel is not available on webgl (gl_ES)
-}
-
-// #############################################################################################
-/// Function:<summary>
-///          </summary>
-// #############################################################################################
-function WebGL_d3d_set_zwriteenable_RELEASE(_onoff) {
-
-    GR_ZWriteEnable = (_onoff > 0.5);
-    g_webGL.SetZWriteEnable(GR_ZWriteEnable);
-}
-
-// #############################################################################################
-/// Function:<summary>
 ///          </summary>
 // #############################################################################################
 function WebGL_d3d_set_depth_RELEASE(_newdepth) {
@@ -403,16 +329,6 @@ function WebGL_d3d_set_depth_RELEASE(_newdepth) {
     else {
         GR_Depth = 0.0;
     }
-}
-
-// #############################################################################################
-/// Function:<summary>
-///          </summary>
-// #############################################################################################
-function WebGL_d3d_set_hidden_RELEASE(_hidden) {
-
-    GR_ZEnable = (_hidden > 0.5);
-    g_webGL.SetZEnable(GR_ZEnable);
 }
 
 // #############################################################################################
