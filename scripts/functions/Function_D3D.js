@@ -35,10 +35,7 @@ function d3d_get_lighting()                                                     
 
 
 function d3d_set_perspective(enable)                                                            { ErrorFunction("d3d_set_perspective()"); }
-function d3d_set_projection(xfrom,yfrom,zfrom,xto,yto,zto,xup,yup,zup)                          { ErrorFunction("d3d_set_projection()"); }
-function d3d_set_projection_ext(xfrom,yfrom,zfrom,xto,yto,zto,xup,yup,zup,angle,aspect,zn,zf)   { ErrorFunction("d3d_set_projection_ext()"); }
-function d3d_set_projection_ortho(x,y,w,h,angle)                                                { ErrorFunction("d3d_set_projection_ortho()"); }
-function d3d_set_projection_perspective(x,y,w,h,angle)                                          { ErrorFunction("d3d_set_projection_perspective()"); }
+
 
 function d3d_transform_set_identity()                                                           { ErrorFunction("d3d_transform_set_identity()"); }
 function d3d_transform_set_translation(xt,yt,zt)                                                { ErrorFunction("d3d_transform_set_translation()"); }
@@ -201,10 +198,6 @@ function InitD3DFunctions() {
         
     // Matrix operations
     d3d_set_perspective = WebGL_d3d_set_perspective_RELEASE;
-    d3d_set_projection = WebGL_d3d_set_projection_RELEASE;
-    d3d_set_projection_ext = WebGL_d3d_set_projection_ext_RELEASE;
-    d3d_set_projection_ortho = WebGL_d3d_set_projection_ortho_RELEASE;
-    d3d_set_projection_perspective = WebGL_d3d_set_projection_perspective_RELEASE;
     
     d3d_transform_set_identity = WebGL_d3d_transform_set_identity_RELEASE;
     d3d_transform_set_translation = WebGL_d3d_transform_set_translation_RELEASE;
@@ -467,46 +460,6 @@ function WebGL_d3d_get_lighting_RELEASE() {
 
 // #############################################################################################
 /// Function:<summary>
-///             It's called set_project. It sets the view matrix. 
-///             Sometimes I don't cry myself to sleep. Sometimes.
-///          </summary>
-// #############################################################################################
-function WebGL_d3d_set_projection_RELEASE(xfrom, yfrom, zfrom, xto, yto, zto, xup, yup, zup) {
-    
-    var view = new Matrix();
-    
-    var pos = new Vector3(xfrom, yfrom, zfrom);
-    var at = new Vector3(xto, yto, zto);
-    var up = new Vector3(xup, yup, zup);		
-	view.LookAtLH(pos, at, up);
-    
-    g_webGL.SetViewMatrix(view);
-}
-
-// #############################################################################################
-/// Function:<summary>
-///          </summary>
-// #############################################################################################
-function WebGL_d3d_set_projection_ext_RELEASE(xfrom, yfrom, zfrom, xto, yto, zto, xup, yup, zup, angle, aspect, znear, zfar) {
-
-    var view = new Matrix();
-    
-    var pos = new Vector3(xfrom, yfrom, zfrom);
-    var at = new Vector3(xto, yto, zto);
-    var up = new Vector3(xup, yup, zup);		
-	view.LookAtLH(pos, at, up);
-	
-	var proj = new Matrix();
-	proj.PerspectiveFovLH(angle, aspect, znear, zfar);
-	proj.m[_22] *= g_RenderTargetActive;
-	
-	g_webGL.SetViewMatrix(view);
-	g_webGL.SetProjectionMatrix(proj);    
-	//g_webGL.SetCullOrder((g_RenderTargetActive < 0) ? yyGL.Cull_CCW : yyGL.Cull_CW);
-}
-
-// #############################################################################################
-/// Function:<summary>
 ///          </summary>
 // #############################################################################################
 function WebGL_d3d_set_projection_ortho_RELEASE(x,y,w,h,angle) {
@@ -524,28 +477,6 @@ function WebGL_d3d_set_projection_ortho_RELEASE(x,y,w,h,angle) {
     g_webGL.SetProjectionMatrix(ortho);    
 //    g_webGL.SetCullOrder((g_RenderTargetActive < 0) ? yyGL.Cull_CCW : yyGL.Cull_CW);
 }
-
-// #############################################################################################
-/// Function:<summary>
-///          </summary>
-// #############################################################################################
-function WebGL_d3d_set_projection_perspective_RELEASE(x,y,w,h,angle) {
-
-    var view = new Matrix();    
-    var v1 = new Vector3(x + (w/2.0), y + (h/2.0), -w);
-	var v2 = new Vector3(x + (w/2.0), y + (h/2.0), 0.0);
-	var v3 = new Vector3(Math.sin(-angle*(Math.PI/180.0)), Math.cos(-angle*(Math.PI/180.0)), 0.0);
-	view.LookAtLH(v1, v2, v3);
-    
-    var proj = new Matrix();
-    proj.PerspectiveLH(1.0, ( h/w), 1.0, 32000.0);    
-    proj.m[_22] *= g_RenderTargetActive;
-    
-    g_webGL.SetViewMatrix(view);
-    g_webGL.SetProjectionMatrix(proj);
- //   g_webGL.SetCullOrder((g_RenderTargetActive < 0) ? yyGL.Cull_CCW : yyGL.Cull_CW);
-}
-
 
 // #############################################################################################
 /// Function:<summary>
