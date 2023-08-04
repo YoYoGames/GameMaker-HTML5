@@ -37,14 +37,14 @@ function ColVertPos()
 {
 	this.x=0;
 	this.y=0;
-}
+};
 
 /** @constructor */
 function ColVertTex()
 {
 	this.u=0;
 	this.v=0;
-}
+};
 
 
 // #############################################################################################
@@ -59,7 +59,7 @@ function    YYRECT()
     this.top = 0;
     this.right = 0;
     this.bottom = 0;
-}
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -1176,7 +1176,7 @@ function _ColMaskSet(u, v, pMaskBase,width)
 {
 	//HTML5 Doesn't have compressed masks so this is simpler
 	return pMaskBase[u + (v * width)]
-}
+};
 
 
 yySprite.prototype.CollisionTilemapLine= function (bb2,xl,yl,xr,yr)
@@ -1238,7 +1238,7 @@ yySprite.prototype.CollisionTilemapLine= function (bb2,xl,yl,xr,yr)
 
 	return false;
 
-}
+};
 
 yySprite.prototype.CollisionTilemapEllipse= function (bb2,xl,yl,xr,yr)
 {
@@ -1269,7 +1269,7 @@ yySprite.prototype.CollisionTilemapEllipse= function (bb2,xl,yl,xr,yr)
 		}
 	}
 	return false;
-}
+};
 
 yySprite.prototype.PreciseCollisionTilemapRect= function ( tMaskData, bb2, t_ibbox,  xl,  yl,  xr, yr,  sprwidth)
 {
@@ -1321,7 +1321,7 @@ yySprite.prototype.PreciseCollisionTilemapRect= function ( tMaskData, bb2, t_ibb
 
 	return false;
 
-}
+};
 
 
 yySprite.prototype.PreciseCollisionTilemapLine= function ( tMaskData, bb2, t_ibbox,  xl,  yl,  xr, yr,  sprwidth)
@@ -1418,7 +1418,7 @@ yySprite.prototype.PreciseCollisionTilemapLine= function ( tMaskData, bb2, t_ibb
 
 	return false;
 
-}
+};
 
 yySprite.prototype.PreciseCollisionTilemapEllipse= function ( tMaskData, bb2, t_ibbox,  xl,  yl,  xr, yr,  sprwidth)
 {
@@ -1473,7 +1473,7 @@ yySprite.prototype.PreciseCollisionTilemapEllipse= function ( tMaskData, bb2, t_
 	}
 	return false;
 
-}
+};
 
 yySprite.prototype.PreciseCollisionTilemap = function (img1, bb1, _x1, _y1, scale1x, scale1y, angle1, bb2, t_ibbox,tMaskData,sprwidth) {
 
@@ -1629,7 +1629,7 @@ yySprite.prototype.PreciseCollisionTilemap = function (img1, bb1, _x1, _y1, scal
 	}
 
 	return false;
-}
+};
 // #############################################################################################
 /// Function:<summary>
 ///				Returns whether img1 of the sprite at position (x1,y1), scaled with scalex,scaley 
