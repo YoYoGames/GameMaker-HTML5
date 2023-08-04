@@ -10,17 +10,17 @@
 //
 // **********************************************************************************************************************
 
-function vertex_format_begin()                              { ErrorFunction("vertex_format_begin"); }
-function vertex_format_end()                                { ErrorFunction("vertex_format_end"); }
-function vertex_format_delete(format_id)                    { ErrorFunction("vertex_format_delete"); }
-function vertex_format_add_position()                       { ErrorFunction("vertex_format_add_position"); }
-function vertex_format_add_position_3d()                    { ErrorFunction("vertex_format_add_position_3d"); }
-function vertex_format_add_colour()                         { ErrorFunction("vertex_format_add_colour"); }
-function vertex_format_add_color()                          { ErrorFunction("vertex_format_add_color"); }
-function vertex_format_add_normal()                         { ErrorFunction("vertex_format_add_normal"); }
-function vertex_format_add_texcoord()                       { ErrorFunction("vertex_format_add_texcoord"); }
-function vertex_format_add_textcoord()                      { ErrorFunction("vertex_format_add_textcoord"); }
-function vertex_format_add_custom(type, usage)              { ErrorFunction("vertex_format_add_custom"); }
+var vertex_format_begin = GetErrorFunction("vertex_format_begin"),
+    vertex_format_end = GetErrorFunction("vertex_format_end"),
+    vertex_format_delete = GetErrorFunction("vertex_format_delete"),
+    vertex_format_add_position = GetErrorFunction("vertex_format_add_position"),
+    vertex_format_add_position_3d = GetErrorFunction("vertex_format_add_position_3d"),
+    vertex_format_add_colour = GetErrorFunction("vertex_format_add_colour"),
+    vertex_format_add_color = GetErrorFunction("vertex_format_add_color"),
+    vertex_format_add_normal = GetErrorFunction("vertex_format_add_normal"),
+    vertex_format_add_texcoord = GetErrorFunction("vertex_format_add_texcoord"),
+    vertex_format_add_textcoord = GetErrorFunction("vertex_format_add_textcoord"),
+    vertex_format_add_custom = GetErrorFunction("vertex_format_add_custom");
 
 // ---------------------------------------------------------------------------------------------
 // Tracks the format currently under construction

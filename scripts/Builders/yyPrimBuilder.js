@@ -10,31 +10,31 @@
 // 
 // *********************************************************************************************************************
 
-function draw_primitive_begin(kind)                                         { ErrorFunction("draw_primitive_begin()"); }
-function draw_primitive_begin_texture(kind, texid)                          { ErrorFunction("draw_primitive_begin_texture()"); }
-function draw_vertex(x,y)                                                   { ErrorFunction("draw_vertex()"); }
-function draw_vertex_color(x,y,col,alpha)                                   { ErrorFunction("draw_vertex_color()"); }
-var draw_vertex_colour = draw_vertex_color;
-function draw_vertex_texture(x,y,xtex,ytex)                                 { ErrorFunction("draw_vertex_texture()"); }
-function draw_vertex_texture_color(x,y,xtex,ytex,col,alpha)                 { ErrorFunction("draw_vertex_texture_color()"); }
-var draw_vertex_texture_colour = draw_vertex_texture_color;
-function draw_primitive_end()                                               { ErrorFunction("draw_primitive_end()"); }
+var draw_primitive_begin = GetErrorFunction("draw_primitive_begin"),
+    draw_primitive_begin_texture = GetErrorFunction("draw_primitive_begin_texture"),
+    draw_vertex = GetErrorFunction("draw_vertex"),
+    draw_vertex_color = GetErrorFunction("draw_vertex_color"),
+    draw_vertex_colour = draw_vertex_color,
+    draw_vertex_texture = GetErrorFunction("draw_vertex_texture"),
+    draw_vertex_texture_color = GetErrorFunction("draw_vertex_texture_color"),
+    draw_vertex_texture_colour = draw_vertex_texture_color,
+    draw_primitive_end = GetErrorFunction("draw_primitive_end");
 
-function d3d_primitive_begin(kind)                                          { ErrorFunction("d3d_primitive_begin()"); }
-function d3d_primitive_begin_texture(kind,texid)                            { ErrorFunction("d3d_primitive_begin_texture()"); }
-function d3d_vertex(x,y,z)                                                  { ErrorFunction("d3d_vertex()"); }
-function d3d_vertex_color(x,y,z,col,alpha)                                  { ErrorFunction("d3d_vertex_color()"); }
-var d3d_vertex_colour = d3d_vertex_color;
-function d3d_vertex_texture(x,y,z,xtex,ytex)                                { ErrorFunction("d3d_vertex_texture()"); }
-function d3d_vertex_texture_color(x,y,z,xtex,ytex,col,alpha)                { ErrorFunction("d3d_vertex_texture_color()"); }
-var d3d_vertex_texture_colour = d3d_vertex_texture_color;
-function d3d_vertex_normal(x,y,z,nx,ny,nz)                                  { ErrorFunction("d3d_vertex_normal()"); }
-function d3d_vertex_normal_color(x,y,z,nx,ny,nz,col,alpha)                  { ErrorFunction("d3d_vertex_normal_color()"); }
-var d3d_vertex_normal_colour = d3d_vertex_normal_color;
-function d3d_vertex_normal_texture(x,y,z,nx,ny,nz,xtex,ytex)                { ErrorFunction("d3d_vertex_normal_texture()"); }
-function d3d_vertex_normal_texture_color(x,y,z,nx,ny,nz,xtex,ytex,col,alpha){ ErrorFunction("d3d_vertex_normal_texture_color()"); }
-var d3d_vertex_normal_texture_colour = d3d_vertex_normal_texture_color;
-function d3d_primitive_end()                                                { ErrorFunction("d3d_primitive_end()"); }
+var d3d_primitive_begin = GetErrorFunction("d3d_primitive_begin"),
+    d3d_primitive_begin_texture = GetErrorFunction("d3d_primitive_begin_texture"),
+    d3d_vertex = GetErrorFunction("d3d_vertex"),
+    d3d_vertex_color = GetErrorFunction("d3d_vertex_color"),
+    d3d_vertex_colour = d3d_vertex_color,
+    d3d_vertex_texture = GetErrorFunction("d3d_vertex_texture"),
+    d3d_vertex_texture_color = GetErrorFunction("d3d_vertex_texture_color"),
+    d3d_vertex_texture_colour = d3d_vertex_texture_color,
+    d3d_vertex_normal = GetErrorFunction("d3d_vertex_normal"),
+    d3d_vertex_normal_color = GetErrorFunction("d3d_vertex_normal_color"),
+    d3d_vertex_normal_colour = d3d_vertex_normal_color,
+    d3d_vertex_normal_texture = GetErrorFunction("d3d_vertex_normal_texture"),
+    d3d_vertex_normal_texture_color = GetErrorFunction("d3d_vertex_normal_texture_color"),
+    d3d_vertex_normal_texture_colour = d3d_vertex_normal_texture_color,
+    d3d_primitive_end = GetErrorFunction("d3d_primitive_end");
 
 // ----------------------------------------------------------------------------------------------------------------------------------------
 var g_PrimBuffer = null; // raw ArrayBuffer data

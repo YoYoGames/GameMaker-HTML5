@@ -11,23 +11,23 @@
 // **********************************************************************************************************************
 
 // WebGL.js redefines these to useful functions
-var fn_texture_get_texel_width = function() { ErrorFunction("yy_texture_get_texel_width()"); };
-var fn_texture_get_texel_height = function() { ErrorFunction("yy_texture_get_texel_height()"); };
-var fn_texture_set_stage = function() { ErrorFunction("texture_set_stage()"); };
+var fn_texture_get_texel_width = GetErrorFunction("fn_texture_get_texel_width",0),
+    fn_texture_get_texel_height = GetErrorFunction("fn_texture_get_texel_height",0),
+    fn_texture_set_stage = GetErrorFunction("fn_texture_set_stage");
 
-var fn_shader_is_compiled = function() { ErrorFunction("shader_is_compiled()"); };
-var fn_shader_set = function() { ErrorFunction("shader_set()"); };
-var fn_shader_get_uniform = function() { ErrorFunction("shader_get_uniform()"); };
-var fn_shader_set_uniform_i = function() { ErrorFunction("shader_set_uniform_i()"); };
-var fn_shader_set_uniform_f = function() { ErrorFunction("shader_set_uniform_f()"); };
-var fn_shader_set_uniform_matrix = function() { ErrorFunction("shader_set_uniform_matrix()"); };
-var fn_shader_get_sampler_index = function() { ErrorFunction("shader_set_uniform_matrix()"); };
-var fn_shader_enable_corner_id = function() { ErrorFunction("shader_enable_corner_id()"); };
-var fn_shader_set_uniform_i_array = function() { ErrorFunction("shader_set_uniform_array_i()"); };
-var fn_shader_set_uniform_f_array = function() { ErrorFunction("shader_set_uniform_array_f()"); };
-var fn_shader_set_uniform_f_buffer = function() { ErrorFunction("shader_set_uniform_buffer_f()"); };
-var fn_shader_set_uniform_matrix_array = function() { ErrorFunction("shader_set_uniform_matrix_array()"); };
-var fn_shader_get_name = function (index) { ErrorFunction("shader_get_name()"); };
+var fn_shader_is_compiled = GetErrorFunction("fn_shader_is_compiled",0),
+    fn_shader_set = GetErrorFunction("fn_shader_set"),
+    fn_shader_get_uniform = GetErrorFunction("fn_shader_get_uniform",-1),
+    fn_shader_set_uniform_i = GetErrorFunction("fn_shader_set_uniform_i"),
+    fn_shader_set_uniform_f = GetErrorFunction("fn_shader_set_uniform_f"),
+    fn_shader_set_uniform_matrix = GetErrorFunction("fn_shader_set_uniform_matrix"),
+    fn_shader_get_sampler_index = GetErrorFunction("fn_shader_get_sampler_index"),
+    fn_shader_enable_corner_id = GetErrorFunction("fn_shader_enable_corner_id"),
+    fn_shader_set_uniform_i_array = GetErrorFunction("fn_shader_set_uniform_i_array"),
+    fn_shader_set_uniform_f_array = GetErrorFunction("fn_shader_set_uniform_f_array"),
+    fn_shader_set_uniform_f_buffer = GetErrorFunction("fn_shader_set_uniform_f_buffer"),
+    fn_shader_set_uniform_matrix_array = GetErrorFunction("fn_shader_set_uniform_matrix_array"),
+    fn_shader_get_name = GetErrorFunction("fn_shader_get_name","<undefined>");
 var g_CurrentShader = -1;
 
 // --------------------------------------------------------------------------------------------------------------------

@@ -15,31 +15,31 @@
 //     Function definitions for Canvas mode
 //
 // #############################################################################################
-var vertex_create_buffer =function()                            { ErrorFunction("vertex_create_buffer"); };
-var vertex_create_buffer_ext = function (size) { ErrorFunction("vertex_create_buffer_ext"); };
-var vertex_delete_buffer = function (buffer) { ErrorFunction("vertex_delete_buffer"); };
-var vertex_begin = function (buffer, format) { ErrorFunction("vertex_begin"); };
-var vertex_end = function (buffer) { ErrorFunction("vertex_end"); };
-var vertex_position = function (buffer, x, y) { ErrorFunction("vertex_position"); };
-var vertex_position_3d = function (buffer, x, y, z) { ErrorFunction("vertex_position_3d"); };
-var vertex_colour = function (buffer, col, alpha) { ErrorFunction("vertex_colour"); };
-var vertex_color = function (buffer, col, alpha) { ErrorFunction("vertex_color"); };
-var vertex_rgba = function (buffer, r, g, b, a) { ErrorFunction("vertex_rgba"); };
-var vertex_argb = function (buffer, r, g, b, a) { ErrorFunction("vertex_argb"); };
-var vertex_texcoord = function (buffer, u, v) { ErrorFunction("vertex_texcoord"); };
-var vertex_normal = function (buffer, x, y, z) { ErrorFunction("vertex_normal"); };
-var vertex_float1 = function (buffer, x) { ErrorFunction("vertex_float1"); };
-var vertex_float2 = function (buffer, x, y) { ErrorFunction("vertex_float2"); };
-var vertex_float3 = function (buffer, x, y, z) { ErrorFunction("vertex_float3"); };
-var vertex_float4 = function (buffer, x, y, z, w) { ErrorFunction("vertex_float4"); };
-var vertex_ubyte4 = function (buffer, x, y, z, w) { ErrorFunction("vertex_ubyte4"); };
-var vertex_freeze = function (buffer) { ErrorFunction("vertex_freeze"); };
-var vertex_submit = function (buffer) { ErrorFunction("vertex_submit"); };
-var vertex_get_number = function (buffer) { ErrorFunction("vertex_get_number"); };
-var vertex_get_buffer_size = function (buffer) { ErrorFunction("vertex_get_buffer_size"); };
-var vertex_create_buffer_from_buffer = function (buffer) { ErrorFunction("vertex_create_buffer_from_buffer"); };
-var vertex_create_buffer_from_buffer_ext = function (buffer) { ErrorFunction("vertex_create_buffer_from_buffer_ext"); };
-var draw_flush = function () { };
+var vertex_create_buffer = GetErrorFunction("vertex_create_buffer", -1),
+    vertex_create_buffer_ext = GetErrorFunction("vertex_create_buffer_ext", -1),
+    vertex_delete_buffer = GetErrorFunction("vertex_delete_buffer"),
+    vertex_begin = GetErrorFunction("vertex_begin"),
+    vertex_end = GetErrorFunction("vertex_end"),
+    vertex_position = GetErrorFunction("vertex_position"),
+    vertex_position_3d = GetErrorFunction("vertex_position_3d"),
+    vertex_colour = GetErrorFunction("vertex_colour"),
+    vertex_color = GetErrorFunction("vertex_color"),
+    vertex_rgba = GetErrorFunction("vertex_rgba"),
+    vertex_argb = GetErrorFunction("vertex_argb"),
+    vertex_texcoord = GetErrorFunction("vertex_texcoord"),
+    vertex_normal = GetErrorFunction("vertex_normal"),
+    vertex_float1 = GetErrorFunction("vertex_float1"),
+    vertex_float2 = GetErrorFunction("vertex_float2"),
+    vertex_float3 = GetErrorFunction("vertex_float3"),
+    vertex_float4 = GetErrorFunction("vertex_float4"),
+    vertex_ubyte4 = GetErrorFunction("vertex_ubyte4"),
+    vertex_freeze = GetErrorFunction("vertex_freeze"),
+    vertex_submit = GetErrorFunction("vertex_submit"),
+    vertex_get_number = GetErrorFunction("vertex_get_number"),
+    vertex_get_buffer_size = GetErrorFunction("vertex_get_buffer_size"),
+    vertex_create_buffer_from_buffer = GetErrorFunction("vertex_create_buffer_from_buffer", -1),
+    vertex_create_buffer_from_buffer_ext = GetErrorFunction("vertex_create_buffer_from_buffer_ext", -1),
+    draw_flush = function () { };
 
 // Constant for the default vertex buffer storage size
 var DEFAULT_VERTEX_BUFFER_SIZE = 8 * 1024;

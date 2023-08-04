@@ -185,6 +185,14 @@ function ErrorFunction(_text)
         debug( txt );
     }
 }
+function GetErrorFunction(name, returnValue)
+{
+    return function()
+    {
+        ErrorFunction(name);
+        return returnValue;
+    }
+}
 
 
 // #############################################################################################
