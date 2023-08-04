@@ -16,11 +16,6 @@
 
 
 // Scripts
-function execute_string()			{ ErrorFunction("execute_string()");}
-function execute_file()				{ ErrorFunction("execute_file()");}
-function show_info()				{ ErrorFunction("show_info()");}
-function load_info(fname)           { ErrorFunction("load_info()");}
-function script_get_text(ind)		{ ErrorFunction("script_get_text()"); }
 function game_save(name)			{ ErrorFunction("game_save()"); }
 function game_load(name)			{ ErrorFunction("game_load()"); }
 function game_save_buffer(buffer)	{ ErrorFunction("game_save_buffer()"); }
@@ -28,49 +23,12 @@ function game_load_buffer(buffer)	{ ErrorFunction("game_load_buffer()"); }
 
 
 // Splash screens
-function splash_show_video(fname,loop)      { ErrorFunction("splash_show_video()"); }
-function splash_show_text(fname,delay)      { ErrorFunction("splash_show_text()"); }
-function splash_show_image(fname,delay)     { ErrorFunction("splash_show_image()"); }
-function splash_show_web(url,delay)         { ErrorFunction("splash_show_web()"); }
-function splash_set_main(main)              { ErrorFunction("splash_set_main()"); }
-function splash_set_scale(scale)            { ErrorFunction("splash_set_scale()"); }
-function splash_set_cursor(vis)             { ErrorFunction("splash_set_cursor()"); }
-function splash_set_color(col)              { ErrorFunction("splash_set_color()"); }
-var splash_set_colour = splash_set_color;
-function splash_set_caption(cap)            { ErrorFunction("splash_set_caption()"); }
-function splash_set_fullscreen(full)        { ErrorFunction("splash_set_fullscreen()"); }
-function splash_set_border(border)          { ErrorFunction("splash_set_border()"); }
-function splash_set_size(w,h)               { ErrorFunction("splash_set_size()"); }
-function splash_set_position(x,y)           { ErrorFunction("splash_set_position()"); }
-function splash_set_adapt(adapt)            { ErrorFunction("splash_set_adapt()"); }
-function splash_set_top(top)                { ErrorFunction("splash_set_top()"); }
-function splash_set_interrupt(interrupt)    { ErrorFunction("splash_set_interrupt()"); }
-function splash_set_stop_key(stop)          { ErrorFunction("splash_set_stop_key()"); }
-function splash_set_stop_mouse(stop)        { ErrorFunction("splash_set_stop_mouse()"); }
-function splash_set_close_button(show)      { ErrorFunction("splash_set_close_button()"); }
 function os_set_orientation_lock()			{ ErrorFunction("os_set_orientation_lock()"); }
 
 // general
-function screen_redraw()                            {ErrorFunction("screen_redraw()");}
-function screen_refresh()                           {ErrorFunction("screen_refresh()");}
-function set_automatic_draw(value)                  {ErrorFunction("set_automatic_draw()");}
-function set_synchronization(value)                 {ErrorFunction("set_synchronization()");}
-function screen_wait_vsync()                        {ErrorFunction("screen_wait_vsync()");}
-function window_set_region_size(w,h,adaptwindow)    {ErrorFunction("window_set_region_size()");}
-function window_get_region_width()                  {ErrorFunction("window_get_region_width()");}
-function window_get_region_height()                 {ErrorFunction("window_get_region_height()");}
 function screen_save(fname)                         {MissingFunction("screen_save()");}
 function screen_save_part(fname,x,y,w,h)            {MissingFunction("screen_save_part()");}
-function transition_define(kind,name)               {MissingFunction("transition_define()");}
-function transition_exists(kind)                    {MissingFunction("transition_exists()");}
 
-function display_get_colordepth()                   {ErrorFunction("display_get_colordepth()");}
-function display_get_frequency()                    {ErrorFunction("display_get_frequency()");}
-function display_set_size(w,h)                      {ErrorFunction("display_set_size()");}
-function display_set_colordepth(coldepth)           {ErrorFunction("display_set_colordepth()");}
-function display_set_frequency(frequency)           {ErrorFunction("display_set_frequency()");}
-function display_set_all(w,h,frequency,coldepth)    {ErrorFunction("display_set_all()");}
-function display_test_all(w,h,frequency,coldepth)   {ErrorFunction("display_test_all()");}
 function display_reset(AA)                          {ErrorFunction("display_reset()");}
 function display_mouse_set(x,y)                     {ErrorFunction("display_mouse_set()");}
 
@@ -151,30 +109,7 @@ function clipboard_set_text(str) {
 // --------------------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------------------
 
-function set_program_priority(priority)             {MissingFunction("set_program_priority()");}
-
-
-
-
 // IO
-function joystick_exists(id)                        { return false; }
-function joystick_name(id)                          {ErrorFunction("joystick_name()");}
-function joystick_axes(id)                          {ErrorFunction("joystick_axes()");}
-function joystick_buttons(id)                       {ErrorFunction("joystick_buttons()");}
-function joystick_has_pov(id)                       {ErrorFunction("joystick_has_pov()");}
-function joystick_direction(id)                     {ErrorFunction("joystick_direction()");}
-function joystick_check_button(id,numb)             {ErrorFunction("joystick_check_button()");}
-function joystick_xpos(id)                          {ErrorFunction("joystick_xpos()");}
-function joystick_ypos(id)                          {ErrorFunction("joystick_ypos()");}
-function joystick_zpos(id)                          {ErrorFunction("joystick_zpos()");}
-function joystick_rpos(id)                          {ErrorFunction("joystick_rpos()");}
-function joystick_upos(id)                          {ErrorFunction("joystick_upos()");}
-function joystick_vpos(id)                          {ErrorFunction("joystick_vpos()");}
-function joystick_pov(id)                           {ErrorFunction("joystick_pov()");}
-
-function io_handle( )                               {ErrorFunction("io_handle()");}
-function mouse_wait()                               {ErrorFunction("mouse_wait()");}
-function keyboard_wait()                            {ErrorFunction("keyboard_wait()");}
 function keyboard_get_numlock()                     {ErrorFunction("keyboard_get_numlock()");}
 function keyboard_set_numlock(on)                   {ErrorFunction("keyboard_set_numlock()");}
 
@@ -232,35 +167,7 @@ function execute_program(prog,arg,wait)     { ErrorFunction("execute_program()")
 function execute_shell(prog,arg)            { ErrorFunction("execute_shell()"); }
 var secure_mode = true;
 
-
-// Registry
-function registry_write_string(name,str)                    { ErrorFunction("registry_write_string()"); }
-function registry_write_real(name,x)                        { ErrorFunction("registry_write_real()"); }
-function registry_read_string(name)                         { ErrorFunction("registry_read_string()"); }
-function registry_read_real(name)                           { ErrorFunction("registry_read_real()"); }
-function registry_exists(name)                              { ErrorFunction("registry_exists()"); }
-function registry_write_string_ext(key,name,str)            { ErrorFunction("registry_write_string_ext()"); }
-function registry_write_real_ext(key,name,x)                { ErrorFunction("registry_write_real_ext()"); }
-function registry_read_string_ext(key,name)                 { ErrorFunction("registry_read_string_ext()"); }
-function registry_read_real_ext(key,name)                   { ErrorFunction("registry_read_real_ext()"); }
-function registry_exists_ext(key,name)                      { ErrorFunction("registry_exists_ext()"); }
-function registry_set_root(root)                            { ErrorFunction("registry_set_root()"); }
-
-
 // Message boxes/dialogs etc.
-function message_text_font(_name,_size,_color,_style)       {ErrorFunction("message_text_font()");}
-function message_button(_spr)                               {ErrorFunction("message_button()");}
-function message_button_font(_name,_size,_color,_style)     {ErrorFunction("message_button_font()");}
-function message_input_font(_name, _size, _color, _style)   {ErrorFunction("message_input_font()");}
-function message_text_charset()					{ ErrorFunction("message_text_charset()"); }
-function message_mouse_color(col)				{ ErrorFunction("message_mouse_color()"); }
-function message_input_color(col)				{ ErrorFunction("message_input_color()"); }
-function message_caption(show, str)				{ ErrorFunction("message_caption()"); }
-function message_position(x, y)					{ ErrorFunction("message_position()"); }
-function message_size(w, h)						{ ErrorFunction("message_size()"); }
-function show_menu(str, def)					{ ErrorFunction("show_menu()"); }
-function show_menu_pos(x, y, str, def)			{ ErrorFunction("show_menu_pos()"); }
-function get_color(defcol)						{ ErrorFunction("get_color()"); }
 function get_open_filename(filter, fname)		{ ErrorFunction("get_open_filename()"); }
 function get_save_filename(filter, fname)		{ ErrorFunction("get_save_filename()"); }
 function get_open_filename_ext(filter, fname, dir, title) { ErrorFunction("get_open_filename_ext()"); }
@@ -271,43 +178,6 @@ function get_directory_alt(capt, root)			{ ErrorFunction("get_directory_alt()");
 
 
 // sound
-function sound_3d_set_sound_position(snd,x,y,z)                                         { ErrorFunction("sound_3d_set_sound_position()"); } 
-function sound_3d_set_sound_velocity(snd,x,y,z)                                         { ErrorFunction("sound_3d_set_sound_velocity()"); }
-function sound_3d_set_sound_distance(snd,mindist,maxdist)                               { ErrorFunction("sound_3d_set_sound_distance()"); }
-function sound_3d_set_sound_cone(snd,x,y,z,anglein,angleout,voloutside)                 { ErrorFunction("sound_3d_set_sound_cone()"); }
-function sound_background_tempo(factor)                                                 { ErrorFunction("sound_background_tempo()"); }
-function sound_pan(index,value)                                                         { ErrorFunction("sound_pan()"); }
-function sound_set_search_directory(dir)                                                { ErrorFunction("sound_set_search_directory()"); }
-function sound_effect_set(snd,effect)                                                   { ErrorFunction("sound_effect_set()"); }
-function sound_effect_chorus(snd,wetdry,depth,feedback,frequency,wave,delay,phase)      { ErrorFunction("sound_effect_chorus()"); }
-function sound_effect_echo(snd,wetdry,feedback,leftdelay,rightdelay,pandelay)           { ErrorFunction("sound_effect_echo()"); }
-function sound_effect_flanger(snd,wetdry,depth,feedback,frequency,wave,delay,phase)     { ErrorFunction("sound_effect_flanger()"); }
-function sound_effect_gargle(snd,rate,wave)                                             { ErrorFunction("sound_effect_gargle()"); }
-function sound_effect_reverb(snd,gain,mix,time,ratio)                                   { ErrorFunction("sound_effect_reverb()"); }
-function sound_effect_compressor(snd,gain,attack,release,threshold,ratio,delay)         { ErrorFunction("sound_effect_compressor()"); }
-function sound_effect_equalizer(snd,center,bandwidth,gain)                              { ErrorFunction("sound_effect_equalizer()"); }
-function sound_discard(index)                                                           { ErrorFunction("sound_discard()"); }
-function sound_restore(index)                                                           { ErrorFunction("sound_restore()"); }
-function sound_get_preload(index)														{ ErrorFunction("sound_get_preload()"); }
-
-function cd_init()                  { ErrorFunction("cd_init()"); }
-function cd_present()               { ErrorFunction("cd_present()"); }
-function cd_number()                { ErrorFunction("cd_number()"); }
-function cd_playing()               { ErrorFunction("cd_playing()"); }
-function cd_paused()                { ErrorFunction("cd_paused()"); }
-function cd_track()                 { ErrorFunction("cd_track()"); }
-function cd_length()                { ErrorFunction("cd_length()"); }
-function cd_track_length(n)         { ErrorFunction("cd_track_length()"); }
-function cd_position()              { ErrorFunction("cd_position()"); }
-function cd_track_position()        { ErrorFunction("cd_track_position()"); }
-function cd_play(first,last)        { ErrorFunction("cd_play()"); }
-function cd_stop()                  { ErrorFunction("cd_stop()"); }
-function cd_pause()                 { ErrorFunction("cd_pause()"); }
-function cd_resume()                { ErrorFunction("cd_resume()"); }
-function cd_set_position(pos)       { ErrorFunction("cd_set_position()"); }
-function cd_set_track_position(pos) { ErrorFunction("cd_set_track_position()"); }
-function cd_open_door()             { ErrorFunction("cd_open_door()"); }
-function cd_close_door()            { ErrorFunction("cd_close_door()"); }
 function MCI_command(str)           { ErrorFunction("MCI_command()"); }
 					
 function texture_preload(texid)             { ErrorFunction("texture_preload()"); }
@@ -323,19 +193,6 @@ function texture_set_interpolation_ext(stage, linear)    { ErrorFunction("textur
 function texture_get_uvs(_tex) { ErrorFunction("texture_get_uvs()"); }
 function texture_global_scale(pow2integer) { ErrorFunction("texture_global_scale()"); }
 
-
-function file_open_read()             { ErrorFunction("file_open_read()"); }
-function file_open_write()            { ErrorFunction("file_open_write()"); }
-function file_open_append()           { ErrorFunction("file_open_append()"); }
-function file_read_real()             { ErrorFunction("file_read_real()"); }
-function file_read_string()           { ErrorFunction("file_read_string()"); }
-function file_readln()                { ErrorFunction("file_readln()"); }
-function file_write_real()            { ErrorFunction("file_write_real()"); }
-function file_write_string()          { ErrorFunction("file_write_string()"); }
-function file_writeln()               { ErrorFunction("file_writeln()"); }
-function file_eof()                   { ErrorFunction("file_eof()"); }
-function file_eoln()                  { ErrorFunction("file_eoln()"); }
-function file_close()                 { ErrorFunction("file_close()"); }
 
 //steam functions
 function steam_activate_overlay()               { ErrorFunction("steam_activate_overlay()"); return -1; }
