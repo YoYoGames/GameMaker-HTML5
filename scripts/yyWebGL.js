@@ -59,9 +59,7 @@ var GR_MarkVertCorners = false,
 // Store the set of shader programs created from the user's project
 var g_shaderPrograms = [];
 
-var g_Matrix = null,
-	g_MatrixStack = null,
-	g_MatrixSP = 0;
+var g_Matrix = null;
 
 // Constants for matrix stack
 var MATRIX_VIEW = 0,
@@ -258,12 +256,6 @@ function InitWebGL(_canvas) {
     if (!InitShaders()) return false;
     if (!InitTextures()) return false;	
     if (!InitLightingEnv()) return false;
-   
-    g_MatrixStack = [];
-    for (var i = 0; i < MATRIX_STACK_MAX; i++) {
-        g_MatrixStack[i] = new Matrix();
-    }
-    g_MatrixSP = -1;
     
     g_RenderTargetActive = 1;
     g_pProjection = new Matrix();
@@ -866,103 +858,6 @@ function WebGL_DrawText_RELEASE(_font, _str, _x, _y, _xscale, _yscale, _angle, _
     
     // draw this texture to the screen
     //WebGL_TextureDrawWH_RELEASE( g_webGL_textureFont, 0, 0, width, height, _x, _y, _xscale, _yscale, _angle, _col, _col, _col, _col, _alpha );
-}
-
-// #############################################################################################
-/// Function:<summary>
-///          	Push a matrix onto our stack
-///          </summary>
-///
-/// In:		<param name="_matrix">Matrix to push onto the stack</param>
-// #############################################################################################
-function PushMatrix(_matrix) {
-
-    if (g_MatrixSP >= MATRIX_STACK_MAX) {
-        return false;
-    }
-
-    g_MatrixSP++;
-    if (g_MatrixSP == 0) {	    
-        g_MatrixStack[g_MatrixSP] = new Matrix(_matrix);
-    }
-    else {
-        g_MatrixStack[g_MatrixSP].Multiply(g_MatrixStack[g_MatrixSP - 1], _matrix);
-    }
-    return true;
-}
-
-// #############################################################################################
-/// Function:<summary>
-///          	Pop the top matrix off the stack
-///          </summary>
-///
-/// In:		<param name="_matrix"></param>
-/// Out:	<returns>
-///				
-///			</returns>
-// #############################################################################################
-function PopMatrix(_matrix) {
-
-    if (g_MatrixSP < 0) {
-        return false;
-    }
-	
-    // Set Matrix to that currently on top
-    WebGL_SetMatrix(MATRIX_WORLD, g_MatrixStack[g_MatrixSP]);	
-    g_MatrixSP--;
-    return true;
-}
-
-// #############################################################################################
-/// Function:<summary>
-///          	Clear off the matrix stack altogether
-///          </summary>
-// #############################################################################################
-function MatrixStackClear() {
-    g_MatrixSP = -1;
-}
-
-// #############################################################################################
-/// Function:<summary>
-///             Checks to see if the matrix stack is empty
-///          </summary>
-// #############################################################################################
-function MatrixStackEmpty() {
-
-    if (g_MatrixSP < 0) {
-        return true;
-    }
-    return false;
-}
-
-// #############################################################################################
-/// Function:<summary>
-///             Set the top matrix as the current one but don't remove it
-///          </summary>
-// #############################################################################################
-function SetTopMatrix() {
-
-    if (g_MatrixSP < 0) {
-        return false;
-    }	
-    // Set Matrix to that currently on top
-    WebGL_SetMatrix(MATRIX_WORLD, g_MatrixStack[g_MatrixSP]);	
-    return true;
-}
-
-
-// #############################################################################################
-/// Function:<summary>
-///             Discard the top matrix
-///          </summary>
-// #############################################################################################
-function DiscardTopMatrix() {
-
-    if (g_MatrixSP < 0) {
-        return false;
-    }
-    g_MatrixSP--;
-    return true;
 }
 
 // #############################################################################################
