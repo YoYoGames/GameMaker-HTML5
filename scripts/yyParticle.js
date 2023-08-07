@@ -1549,10 +1549,12 @@ function ParticleSystem_Emitter_Destroy(_ps, _ind)
 // #############################################################################################
 function ParticleSystem_Emitter_DestroyAll(_ps)
 {
-    var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
-	if( pPartSys ==null || pPartSys==undefined ) return false;
-
-	pPartSys.emitters = [];
+	_ps = yyGetInt32(_ps);
+	if (!ParticleSystem_Exists(_ps)) return false;
+	for (var i = g_ParticleSystems[_ps].emitters.length - 1; i >= 0; --i)
+	{
+		ParticleSystem_Emitter_Destroy(_ps, i);
+	}
 	return true;
 }
 
