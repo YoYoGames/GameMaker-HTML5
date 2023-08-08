@@ -610,7 +610,8 @@ yyInstance.prototype = {
 	set timeline_loop( _loop ) { 
 		this.timeline_looped = yyGetBool(_loop);
 	},
-
+	
+	// @if feature("physics")
 	// phy_rotation property
 	get phy_rotation() { return this.__phy_rotation; },
 	set phy_rotation(_rotation) {
@@ -749,6 +750,7 @@ yyInstance.prototype = {
 	        this.RefreshPhysicalProperties(this.m_physicsObject.m_physicsBody);
 	    }
 	},
+	// @endif physics properties
 
 	// layer property
 	get layer() { return this.m_nLayerID; },
@@ -955,7 +957,7 @@ yyInstance.prototype.UpdateSpriteIndex = function (_index) {
 ///          </summary>
 // #############################################################################################
 yyInstance.prototype.RebuildPhysicsBody = function (_room) {
-
+	// @if feature("physics")
     // Null off pre-existing bodies to ensure that the data is entirely 
     // rebuilt either now or later in the logic (e.g. room start event)    
     if (_room && this.m_physicsObject) {
@@ -970,6 +972,7 @@ yyInstance.prototype.RebuildPhysicsBody = function (_room) {
         this.BuildPhysicsBody();
         this.bbox_dirty = true;
     }
+	// @endif
 };
 
 // #############################################################################################
@@ -978,7 +981,7 @@ yyInstance.prototype.RebuildPhysicsBody = function (_room) {
 ///          </summary>
 // #############################################################################################
 yyInstance.prototype.BuildPhysicsBody = function () {
-
+	// @if feature("physics")
     if (!this.pObject.PhysicsData.physicsObject) {
 		return;
 	}
@@ -1070,6 +1073,7 @@ yyInstance.prototype.BuildPhysicsBody = function () {
 
 	// And bind the fixture to get the physical object for this instance
 	physics_fixture_bind(this, fixtureID, this.id, xoffs, yoffs);	
+	// @endif BuildPhysicsBody
 };
 
 // #############################################################################################
@@ -2875,6 +2879,7 @@ yyInstance.prototype.ApplyVisualOffset = function (_angle, _visualOffs) {
 ///             Transfer across physics data to properties the user can access
 ///          </summary>
 // #############################################################################################
+// @if feature("physics")
 yyInstance.prototype.RefreshPhysicalProperties = function (_physicsBody) {
     
     var TargetSpeed =g_RunRoom.GetSpeed();
@@ -3059,7 +3064,7 @@ yyInstance.prototype.set_physics_active = function(_isActive) {
     this.m_physicsObject.SetActive(yyGetBool(_isActive));
     this.RefreshPhysicalProperties(this.m_physicsObject.m_physicsBody);
 };
-
+// @endif physics helpers
 
 
 // #############################################################################################

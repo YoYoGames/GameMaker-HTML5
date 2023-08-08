@@ -542,6 +542,7 @@ function computeIterationValues(_maxLength, _rawOffset, _rawLength) {
 ///				true for ===, false for !===
 ///			</returns>
 // #############################################################################################
+/// @if function("array_equals")
 function array_equals(_a, _b)
 {
     // Both arguments must be arrays
@@ -568,6 +569,7 @@ function array_equals(_a, _b)
     }
     return true;
 } // end array_equals
+/// @endif array_equals
 
 function array_create( _size, _val )
 {

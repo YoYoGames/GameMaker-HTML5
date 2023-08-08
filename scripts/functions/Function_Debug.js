@@ -539,6 +539,7 @@ function get_integer(_str,_def)
 }
 
 
+/// @if function("get_login_async")
 // #############################################################################################
 /// Function:<summary>
 ///          	Create a login dialog
@@ -623,6 +624,7 @@ function createLoginDialog( _dialogData )
 	login_dialog_update();
 	g_pASyncManager.Add(_dialogData.id, null, ASYNC_USER, g_dialogName);
 } // end createLoginDialog
+/// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -872,9 +874,11 @@ function YYDialogKick() {
     
         // get the first entry and kick that one
         switch( g_dialogs[0].type ) {
+        /// @if function("get_login_async")
         case DIALOG_TYPE_LOGIN: // login dialog
             createLoginDialog( g_dialogs[0] );
             break;
+        /// @endif
         case DIALOG_TYPE_INPUT: // input dialog
             createInputDialog( g_dialogs[0] );
             break;

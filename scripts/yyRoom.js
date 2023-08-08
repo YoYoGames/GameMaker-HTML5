@@ -185,6 +185,7 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
 		}
 
 		// Physics world
+		// @if feature("physics")
 		if ( _pStorage.physicsWorld )
 		{
 			this.m_pStorage.physicsWorld = _pStorage.physicsWorld;
@@ -196,6 +197,7 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
 			this.m_pStorage.physicsGravityY = _pStorage.physicsGravityY;
 			this.m_pStorage.physicsPixToMeters = _pStorage.physicsPixToMeters;
 		}
+		// @endif physics world storage clone
     
 		// 1.x backgrounds
         for (var i = 0; i < _pStorage.backgrounds.length; i++) 
@@ -551,6 +553,7 @@ yyRoom.prototype.CreateRoomFromStorage = function (_pRoomStorage)
 ///             
 ///          </summary>
 // #############################################################################################
+// @if feature("physics")
 yyRoom.prototype.BuildPhysicsWorld = function() {
 
     // evaluates to true if value is not: null, undefined, NaN, empty string, 0, false
@@ -567,6 +570,7 @@ yyRoom.prototype.BuildPhysicsWorld = function() {
         this.m_pPhysicsWorld.SetGravity(this.m_pStorage.physicsGravityX, this.m_pStorage.physicsGravityY);
     }
 };
+// @endif BuildPhysicsWorld
 
 // #############################################################################################
 /// Function:<summary>
@@ -694,7 +698,9 @@ yyRoom.prototype.CreateInstance = function (_x, _y, _id, _objindex, _scaleX, _sc
             g_pLayerManager.BuildElementRuntimeData(this, elandlay.layer, elandlay.element);
         }
     }
+	// @if feature("physics")
     pinst.BuildPhysicsBody();
+	// @endif
     
   //  g_pLayerManager.AddInstance(this,pinst);
     return pinst;
@@ -741,8 +747,10 @@ yyRoom.prototype.AddInstance = function (_x, _y, _id, _objindex, _overridedepth,
             g_pLayerManager.BuildElementRuntimeData(this, elandlay.layer, elandlay.element);
         }
     }
-
+	
+	// @if feature("physics")
     pinst.BuildPhysicsBody();
+	// @endif
     return pinst;
 };
 
@@ -774,7 +782,9 @@ yyRoom.prototype.AddLayerInstance = function (_x, _y, _layer, _id, _objindex)
     this.m_Active.Add(pinst);
     g_pInstanceManager.Add(pinst);
 
+	// @if feature("physics")
     pinst.BuildPhysicsBody();
+	// @endif
     
     //this.m_NewInstances.push({ inst: pinst, type: 1, layer:_layer });
 

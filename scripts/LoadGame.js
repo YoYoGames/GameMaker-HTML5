@@ -36,7 +36,9 @@ function InitAboyne()
     global = new yyGameGlobals();
     g_pBuiltIn = new yyBuiltIn();
 	g_pIOManager = new yyIOManager();
+	/// @if feature("gamepad")
 	g_pGamepadManager = new yyGamepadManager();
+	/// @endif
 
 	g_pBuiltIn.pointer_null = new ArrayBuffer(1);
 	g_pBuiltIn.pointer_invalid = new ArrayBuffer(1);	

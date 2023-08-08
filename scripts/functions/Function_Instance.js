@@ -523,7 +523,9 @@ function instance_change_RELEASE(_inst, _objindex, _perf)
 	_inst.UpdateSpriteIndex(_inst.pObject.SpriteIndex);
 	
 	// Change over the physics body	if one exists/should exist
+	// @if feature("physics")
 	_inst.RebuildPhysicsBody(g_RunRoom);
+	// @endif
 
 	if( _perf ) {
 		_inst.PerformEvent(EVENT_PRE_CREATE, 0, _inst, _inst );

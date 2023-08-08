@@ -15,9 +15,11 @@
 //
 // **********************************************************************************************************************
 
+// @if feature("physics")
 var OBJECT_PHYSICS_SHAPE_CIRCLE = 0,
     OBJECT_PHYSICS_SHAPE_BOX = 1,
     OBJECT_PHYSICS_SHAPE_POLY = 2;
+// @endif physics constants
 
 // #############################################################################################
 /// Function:<summary>
@@ -616,6 +618,7 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         }
         
         // Physics data
+        // @if feature("physics")
         if (_pObjectStorage.physicsObject != undefined) {
             
             pObj.PhysicsData.physicsObject = _pObjectStorage.physicsObject;
@@ -631,6 +634,7 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
             pObj.PhysicsData.physicsKinematic = _pObjectStorage.physicsKinematic;
             pObj.PhysicsData.physicsShapeVertices = _pObjectStorage.physicsShapeVertices;
         }
+        // @endif physics
     }
     return pObj;
 }

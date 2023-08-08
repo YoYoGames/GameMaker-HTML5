@@ -13,6 +13,7 @@
 // 15/02/2012		1.0         CPH     1st version
 // 
 // **********************************************************************************************************************
+// @if feature("physics")
 var PHYSICS_DEFAULT_UPDATE_ITERATIONS = 10,    
     PHYSICS_COLLISION_CATEGORIES = 32,
     PHYSICS_DEBUG_RENDER_SHAPE = (1 << 0),
@@ -2385,3 +2386,4 @@ yyPhysicsWorld.prototype.SetParticleRadius = function (_radius)     { this.m_wor
 yyPhysicsWorld.prototype.SetParticleDensity = function (_density)   { this.m_world.SetParticleDensity(_density); };
 yyPhysicsWorld.prototype.SetParticleDamping = function (_damping)   { this.m_world.SetParticleDamping(_damping); };
 yyPhysicsWorld.prototype.SetParticleGravityScale = function (_scale){ this.m_world.SetParticleGravityScale(_scale); };
+// @endif

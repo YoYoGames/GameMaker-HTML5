@@ -1196,7 +1196,9 @@ function StartRoom( _numb, _starting )
 
     // Some global initialization	
 	//g_pIOManager.Clear();
+    /// @if feature("gamepad")
 	g_pGamepadManager.Clear();
+    /// @endif
 
 	// Kill all particles currently in flight
 	//ParticleSystem_ClearParticles();          // don't do this, to match C++ runner
@@ -1274,7 +1276,9 @@ function StartRoom( _numb, _starting )
 	if (ispersistent === false)
 	{
 	    // Build the physics world for this room if not persistent and one is required
+        // @if feature("physics")
 	    g_RunRoom.BuildPhysicsWorld();
+        // @endif
 	    
         // Loop through all instances in the storage of the room and create the ones NOT in the persistent list...
         g_RunRoom.ClearInstances(false);
@@ -1349,7 +1353,9 @@ function StartRoom( _numb, _starting )
     for (var u=0; u < persistent.length; u++)
     {
         g_RunRoom.m_Active.Add(persistent[u]);
+        // @if feature("physics")
         persistent[u].RebuildPhysicsBody();
+        // @endif
 
         // Add persistent object to layer system
         if (g_isZeus)
@@ -1570,7 +1576,7 @@ function UpdateActiveLists() {
 ///          </summary>
 // #############################################################################################
 function UpdateInstancePositions() {
-
+    // @if feature("physics")
     if (g_RunRoom.m_pPhysicsWorld) {
         if(g_isZeus)
         {
@@ -1579,9 +1585,9 @@ function UpdateInstancePositions() {
         else
             g_RunRoom.m_pPhysicsWorld.Update(g_RunRoom.m_speed);
     }
-    else {
-        g_pInstanceManager.UpdatePositions();	
-    }
+    else // ->
+    // @endif
+    g_pInstanceManager.UpdatePositions();	
 }
 
 // #############################################################################################
@@ -1611,7 +1617,9 @@ function    GameMaker_DoAStep() {
 	g_pIOManager.StartStep();	
 	HandleOSEvents();
 	
+    /// @if feature("gamepad")
 	g_pGamepadManager.Update();
+    /// @endif
 	g_pInstanceManager.RememberOldPositions();                     	// Remember old positions
 	
 	g_pInstanceManager.UpdateImages();
