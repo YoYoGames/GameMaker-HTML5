@@ -60,7 +60,9 @@ function InitAboyne()
 	// @if feature("timelines")
     g_pTimelineManager = new yyTimelineManager();
 	// @endif
+	// @if feature("animcurves")
     g_pAnimCurveManager = new yyAnimCurveManager();
+	// @endif
 	// @if feature("sequences")
     g_pSequenceManager = new yySequenceManager();
 	// @endif
@@ -849,11 +851,13 @@ function LoadGame(_GameFile)
 
 
     // Load AnimCurves
+	// @if feature("animcurves")
     if (_GameFile.AnimCurves !== undefined) {
         for (index = 0; index < _GameFile.AnimCurves.length; index++) {
             g_pAnimCurveManager.Add(_GameFile.AnimCurves[index]);
         }
     }
+	// @endif
 
     // Load Sequences
 	// @if feature("sequences")

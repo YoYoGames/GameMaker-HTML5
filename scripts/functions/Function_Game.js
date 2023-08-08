@@ -451,6 +451,7 @@ function event_perform_timeline(_pInst, _other, _timelineInd, _eventInd)
             eventData.Event(_pInst, _pInst);
         }
     }
+    // @endif
 }
 
 // #############################################################################################
@@ -1701,7 +1702,9 @@ function ResourceGetTypeIndex(_name )
     // @if feature("sequences")
     if ((ret = Resource_Find(_name, g_pGMFile.Sequences)) >= 0)                { typeId.type=AT_Sequence;   typeId.id = ret; return typeId; }
     // @endif
+    // @if feature("animcurves")
     if ((ret = Resource_Find(_name, g_pGMFile.AnimCurves)) >= 0)               { typeId.type=AT_AnimCurve;  typeId.id = ret; return typeId; }
+    // @endif
     if ((ret = CParticleSystem.Find(_name)) >= 0)                              { typeId.type=AT_ParticleSystem;  typeId.id = ret; return typeId; }
     
     return typeId;
@@ -1727,7 +1730,9 @@ function ResourceGetName( _index, _assetType )
         // @if feature("sequences")
         case AT_Sequence:	    return ( _sequence_exists(_index)) ? sequence_get_name(_index) : "";
         // @endif
+        // @if feature("animcurves")
         case AT_AnimCurve:	    return ( _animcurve_exists(_index)) ? animcurve_get_name(_index) : "";
+        // @endif
     }
     return "";
 }
