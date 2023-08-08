@@ -537,6 +537,7 @@ function BufferSizeOf(_type) {
 
 }
 
+// @if function("buffer_md5")
 function yyMD5(){
     this.i = new Uint32Array(2);   //[2];       //uint32
     this.buf = new Uint32Array(4); //[4];    //uint32
@@ -881,6 +882,7 @@ function DoMD5(_buff, _size,_offset)
 	MD5Final( mdContext );
     return mdContext.yyb_hex();
 }
+// @endif buffer_md5
 
 function crc32_init() { 
     var poly = -306674912; 
