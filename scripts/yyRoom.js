@@ -70,9 +70,6 @@ yyRoom.prototype.Init = function () {
 	//this.m_NewInstances = []; 				// When a new instance is added, its added to the layers at the end of the event
 	//this.m_ParticleChanges = []; 			    // When a particle system changes depth (this needs to be global because it can be called before there is a room)
 
-	this.m_NumTiles = 0;
-	this.m_Tiles = [];
-	this.m_PlayfieldManager = new yyPlayfieldManager();
 	this.m_Views = [];
 
 	this.m_Marked = [];
@@ -515,21 +512,6 @@ yyRoom.prototype.CreateRoomFromStorage = function (_pRoomStorage)
 	this.SetCaption(this.m_pCaption);
 	this.SetPersistent(this.m_persistent);
 	this.m_Views = [];
-
-
-	// Make Tiles
-	this.m_NumTiles = 0;		
-	for (var index = 0; index < _pRoomStorage.tiles.length; index++)
-	{
-		var pTileStorage = _pRoomStorage.tiles[index];
-		if (pTileStorage != null)
-		{
-			var pTile = CreateTileFromStorage(pTileStorage);
-			this.m_PlayfieldManager.Add(pTile);
-			this.m_Tiles[pTile.id] = pTile;
-			this.m_NumTiles++;
-		}
-	}
 
 	if (_pRoomStorage.pCode != undefined) this.m_code = _pRoomStorage.pCode;
 
@@ -4090,82 +4072,7 @@ yyRoom.prototype.ActivateInstance = function (_pInst) {
 	}
 };
 
-// #############################################################################################
-/// Property: <summary>
-///           	Add a tile to the room.
-///           </summary>
-// #############################################################################################
-yyRoom.prototype.AddTile = function (_pTile) {
 
-	this.m_PlayfieldManager.Add(_pTile);
-	this.m_Tiles[_pTile.id] = _pTile;
-	this.m_NumTiles++;
-};
-
-
-
-// #############################################################################################
-/// Property: <summary>
-///           	Add a tile to the room.
-///           </summary>
-// #############################################################################################
-yyRoom.prototype.DeleteTile = function (_id) {
-	var pTile = this.m_Tiles[_id];
-	if (pTile)
-	{
-	    this.m_PlayfieldManager.DeleteTile(pTile);
-		this.m_Tiles[_id] = undefined;
-		this.m_NumTiles--;
-	}
-};
-
-// #############################################################################################
-/// Property: <summary>
-///           	Add a tile to the room.
-///           </summary>
-// #############################################################################################
-yyRoom.prototype.DeleteTileLayer = function (_depth) {
-
-	var pPlayfield = this.m_PlayfieldManager.Get(_depth);
-	if (pPlayfield != null && pPlayfield != undefined) {
-	
-	    var pool = pPlayfield.GetPool();
-	    
-	    // Delete all tile that exist in this layer.	    
-	    for (var tile = 0; tile < pool.length; tile++)
-	    {
-	    	var pTile = pool[tile];
-	    	if (pTile)
-	    	{
-	    		this.m_Tiles[pTile.id] = null;
-	    		this.m_NumTiles--;
-	    	}
-	    }	    
-	}
-	this.m_PlayfieldManager.Delete(_depth);
-};
-
-
-// #############################################################################################
-/// Property: <summary>
-///           	Remove all tiles currently in use
-///           </summary>
-// #############################################################################################
-yyRoom.prototype.ClearTiles = function () {
-
-    this.m_NumTiles = 0;
-    this.m_Tiles = [];
-};
-
-
-// #############################################################################################
-/// Property: <summary>
-///           	Remove all tiles specified in storage
-///           </summary>
-// #############################################################################################
-yyRoom.prototype.ClearTilesFromStorage = function () {
-	this.m_pStorage.tiles = [];
-};
 
 
 
