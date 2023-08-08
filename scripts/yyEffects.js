@@ -319,11 +319,11 @@ yyFilterHost.prototype.Step = function ()
 {
 	if (this.startTime == -1)
 	{
-		this.startTime = YoYo_GetTimer();
+		this.startTime = get_timer();
 	}
 	else
 	{
-		this.elapsedTime = YoYo_GetTimer() - this.startTime;
+		this.elapsedTime = get_timer() - this.startTime;
 	}
 };
 

@@ -1442,12 +1442,12 @@ function    ConvertGMColour( _col ){ return (((_col&0xff)<<16) | (_col&0xff00) |
 // #############################################################################################
 function Timing_Wait( _slp )
 {
-	var StartTime = YoYo_GetTimer();
+	var StartTime = get_timer();
 
 	// very simple delay loop - a proper sleep would be better.
 	while(_slp>0)
 	{
-		var CurrTime= YoYo_GetTimer();
+		var CurrTime= get_timer();
 		_slp -= (CurrTime-StartTime);
 		StartTime = CurrTime;
 	}

@@ -1859,7 +1859,7 @@ CTimingSource.prototype.Reset= function()
     this.m_elapsed_micros = 0;
     if(this.m_fps >0.0)
     {
-        this.m_last_micros = YoYo_GetTimer();
+        this.m_last_micros = get_timer();
     }
     else
     {
@@ -1878,7 +1878,7 @@ CTimingSource.prototype.Update=function()
         current = this.m_last_micros + 1000000.0/this.m_fps;
     }
     else
-        current = YoYo_GetTimer();
+        current = get_timer();
         
    this.m_delta_micros = current - this.m_last_micros;
    

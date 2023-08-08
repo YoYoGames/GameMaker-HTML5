@@ -701,7 +701,7 @@ LayerManager.prototype.BuildRoomLayerRuntimeData = function(_room)
     for(var i=0;i<_room.m_Layers.length;i++)
     {
         var player = _room.m_Layers.Get(i);
-        player.m_timer = YoYo_GetTimer();
+        player.m_timer = get_timer();
         
         for(var j=0;j<player.m_elements.length;j++)
         {
@@ -1470,7 +1470,7 @@ LayerManager.prototype.UpdateLayers = function()
         
     var numlayers = g_RunRoom.m_Layers.length;
     
-    var time = YoYo_GetTimer();
+    var time = get_timer();
     
     for(var i=0;i<numlayers;i++)
     {
@@ -1571,7 +1571,7 @@ LayerManager.prototype.UpdateLayers = function()
                 }
             }
         }
-        layer.m_timer = YoYo_GetTimer(); 
+        layer.m_timer = get_timer(); 
     }
 };
 
