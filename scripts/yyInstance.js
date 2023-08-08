@@ -501,9 +501,11 @@ yyInstance.prototype = {
 	        return skeletonAnim.FrameCount(pSprite);
 	    }
 		// @endif spine
+		// @if feature("swf")
 		if ((pSprite.SWFTimeline !== null) && (pSprite.SWFTimeline !== undefined)) {
 		    return pSprite.SWFTimeline.numFrames;
 		}
+		// @endif
 		return pSprite.ppTPE.length;
 	},
 

@@ -9,7 +9,7 @@
 // Description:
 //
 // **********************************************************************************************************************
-
+// @if feature("swf")
 var eDIType_Invalid = 0,
 	eDIType_Shape = 1,
 	eDIType_Bitmap = 2;
@@ -524,3 +524,4 @@ yySWFShape.prototype.BuildSubShapes = function (_styleGroup, _dataView, _byteOff
 	}
 	return _byteOffset;
 };
+// @endif

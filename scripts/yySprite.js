@@ -427,7 +427,7 @@ yySprite.prototype.CalcCullRadius = function () {
 ///           </summary>
 // #############################################################################################
 yySprite.prototype.BuildSWFData = function (_swfIndex, _xo, _yo) {
-
+	// @if feature("swf")
     try {
         if (g_pSpriteManager.swfSpriteData !== undefined) {
         
@@ -528,6 +528,7 @@ yySprite.prototype.BuildSWFData = function (_swfIndex, _xo, _yo) {
     catch (e) {
         debug("Cannot build SWF data " + e.message);
     }
+	// @endif
 };
 
 
@@ -537,7 +538,7 @@ yySprite.prototype.BuildSWFData = function (_swfIndex, _xo, _yo) {
 ///          </summary>
 // #############################################################################################
 yySprite.prototype.SetupSWFCollisionMasks = function (_dataView, _byteOffset, _littleEndian) {
-
+	// @if feature("swf")
     if (this.colcheck !== yySprite_CollisionType.PRECISE) {
         return;
     }
@@ -584,6 +585,7 @@ yySprite.prototype.SetupSWFCollisionMasks = function (_dataView, _byteOffset, _l
 	    _byteOffset = offsetStore + ((colMaskSize + 3) & ~3);
 	}
 	this.maskcreated = true;	
+	// @endif swf
 	return _byteOffset;
 };
 
@@ -593,7 +595,7 @@ yySprite.prototype.SetupSWFCollisionMasks = function (_dataView, _byteOffset, _l
 ///          </summary>
 // #############################################################################################
 yySprite.prototype.SetSWFDrawRoutines = function () {
-
+	// @if feature("swf")
     this.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _colour, _alpha) {    
 	    Graphics_SWFDraw(
 	        this.SWFDictionaryItems, this.SWFTimeline, _ind, this.xOrigin, this.yOrigin, _x, _y, _xscale, _yscale, _angle, _colour, _alpha, this.ppTPE);
@@ -603,6 +605,7 @@ yySprite.prototype.SetSWFDrawRoutines = function () {
         Graphics_SWFDraw(
             this.SWFDictionaryItems, this.SWFTimeline, _ind, this.xOrigin, this.yOrigin, _x, _y, 1.0, 1.0, 0.0, 0xffffffff, _alpha, this.ppTPE);
     };
+	// @endif swf
 };
 
 
@@ -901,11 +904,12 @@ function    CreateSpriteFromStorage( _pStore )
 	
 		
 	pSprite.Masks = null;
-	
+	// @if feature("swf")
 	if (_pStore.swf !== undefined) {
 		pSprite.m_LoadedFromChunk = true;
 	    pSprite.BuildSWFData(_pStore.swf, pSprite.xOrigin, pSprite.yOrigin);
 	}
+	// @endif
 
 	if (_pStore.sequence !== undefined) {
 	    pSprite.BuildSequenceData(_pStore.sequence);
@@ -1919,9 +1923,11 @@ yySpriteManager.prototype.AddSprite = function (_pSprite) {
 yySpriteManager.prototype.GetImageCount = function (_spr_number) {
 	var sprite = this.Sprites[_spr_number];
 	if (!sprite) return null;
+	// @if feature("swf")
 	if ((sprite.SWFTimeline !== null) && (sprite.SWFTimeline !== undefined)) {
 	    return sprite.SWFTimeline.numFrames;
-	}		
+	}
+	// @endif
 	return sprite.ppTPE.length;
 };
 
@@ -1996,7 +2002,7 @@ yySpriteManager.prototype.Delete = function(_id) {
 ///          </summary>
 // #############################################################################################
 yySpriteManager.prototype.SWFLoad = function (_data) {
-
+	// @if feature("swf")
     try {
         // header consists of:
         // "rswf";
@@ -2052,6 +2058,7 @@ yySpriteManager.prototype.SWFLoad = function (_data) {
     catch (e) {
         debug("Cannot parse SWF data " + e.message);        
     }
+	// @endif swf
 };
 
 

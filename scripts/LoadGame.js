@@ -367,7 +367,7 @@ function LoadSkeletonData(_filename) {
 ///          </summary>
 // #############################################################################################
 function LoadSwfData(_filename) {
-
+	// @if feature("swf")
     g_LoadingTotal++;	    
 	var request = new XMLHttpRequest();
     request.open('GET', CheckWorkingDirectory(_filename), true);
@@ -378,6 +378,7 @@ function LoadSwfData(_filename) {
         g_pSpriteManager.SWFLoad(request.response || request.responseText); 
     };
     request.onerror = function (ev) { g_LoadingCount++; };    
+	// @endif swf
 }
 
 // #############################################################################################
@@ -448,9 +449,11 @@ function LoadGame_PreLoadAssets(_GameFile)
 	}
 	
 	// Load SWF data if it's present
+	// @if feature("swf")
 	if ((_GameFile.Swfs !== null) && (_GameFile.Swfs !== undefined)) {	
 	    LoadSwfData(_GameFile.Swfs);
     }
+	// @endif
     
     // Load Spine data if it's present
 	// @if feature("spine")

@@ -137,8 +137,10 @@ function InitWebGLFunctions() {
     Graphics_TextureDrawTiled = WebGL_TextureDrawTiled_RELEASE;
     Graphics_TextureDraw = WebGL_TextureDraw_RELEASE;
     Graphics_TextureDrawPos = WebGL_TextureDrawPos_RELEASE;
+    // @if feature("swf")
     Graphics_SWFDraw = WebGL_DrawSWF_RELEASE;
     Graphics_SWFDrawObject = WebGL_DrawSWFObject_RELEASE;
+    // @endif swf
     Graphics_DrawPart = WebGL_DrawPart_RELEASE;                
     draw_rectangle = WebGL_draw_rectangle_RELEASE;
     draw_roundrect_color_ext = WebGL_draw_roundrect_color_EXT_RELEASE;
@@ -1202,7 +1204,8 @@ function	WebGL_TextureDrawTiled_RELEASE( _pTPE, _x, _y, _xsc, _ysc, vtiled, htil
 ///          </summary>
 // #############################################################################################
 function WebGL_DrawSWF_RELEASE(SWFDictionary, SWFTimeline, ind, xorig, yorig, x, y, xscale, yscale, angle, color, alpha, TPEs) 
-{            
+{
+    // @if feature("swf")
     var oldColourWriteEnable = GR_ColourWriteEnable;
     var oldZWriteEnable = GR_3DMode;
 
@@ -1353,7 +1356,8 @@ function WebGL_DrawSWF_RELEASE(SWFDictionary, SWFTimeline, ind, xorig, yorig, x,
     // Restore render states    
     g_webGL.SetStencilEnable(false);
     g_webGL.SetColorWriteEnable(oldColourWriteEnable.red, oldColourWriteEnable.green, oldColourWriteEnable.blue, oldColourWriteEnable.alpha);
-    g_webGL.SetZWriteEnable(oldZWriteEnable);    
+    g_webGL.SetZWriteEnable(oldZWriteEnable);
+    // @endif
 }
 
 // #############################################################################################
@@ -1363,6 +1367,8 @@ function WebGL_DrawSWF_RELEASE(SWFDictionary, SWFTimeline, ind, xorig, yorig, x,
 // #############################################################################################
 function WebGL_DrawSWFObject_RELEASE(SWFDictionaryItems, _pObject, _pPostMat, _pGradTransMat, _mulcolour, _colvals, _aa, TPEs)
 {
+    var numtris = 0;
+    // @if feature("swf")
     // Work out alpha colour for AA        
     var transcolvals = [];
 	transcolvals[0] = _colvals[0],
@@ -1388,7 +1394,6 @@ function WebGL_DrawSWFObject_RELEASE(SWFDictionaryItems, _pObject, _pPostMat, _p
 	    transcoladd[i] = _pObject.colTransAddZeroAlpha[i];
     }
 
-    var numtris = 0;
     // Could potentially optimise this a bit by collapsing all the style groups into a single contiguous list, storing an explicit colour for each triangle vertex and chaining untextured geometry together
     // We'd still have to maintain rendering order so we couldn't chain *all* untextured geometry - just contiguous sections
     // If we also precalculate how long each run is we could reduce the amount of conditionals and calls to AllocVerts
@@ -1587,6 +1592,7 @@ function WebGL_DrawSWFObject_RELEASE(SWFDictionaryItems, _pObject, _pPostMat, _p
 		    }
 	    }
     }
+    // @endif
     return numtris;
 }
 
@@ -1599,6 +1605,8 @@ function WebGL_DrawSWFObject_RELEASE(SWFDictionaryItems, _pObject, _pPostMat, _p
 function WebGL_Draw_BitmapGradientSWFShape(
     SWFDictionaryItems, _pObject, _filltype, _pFillStyleData, _pSubShape, _pGradTransMat, _combinedMat, _colvals, _transcolvals, _mulcolour, _colmul, _coladd, _transcoladd, _aa, TPEs) 
 {
+    var numtris = 0;
+    // @if feature("swf")
     var pCoords,
         pColours,
         pUVs,
@@ -1701,7 +1709,6 @@ function WebGL_Draw_BitmapGradientSWFShape(
         }
     }
 
-    var numtris = 0;
     if (pTPE !== null)
     {
         if (!pTPE.texture.webgl_textureid) {
@@ -1878,6 +1885,7 @@ function WebGL_Draw_BitmapGradientSWFShape(
     	    currVert += stride;
         }
     }
+    // @endif
     return numtris;
 }
 
@@ -1887,7 +1895,8 @@ function WebGL_Draw_BitmapGradientSWFShape(
 ///          </summary>
 // #############################################################################################
 function WebGL_Draw_SolidSWFShape(_pObject, _pFillStyleData, _pSubShape, _combinedMat, _colvals, _transcolvals, _colmul, _coladd, _transcoladd, _aa) {
-
+    var numtris = 0;
+    // @if feature("swf")
     var aascale = 1.0;
     if (_aa) {
         aascale = WebGL_BuildAAScale(_pObject, _combinedMat) * GR_SWFAAScale;
@@ -1902,7 +1911,6 @@ function WebGL_Draw_SolidSWFShape(_pObject, _pFillStyleData, _pSubShape, _combin
     // Get simpler access
     var pFillData = _pFillStyleData,
 	    col = pFillData.col,
-	    numtris = 0,
 	    t = 0;
 
 	// Multiply our material colour and mul colour together using good old fashioned fixed point maths
@@ -2070,6 +2078,7 @@ function WebGL_Draw_SolidSWFShape(_pObject, _pFillStyleData, _pSubShape, _combin
 		
 	    currVert += stride;									
 	}
+    // @endif
 	return numtris;
 }
 
@@ -2079,7 +2088,7 @@ function WebGL_Draw_SolidSWFShape(_pObject, _pFillStyleData, _pSubShape, _combin
 ///          </summary>
 // #############################################################################################
 function WebGL_BuildAAScale(_pObject, _combinedMat) {
-
+    // @if feature("swf")
     // Work out the AA scaling required
     if (GR_SWFAAEnabled) {
     
@@ -2165,6 +2174,7 @@ function WebGL_BuildAAScale(_pObject, _combinedMat) {
 		_pObject.aascale = aascale;
 		return aascale;
 	}
+    // @endif swf
 	return 1.0;
 }
 
