@@ -1629,7 +1629,9 @@ function    GameMaker_DoAStep() {
     g_pLayerManager.UpdateLayers();
 
     // Handle events that must react to the old position
+    // @if feature("sequences")
     g_pSequenceManager.PerformInstanceEvents(g_RunRoom, EVENT_STEP_BEGIN);
+    // @endif
 	g_pInstanceManager.PerformEvent(EVENT_STEP_BEGIN, 0);
 	UpdateActiveLists();
 	if (New_Room != -1) return;
@@ -1670,8 +1672,10 @@ function    GameMaker_DoAStep() {
 	if (New_Room != -1) return;
 
     g_pEffectsManager.StepEffectsForRoom(g_RunRoom);
+    // @if feature("sequences")
 	g_pSequenceManager.UpdateInstancesForRoom(g_RunRoom);                   // update this at the same time as the step event
 	g_pSequenceManager.PerformInstanceEvents(g_RunRoom, EVENT_STEP_NORMAL);
+    // @endif
 	g_pInstanceManager.PerformEvent(EVENT_STEP_NORMAL, 0);                 	//HandleStep(EVENT_STEP_END);	
     UpdateActiveLists();
     if (New_Room != -1) return;
@@ -1694,7 +1698,9 @@ function    GameMaker_DoAStep() {
 	UpdateActiveLists();
 	if (New_Room != -1) return;
 
-	g_pSequenceManager.PerformInstanceEvents(g_RunRoom, EVENT_STEP_END);
+	// @if feature("sequences")
+    g_pSequenceManager.PerformInstanceEvents(g_RunRoom, EVENT_STEP_END);
+    // @endif
 	g_pInstanceManager.PerformEvent(EVENT_STEP_END, 0);                 	//HandleStep(EVENT_STEP_END);
     UpdateActiveLists();
     if (New_Room != -1) return;

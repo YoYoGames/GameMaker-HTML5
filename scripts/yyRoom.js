@@ -2098,7 +2098,7 @@ yyRoom.prototype.DrawLayerTileElement = function (_rect, _layer, _el) {
 
 
 yyRoom.prototype.DrawLayerSequenceElement = function (_rect, _layer, _pSequenceEl) {
-
+	// @if feature("sequences")
 	// Update sequence element in case there has been changes between the sequence instance update pre-step and now 
 	g_pSequenceManager.EvaluateLayerSequenceElement(_pSequenceEl, true);
 
@@ -2151,6 +2151,7 @@ yyRoom.prototype.DrawLayerSequenceElement = function (_rect, _layer, _pSequenceE
             }
         }
     }
+	// @endif
 };
 
 yyRoom.prototype.DrawSequence = function (_rect, _layer, _pSequenceEl, _evalTree, _headPosition, _lastHeadPosition, _headDirection, _sequence, _isNested, _sequenceMatrix) {

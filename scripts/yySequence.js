@@ -67,7 +67,7 @@ function CSequenceBaseClass()
 }
 
 
-
+// @if feature("sequences")
 eTT_Link = 0;
 eTT_Invisible = 1;
 eTT_Disable = 2;
@@ -1389,8 +1389,10 @@ function yySequenceBaseTrack(_pStorage) {
             if(tagLink.track == null)
             {
                 // Find the track if it exists
+                // @if feature("sequences")
                 var track = g_pSequenceManager.GetSequenceFromID(tagLink.trackIndex);
                 if(track != null) tagLink.track = track;
+                // @endif
             }
             return tagLink.track;
         }
@@ -2968,6 +2970,7 @@ yyKeyframeStore.prototype.GetKeyframeIndexRanges = function (_loopmode, _speed, 
 
     return havekeys;
 };
+// @endif sequence - tracks
 
 var typeToEventLut =
 [
@@ -3112,7 +3115,7 @@ function yySequence(_pStorage) {
         this.fromWAD = true;
     }
 
-
+    // @if feature("sequences")
     Object.defineProperties(this, {
         gmlname: {
             enumerable: true,
@@ -3274,6 +3277,7 @@ function yySequence(_pStorage) {
             set: function (_val) { this["event_broadcast_message"] = _val; }
         },
     });
+    // @endif
 }
 
 // #############################################################################################
@@ -3295,7 +3299,7 @@ yySequence.prototype.GetObjectIDs = function() {
 ///
 // #############################################################################################
 yySequence.prototype.GetObjectIDsFromTrack = function(_tracks, _ids) {
-
+    // @if feature("sequences")
     for (var trackIndex = 0; trackIndex < _tracks.length; ++trackIndex)
     {
         var track = _tracks[trackIndex];
@@ -3365,9 +3369,10 @@ yySequence.prototype.GetObjectIDsFromTrack = function(_tracks, _ids) {
 		// Check subtracks
 		this.GetObjectIDsFromTrack(track.m_tracks, _ids);
 	}
+    // @endif
 };
 
-
+// @if feature("sequences")
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new Sequences management object
@@ -3969,6 +3974,7 @@ yySequenceManager.prototype.HandleMomentEvents = function (_pSeqInst, _pSeq, _se
         } while (true);
     }
 };
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -4032,6 +4038,7 @@ function HandleSpriteMessageEvents(_pSeq, _elementID, _fps, _speedScale, _headDi
     }
 };
 
+// @if feature("sequences")
 // #############################################################################################
 /// Function:<summary>
 ///             Handles the throwing of events which are triggered
@@ -4088,6 +4095,7 @@ yySequenceManager.prototype.ProcessMomentEvents = function ()
         }
     }
 };
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -4202,6 +4210,7 @@ function HandleSequenceWrapping(_sequence, _retVals)
     return hasWrapped;
 }
 
+// @if feature("sequences")
 // #############################################################################################
 /// Function:<summary>
 ///             Updates the tracks within the given sequence
@@ -4447,6 +4456,7 @@ yySequenceManager.prototype.HandleSpriteTrackUpdate = function(_node, _srcVars, 
 
     HandleSpriteSequenceMessageEvents(_node, _track, _instance, _fps, _headPosition, _lastHeadPos, _headDir, sprite.sequence, sprite, graphicKeyframe, keyframeStore);
 };
+// @endif
 
 function HandleSpriteSequenceMessageEvents(_node, _track, _inst, _fps, _headPosition, _lastHeadPosition, _headDirection, _sequence, _sprite, _spriteKey, _keyframes) 
 {
@@ -4528,6 +4538,7 @@ function HandleSpriteSequenceMessageEvents(_node, _track, _inst, _fps, _headPosi
 }
 
 
+// @if feature("sequences")
 // #############################################################################################
 /// Function:<summary>
 ///             Updates the given sequence track
@@ -5041,7 +5052,9 @@ yySequenceManager.prototype.HandleParticleTrackUpdate = function (_pEl, _pSeq, _
         }
     }
 };
+// @endif sequences - manager
 
+// @if feature("sequences")
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new CSequenceInstance object
@@ -5697,7 +5710,9 @@ CSequenceInstance.prototype.SetInstanceInSequenceStatus = function (_inSequence)
 
 	}
 };
+// @endif sequences - instance
 
+// @if feature("sequences")
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new CSeqTrackAudioInfo object
@@ -6496,3 +6511,4 @@ function CSeqTrackInstanceInfo()
 	this.ownedBySequence = false;
 	//bool beenCreated;
 };
+// @endif sequences - tracks

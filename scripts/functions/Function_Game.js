@@ -1695,7 +1695,9 @@ function ResourceGetTypeIndex(_name )
 	if ((ret = Resource_Find(_name, g_pGMFile.Timelines)) >= 0)                { typeId.type=AT_Timeline;   typeId.id = ret; return typeId; }
 	if ((ret = Resource_Find_Script(_name, g_pGMFile.ScriptNames)) >= 0)       { typeId.type=AT_Script;     typeId.id = ret; return typeId; }
 	if ((ret = Resource_Find_Shader(_name, g_pGMFile.Shaders)) >= 0)           { typeId.type=AT_Shader;     typeId.id = ret; return typeId; }
+    // @if feature("sequences")
     if ((ret = Resource_Find(_name, g_pGMFile.Sequences)) >= 0)                { typeId.type=AT_Sequence;   typeId.id = ret; return typeId; }
+    // @endif
     if ((ret = Resource_Find(_name, g_pGMFile.AnimCurves)) >= 0)               { typeId.type=AT_AnimCurve;  typeId.id = ret; return typeId; }
     if ((ret = CParticleSystem.Find(_name)) >= 0)                              { typeId.type=AT_ParticleSystem;  typeId.id = ret; return typeId; }
     
@@ -1717,7 +1719,9 @@ function ResourceGetName( _index, _assetType )
         case AT_Font:		    return ( font_exists(_index)) ? font_get_name(_index) : "";
         case AT_Timeline:	    return ( timeline_exists(_index)) ? timeline_get_name(_index) : "";
         case AT_Shader:	        return ( shader_exists(_index)) ? shader_get_name(_index) : "";
+        // @if feature("sequences")
         case AT_Sequence:	    return ( _sequence_exists(_index)) ? sequence_get_name(_index) : "";
+        // @endif
         case AT_AnimCurve:	    return ( _animcurve_exists(_index)) ? animcurve_get_name(_index) : "";
     }
     return "";

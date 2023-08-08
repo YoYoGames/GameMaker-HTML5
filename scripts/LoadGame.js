@@ -59,7 +59,9 @@ function InitAboyne()
     g_pPathManager = new yyPathManager();
     g_pTimelineManager = new yyTimelineManager();
     g_pAnimCurveManager = new yyAnimCurveManager();
+	// @if feature("sequences")
     g_pSequenceManager = new yySequenceManager();
+	// @endif
     g_pTagManager = new TagManager();
     g_pASyncManager = new yyASyncManager();
     g_pLayerManager = new LayerManager();
@@ -850,11 +852,13 @@ function LoadGame(_GameFile)
     }
 
     // Load Sequences
+	// @if feature("sequences")
     if (_GameFile.Sequences !== undefined) {
         for (index = 0; index < _GameFile.Sequences.length; index++) {
             g_pSequenceManager.Add(_GameFile.Sequences[index]);
         }
     }
+	// @endif
 
 	// Load Particle System Emitters
     if (_GameFile.PSEmitters !== undefined) {
