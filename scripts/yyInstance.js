@@ -358,6 +358,7 @@ yyInstance.prototype = {
 		this.__path_endaction = _val;
 	},
 
+	// @if feature("timelines")
 	// timeline index property
 	get timeline_index() { return this.__timeline_index; },
 	set timeline_index(_val) {
@@ -384,6 +385,7 @@ yyInstance.prototype = {
 
 		this.__timeline_speed = _val;
 	},
+	// @endif timelines
 
 	// bbox_left property (NOTE: no setter)
 	get bbox_left() { 
@@ -587,6 +589,7 @@ yyInstance.prototype = {
         this.m_pMaskSkeleton = null;
 	},
 
+	// @if feature("timelines")
 	// timeline_running property
 	get timeline_running() {
 	    if( this.timeline_paused ){
@@ -610,6 +613,7 @@ yyInstance.prototype = {
 	set timeline_loop( _loop ) { 
 		this.timeline_looped = yyGetBool(_loop);
 	},
+	// @endif timeline props
 	
 	// @if feature("physics")
 	// phy_rotation property

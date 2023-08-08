@@ -440,6 +440,7 @@ function event_perform_async(_pInst, _pOther, _event, _ds_map)
 // #############################################################################################
 function event_perform_timeline(_pInst, _other, _timelineInd, _eventInd)
 {
+    // @if feature("timelines")
     var timeline = g_pTimelineManager.Get(_timelineInd);
     if ((timeline != null) && (timeline != undefined))
     {
@@ -1692,7 +1693,9 @@ function ResourceGetTypeIndex(_name )
 	if ((ret = Resource_Find(_name, g_pGMFile.Backgrounds)) >= 0)              { typeId.type= g_isZeus ? AT_Tiles : AT_Background,      typeId.id = ret; return typeId; }
 	if ((ret = Resource_Find(_name, g_pGMFile.Paths)) >= 0)                    { typeId.type=AT_Path;       typeId.id = ret; return typeId; }
 	if ((ret = Resource_Find(_name, g_pGMFile.Fonts)) >= 0)                    { typeId.type=AT_Font;       typeId.id = ret; return typeId; }
+    // @if feature("timelines")
 	if ((ret = Resource_Find(_name, g_pGMFile.Timelines)) >= 0)                { typeId.type=AT_Timeline;   typeId.id = ret; return typeId; }
+    // @endif
 	if ((ret = Resource_Find_Script(_name, g_pGMFile.ScriptNames)) >= 0)       { typeId.type=AT_Script;     typeId.id = ret; return typeId; }
 	if ((ret = Resource_Find_Shader(_name, g_pGMFile.Shaders)) >= 0)           { typeId.type=AT_Shader;     typeId.id = ret; return typeId; }
     // @if feature("sequences")
@@ -1717,7 +1720,9 @@ function ResourceGetName( _index, _assetType )
         case AT_Path:		    return ( path_exists(_index)) ? path_get_name(_index) : "";
         case AT_Script:	        return ( script_exists(_index)) ? script_get_name(_index) : "";
         case AT_Font:		    return ( font_exists(_index)) ? font_get_name(_index) : "";
+        // @if feature("timelines")
         case AT_Timeline:	    return ( timeline_exists(_index)) ? timeline_get_name(_index) : "";
+        // @endif
         case AT_Shader:	        return ( shader_exists(_index)) ? shader_get_name(_index) : "";
         // @if feature("sequences")
         case AT_Sequence:	    return ( _sequence_exists(_index)) ? sequence_get_name(_index) : "";

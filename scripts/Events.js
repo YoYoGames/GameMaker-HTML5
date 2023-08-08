@@ -565,6 +565,7 @@ function HandleMouse()
 // #############################################################################################
 function    HandleTimeLine()
 {
+	// @if feature("timelines")
     var ind1,ind2,j;
 	var pool = g_RunRoom.m_Active.pool;
     var count = g_currentCreateCounter++;
@@ -616,6 +617,7 @@ function    HandleTimeLine()
 			}
 		}
 	}
+	// @endif
 }
 
 // #############################################################################################

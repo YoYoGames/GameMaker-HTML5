@@ -57,7 +57,9 @@ function InitAboyne()
     g_pFontManager = new yyFontManager();
     g_pCollisionList = [];
     g_pPathManager = new yyPathManager();
+	// @if feature("timelines")
     g_pTimelineManager = new yyTimelineManager();
+	// @endif
     g_pAnimCurveManager = new yyAnimCurveManager();
 	// @if feature("sequences")
     g_pSequenceManager = new yySequenceManager();
@@ -837,11 +839,13 @@ function LoadGame(_GameFile)
     
 
     // Load Timelines
+	// @if feature("timelines")
     if (_GameFile.Timelines !== undefined) {
         for(index=0; index<_GameFile.Timelines.length; index++ ){
             g_pTimelineManager.Add( _GameFile.Timelines[index]);
         }
     }
+	// @endif
 
 
     // Load AnimCurves
