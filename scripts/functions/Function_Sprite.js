@@ -1812,6 +1812,7 @@ function sprite_get_info( _spriteIndex )
             break;
         case 1: // SWF
             break;
+		// @if feature("spine")
         case 2: // SPINE
             if (pSpr.m_skeletonSprite != undefined) {
 
@@ -1888,7 +1889,7 @@ function sprite_get_info( _spriteIndex )
 				variable_struct_set(ret, "slots", slotsArray); //ret.gmlslots = slotsArray;
             } // end if
             break;
-
+		// @endif
         } // end switch
 
         variable_struct_set(ret, "nineslice", (pSpr.nineslicedata != undefined) ? pSpr.nineslicedata : undefined); //ret.gmlnineslice = (pSpr.nineslicedata != undefined) ? pSpr.nineslicedata : undefined;

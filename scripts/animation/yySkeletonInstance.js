@@ -10,6 +10,7 @@
 //
 // **********************************************************************************************************************
 
+// @if feature("spine")
 // #############################################################################################
 /// Function:<summary>
 ///             Initialise storage for the instance specific portion of a Skeleton animation
@@ -1543,3 +1544,4 @@ yySkeletonInstance.prototype.GetSlotData = function (_list)
         ds_list_add(_list, map);
     }
 };
+// @endif spine

@@ -128,6 +128,7 @@ var __floatToInt = function (x) { return ~~x; };
  */
 yySprite.prototype.GetSkeletonSpriteSize = function (_skeleton)
 {
+	// @if feature("spine")
 	var bounds = new YYRECT();
 
 	_skeleton.updateWorldTransform();
@@ -152,7 +153,7 @@ yySprite.prototype.GetSkeletonSpriteSize = function (_skeleton)
 			return [width, height];
 		}
 	}
-
+	// @endif
 	return null;
 };
 
@@ -165,7 +166,7 @@ yySprite.prototype.GetSkeletonSpriteSize = function (_skeleton)
 yySprite.prototype.GetSkeletonBounds = function (_skeleton, _bounds)
 {
 	var retval = false;
-
+	// @if feature("spine")
 	_bounds.left   = Number.MAX_SAFE_INTEGER;
 	_bounds.top    = Number.MAX_SAFE_INTEGER;
 	_bounds.right  = Number.MIN_SAFE_INTEGER;
@@ -221,7 +222,7 @@ yySprite.prototype.GetSkeletonBounds = function (_skeleton, _bounds)
 			}
 		}
 	}
-
+	// @endif spine
 	return retval;
 };
 
@@ -612,6 +613,7 @@ yySprite.prototype.SetSWFDrawRoutines = function () {
 ///           </summary>
 // #############################################################################################
 yySprite.prototype.BuildSkeletonData = function (_skeletonData) {
+	// @if feature("spine")
 	if (_skeletonData) {
 		this.m_skeletonSprite = new yySkeletonSprite();
 		//this.m_skeletonSprite.Load(skeletonData.json, skeletonData.atlas, skeletonData.width, skeletonData.height);
@@ -632,6 +634,7 @@ yySprite.prototype.BuildSkeletonData = function (_skeletonData) {
 	};
 
 	this.numb = SKELETON_FRAMECOUNT;
+	// @endif spine
 };
 
 // #############################################################################################
@@ -640,6 +643,7 @@ yySprite.prototype.BuildSkeletonData = function (_skeletonData) {
 ///           </summary>
 // #############################################################################################
 yySprite.prototype.LoadFromSpineAsync = function (_filename, _callback) {
+	// @if feature("spine")
 	var loadFileContents = function (_filename, _callback) {
 		var errorMessage = 'Could not load file contents!';
 		var request = new XMLHttpRequest();
@@ -772,6 +776,7 @@ yySprite.prototype.LoadFromSpineAsync = function (_filename, _callback) {
 		}
 		tryCallback(_err);
 	});
+	// @endif spine
 };
 
 // #############################################################################################
@@ -933,12 +938,14 @@ function    CreateSpriteFromStorage( _pStore )
 	}	
 
 	// Do this after we've set up our TPEs
+	// @if feature("spine")
 	if (_pStore.skel !== undefined) {
 		var skeletonData = g_pSpriteManager.SkeletonData
 			? g_pSpriteManager.SkeletonData[_pStore.skel]
 			: undefined;
 	    pSprite.BuildSkeletonData(skeletonData);
 	}
+	// @endif
 
 	pSprite.CalcCullRadius();    	
 
@@ -1109,9 +1116,9 @@ yySprite.prototype.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _col
 
 yySprite.prototype.GetSkeletonSlotsAtPoint = function(_inst, _x, _y, _list)
 {
+	// @if feature("spine")
     if ((this.m_skeletonSprite === undefined) || (this.m_skeletonSprite === null))
         return;     // not a Spine sprite
-
     var xscale = _inst.image_xscale;
     var yscale = _inst.image_yscale;
 
@@ -1128,7 +1135,7 @@ yySprite.prototype.GetSkeletonSlotsAtPoint = function(_inst, _x, _y, _list)
     var angle = _inst.image_angle;
 
     this.m_skeletonSprite.GetSlotsAtWorldPos(_inst, undefined, undefined, ind, x, y, xscale, yscale, angle, _x, _y, _list);
-
+	// @endif spine
 };
 
 
@@ -2054,7 +2061,7 @@ yySpriteManager.prototype.SWFLoad = function (_data) {
 ///          </summary>
 // #############################################################################################
 yySpriteManager.prototype.SkeletonLoad = function (_spineText) {
-
+	// @if feature("spine")
     function multiply_uint32(a, b) {
         var ah = (a >> 16) & 0xffff, al = a & 0xffff;
         var bh = (b >> 16) & 0xffff, bl = b & 0xffff;
@@ -2158,4 +2165,5 @@ yySpriteManager.prototype.SkeletonLoad = function (_spineText) {
     catch (e) {
         debug("Cannot parse Spine data " + e.message);        
     }
+	// @endif spine
 };

@@ -347,7 +347,7 @@ function PreLoadExtensions(_GameFile) {
 ///          </summary>
 // #############################################################################################
 function LoadSkeletonData(_filename) {
-
+	// @if feature("spine")
     g_LoadingTotal++;
 	var request = new XMLHttpRequest();
     request.open('GET', CheckWorkingDirectory(_filename), true);        
@@ -357,6 +357,7 @@ function LoadSkeletonData(_filename) {
         g_pSpriteManager.SkeletonLoad(request.responseText); 
     };
     request.onerror = function (ev) { g_LoadingCount++; };    
+	// @endif spine
 }
 
 
@@ -452,9 +453,11 @@ function LoadGame_PreLoadAssets(_GameFile)
     }
     
     // Load Spine data if it's present
+	// @if feature("spine")
 	if ((_GameFile.Skel !== null) && (_GameFile.Skel !== undefined)) {	
 	    LoadSkeletonData(_GameFile.Skel);
     }
+	// @endif
 
 	// Load the particle textures
 	if (true == g_pGMFile.Options.UseParticles) {
@@ -916,6 +919,7 @@ function LoadGame(_GameFile)
 					pTGInfo.sprites[i] = pStore.SpriteIDs[i];
 				}
 			}
+			// @if feature("spine")
 			if (pStore.SpineSpriteIDs !== undefined)
 			{
 				for(var i = 0; i < pStore.SpineSpriteIDs.length; i++)
@@ -923,6 +927,7 @@ function LoadGame(_GameFile)
 					pTGInfo.spinesprites[i] = pStore.SpineSpriteIDs[i];
 				}
 			}
+			// @endif
 			if (pStore.FontIDs !== undefined)
 			{
 				for(var i = 0; i < pStore.FontIDs.length; i++)

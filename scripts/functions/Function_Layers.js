@@ -1542,10 +1542,12 @@ LayerManager.prototype.UpdateLayers = function()
                         HandleSpriteMessageEvents(sprite.sequence, el.m_id, fps, sprite.playbackspeed, el.m_sequenceDir, lastSequenceHead, el.m_sequencePos);
                     }
                 }
+                // @if feature("spine")
                 else if(sprite.m_skeletonSprite !== undefined)
                 {
                     el.m_imageIndex += el.m_imageSpeed;
                 }
+                // @endif
                 else
                 {
                     var fps = g_GameTimer.GetFPS();
