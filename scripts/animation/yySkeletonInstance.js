@@ -153,6 +153,8 @@ yySkeletonInstance.prototype.FrameCount = function (_sprite, _track) {
 	return ~~((updatesCount * this.m_animationState.tracks[_track].animation.duration) + 0.5);
 };
 
+// @endif
+
 function fwrap(_val, _div)
 {
     // _div needs to be positive
@@ -165,6 +167,8 @@ function fwrap(_val, _div)
     
     return scaledfrac;
 }
+
+// @if feature("spine")
 
 // #############################################################################################
 /// Function:<summary>

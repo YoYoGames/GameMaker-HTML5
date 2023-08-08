@@ -66,8 +66,6 @@ function CSequenceBaseClass()
 	};
 }
 
-
-// @if feature("sequences")
 eTT_Link = 0;
 eTT_Invisible = 1;
 eTT_Disable = 2;
@@ -105,6 +103,8 @@ eSTT_Moment = 16;
 eSTT_Text = 17;
 eSTT_Particle = 18;
 eSTT_Max = 19;
+
+// @if feature("sequences")
 
 function TrackIsParameter(type) { return (type == eSTT_Real || type == eSTT_Color || type == eSTT_Bool || type == eSTT_String); }
 
@@ -167,15 +167,14 @@ SEQ_KEY_LENGTH_EPSILON = -0.0001;
 
 g_CurrSequenceID = 0;
 g_CurrAnimCurveID = 0;
-g_CurrTrackID = 0;
+// @endif
 
 // used to track which sequences have been changed and need to be recomputed
-g_CurrSeqObjChangeIndex = 1;
-
 g_CurrSequenceObjectID = 0;
 
 g_SeqStack = [];
 
+g_CurrTrackID = 0;
 // #############################################################################################
 /// Function:<summary>
 ///             Returns a new Track ID
@@ -185,6 +184,8 @@ function GetTrackID()
 {
     return g_CurrTrackID++;
 }
+
+g_CurrSeqObjChangeIndex = 1;
 
 // #############################################################################################
 /// Function:<summary>
@@ -205,6 +206,8 @@ function GetNextSeqObjChangeIndex()
 {
 	return g_CurrSeqObjChangeIndex++;
 }
+
+// @if feature("sequences")
 
 // #############################################################################################
 /// Function:<summary>
@@ -262,6 +265,8 @@ function GetTrackKeyRanges(_headPos, _lastHeadPos, _headDir, _speedscale, _pTrac
     return _pTrack.m_keyframeStore.GetKeyframeIndexRanges(_pSeq.m_playback, playbackspeed, _pSeq.m_length, _lastHeadPos, _headPos, headDir, _startKeys, _endKeys, false);
 }
 
+// @endif
+
 // #############################################################################################
 /// Function:<summary>
 ///             Parses the give storage data and return a new Track object
@@ -296,6 +301,8 @@ function SequenceBaseTrack_Load(_pStorage) {
         return newTrack;
     }
 }
+
+// @if feature("sequences")
 
 // #############################################################################################
 /// Function:<summary>
@@ -1006,6 +1013,8 @@ function yySequenceColourTrack(_pStorage) {
     };
 }
 
+// @endif
+
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new Sprite Frames Track object
@@ -1071,6 +1080,8 @@ function yySequenceSpriteFramesTrack(_pStorage) {
         return retval;
     };
 }
+
+// @if feature("sequences")
 
 // #############################################################################################
 /// Function:<summary>
@@ -1225,6 +1236,8 @@ function yySequenceBoolTrack(_pStorage) {
     yySequenceBaseTrack.call(this, _pStorage); //base constructor
     this.m_type = eSTT_Bool;
 }
+
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -1646,6 +1659,7 @@ function yySequenceBaseTrack(_pStorage) {
     };
 }
 
+
 // #############################################################################################
 /// Function:<summary>
 ///             Constrctor for the abstract TrackKeyBase object
@@ -1705,6 +1719,8 @@ function yyMessageEventTrackKey(_pStorage)
         },        
     });
 }
+
+// @if feature("sequences")
 
 // #############################################################################################
 /// Function:<summary>
@@ -2302,6 +2318,8 @@ function yySequenceTrackKey(_pStorage)
     this.__type = "[SequenceTrackKey]";
 }
 
+// @endif sequence - tracks
+
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new SpriteFrames Track Key object
@@ -2465,7 +2483,6 @@ function yyKeyframe(_type, _pStorage) {
         }
     });
 }
-
 
 // #############################################################################################
 /// Function:<summary>
@@ -2970,7 +2987,6 @@ yyKeyframeStore.prototype.GetKeyframeIndexRanges = function (_loopmode, _speed, 
 
     return havekeys;
 };
-// @endif sequence - tracks
 
 var typeToEventLut =
 [
@@ -3574,7 +3590,6 @@ yySequenceManager.prototype.GetNewInstance = function ()
 
 var g_pMessageEvents = [];
 var g_pMomentEvents = [];
-var g_pSpriteMessageEvents = [];
 
 function AddMessageEvent(_pKey, _seqElementID)
 {    
@@ -3592,6 +3607,8 @@ function AddMomentEvent(_pKey, _pSeqInst)
     g_pMomentEvents[g_pMomentEvents.length] = newEvt;
 }
 
+// @endif
+
 function AddSpriteMessageEvent(_pKey, _elementID)
 {    
     var newEvt = new Object();
@@ -3607,10 +3624,13 @@ function AddSpriteMessageEvent(_pKey, _elementID)
 ///
 // #############################################################################################
 
+var g_pSpriteMessageEvents = [];
 function ResetSpriteMessageEvents()
 {
     g_pSpriteMessageEvents = [];
 }
+
+// @if feature("sequences")
 
 yySequenceManager.prototype.EvaluateLayerSequenceElement = function(_pSeqEl, _preDrawUpdate)
 {
@@ -4120,8 +4140,9 @@ function ProcessSpriteMessageEvents()
             ds_map_add(map, "event_type", "sprite event");
             ds_map_add(map, "element_id", g_pSpriteMessageEvents[i].elementID);
             ds_map_add(map, "message", eventlist.m_events[j]);
-
+            // @if feature("sequences")
             g_pSequenceManager.PerformInstanceEvents(g_RunRoom, EVENT_OTHER_BROADCAST_MESSAGE);
+            // @endif
 
             //g_pObjectManager.ThrowEvent(EVENT_OTHER_SYSTEM_EVENT, 0);            
             g_pObjectManager.ThrowEvent(EVENT_OTHER_BROADCAST_MESSAGE, 0);
