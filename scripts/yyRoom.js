@@ -282,30 +282,6 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
                 };
             }
         }        
-        
-		// Tiles
-        this.m_pStorage.tiles = new Array(_pStorage.tiles.length);
-        for (var i = 0; i < _pStorage.tiles.length; i++) 
-        {
-            var sourceTile = _pStorage.tiles[i];
-            if (sourceTile != null)
-            {
-                this.m_pStorage.tiles[i] = {                            
-                    x: sourceTile.x,
-	                y: sourceTile.y,
-	                index: sourceTile.index,
-	                xo: sourceTile.xo,   
-	                yo: sourceTile.yo,
-	                w: sourceTile.w,
-	                h: sourceTile.h,
-	                depth: sourceTile.depth,
-	                id: sourceTile.id,
-	                scaleX: sourceTile.scaleX,
-	                scaleY: sourceTile.scaleY,
-					colour: sourceTile.colour
-                };
-	        }
-        }
 
 		// Layers
         this.m_pStorage.layers = new Array( _pStorage.layers.length );
