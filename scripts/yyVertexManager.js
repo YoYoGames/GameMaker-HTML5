@@ -10,17 +10,38 @@
 //
 // **********************************************************************************************************************
 
-var vertex_format_begin = GetErrorFunction("vertex_format_begin"),
-    vertex_format_end = GetErrorFunction("vertex_format_end"),
-    vertex_format_delete = GetErrorFunction("vertex_format_delete"),
-    vertex_format_add_position = GetErrorFunction("vertex_format_add_position"),
-    vertex_format_add_position_3d = GetErrorFunction("vertex_format_add_position_3d"),
-    vertex_format_add_colour = GetErrorFunction("vertex_format_add_colour"),
-    vertex_format_add_color = GetErrorFunction("vertex_format_add_color"),
-    vertex_format_add_normal = GetErrorFunction("vertex_format_add_normal"),
-    vertex_format_add_texcoord = GetErrorFunction("vertex_format_add_texcoord"),
-    vertex_format_add_textcoord = GetErrorFunction("vertex_format_add_textcoord"),
-    vertex_format_add_custom = GetErrorFunction("vertex_format_add_custom");
+// @if function("vertex_*")
+
+var vertex_format_begin,
+    vertex_format_end,
+    vertex_format_delete,
+    vertex_format_add_position,
+    vertex_format_add_position_3d,
+    vertex_format_add_colour,
+    vertex_format_add_color,
+    vertex_format_add_normal,
+    vertex_format_add_texcoord,
+    vertex_format_add_textcoord,
+    vertex_format_add_custom;
+
+// @if feature("2d")
+(() => {
+    let _stub = (_name, _val) => () => ErrorFunction(_name, _val);
+    vertex_format_begin = _stub("vertex_format_begin");
+    vertex_format_end = _stub("vertex_format_end", -1);
+    vertex_format_delete = _stub("vertex_format_delete");
+    vertex_format_add_position = _stub("vertex_format_add_position");
+    vertex_format_add_position_3d = _stub("vertex_format_add_position_3d");
+    vertex_format_add_colour = _stub("vertex_format_add_colour");
+    vertex_format_add_color = _stub("vertex_format_add_color");
+    vertex_format_add_normal = _stub("vertex_format_add_normal");
+    vertex_format_add_texcoord = _stub("vertex_format_add_texcoord");
+    vertex_format_add_textcoord = _stub("vertex_format_add_textcoord");
+    vertex_format_add_custom = _stub("vertex_format_add_custom");
+})();
+// @endif 2d
+
+// @if feature("gl")
 
 // ---------------------------------------------------------------------------------------------
 // Tracks the format currently under construction
@@ -174,3 +195,7 @@ function WebGL_vertex_format_delete_RELEASE(_format_id)
     // BM: Stubbed as the underlying system shares vertex formats but DOESN'T reference count.
     debug("WARNING vertex_format_delete not implemented on HTML5 (System shares vertex formats but doesn't reference count)");
 }
+
+// @endif gl
+
+// @endif vertex_

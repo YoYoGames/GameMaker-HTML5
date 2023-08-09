@@ -107,9 +107,13 @@ var g_AppendDerivativesExtToShader = false;
 function InitWebGLFunctions() {
 
     InitD3DFunctions();
+    // @if function("vertex_*")
     InitFVFFunctions();
     InitBufferVertexFunctions();
+    // @endif
+    // @if function("draw_primitive_*") || function("draw_vertex*")
     InitPrimBuilderFunctions();
+    // @endif
     
     DrawCirclePrecision(g_circleSteps);
     
@@ -3722,7 +3726,7 @@ function DrawIt_Color(tex,
 
 
 	var z =(GR_Depth);
-	var prim = WebGL_translate_primitive_builder_type(PrimType_TRISTRIP);
+	var prim = yyGL.PRIM_TRISTRIP;
 	
 	var vvv = g_webGL.AllocVerts(prim, tex, g_webGL.VERTEX_FORMAT_2D, 6);
 	

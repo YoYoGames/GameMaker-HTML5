@@ -10,24 +10,9 @@
 // 
 // *********************************************************************************************************************
 
-var draw_primitive_begin = GetErrorFunction("draw_primitive_begin"),
-    draw_primitive_begin_texture = GetErrorFunction("draw_primitive_begin_texture"),
-    draw_vertex = GetErrorFunction("draw_vertex"),
-    draw_vertex_color = GetErrorFunction("draw_vertex_color"),
-    draw_vertex_colour = draw_vertex_color,
-    draw_vertex_texture = GetErrorFunction("draw_vertex_texture"),
-    draw_vertex_texture_color = GetErrorFunction("draw_vertex_texture_color"),
-    draw_vertex_texture_colour = draw_vertex_texture_color,
-    draw_primitive_end = GetErrorFunction("draw_primitive_end");
+// @if feature("gl") && (function("draw_primitive_*") || function("draw_vertex*") || function("vertex_*"))
 
-// ----------------------------------------------------------------------------------------------------------------------------------------
-var g_PrimBuffer = null; // raw ArrayBuffer data
-
-var g_PrimType = 0,    
-    g_PrimTexture = -1,    
-    g_PrimTPE = null,    
-    g_PrimVBuffer = null;
-
+// primitive type translation is shared between draw_primitive_* and vertex_submit
 var PrimType_POINTLIST = 1,
 	PrimType_LINELIST = 2,
 	PrimType_LINESTRIP	= 3,
@@ -35,6 +20,55 @@ var PrimType_POINTLIST = 1,
 	PrimType_TRISTRIP = 5,
 	PrimType_TRIFAN = 6,
 	PrimType_SPRITE = 7;
+
+function WebGL_translate_primitive_builder_type(_prim) {
+   
+    switch (_prim) {
+        case PrimType_POINTLIST:    return yyGL.PRIM_POINT;
+	    case PrimType_LINELIST:     return yyGL.PRIM_LINE;
+	    case PrimType_LINESTRIP:    return yyGL.PRIM_LINESTRIP;
+	    case PrimType_TRILIST:      return yyGL.PRIM_TRIANGLE;
+	    case PrimType_TRISTRIP:     return yyGL.PRIM_TRISTRIP;
+	    case PrimType_TRIFAN:       return yyGL.PRIM_TRIFAN; 
+	    case PrimType_SPRITE:       return yyGL.PRIM_TRIANGLE;
+    }
+    return -1;
+}
+
+// @endif primitives or vertex buffers on WebGL
+
+// @if function("draw_primitive_*") || function("draw_vertex*")
+var draw_primitive_begin,
+    draw_primitive_begin_texture,
+    draw_vertex,
+    draw_vertex_color,
+    draw_vertex_colour,
+    draw_vertex_texture,
+    draw_vertex_texture_color,
+    draw_vertex_texture_colour,
+    draw_primitive_end;
+
+// @if feature("2d")
+(() => {
+    let _stub = (_name) => () => ErrorFunction(_name);
+    draw_primitive_begin = _stub("draw_primitive_begin");
+    draw_primitive_begin_texture = _stub("draw_primitive_begin_texture");
+    draw_vertex = _stub("draw_vertex");
+    draw_vertex_color = _stub("draw_vertex_color");
+    draw_vertex_colour = draw_vertex_color;
+    draw_vertex_texture = _stub("draw_vertex_texture");
+    draw_vertex_texture_color = _stub("draw_vertex_texture_color");
+    draw_vertex_texture_colour = draw_vertex_texture_color;
+    draw_primitive_end = _stub("draw_primitive_end");
+})();
+// @endif 2d
+
+// @if feature("gl")
+
+var g_PrimType = 0,    
+    g_PrimTexture = -1,    
+    g_PrimTPE = null,    
+    g_PrimVBuffer = null;
 
 // #############################################################################################
 /// Function:<summary>
@@ -52,24 +86,6 @@ function InitPrimBuilderFunctions() {
     draw_vertex_texture_color = WebGL_draw_vertex_texture_color_RELEASE;
     draw_vertex_texture_colour = WebGL_draw_vertex_texture_color_RELEASE;
     draw_primitive_end = WebGL_draw_primitive_end_RELEASE; 
-}
-	
-// #############################################################################################
-/// Function:<summary>
-///          </summary>
-// #############################################################################################
-function WebGL_translate_primitive_builder_type(_prim) {
-   
-    switch (_prim) {
-        case PrimType_POINTLIST:    return yyGL.PRIM_POINT;
-	    case PrimType_LINELIST:     return yyGL.PRIM_LINE;
-	    case PrimType_LINESTRIP:    return yyGL.PRIM_LINESTRIP;
-	    case PrimType_TRILIST:      return yyGL.PRIM_TRIANGLE;
-	    case PrimType_TRISTRIP:     return yyGL.PRIM_TRISTRIP;
-	    case PrimType_TRIFAN:       return yyGL.PRIM_TRIFAN; 
-	    case PrimType_SPRITE:       return yyGL.PRIM_TRIANGLE;
-    }
-    return -1;
 }
 
 // #############################################################################################
@@ -235,3 +251,6 @@ function vertex_uv(_u, _v) {
         return ({ u: _u, v: _v });
     }
 };
+// @endif draw_primitive GL
+
+// @endif draw_primitive

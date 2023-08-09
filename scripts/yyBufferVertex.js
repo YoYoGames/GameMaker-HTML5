@@ -10,42 +10,76 @@
 //
 // **********************************************************************************************************************
 
+// Global storage for vertex buffers
+var g_vertexBuffers = [];
+
+// @if function("vertex_*")
 // #############################################################################################
 //
 //     Function definitions for Canvas mode
 //
 // #############################################################################################
-var vertex_create_buffer = GetErrorFunction("vertex_create_buffer", -1),
-    vertex_create_buffer_ext = GetErrorFunction("vertex_create_buffer_ext", -1),
-    vertex_delete_buffer = GetErrorFunction("vertex_delete_buffer"),
-    vertex_begin = GetErrorFunction("vertex_begin"),
-    vertex_end = GetErrorFunction("vertex_end"),
-    vertex_position = GetErrorFunction("vertex_position"),
-    vertex_position_3d = GetErrorFunction("vertex_position_3d"),
-    vertex_colour = GetErrorFunction("vertex_colour"),
-    vertex_color = GetErrorFunction("vertex_color"),
-    vertex_rgba = GetErrorFunction("vertex_rgba"),
-    vertex_argb = GetErrorFunction("vertex_argb"),
-    vertex_texcoord = GetErrorFunction("vertex_texcoord"),
-    vertex_normal = GetErrorFunction("vertex_normal"),
-    vertex_float1 = GetErrorFunction("vertex_float1"),
-    vertex_float2 = GetErrorFunction("vertex_float2"),
-    vertex_float3 = GetErrorFunction("vertex_float3"),
-    vertex_float4 = GetErrorFunction("vertex_float4"),
-    vertex_ubyte4 = GetErrorFunction("vertex_ubyte4"),
-    vertex_freeze = GetErrorFunction("vertex_freeze"),
-    vertex_submit = GetErrorFunction("vertex_submit"),
-    vertex_get_number = GetErrorFunction("vertex_get_number"),
-    vertex_get_buffer_size = GetErrorFunction("vertex_get_buffer_size"),
-    vertex_create_buffer_from_buffer = GetErrorFunction("vertex_create_buffer_from_buffer", -1),
-    vertex_create_buffer_from_buffer_ext = GetErrorFunction("vertex_create_buffer_from_buffer_ext", -1),
-    draw_flush = function () { };
+var vertex_create_buffer,
+    vertex_create_buffer_ext,
+    vertex_delete_buffer,
+    vertex_begin,
+    vertex_end,
+    vertex_position,
+    vertex_position_3d,
+    vertex_colour,
+    vertex_color,
+    vertex_rgba,
+    vertex_argb,
+    vertex_texcoord,
+    vertex_normal,
+    vertex_float1,
+    vertex_float2,
+    vertex_float3,
+    vertex_float4,
+    vertex_ubyte4,
+    vertex_freeze,
+    vertex_submit,
+    vertex_get_number,
+    vertex_get_buffer_size,
+    vertex_create_buffer_from_buffer,
+    vertex_create_buffer_from_buffer_ext,
+    draw_flush;
+
+// @if feature("2d")
+(() => {
+    let _stub = (_name, _val) => () => ErrorFunction(_name, _val);
+    vertex_create_buffer = _stub("vertex_create_buffer", -1);
+    vertex_create_buffer_ext = _stub("vertex_create_buffer_ext", -1);
+    vertex_delete_buffer = _stub("vertex_delete_buffer");
+    vertex_begin = _stub("vertex_begin");
+    vertex_end = _stub("vertex_end");
+    vertex_position = _stub("vertex_position");
+    vertex_position_3d = _stub("vertex_position_3d");
+    vertex_colour = _stub("vertex_colour");
+    vertex_color = vertex_colour;
+    vertex_rgba = _stub("vertex_rgba");
+    vertex_argb = _stub("vertex_argb");
+    vertex_texcoord = _stub("vertex_texcoord");
+    vertex_normal = _stub("vertex_normal");
+    vertex_float1 = _stub("vertex_float1");
+    vertex_float2 = _stub("vertex_float2");
+    vertex_float3 = _stub("vertex_float3");
+    vertex_float4 = _stub("vertex_float4");
+    vertex_ubyte4 = _stub("vertex_ubyte4");
+    vertex_freeze = _stub("vertex_freeze");
+    vertex_submit = _stub("vertex_submit");
+    vertex_get_number = _stub("vertex_get_number");
+    vertex_get_buffer_size = _stub("vertex_get_buffer_size");
+    vertex_create_buffer_from_buffer = _stub("vertex_create_buffer_from_buffer", -1);
+    vertex_create_buffer_from_buffer_ext = _stub("vertex_create_buffer_from_buffer_ext", -1);
+    draw_flush = ()=>{};
+})();
+// @endif
+
+// @if feature("gl")
 
 // Constant for the default vertex buffer storage size
 var DEFAULT_VERTEX_BUFFER_SIZE = 8 * 1024;
-
-// Global storage for vertex buffers
-var g_vertexBuffers = [];
 
 // #############################################################################################
 /// Function:<summary>
@@ -434,3 +468,7 @@ function WebGL_vertex_get_buffer_size_RELEASE(_buffer)
 
     return 0;
 }
+
+// @endif gl
+
+// @endif vertex_
