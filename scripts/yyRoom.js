@@ -2393,7 +2393,8 @@ yyRoom.prototype.HandleSequenceGraphic = function (_rect, _layer, _pSequenceEl, 
 
     var oldworldmat;
     var restorematrix = false;
-
+	
+	// @if feature("gl") && feature("nineslice")
     if ((g_webGL) && (sprite.nineslicedata != null) && (sprite.nineslicedata.enabled == true))
     {
         var spriteScaleX = Math.sqrt((_node.value.matrix.m[0] * _node.value.matrix.m[0]) + (_node.value.matrix.m[1] * _node.value.matrix.m[1]));
@@ -2421,6 +2422,7 @@ yyRoom.prototype.HandleSequenceGraphic = function (_rect, _layer, _pSequenceEl, 
             WebGL_SetMatrix(MATRIX_WORLD, normalisedworldmat);
         }
     }
+	// @endif gl nineslice
 
 
     //if (_node.value.Overrides(eT_Width)) {
@@ -2434,6 +2436,7 @@ yyRoom.prototype.HandleSequenceGraphic = function (_rect, _layer, _pSequenceEl, 
 
     if (!g_webGL)
     {
+		// @if feature("2d")
         // extract sprite rotation, scale, and translation from the world matrix
         var worldMatrix = g_Matrix[MATRIX_WORLD];
         var spriteRotationZ = Math.atan2(worldMatrix.m[1], worldMatrix.m[0]) * (-180 / Math.PI);
@@ -2456,6 +2459,7 @@ yyRoom.prototype.HandleSequenceGraphic = function (_rect, _layer, _pSequenceEl, 
 
         // Reset the world matrix
         WebGL_SetMatrix(MATRIX_WORLD, worldMatrix);
+		// @endif 2d
     }
     else
     {

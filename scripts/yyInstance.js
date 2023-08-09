@@ -1498,7 +1498,7 @@ yyInstance.prototype.Compute_BoundingBox = function() {
         var bbox = this.bbox;
         spr = g_pSpriteManager.Sprites[ix];
         if (this.image_angle == 0) {
-        
+			// @if feature("nineslice")
 			if ((spr.nineslicedata != null) && (spr.nineslicedata.GetEnabled()))
 			{
 				bbox = spr.GetScaledBoundingBox(this.image_xscale, this.image_yscale);
@@ -1508,8 +1508,8 @@ yyInstance.prototype.Compute_BoundingBox = function() {
 
 				bbox.top += this.y;
 				bbox.bottom += this.y;
-			}
-			else
+			} else // ->
+			// @endif
 			{
 				var pRect = spr.bbox;            
 				var width = (pRect.right+1) - pRect.left;
@@ -1561,7 +1561,8 @@ yyInstance.prototype.Compute_BoundingBox = function() {
         else {
 			var xmin, xmax;
 			var ymin, ymax;
-
+			
+			// @if feature("nineslice")
 			if ((spr.nineslicedata != null) && (spr.nineslicedata.GetEnabled()))
 			{
 				bbox = spr.GetScaledBoundingBox(this.image_xscale, this.image_yscale);
@@ -1577,8 +1578,8 @@ yyInstance.prototype.Compute_BoundingBox = function() {
 				    xmax += 1;
 				}
 
-			}
-			else
+			} else
+			// @endif
 			{
 				var pRect = spr.bbox;            
 
@@ -2243,7 +2244,8 @@ function getPoints(i1)
     var spr = g_pSpriteManager.Sprites[ix];	
 	var xmin, xmax;
 	var ymin, ymax;
-
+	
+	// @if feature("nineslice")
 	if ((spr.nineslicedata != null) && (spr.nineslicedata.GetEnabled()))
 	{
 		var bbox = spr.GetScaledBoundingBox(i1.image_xscale, i1.image_yscale);
@@ -2253,8 +2255,8 @@ function getPoints(i1)
 
 		ymin = bbox.top;
 		ymax = bbox.bottom + 1;
-	}
-	else
+	} else // ->
+	// @endif
 	{
 		var pRect = spr.bbox;
 

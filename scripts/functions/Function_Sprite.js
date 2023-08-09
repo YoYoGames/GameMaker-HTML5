@@ -1488,9 +1488,7 @@ function sprite_get_texture(_spriteIndex, _frameIndex)
 				{
 					WebGLTexture: pTPE.texture,
 					TPE: pTPE,
-					toString: () => {
-						return "Texture:" + pTPE.texture.URL;
-					}
+					toString: () => "Texture:" + pTPE.texture.URL
 				}
 			);
 	    }
@@ -1891,8 +1889,10 @@ function sprite_get_info( _spriteIndex )
             break;
 		// @endif
         } // end switch
-
+		
+		// @if feature("nineslice")
         variable_struct_set(ret, "nineslice", (pSpr.nineslicedata != undefined) ? pSpr.nineslicedata : undefined); //ret.gmlnineslice = (pSpr.nineslicedata != undefined) ? pSpr.nineslicedata : undefined;
+		// @endif
 
         if (pSpr.sequence != undefined) {
             // get broadcast messages

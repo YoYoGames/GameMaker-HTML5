@@ -240,7 +240,8 @@ yySprite.prototype.GetScaledBoundingBox = function(_xscale, _yscale)
 	tempBB.right = this.bbox.right + 1;	
 	tempBB.top = this.bbox.top;
 	tempBB.bottom = this.bbox.bottom + 1;
-
+	
+	// @if feature("nineslice")
 	if ((this.nineslicedata != null) && (this.nineslicedata.GetEnabled()))
 	{		
 		// If bounding box covers entire sprite then we don't need to do anything clever
@@ -356,8 +357,8 @@ yySprite.prototype.GetScaledBoundingBox = function(_xscale, _yscale)
 
 		scaledBB.top -= this.yOrigin * abs_yscale;
 		scaledBB.bottom -= this.yOrigin * abs_yscale;		
-	}
-	else
+	} else // ->
+	// @endif nineslice
 	{
 		scaledBB.left = (tempBB.left - this.xOrigin) * abs_xscale;
 		scaledBB.right = (tempBB.right - this.xOrigin) * abs_xscale;		
@@ -802,7 +803,9 @@ yySprite.prototype.BuildSequenceData = function (_sequenceData) {
 // #############################################################################################
 yySprite.prototype.BuildNineSliceData = function (_ninesliceData)
 {
+	// @if feature("nineslice")
     this.nineslicedata = new yyNineSliceData(_ninesliceData);    
+	// @endif
 };
 
 // #############################################################################################
@@ -915,9 +918,11 @@ function    CreateSpriteFromStorage( _pStore )
 	    pSprite.BuildSequenceData(_pStore.sequence);
 	}
 
+	// @if feature("nineslice")
 	if (_pStore.nineslice !== undefined) {
 	    pSprite.BuildNineSliceData(_pStore.nineslice);
 	}
+	// @endif
 		
 	if(_pStore.Masks !== undefined) pSprite.Masks = _pStore.Masks;
 	    	
@@ -1029,13 +1034,14 @@ yySprite.prototype.DrawSimple = function (_sub_image, _x, _y, _alpha) {
         // Make sure we're not dealing with a texture that's been downsized to fit the tpage
         var pTPE = this.ppTPE[_sub_image];
         if (!pTPE) return; // no loaded? texture group etc?
-
+		
+		// @if feature("nineslice")
         if ((this.nineslicedata != null) && (this.nineslicedata.enabled == true))
         {
             var col = 0xffffffff;
             this.nineslicedata.Draw(_x, _y, this.width, this.height, 0, col, 1, _sub_image, this);
-        }
-        else
+        } else // ->
+		// @endif nineslice
         {
             if ((pTPE.w == pTPE.CropWidth) && (pTPE.h == pTPE.CropHeight))
             {
@@ -1104,12 +1110,13 @@ yySprite.prototype.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _col
 		if (_ind < 0) _ind += this.numb;
 
 		_angle = fmod(_angle, 360.0);
-
+		
+		// @if feature("nineslice")
 		if ((this.nineslicedata != null) && (this.nineslicedata.enabled == true))
 		{		    
 		    this.nineslicedata.Draw(_x, _y, this.width * _xscale, this.height * _yscale, _angle, _colour, _alpha, _ind, this);
-		}
-		else
+		} else // ->
+		// @endif
 		{
 		    // undefined forces colour+alpha into ALL verts
 		    Graphics_TextureDraw(this.ppTPE[_ind], this.xOrigin, this.yOrigin, _x, _y, _xscale, _yscale, _angle * Math.PI / 180.0, _colour, undefined, undefined, undefined, _alpha);
