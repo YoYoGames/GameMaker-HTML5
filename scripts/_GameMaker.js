@@ -2039,22 +2039,6 @@ function IntToHex(_val)
     }
     return s;
 }
-function YYUDID()
-{
-    //Needs to return a udid for the machine we are running on
- 
-    var fingerprint = new Fingerprint().get();
-
-
-    return fingerprint;
-
-    //    return "e2770c0a-928f-4985-b331-cf6e2c3c56b5";
-}
-// #############################################################################################
-/// Function:<summary>
-///             Process HTML5 "pingback"
-///          </summary>
-// #############################################################################################
 
 function StringToArray8(str) 
 {
