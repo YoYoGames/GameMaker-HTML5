@@ -1056,6 +1056,7 @@ function sha1_file(_fname) { return "unsupported"; }
  * See http://pajhome.org.uk/crypt/md5 for more info.
  */
 
+// @if function("md5_*")
 /*
  * Configurable variables. You may need to tweak these to be compatible with
  * the server-side, but the defaults work in most cases.
@@ -1111,6 +1112,7 @@ function rstr_hmac_md5(key, data)
   var hash = binl_md5(ipad.concat(rstr2binl(data)), 512 + data.length * 8);
   return binl2rstr(binl_md5(opad.concat(hash), 512 + 128));
 }
+// @endif md5
 
 /*
  * Convert a raw string to a hex string
@@ -1287,6 +1289,7 @@ function binl2rstr(input)
   return output;
 }
 
+// @if function("md5_*")
 /*
  * Calculate the MD5 of an array of little-endian words, and a bit length.
  */
@@ -1407,6 +1410,7 @@ function md5_ii(a, b, c, d, x, s, t)
 {
   return md5_cmn(c ^ (b | (~d)), a, b, x, s, t);
 }
+// @endif md5
 
 /*
  * Add integers, wrapping at 2^32. This uses 16-bit operations internally
