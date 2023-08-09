@@ -176,7 +176,7 @@ function ErrorOnce(_text) {
 ///				
 ///			 </returns>
 // #############################################################################################
-function ErrorFunction(_text)
+function ErrorFunction(_text, _returnValue)
 {
     if( !g_MissingFunction_done[_text] )
     {
@@ -184,14 +184,11 @@ function ErrorFunction(_text)
         var txt =  "Error: function " + _text + " is not supported.";
         debug( txt );
     }
+    return _returnValue;
 }
 function GetErrorFunction(name, returnValue)
 {
-    return function()
-    {
-        ErrorFunction(name);
-        return returnValue;
-    }
+    return () => ErrorFunction(name, returnValue);
 }
 
 
