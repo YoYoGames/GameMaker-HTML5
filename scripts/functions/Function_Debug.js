@@ -327,8 +327,10 @@ function dbg_checkbox() { ErrorFunction( "dbg_checkbox()" ); }
 function dbg_colour() { ErrorFunction( "dbg_colour()" ); }
 function dbg_color() { ErrorFunction( "dbg_color()" ); }
 function dbg_text() { ErrorFunction( "dbg_text()" ); }
-function dbg_sprite() { ErrorFunction( "dbg_sprite" ); }
-function ref_create() { ErrorFunction( "ref_create" ); return 0; }
+function dbg_sprite() { ErrorFunction( "dbg_sprite()" ); }
+function ref_create() { ErrorFunction( "ref_create()" ); return 0; }
+function is_debug_overlay_open() { return false; }
+function show_debug_log() { ErrorFunction( "show_debug_log()" ); ; }
 
 
 
