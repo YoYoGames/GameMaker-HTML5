@@ -56,7 +56,9 @@ function InitAboyne()
     g_pSoundManager = new yySoundManager();
     g_pFontManager = new yyFontManager();
     g_pCollisionList = [];
+	// @if feature("paths")
     g_pPathManager = new yyPathManager();
+	// @endif
 	// @if feature("timelines")
     g_pTimelineManager = new yyTimelineManager();
 	// @endif

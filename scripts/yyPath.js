@@ -15,6 +15,7 @@
 //
 // **********************************************************************************************************************
 
+// @if feature("paths")
 var P_STRAIGHT = 0,
 	P_CURVED = 1;
 
@@ -849,4 +850,4 @@ yyPathManager.prototype.Delete = function (_pPath) {
 	this.Paths[_pPath.id] = undefined;
 };
 
-
+// @endif

@@ -304,6 +304,7 @@ yyInstance.prototype = {
 	    }
 	},
 
+	// @if feature("paths")
 	// path position property
 	get path_position() { return this.__path_position; },
 	set path_position(_val) {
@@ -357,6 +358,7 @@ yyInstance.prototype = {
 
 		this.__path_endaction = _val;
 	},
+	// @endif
 
 	// @if feature("timelines")
 	// timeline index property
@@ -2586,7 +2588,7 @@ yyInstance.prototype.Collision_Instance = function (_pInst, _prec) {
 
 
 
-
+// @if feature("paths")
 
 // #############################################################################################
 /// Function:<summary>
@@ -2646,7 +2648,7 @@ yyInstance.prototype.Assign_Path = function (_ind, _speed, _scale, _orient, _abs
 	this.path_xstart = this.x;
 	this.path_ystart = this.y;
 };
-
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -2658,6 +2660,7 @@ yyInstance.prototype.Assign_Path = function (_ind, _speed, _scale, _orient, _abs
 ///			 </returns>
 // #############################################################################################
 yyInstance.prototype.Adapt_Path = function () {
+	// @if feature("paths")
     var sp, xx, yy;
 
 
@@ -2781,9 +2784,8 @@ yyInstance.prototype.Adapt_Path = function () {
     this.SetPosition(newx, newy);
 
     return atPathEnd;
+	// @endif
 };
-
-
 
 // #############################################################################################
 /// Function:<summary>
