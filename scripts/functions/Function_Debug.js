@@ -628,6 +628,7 @@ function createLoginDialog( _dialogData )
 ///          	Create an input dialog
 ///          </summary>
 // #############################################################################################
+// @if function("get_integer_async") || function("get_string_async")
 function createInputDialog( _dialogData )
 {
     //show_debug_message( "createInputDialog = " + _dialogData );
@@ -701,12 +702,14 @@ function createInputDialog( _dialogData )
 	login_dialog_update();
 	g_pASyncManager.Add(_dialogData.id, null, ASYNC_USER, g_dialogName);
 } // end createInputDialog
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
 ///          	Create a question dialog
 ///          </summary>
 // #############################################################################################
+// @if function("show_question_async")
 function createQuestionDialog( _dialogData )
 {
     //show_debug_message( "createQuestionDialog = " + _dialogData );
@@ -773,12 +776,14 @@ function createQuestionDialog( _dialogData )
 	login_dialog_update();
 	g_pASyncManager.Add(_dialogData.id, null, ASYNC_USER, g_dialogName);
 } // end createQuestionDialog
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
 ///          	Create a message dialog
 ///          </summary>
 // #############################################################################################
+// @if function("show_message_async")
 function createMessageDialog( _dialogData )
 {
     //show_debug_message( "createMessageDialog = " + _dialogData );
@@ -845,6 +850,7 @@ function createMessageDialog( _dialogData )
 	login_dialog_update();
 	g_pASyncManager.Add(_dialogData.id, null, ASYNC_USER, g_dialogName);
 } // end createMessageDialog
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -871,20 +877,26 @@ function YYDialogKick() {
     
         // get the first entry and kick that one
         switch( g_dialogs[0].type ) {
-        /// @if function("get_login_async")
+        // @if function("get_login_async")
         case DIALOG_TYPE_LOGIN: // login dialog
             createLoginDialog( g_dialogs[0] );
             break;
-        /// @endif
+        // @endif
+        // @if function("get_integer_async") || function("get_string_async")
         case DIALOG_TYPE_INPUT: // input dialog
             createInputDialog( g_dialogs[0] );
             break;
+        // @endif
+        // @if function("show_question_async")
         case DIALOG_TYPE_QUESTION: // show question
             createQuestionDialog( g_dialogs[0] );
             break;
+        // @endif
+        // @if function("show_message_async")
         case DIALOG_TYPE_MESSAGE: // show message
             createMessageDialog( g_dialogs[0] );
             break;
+        // @endif
         } // end switch
     
     } // end if    
