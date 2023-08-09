@@ -1205,7 +1205,9 @@ function    InitAboyneGlobals() {
             g_RootDir = g_pGMFile.Options.GameDir + '/';
         } 
     }
+	// @if function("virtual_key_*")
     g_VirtualKeyDrawList = [];
+	// @endif
 	g_HighScoreValues = [];
 	g_HighScoreNames = [];
 

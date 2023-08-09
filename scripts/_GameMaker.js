@@ -1131,7 +1131,9 @@ function StartRoom( _numb, _starting )
 
     ParticleSystem_RemoveAllFromLayers();
     
+    // @if function("virtual_key_*")
     DeleteAllVirtualKeys();    
+    // @endif
 
     // Extract all persistent instances from the room currently in use.
     // NB: This is done first since clearing the rooms m_Active list means that if

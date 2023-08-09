@@ -18,9 +18,11 @@ var MAX_KEYS = 256;
 var MAX_BUTTONS = 5;
 var MAX_INPUT_STRING = 1024;
 
+// @if function("virtual_key_*")
 var VIRTUALKEY_ACTIVE = 1;
 var VIRTUALKEY_DRAW = 2;
 var VIRTUALKEY_OUTLINE = 4;
+// @endif
 
 var	NEW_INPUT_EVENT = 1;                // this is a new event
 var	TOUCH_INPUT_EVENT = 2;				// this was done via mouse or touch
@@ -53,13 +55,17 @@ var g_KeyPressed = [];
 var g_KeyUp = [];
 
 // Used for virtual key-press tracking
+// @if function("virtual_key_*")
 var g_VirtualKeys = [];
+// @endif
 var g_InputEvents = [];
 
 // Collects together the current set of input events, including holding onto the mouse down state
 var g_CurrentInputEvents = [];
 
+// @if function("virtual_key_*")
 var g_LastVirtualKeys = 0;
+// @endif
 
 // Collects together all touch events as single-button mice
 var g_TouchEvents = [];
@@ -1060,7 +1066,9 @@ function    yyIOManager( )
     this.HandleKeyDown =    IO_HandleKeyDown;
     this.HandleKeyPressed=  IO_HandleKeyPressed;
     this.HandleKeyReleased= IO_HandleKeyReleased;
+	// @if function("virtual_key_*")
     this.ProcessVirtualKeys = ProcessVirtualKeys;
+	// @endif
 
 	// going from 0 to max makes it a "proper" packed array, and is much faster for some Javascript engines.
     for (var l = 0; l < MAX_KEYS; l++){
@@ -1813,7 +1821,9 @@ function    IO_Update()
     g_pBuiltIn.mouse_button = g_EventButtonDown + 1;
     g_pBuiltIn.mouse_lastbutton = g_EventLastButtonDown + 1;
     
+    // @if function("virtual_key_*")
     this.ProcessVirtualKeys();
+	// @endif
 }
 
 // #############################################################################################
@@ -1822,6 +1832,7 @@ function    IO_Update()
 ///          </summary>
 // #############################################################################################
 /** @this {yyIOManager} */
+// @if function("virtual_key_*")
 function ProcessVirtualKeys()
 {       
     var CurrentVirtualKeyEvents = 0;
@@ -1895,6 +1906,7 @@ function ProcessVirtualKeys()
 
 	g_LastVirtualKeys = CurrentVirtualKeyEvents;
 }
+// @endif virtualkey
 
 // #############################################################################################
 /// Function:<summary>
@@ -2194,6 +2206,7 @@ function HandleKeyboard()
     g_pIOManager.HandleKeyReleased();
 }
 
+// @if function("virtual_key_*")
 // #############################################################################################
 /// Function:<summary>
 ///             Constructor for a VirtualKey object
@@ -2261,6 +2274,8 @@ function DeleteAllVirtualKeys() {
 		g_VirtualKeys[l].flags = 0;
 	}
 }
+// @endif virtualkey helpers
+
 // #############################################################################################
 /// Property: <summary>
 ///           	Render IO specific stuff.
@@ -2283,7 +2298,7 @@ yyIOManager.prototype.Render = function () {
 	Graphics_SetTransform(trans);
 	//graphics._setTransform(trans[0], trans[1], trans[2], trans[3], trans[4], trans[5]);
 
-
+	// @if function("virtual_key_*")
 	var oldalpha = draw_get_alpha();
 	var oldcolour = draw_get_color();
 
@@ -2300,4 +2315,5 @@ yyIOManager.prototype.Render = function () {
 	draw_set_color(oldcolour);
 	draw_set_alpha(oldalpha);
 	Graphics_Restore();
+	// @endif virtualkey draw
 };
