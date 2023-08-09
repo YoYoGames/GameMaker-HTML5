@@ -172,7 +172,9 @@ function InitWebGLFunctions() {
     draw_enable_alphablend = WEBGL_draw_enable_alpha_blend_RELEASE;
     draw_surface = WebGL_draw_surface_RELEASE;    
     draw_path = WEBGL_draw_path;
+    // @if function("mp_grid_*")
     mp_grid_draw = WEBGL_mp_grid_draw;
+    // @endif
     g_webGL._drawImage = WebGL_drawImage_Replacement_RELEASE;
 
     // Surfaces
