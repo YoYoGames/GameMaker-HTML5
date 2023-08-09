@@ -27,7 +27,7 @@ function Command_CollisionPoint(_pInst,_x,_y,_obj,_prec,_notme)
             return MAKE_REF(REFID_INSTANCE, _pInstance.id);
         }
     );
-}
+};
 
 
 function Command_CollisionPointList(_pInst,_x,_y,_obj,_prec,_notme,_list)
@@ -40,7 +40,7 @@ function Command_CollisionPointList(_pInst,_x,_y,_obj,_prec,_notme,_list)
             return OBJECT_NOONE;
         }
     );
-}
+};
 // #############################################################################################
 /// Function:<summary>
 ///          	This function tests whether at point (x,y) there is a collision with entities of 
@@ -111,7 +111,7 @@ function collision_point(_pInst, _x,_y,_obj,_prec,_notme)
 
 
 
-}
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -161,7 +161,7 @@ function AppendCollisionResults(_instArray, _destList, _px, _py) {
     for (var i = 0; i < sortArr.length; ++i) {
         _destList.Add( sortArr[i].ref);
     }
-}
+};
 
 function collision_point_list(_pInst, _x, _y, _obj, _prec, _notme, _list, _ordered)
 {
@@ -215,7 +215,7 @@ function collision_point_list(_pInst, _x, _y, _obj, _prec, _notme, _list, _order
 	return count;
 
 
-}
+};
 
 
 function Command_CollisionRectangle(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
@@ -230,7 +230,7 @@ function Command_CollisionRectangle(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
         }
     );
 
-}
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -306,7 +306,7 @@ function collision_rectangle(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 	}
 
 
-}
+};
 
 function Command_CollisionRectangleList(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,_list)
 {
@@ -326,7 +326,7 @@ function Command_CollisionRectangleList(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notm
             return OBJECT_NOONE;
         }
     );
-}
+};
 
 function collision_rectangle_list(_pInst, _x1, _y1, _x2, _y2, _obj, _prec, _notme, _list, _ordered)
 {
@@ -383,7 +383,7 @@ function collision_rectangle_list(_pInst, _x1, _y1, _x2, _y2, _obj, _prec, _notm
 
 	return count;
 
-}
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -413,7 +413,7 @@ function collision_circle(_pInst, _xc,_yc,_radius,_obj,_prec,_notme)
                             _prec,
                             _notme
                             );
-}
+};
 function collision_circle_list(_pInst, _xc,_yc,_radius,_obj,_prec,_notme,_list,_ordered) {
     var list = g_ListCollection.Get(yyGetInt32(_list));
     if (!list) {
@@ -424,7 +424,7 @@ function collision_circle_list(_pInst, _xc,_yc,_radius,_obj,_prec,_notme,_list,_
                             _xc-_radius, _yc-_radius,
                             _xc+_radius, _yc+_radius,
                             _obj, _prec, _notme, _list,_ordered);
-}
+};
 function Command_CollisionEllipse(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 {
     _x1 = yyGetReal(_x1);
@@ -443,7 +443,7 @@ function Command_CollisionEllipse(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
         	return MAKE_REF(REFID_INSTANCE, _pInstance.id);
         }
     );
-}
+};
 
 function Command_CollisionEllipseList(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,_list)
 {
@@ -463,7 +463,7 @@ function Command_CollisionEllipseList(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,
             return OBJECT_NOONE;
         }
     );
-}
+};
 // #############################################################################################
 /// Function:<summary>
 ///          	This function tests whether there is a collision between the (filled) ellipse 
@@ -535,7 +535,7 @@ function collision_ellipse(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 		var id = Command_CollisionEllipse(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme);
 		return id;
 	}
-}
+};
 function collision_ellipse_list(_pInst, _x1, _y1, _x2, _y2, _obj, _prec, _notme, _list, _ordered)
 {
     _x1 = yyGetReal(_x1);
@@ -591,7 +591,7 @@ function collision_ellipse_list(_pInst, _x1, _y1, _x2, _y2, _obj, _prec, _notme,
 
 	return count;
 
-}
+};
 function Command_CollisionLine(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 {
     return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
@@ -604,7 +604,7 @@ function Command_CollisionLine(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
         	return MAKE_REF(REFID_INSTANCE, _pInstance.id);
         }
     );
-}
+};
 function Command_CollisionLineList(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,_list)
 {
     Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
@@ -615,7 +615,7 @@ function Command_CollisionLineList(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,_li
         	return OBJECT_NOONE;
         }
     );
-}
+};
 // #############################################################################################
 /// Function:<summary>
 ///          	This function tests whether there is a collision between the line segment from 
@@ -692,7 +692,7 @@ function collision_line(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 	}
 
 
-}
+};
 function collision_line_list(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,_list,_ordered)
 {
 
@@ -748,7 +748,7 @@ function collision_line_list(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,_list,_or
 
 	return count;
 
-}
+};
 
 
 
@@ -777,7 +777,7 @@ function point_in_rectangle(_px, _py, _x1, _y1, _x2, _y2)
 	    return true;
 	}
 	return false;
-}
+};
 
 
 // #############################################################################################
@@ -862,7 +862,7 @@ function rectangle_in_rectangle(_px1, _py1, _px2, _py2, _x1, _y1, _x2, _y2)
     }
 
     return result;
-}
+};
 
 
 // #############################################################################################
@@ -903,7 +903,7 @@ function PointInTriangle(px, py, x1, y1, x2, y2, x3, y3) {
     var v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
     return ((u >= 0.0) && (v >= 0.0) && (u + v < 1.0));
-}
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -924,7 +924,7 @@ function PointInTriangle(px, py, x1, y1, x2, y2, x3, y3) {
 // #############################################################################################
 function point_in_triangle(_px, _py, _x1, _y1, _x2, _y2, _x3, _y3) {
     return PointInTriangle(yyGetReal(_px), yyGetReal(_py), yyGetReal(_x1), yyGetReal(_y1), yyGetReal(_x2), yyGetReal(_y2), yyGetReal(_x3), yyGetReal(_y3));
-}
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -945,11 +945,11 @@ function PointInCircle(_px, _py, _cx, _cy, _rad_squared )
 	var d = (((_px-_cx)*(_px-_cx))+((_py-_cy)*(_py-_cy)));
 	if( d<=_rad_squared ) return true;
 	return false;
-}
+};
 
 function point_in_circle(_px, _py, _cx, _cy, _rad) {
     return PointInCircle(yyGetReal(_px), yyGetReal(_py), yyGetReal(_cx), yyGetReal(_cy), yyGetReal(_rad) * yyGetReal(_rad));
-}
+};
 
 
 // #############################################################################################
@@ -1006,7 +1006,7 @@ function rectangle_in_circle(_sx1, _sy1, _sx2, _sy2, _cx, _cy, _rad)
 		}
     }
     return Result;
-}
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -1058,7 +1058,7 @@ function circle_in_rectangle(_sx1, _sy1, _sx2, _sy2, _cx, _cy, _rad)
         }
     }
     return Result;
-}
+};
 
 function get_axis(p0, p1)
 {
@@ -1066,7 +1066,7 @@ function get_axis(p0, p1)
     var dy = p1.y - p0.y;
     var axis = { "x": -dy, "y": dx };
     return axis;
-}
+};
 
 function project_pts(pts, num, axis)
 {
@@ -1082,7 +1082,7 @@ function project_pts(pts, num, axis)
     }
     var proj = { "min": min, "max": max };
     return proj;
-}
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -1156,4 +1156,4 @@ function rectangle_in_triangle(_sx1, _sy1, _sx2, _sy2, _x1, _y1, _x2, _y2, _x3, 
         }
     }
     return 2.0; //no separating axes, overlapping
-}
+};
