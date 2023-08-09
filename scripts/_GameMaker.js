@@ -297,6 +297,7 @@ function ToggleDebugPause() {
 ///				
 ///			 </returns>
 // #############################################################################################
+// @if feature("debug")
 function CreateDebugConsole() {
 
     try
@@ -356,6 +357,7 @@ function CreateDebugConsole() {
         debug(e.message);
     }
 }
+// @endif
 
 
 
@@ -678,10 +680,12 @@ function GameMaker_Init()
         console.log("using internal runtime facebook");
         YoYoFBInit(g_pGMFile.Options.Facebook);
     }
+    // @if feature("debug")
     else if (g_pGMFile.Options && g_pGMFile.Options.debugMode)
     {
         CreateDebugConsole();
     }
+    // @endif
 
 	// Remember these settings, as FULLSCREEN will mess them up.
 	RememberCanvasSettings();
@@ -2333,7 +2337,9 @@ function GameMaker_Tick()
     }
     
 	// if in DEBUG mode, do debug "stuff"
+    // @if feature("debug")
 	if (g_pGMFile.Options && g_pGMFile.Options.debugMode) {
 	    UpdateDebugWindow();
     }
+    // @endif
 }

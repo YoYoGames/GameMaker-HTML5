@@ -1182,7 +1182,7 @@ function getStacktraceArray(_error) {
     return ret;
 }
 
-
+// @if feature("debug")
 // #############################################################################################
 /// Function:<summary>
 ///          	Update the debug windows "instance" list
@@ -1358,3 +1358,5 @@ function UpdateDebugWindow() {
     UpdateDebugInstanceList();
     UpdateInsanceData();
 }
+
+// @endif
