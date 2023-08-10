@@ -290,6 +290,7 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         
         
         // Keyboard Pressed events (horrible but here we go....)
+        // @if eventType("KeyPress")
         //if( _pObjectStorage.KeyPressed_)   { pObj.ObjKeyPressed[GML_EVENT_KEYPRESS_] = _pObjectStorage.KeyPressed_; pObj.Event[GML_EVENT_KEYPRESS_] = true; }
         if( _pObjectStorage.KeyPressed_NOKEY)  { pObj.ObjKeyPressed[GML_EVENT_KEYPRESS_NOKEY] = _pObjectStorage.KeyPressed_NOKEY; pObj.Event[GML_EVENT_KEYPRESS_NOKEY] = true; }
         if( _pObjectStorage.KeyPressed_ANYKEY)      { pObj.ObjKeyPressed[GML_EVENT_KEYPRESS_ANYKEY] = _pObjectStorage.KeyPressed_ANYKEY; pObj.Event[GML_EVENT_KEYPRESS_ANYKEY] = true; }
@@ -381,9 +382,11 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if( _pObjectStorage.KeyPressed_NUM_MINUS)   { pObj.ObjKeyPressed[GML_EVENT_KEYPRESS_NUM_MINUS] = (_pObjectStorage.KeyPressed_NUM_MINUS); pObj.Event[GML_EVENT_KEYPRESS_NUM_MINUS] = true; }
         if( _pObjectStorage.KeyPressed_NUM_DOT  )   { pObj.ObjKeyPressed[GML_EVENT_KEYPRESS_NUM_DOT  ] = (_pObjectStorage.KeyPressed_NUM_DOT  ); pObj.Event[GML_EVENT_KEYPRESS_NUM_DOT  ] = true; }
         if( _pObjectStorage.KeyPressed_NUM_DIV  )   { pObj.ObjKeyPressed[GML_EVENT_KEYPRESS_NUM_DIV  ] = (_pObjectStorage.KeyPressed_NUM_DIV  ); pObj.Event[GML_EVENT_KEYPRESS_NUM_DIV  ] = true; }
+        // @endif
 
 
         // Keyboard (key down) events
+        // @if eventType("Keyboard")
         if( _pObjectStorage.Key_NOKEY) { pObj.ObjKeyDown[GML_EVENT_KEYBOARD_NOKEY] = (_pObjectStorage.Key_NOKEY); pObj.Event[GML_EVENT_KEYBOARD_NOKEY] = true; }
         if( _pObjectStorage.Key_ANYKEY) { pObj.ObjKeyDown[GML_EVENT_KEYBOARD_ANYKEY] = (_pObjectStorage.Key_ANYKEY); pObj.Event[GML_EVENT_KEYBOARD_ANYKEY] = true; }
         if( _pObjectStorage.Key_BACKSPACE) { pObj.ObjKeyDown[GML_EVENT_KEYBOARD_BACKSPACE] = (_pObjectStorage.Key_BACKSPACE); pObj.Event[GML_EVENT_KEYBOARD_BACKSPACE] = true; }
@@ -474,10 +477,12 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if( _pObjectStorage.Key_NUM_MINUS)   { pObj.ObjKeyDown[GML_EVENT_KEYBOARD_NUM_MINUS] = (_pObjectStorage.Key_NUM_MINUS); pObj.Event[GML_EVENT_KEYBOARD_NUM_MINUS] = true; }
         if( _pObjectStorage.Key_NUM_DOT  )   { pObj.ObjKeyDown[GML_EVENT_KEYBOARD_NUM_DOT  ] = (_pObjectStorage.Key_NUM_DOT  ); pObj.Event[GML_EVENT_KEYBOARD_NUM_DOT  ] = true; }
         if( _pObjectStorage.Key_NUM_DIV  )   { pObj.ObjKeyDown[GML_EVENT_KEYBOARD_NUM_DIV  ] = (_pObjectStorage.Key_NUM_DIV  ); pObj.Event[GML_EVENT_KEYBOARD_NUM_DIV  ] = true; }
+        // @endif
 
 
 
         // Key Released events
+        // @if eventType("KeyRelease")
         if( _pObjectStorage.KeyReleased_NOKEY) { pObj.ObjKeyReleased[GML_EVENT_KEYRELEASE_NOKEY] = (_pObjectStorage.KeyReleased_NOKEY); pObj.Event[GML_EVENT_KEYRELEASE_NOKEY] = true; }
         if( _pObjectStorage.KeyReleased_ANYKEY) { pObj.ObjKeyReleased[GML_EVENT_KEYRELEASE_ANYKEY] = (_pObjectStorage.KeyReleased_ANYKEY); pObj.Event[GML_EVENT_KEYRELEASE_ANYKEY] = true; }
         if( _pObjectStorage.KeyReleased_BACKSPACE) { pObj.ObjKeyReleased[GML_EVENT_KEYRELEASE_BACKSPACE] = (_pObjectStorage.KeyReleased_BACKSPACE); pObj.Event[GML_EVENT_KEYRELEASE_BACKSPACE] = true; }
@@ -569,6 +574,7 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if( _pObjectStorage.KeyReleased_NUM_MINUS)   { pObj.ObjKeyReleased[GML_EVENT_KEYRELEASE_NUM_MINUS] = (_pObjectStorage.KeyReleased_NUM_MINUS); pObj.Event[GML_EVENT_KEYRELEASE_NUM_MINUS] = true; }
         if( _pObjectStorage.KeyReleased_NUM_DOT  )   { pObj.ObjKeyReleased[GML_EVENT_KEYRELEASE_NUM_DOT  ] = (_pObjectStorage.KeyReleased_NUM_DOT  ); pObj.Event[GML_EVENT_KEYRELEASE_NUM_DOT  ] = true; }
         if( _pObjectStorage.KeyReleased_NUM_DIV  )   { pObj.ObjKeyReleased[GML_EVENT_KEYRELEASE_NUM_DIV  ] = (_pObjectStorage.KeyReleased_NUM_DIV  ); pObj.Event[GML_EVENT_KEYRELEASE_NUM_DIV  ] = true; }
+        // @endif
 
         
         
