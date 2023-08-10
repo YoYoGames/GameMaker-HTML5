@@ -12,24 +12,206 @@
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------
 // WebGL supported
-function d3d_set_depth(depth)                                                                   { ErrorFunction("d3d_set_depth()"); }
-function draw_set_color_write_enable(red, green, blue, alpha)                                   { ErrorFunction("draw_set_color_write_enable()"); }
-var draw_set_colour_write_enable = draw_set_color_write_enable;
+function d3d_set_depth(){}
+function draw_set_color_write_enable(){}
+function draw_set_colour_write_enable(){}
 
-function d3d_set_lighting(enable)                                                               { ErrorFunction("d3d_set_lighting()"); }
-function d3d_light_define_direction(ind,dx,dy,dz,col)                                           { ErrorFunction("d3d_light_define_direction()"); }
-function d3d_light_define_point(ind,x,y,z,range,col)                                            { ErrorFunction("d3d_light_define_point()"); }
-function d3d_light_enable(ind,enable)                                                           { ErrorFunction("d3d_light_enable()"); }
-function d3d_light_define_ambient( colour )                                                     { ErrorFunction("d3d_light_define_ambient()"); }
-function d3d_set_fog(enable,color,start,end)                                                    { ErrorFunction("d3d_set_fog()"); }
-function d3d_light_get(index)                                                                   { ErrorFunction("d3d_light_get()"); }
-function d3d_light_get_ambient(index)                                                           { ErrorFunction("d3d_light_get_ambient()"); }
-function d3d_get_lighting()                                                                     { ErrorFunction("d3d_get_lighting()"); }
+function d3d_set_lighting(){}
+function d3d_light_define_direction(){}
+function d3d_light_define_point(){}
+function d3d_light_enable(){}
+function d3d_light_define_ambient(){}
+function d3d_set_fog(){}
+function d3d_light_get(){}
+function d3d_light_get_ambient(){}
+function d3d_get_lighting(){}
+function d3d_set_perspective(){}
 
-function d3d_set_perspective(enable)                                                            { ErrorFunction("d3d_set_perspective()"); }
+function matrix_get(){}
+function matrix_set(){}
 
-function matrix_get(_type)                                                                      { ErrorFunction("matrix_get()"); }
-function matrix_set(_type, _matrix)                                                             { ErrorFunction("matrix_set()"); }
+function gpu_set_blendenable(){}
+function gpu_set_ztestenable(){}
+function gpu_set_zfunc(){}
+function gpu_set_zwriteenable(){}
+function gpu_set_fog(){}
+function gpu_set_cullmode(){}
+function gpu_set_blendmode(){}
+function gpu_set_blendmode_ext(){}
+function gpu_set_blendmode_ext_sepalpha(){}
+function gpu_set_colorwriteenable(){}
+function gpu_set_colourwriteenable(){}
+function gpu_set_alphatestenable(){}
+function gpu_set_alphatestref(){}
+function gpu_set_texfilter(){}
+function gpu_set_texfilter_ext(){}
+function gpu_set_texrepeat(){}
+function gpu_set_texrepeat_ext(){}
+function gpu_set_tex_filter(){}
+function gpu_set_tex_filter_ext(){}
+function gpu_set_tex_repeat(){}
+function gpu_set_tex_repeat_ext(){}
+
+function gpu_set_tex_mip_filter(){}
+function gpu_set_tex_mip_filter_ext(){}
+function gpu_set_tex_mip_bias(){}
+function gpu_set_tex_mip_bias_ext(){}
+function gpu_set_tex_min_mip(){}
+function gpu_set_tex_min_mip_ext(){}
+function gpu_set_tex_max_mip(){}
+function gpu_set_tex_max_mip_ext(){}
+function gpu_set_tex_max_aniso(){}
+function gpu_set_tex_max_aniso_ext(){}
+function gpu_set_tex_mip_enable(){}
+function gpu_set_tex_mip_enable_ext(){}
+
+function gpu_get_blendenable(){}
+function gpu_get_ztestenable(){}
+function gpu_get_zfunc(){}
+function gpu_get_zwriteenable(){}
+function gpu_get_fog(){}
+function gpu_get_cullmode(){}
+function gpu_get_blendmode(){}
+function gpu_get_blendmode_ext(){}
+function gpu_get_blendmode_ext_sepalpha(){}
+function gpu_get_blendmode_src(){}
+function gpu_get_blendmode_dest(){}
+function gpu_get_blendmode_srcalpha(){}
+function gpu_get_blendmode_destalpha(){}
+function gpu_get_colorwriteenable(){}
+function gpu_get_colourwriteenable(){}
+function gpu_get_alphatestenable(){}
+function gpu_get_alphatestref(){}
+function gpu_get_texfilter(){}
+function gpu_get_texfilter_ext(){}
+function gpu_get_texrepeat(){}
+function gpu_get_texrepeat_ext(){}
+function gpu_get_tex_filter(){}
+function gpu_get_tex_filter_ext(){}
+function gpu_get_tex_repeat(){}
+function gpu_get_tex_repeat_ext(){}
+
+function gpu_get_tex_mip_filter(){}
+function gpu_get_tex_mip_filter_ext(){}
+function gpu_get_tex_mip_bias(){}
+function gpu_get_tex_mip_bias_ext(){}
+function gpu_get_tex_min_mip(){}
+function gpu_get_tex_min_mip_ext(){}
+function gpu_get_tex_max_mip(){}
+function gpu_get_tex_max_mip_ext(){}
+function gpu_get_tex_max_aniso(){}
+function gpu_get_tex_max_aniso_ext(){}
+function gpu_get_tex_mip_enable(){}
+function gpu_get_tex_mip_enable_ext(){}
+
+function gpu_push_state(){}
+function gpu_pop_state(){}
+function gpu_get_state(){}
+function gpu_set_state(){}
+
+// @if feature("2d")
+(() => {
+    let _stub = (_name, _val) => () => ErrorFunction(_name, _val);
+    compile_if_used(d3d_set_depth = _stub("d3d_set_depth"));
+    compile_if_used(draw_set_color_write_enable = _stub("draw_set_color_write_enable"));
+    compile_if_used(draw_set_colour_write_enable = _stub("draw_set_colour_write_enable"));
+    
+    d3d_set_lighting = _stub("d3d_set_lighting");
+    d3d_light_define_direction = _stub("d3d_light_define_direction");
+    d3d_light_define_point = _stub("d3d_light_define_point");
+    d3d_light_enable = _stub("d3d_light_enable");
+    d3d_light_define_ambient = _stub("d3d_light_define_ambient");
+    d3d_light_get = _stub("d3d_light_get");
+    d3d_light_get_ambient = _stub("d3d_light_get_ambient");
+    d3d_get_lighting = _stub("d3d_get_lighting");
+    
+    compile_if_used(d3d_set_perspective = _stub("d3d_set_perspective"));
+    d3d_set_fog = _stub("d3d_set_fog"); // used by yyWebGL
+    
+    compile_if_used(matrix_get = _stub("matrix_get"));
+    compile_if_used(matrix_set = _stub("matrix_set"));
+    
+    compile_if_used(gpu_set_blendenable = _stub("gpu_set_blendenable"));
+    compile_if_used(gpu_set_ztestenable = _stub("gpu_set_ztestenable"));
+    compile_if_used(gpu_set_zfunc = _stub("gpu_set_zfunc"));
+    compile_if_used(gpu_set_zwriteenable = _stub("gpu_set_zwriteenable"));
+    compile_if_used(gpu_set_fog = _stub("gpu_set_fog"));
+    compile_if_used(gpu_set_cullmode = _stub("gpu_set_cullmode"));
+    compile_if_used(gpu_set_blendmode = _stub("gpu_set_blendmode"));
+    compile_if_used(gpu_set_blendmode_ext = _stub("gpu_set_blendmode_ext"));
+    compile_if_used(gpu_set_blendmode_ext_sepalpha = _stub("gpu_set_blendmode_ext_sepalpha"));
+    compile_if_used(gpu_set_colorwriteenable = _stub("gpu_set_colorwriteenable"));
+    compile_if_used(gpu_set_colourwriteenable = _stub("gpu_set_colourwriteenable"));
+    compile_if_used(gpu_set_alphatestenable = _stub("gpu_set_alphatestenable"));
+    compile_if_used(gpu_set_alphatestref = _stub("gpu_set_alphatestref"));
+    compile_if_used(gpu_set_texfilter = _stub("gpu_set_texfilter"));
+    gpu_set_texfilter_ext = _stub("gpu_set_texfilter_ext"); // used by SDF
+    compile_if_used(gpu_set_texrepeat = _stub("gpu_set_texrepeat"));
+    gpu_set_texrepeat_ext = _stub("gpu_set_texrepeat_ext"); // used by yyEffects
+    compile_if_used(gpu_set_tex_filter = _stub("gpu_set_tex_filter"));
+    gpu_set_tex_filter_ext = _stub("gpu_set_tex_filter_ext"); // used by yyEffects
+    compile_if_used(gpu_set_tex_repeat = _stub("gpu_set_tex_repeat"));
+    compile_if_used(gpu_set_tex_repeat_ext = _stub("gpu_set_tex_repeat_ext"));
+    
+    compile_if_used(gpu_set_tex_mip_filter = _stub("gpu_set_tex_mip_filter"));
+    compile_if_used(gpu_set_tex_mip_filter_ext = _stub("gpu_set_tex_mip_filter_ext"));
+    compile_if_used(gpu_set_tex_mip_bias = _stub("gpu_set_tex_mip_bias"));
+    compile_if_used(gpu_set_tex_mip_bias_ext = _stub("gpu_set_tex_mip_bias_ext"));
+    compile_if_used(gpu_set_tex_min_mip = _stub("gpu_set_tex_min_mip"));
+    compile_if_used(gpu_set_tex_min_mip_ext = _stub("gpu_set_tex_min_mip_ext"));
+    compile_if_used(gpu_set_tex_max_mip = _stub("gpu_set_tex_max_mip"));
+    compile_if_used(gpu_set_tex_max_mip_ext = _stub("gpu_set_tex_max_mip_ext"));
+    compile_if_used(gpu_set_tex_max_aniso = _stub("gpu_set_tex_max_aniso"));
+    compile_if_used(gpu_set_tex_max_aniso_ext = _stub("gpu_set_tex_max_aniso_ext"));
+    compile_if_used(gpu_set_tex_mip_enable = _stub("gpu_set_tex_mip_enable"));
+    compile_if_used(gpu_set_tex_mip_enable_ext = _stub("gpu_set_tex_mip_enable_ext"));
+    
+    compile_if_used(gpu_get_blendenable = _stub("gpu_get_blendenable"));
+    gpu_get_ztestenable = _stub("gpu_get_ztestenable"); // used in a few places
+    compile_if_used(gpu_get_zfunc = _stub("gpu_get_zfunc"));
+    gpu_get_zwriteenable = _stub("gpu_get_zwriteenable");
+    compile_if_used(gpu_get_fog = _stub("gpu_get_fog"));
+    gpu_get_cullmode = _stub("gpu_get_cullmode");
+    compile_if_used(gpu_get_blendmode = _stub("gpu_get_blendmode"));
+    compile_if_used(gpu_get_blendmode_ext = _stub("gpu_get_blendmode_ext"));
+    compile_if_used(gpu_get_blendmode_ext_sepalpha = _stub("gpu_get_blendmode_ext_sepalpha"));
+    compile_if_used(gpu_get_blendmode_src = _stub("gpu_get_blendmode_src"));
+    compile_if_used(gpu_get_blendmode_dest = _stub("gpu_get_blendmode_dest"));
+    compile_if_used(gpu_get_blendmode_srcalpha = _stub("gpu_get_blendmode_srcalpha"));
+    compile_if_used(gpu_get_blendmode_destalpha = _stub("gpu_get_blendmode_destalpha"));
+    compile_if_used(gpu_get_colorwriteenable = _stub("gpu_get_colorwriteenable"));
+    compile_if_used(gpu_get_colourwriteenable = _stub("gpu_get_colourwriteenable"));
+    gpu_get_alphatestenable = _stub("gpu_get_alphatestenable"); // used by application_surface drawer
+    compile_if_used(gpu_get_alphatestref = _stub("gpu_get_alphatestref"));
+    compile_if_used(gpu_get_texfilter = _stub("gpu_get_texfilter"));
+    compile_if_used(gpu_get_texfilter_ext = _stub("gpu_get_texfilter_ext"));
+    compile_if_used(gpu_get_texrepeat = _stub("gpu_get_texrepeat"));
+    compile_if_used(gpu_get_texrepeat_ext = _stub("gpu_get_texrepeat_ext"));
+    compile_if_used(gpu_get_tex_filter = _stub("gpu_get_tex_filter"));
+    compile_if_used(gpu_get_tex_filter_ext = _stub("gpu_get_tex_filter_ext"));
+    compile_if_used(gpu_get_tex_repeat = _stub("gpu_get_tex_repeat"));
+    compile_if_used(gpu_get_tex_repeat_ext = _stub("gpu_get_tex_repeat_ext"));
+    
+    compile_if_used(gpu_get_tex_mip_filter = _stub("gpu_get_tex_mip_filter"));
+    compile_if_used(gpu_get_tex_mip_filter_ext = _stub("gpu_get_tex_mip_filter_ext"));
+    compile_if_used(gpu_get_tex_mip_bias = _stub("gpu_get_tex_mip_bias"));
+    compile_if_used(gpu_get_tex_mip_bias_ext = _stub("gpu_get_tex_mip_bias_ext"));
+    compile_if_used(gpu_get_tex_min_mip = _stub("gpu_get_tex_min_mip"));
+    compile_if_used(gpu_get_tex_min_mip_ext = _stub("gpu_get_tex_min_mip_ext"));
+    compile_if_used(gpu_get_tex_max_mip = _stub("gpu_get_tex_max_mip"));
+    compile_if_used(gpu_get_tex_max_mip_ext = _stub("gpu_get_tex_max_mip_ext"));
+    compile_if_used(gpu_get_tex_max_aniso = _stub("gpu_get_tex_max_aniso"));
+    compile_if_used(gpu_get_tex_max_aniso_ext = _stub("gpu_get_tex_max_aniso_ext"));
+    compile_if_used(gpu_get_tex_mip_enable = _stub("gpu_get_tex_mip_enable"));
+    compile_if_used(gpu_get_tex_mip_enable_ext = _stub("gpu_get_tex_mip_enable_ext"));
+    
+    compile_if_used(gpu_push_state = _stub("gpu_push_state"));
+    compile_if_used(gpu_pop_state = _stub("gpu_pop_state"));
+    compile_if_used(gpu_get_state = _stub("gpu_get_state"));
+    compile_if_used(gpu_set_state = _stub("gpu_set_state"));
+})();
+// @endif
+
 // RK :: Changed these as they are mathematical in nature and not specific to WebGL
 // These should be separated out from WebGL to a new maths class
 var matrix_build = WebGL_Matrix_Build;
@@ -50,92 +232,7 @@ var matrix_build_projection_perspective = WebGL_matrix_build_projection_perspect
 var matrix_build_projection_perspective_fov = WebGL_matrix_build_projection_perspective_fov;
 
 
-function gpu_set_blendenable(enable)                                                            { ErrorFunction("gpu_set_blendenable()"); }
-function gpu_set_ztestenable(enable)                                                            { ErrorFunction("gpu_set_ztestenable()"); }
-function gpu_set_zfunc(cmp_func)                                                                { ErrorFunction("gpu_set_zfunc()"); }
-function gpu_set_zwriteenable(enable)                                                           { ErrorFunction("gpu_set_zwriteenable()"); }
-//function gpu_set_lightingenable(enable)                                                       { ErrorFunction("gpu_set_lightingenable()"); }
-function gpu_set_fog(enable,col,start,end)                                                      { ErrorFunction("gpu_set_fog()"); }
-function gpu_set_cullmode(cullmode)                                                             { ErrorFunction("gpu_set_cullmode()"); }
-function gpu_set_blendmode(mode)                                                                { ErrorFunction("gpu_set_blendmode()"); }
-function gpu_set_blendmode_ext(src,dest)                                                        { ErrorFunction("gpu_set_blendmode_ext()"); }
-function gpu_set_blendmode_ext_sepalpha(src,dest,srcalpha,destalpha)                            { ErrorFunction("gpu_set_blendmode_ext_sepalpha()"); }
-function gpu_set_colorwriteenable(red,green,blue,alpha)                                         { ErrorFunction("gpu_set_colorwriteenable()"); }
-function gpu_set_colourwriteenable(red,green,blue,alpha)                                        { ErrorFunction("gpu_set_colourwriteenable()"); }
-function gpu_set_alphatestenable(enable)                                                        { ErrorFunction("gpu_set_alphatestenable()"); }
-function gpu_set_alphatestref(value)                                                            { ErrorFunction("gpu_set_alphatestref()"); }
-function gpu_set_texfilter(linear)                                                              { ErrorFunction("gpu_set_texfilter()"); }
-function gpu_set_texfilter_ext(sampler_id,linear)                                               { ErrorFunction("gpu_set_texfilter_ext()"); }
-function gpu_set_texrepeat(repeat)                                                              { ErrorFunction("gpu_set_texrepeat()"); }
-function gpu_set_texrepeat_ext(sampler_id,repeat)                                               { ErrorFunction("gpu_set_texrepeat_ext()"); }
-function gpu_set_tex_filter(linear)                                                             { ErrorFunction("gpu_set_tex_filter()"); }
-function gpu_set_tex_filter_ext(sampler_id, linear)                                             { ErrorFunction("gpu_set_tex_filter_ext()"); }
-function gpu_set_tex_repeat(repeat)                                                             { ErrorFunction("gpu_set_tex_repeat()"); }
-function gpu_set_tex_repeat_ext(sampler_id, repeat)                                             { ErrorFunction("gpu_set_tex_repeat_ext()"); }
-
-function gpu_set_tex_mip_filter(filter)                                                         { ErrorFunction("gpu_set_tex_mip_filter(filter)"); }
-function gpu_set_tex_mip_filter_ext(sampler_id, filter)                                         { ErrorFunction("gpu_set_tex_mip_filter_ext(sampler_id, filter)"); }
-function gpu_set_tex_mip_bias(bias)                                                             { ErrorFunction("gpu_set_tex_mip_bias(bias)"); }
-function gpu_set_tex_mip_bias_ext(sampler_id, bias)                                             { ErrorFunction("gpu_set_tex_mip_bias_ext(sampler_id, bias)"); }
-function gpu_set_tex_min_mip(minmip)                                                            { ErrorFunction("gpu_set_tex_min_mip(minmip)"); }
-function gpu_set_tex_min_mip_ext(sampler_id, minmip)                                            { ErrorFunction("gpu_set_tex_min_mip_ext(sampler_id, minmip)"); }
-function gpu_set_tex_max_mip(maxmip)                                                            { ErrorFunction("gpu_set_tex_max_mip(maxmip)"); }
-function gpu_set_tex_max_mip_ext(sampler_id, maxmip)                                            { ErrorFunction("gpu_set_tex_max_mip_ext(sampler_id, maxmip)"); }
-function gpu_set_tex_max_aniso(maxaniso)                                                        { ErrorFunction("gpu_set_tex_max_aniso(maxaniso)"); }
-function gpu_set_tex_max_aniso_ext(sampler_id, maxaniso)                                        { ErrorFunction("gpu_set_tex_max_aniso_ext(sampler_id, maxaniso)"); }
-function gpu_set_tex_mip_enable(setting)                                                        { ErrorFunction("gpu_set_tex_mip_enable(setting)"); }
-function gpu_set_tex_mip_enable_ext(sampler_id, setting)                                        { ErrorFunction("gpu_set_tex_mip_enable_ext(sampler_id, setting)"); }
-
-
-function gpu_get_blendenable()                                                                  { ErrorFunction("gpu_get_blendenable()"); }
-function gpu_get_ztestenable()                                                                  { ErrorFunction("gpu_get_ztestenable()"); }
-function gpu_get_zfunc()                                                                        { ErrorFunction("gpu_get_zfunc()"); }
-function gpu_get_zwriteenable()                                                                 { ErrorFunction("gpu_get_zwriteenable()"); }
-//function gpu_get_lightingenable()                                                             { ErrorFunction("gpu_get_lightingenable()"); }
-function gpu_get_fog()                                                                          { ErrorFunction("gpu_get_fog()"); }
-function gpu_get_cullmode()                                                                     { ErrorFunction("gpu_get_cullmode()"); }
-function gpu_get_blendmode()                                                                    { ErrorFunction("gpu_get_blendmode()"); }
-function gpu_get_blendmode_ext()                                                                { ErrorFunction("gpu_get_blendmode_ext()"); }
-function gpu_get_blendmode_ext_sepalpha()                                                       { ErrorFunction("gpu_get_blendmode_ext_sepalpha()"); }
-function gpu_get_blendmode_src()                                                                { ErrorFunction("gpu_get_blendmode_src()"); }
-function gpu_get_blendmode_dest()                                                               { ErrorFunction("gpu_get_blendmode_dest()"); }
-function gpu_get_blendmode_srcalpha()                                                           { ErrorFunction("gpu_get_blendmode_srcalpha()"); }
-function gpu_get_blendmode_destalpha()                                                          { ErrorFunction("gpu_get_blendmode_destalpha()"); }
-function gpu_get_colorwriteenable()                                                             { ErrorFunction("gpu_get_colorwriteenable()"); }
-function gpu_get_colourwriteenable()                                                            { ErrorFunction("gpu_get_colourwriteenable()"); }
-function gpu_get_alphatestenable()                                                              { ErrorFunction("gpu_get_alphatestenable()"); }
-function gpu_get_alphatestref()                                                                 { ErrorFunction("gpu_get_alphatestref()"); }
-function gpu_get_texfilter()                                                                    { ErrorFunction("gpu_get_texfilter()"); }
-function gpu_get_texfilter_ext(sampler_id)                                                      { ErrorFunction("gpu_get_texfilter_ext()"); }
-function gpu_get_texrepeat()                                                                    { ErrorFunction("gpu_get_texrepeat()"); }
-function gpu_get_texrepeat_ext(sampler_id)                                                      { ErrorFunction("gpu_get_texrepeat_ext()"); }
-function gpu_get_tex_filter()                                                                   { ErrorFunction("gpu_get_tex_filter()"); }
-function gpu_get_tex_filter_ext(sampler_id)                                                     { ErrorFunction("gpu_get_tex_filter_ext()"); }
-function gpu_get_tex_repeat()                                                                   { ErrorFunction("gpu_get_tex_repeat()"); }
-function gpu_get_tex_repeat_ext(sampler_id)                                                     { ErrorFunction("gpu_get_tex_repeat_ext()"); }
-
-function gpu_get_tex_mip_filter()                                                               { ErrorFunction("gpu_get_tex_mip_filter()"); }
-function gpu_get_tex_mip_filter_ext(sampler_id)                                                 { ErrorFunction("gpu_get_tex_mip_filter_ext(sampler_id)"); }
-function gpu_get_tex_mip_bias()                                                                 { ErrorFunction("gpu_get_tex_mip_bias()"); }
-function gpu_get_tex_mip_bias_ext(sampler_id)                                                   { ErrorFunction("gpu_get_tex_mip_bias_ext(sampler_id)"); }
-function gpu_get_tex_min_mip()                                                                  { ErrorFunction("gpu_get_tex_min_mip()"); }
-function gpu_get_tex_min_mip_ext(sampler_id)                                                    { ErrorFunction("gpu_get_tex_min_mip_ext(sampler_id)"); }
-function gpu_get_tex_max_mip()                                                                  { ErrorFunction("gpu_get_tex_max_mip()"); }
-function gpu_get_tex_max_mip_ext(sampler_id)                                                    { ErrorFunction("gpu_get_tex_max_mip_ext(sampler_id)"); }
-function gpu_get_tex_max_aniso()                                                                { ErrorFunction("gpu_get_tex_max_aniso()"); }
-function gpu_get_tex_max_aniso_ext(sampler_id)                                                  { ErrorFunction("gpu_get_tex_max_aniso_ext(sampler_id)"); }
-function gpu_get_tex_mip_enable()                                                               { ErrorFunction("gpu_get_tex_mip_enable()"); }
-function gpu_get_tex_mip_enable_ext(sampler_id)                                                 { ErrorFunction("gpu_get_tex_mip_enable_ext(sampler_id)"); }
-
-function gpu_push_state()                                                                       { ErrorFunction("gpu_push_state()"); }
-function gpu_pop_state()                                                                        { ErrorFunction("gpu_pop_state()"); }
-
-function gpu_get_state()                                                                        { ErrorFunction("gpu_get_state()"); }
-function gpu_set_state(map)                                                                     { ErrorFunction("gpu_set_state()"); }
-
 // --------------------------------------------------------------------------------------------------------------------------------------------------
-    
-var g_3DModels = [];
 
 var g_maxmatstack = 50;
 var g_matstacktop = 0;
@@ -154,8 +251,8 @@ function InitD3DFunctions() {
     }
     // 3D state
     d3d_set_depth = WebGL_d3d_set_depth_RELEASE;
-    draw_set_color_write_enable = WebGL_draw_set_color_write_enable_RELEASE;
-    draw_set_colour_write_enable = WebGL_draw_set_color_write_enable_RELEASE;
+    compile_if_used(draw_set_color_write_enable = WebGL_draw_set_color_write_enable_RELEASE);
+    compile_if_used(draw_set_colour_write_enable = WebGL_draw_set_color_write_enable_RELEASE);
         
     // Matrix operations
     d3d_set_perspective = WebGL_d3d_set_perspective_RELEASE;
@@ -171,100 +268,91 @@ function InitD3DFunctions() {
     d3d_light_get_ambient = WebGL_d3d_light_get_ambient_RELEASE;
     d3d_get_lighting = WebGL_d3d_get_lighting_RELEASE;
 
-    matrix_get = WebGL_Matrix_Get;
-    matrix_set = WebGL_Matrix_Set;
-    matrix_build = WebGL_Matrix_Build;
-    matrix_multiply = WebGL_Matrix_Multiply;
-    matrix_transform_vertex = WebGL_Matrix_Transform_Vertex;
-
-    matrix_stack_push = WebGL_matrix_stack_push;
-    matrix_stack_pop = WebGL_matrix_stack_pop;           
-    matrix_stack_set = WebGL_matrix_stack_set;  
-    matrix_stack_clear = WebGL_matrix_stack_clear;                        
-    matrix_stack_top = WebGL_matrix_stack_top;                
-    matrix_stack_is_empty = WebGL_matrix_stack_is_empty;      
+    compile_if_used(matrix_get = WebGL_Matrix_Get);
+    compile_if_used(matrix_set = WebGL_Matrix_Set);
+    // rest of the matrix functions are already assigned
 
     // GPU functions
-    gpu_set_blendmode = WebGL_gpu_set_blendmode;
-    gpu_set_blendenable = WebGL_gpu_set_blendenable;
-    gpu_set_ztestenable = WebGL_gpu_set_ztestenable;
-    gpu_set_zfunc = WebGL_gpu_set_zfunc;
-    gpu_set_zwriteenable = WebGL_gpu_set_zwriteenable;
-    gpu_set_fog = WebGL_gpu_set_fog;
-    gpu_set_cullmode = WebGL_gpu_set_cullmode;
-    gpu_set_blendmode = WebGL_gpu_set_blendmode;
-    gpu_set_blendmode_ext = WebGL_gpu_set_blendmode_ext;
-    gpu_set_blendmode_ext_sepalpha = WebGL_gpu_set_blendmode_ext_sepalpha;
-    gpu_set_colorwriteenable = WebGL_gpu_set_colorwriteenable;
-    gpu_set_colourwriteenable = WebGL_gpu_set_colourwriteenable;
-    gpu_set_alphatestenable = WebGL_gpu_set_alphatestenable;
-    gpu_set_alphatestref = WebGL_gpu_set_alphatestref;    
-    gpu_set_texfilter = WebGL_gpu_set_texfilter;
+    compile_if_used(gpu_set_blendmode = WebGL_gpu_set_blendmode);
+    compile_if_used(gpu_set_blendenable = WebGL_gpu_set_blendenable);
+    compile_if_used(gpu_set_ztestenable = WebGL_gpu_set_ztestenable);
+    compile_if_used(gpu_set_zfunc = WebGL_gpu_set_zfunc);
+    compile_if_used(gpu_set_zwriteenable = WebGL_gpu_set_zwriteenable);
+    compile_if_used(gpu_set_fog = WebGL_gpu_set_fog);
+    compile_if_used(gpu_set_cullmode = WebGL_gpu_set_cullmode);
+    compile_if_used(gpu_set_blendmode = WebGL_gpu_set_blendmode);
+    compile_if_used(gpu_set_blendmode_ext = WebGL_gpu_set_blendmode_ext);
+    compile_if_used(gpu_set_blendmode_ext_sepalpha = WebGL_gpu_set_blendmode_ext_sepalpha);
+    compile_if_used(gpu_set_colorwriteenable = WebGL_gpu_set_colorwriteenable);
+    compile_if_used(gpu_set_colourwriteenable = WebGL_gpu_set_colourwriteenable);
+    compile_if_used(gpu_set_alphatestenable = WebGL_gpu_set_alphatestenable);
+    compile_if_used(gpu_set_alphatestref = WebGL_gpu_set_alphatestref);
+    compile_if_used(gpu_set_texfilter = WebGL_gpu_set_texfilter);
     gpu_set_texfilter_ext = WebGL_gpu_set_texfilter_ext;
-    gpu_set_texrepeat = WebGL_gpu_set_texrepeat;
+    compile_if_used(gpu_set_texrepeat = WebGL_gpu_set_texrepeat);
     gpu_set_texrepeat_ext = WebGL_gpu_set_texrepeat_ext;
-    gpu_set_tex_filter = WebGL_gpu_set_texfilter;
+    compile_if_used(gpu_set_tex_filter = WebGL_gpu_set_texfilter);
     gpu_set_tex_filter_ext = WebGL_gpu_set_texfilter_ext;
-    gpu_set_tex_repeat = WebGL_gpu_set_texrepeat;
-    gpu_set_tex_repeat_ext = WebGL_gpu_set_texrepeat_ext;
+    compile_if_used(gpu_set_tex_repeat = WebGL_gpu_set_texrepeat);
+    compile_if_used(gpu_set_tex_repeat_ext = WebGL_gpu_set_texrepeat_ext);
 
-    gpu_set_tex_mip_filter = WebGL_gpu_set_tex_mip_filter;
-    gpu_set_tex_mip_filter_ext = WebGL_gpu_set_tex_mip_filter_ext;
-    gpu_set_tex_mip_bias = WebGL_gpu_set_tex_mip_bias;
-    gpu_set_tex_mip_bias_ext = WebGL_gpu_set_tex_mip_bias_ext;
-    gpu_set_tex_min_mip = WebGL_gpu_set_tex_min_mip;
-    gpu_set_tex_min_mip_ext = WebGL_gpu_set_tex_min_mip_ext;
-    gpu_set_tex_max_mip = WebGL_gpu_set_tex_max_mip;
-    gpu_set_tex_max_mip_ext = WebGL_gpu_set_tex_max_mip_ext;
-    gpu_set_tex_max_aniso = WebGL_gpu_set_tex_max_aniso;
-    gpu_set_tex_max_aniso_ext = WebGL_gpu_set_tex_max_aniso_ext;
-    gpu_set_tex_mip_enable = WebGL_gpu_set_tex_mip_enable;
-    gpu_set_tex_mip_enable_ext = WebGL_gpu_set_tex_mip_enable_ext;
+    compile_if_used(gpu_set_tex_mip_filter = WebGL_gpu_set_tex_mip_filter);
+    compile_if_used(gpu_set_tex_mip_filter_ext = WebGL_gpu_set_tex_mip_filter_ext);
+    compile_if_used(gpu_set_tex_mip_bias = WebGL_gpu_set_tex_mip_bias);
+    compile_if_used(gpu_set_tex_mip_bias_ext = WebGL_gpu_set_tex_mip_bias_ext);
+    compile_if_used(gpu_set_tex_min_mip = WebGL_gpu_set_tex_min_mip);
+    compile_if_used(gpu_set_tex_min_mip_ext = WebGL_gpu_set_tex_min_mip_ext);
+    compile_if_used(gpu_set_tex_max_mip = WebGL_gpu_set_tex_max_mip);
+    compile_if_used(gpu_set_tex_max_mip_ext = WebGL_gpu_set_tex_max_mip_ext);
+    compile_if_used(gpu_set_tex_max_aniso = WebGL_gpu_set_tex_max_aniso);
+    compile_if_used(gpu_set_tex_max_aniso_ext = WebGL_gpu_set_tex_max_aniso_ext);
+    compile_if_used(gpu_set_tex_mip_enable = WebGL_gpu_set_tex_mip_enable);
+    compile_if_used(gpu_set_tex_mip_enable_ext = WebGL_gpu_set_tex_mip_enable_ext);
 
-    gpu_get_blendenable = WebGL_gpu_get_blendenable;
+    compile_if_used(gpu_get_blendenable = WebGL_gpu_get_blendenable);
     gpu_get_ztestenable = WebGL_gpu_get_ztestenable;
-    gpu_get_zfunc = WebGL_gpu_get_zfunc;
+    compile_if_used(gpu_get_zfunc = WebGL_gpu_get_zfunc);
     gpu_get_zwriteenable = WebGL_gpu_get_zwriteenable;
-    gpu_get_fog = WebGL_gpu_get_fog;
+    compile_if_used(gpu_get_fog = WebGL_gpu_get_fog);
     gpu_get_cullmode = WebGL_gpu_get_cullmode;
-    gpu_get_blendmode = WebGL_gpu_get_blendmode;
-    gpu_get_blendmode_ext = WebGL_gpu_get_blendmode_ext;
-    gpu_get_blendmode_ext_sepalpha = WebGL_gpu_get_blendmode_ext_sepalpha;
-    gpu_get_blendmode_src = WebGL_gpu_get_blendmode_src;
-    gpu_get_blendmode_dest = WebGL_gpu_get_blendmode_dest;
-    gpu_get_blendmode_srcalpha = WebGL_gpu_get_blendmode_srcalpha;
-    gpu_get_blendmode_destalpha = WebGL_gpu_get_blendmode_destalpha;
-    gpu_get_colorwriteenable = WebGL_gpu_get_colorwriteenable;
-    gpu_get_colourwriteenable = WebGL_gpu_get_colourwriteenable;
+    compile_if_used(gpu_get_blendmode = WebGL_gpu_get_blendmode);
+    compile_if_used(gpu_get_blendmode_ext = WebGL_gpu_get_blendmode_ext);
+    compile_if_used(gpu_get_blendmode_ext_sepalpha = WebGL_gpu_get_blendmode_ext_sepalpha);
+    compile_if_used(gpu_get_blendmode_src = WebGL_gpu_get_blendmode_src);
+    compile_if_used(gpu_get_blendmode_dest = WebGL_gpu_get_blendmode_dest);
+    compile_if_used(gpu_get_blendmode_srcalpha = WebGL_gpu_get_blendmode_srcalpha);
+    compile_if_used(gpu_get_blendmode_destalpha = WebGL_gpu_get_blendmode_destalpha);
+    compile_if_used(gpu_get_colorwriteenable = WebGL_gpu_get_colorwriteenable);
+    compile_if_used(gpu_get_colourwriteenable = WebGL_gpu_get_colourwriteenable);
     gpu_get_alphatestenable = WebGL_gpu_get_alphatestenable;
-    gpu_get_alphatestref = WebGL_gpu_get_alphatestref;    
-    gpu_get_texfilter = WebGL_gpu_get_texfilter;
+    compile_if_used(gpu_get_alphatestref = WebGL_gpu_get_alphatestref);
+    compile_if_used(gpu_get_texfilter = WebGL_gpu_get_texfilter);
     gpu_get_texfilter_ext = WebGL_gpu_get_texfilter_ext;
-    gpu_get_texrepeat = WebGL_gpu_get_texrepeat;
-    gpu_get_texrepeat_ext = WebGL_gpu_get_texrepeat_ext;
-    gpu_get_tex_filter = WebGL_gpu_get_texfilter;
-    gpu_get_tex_filter_ext = WebGL_gpu_get_texfilter_ext;
-    gpu_get_tex_repeat = WebGL_gpu_get_texrepeat;
-    gpu_get_tex_repeat_ext = WebGL_gpu_get_texrepeat_ext;
+    compile_if_used(gpu_get_texrepeat = WebGL_gpu_get_texrepeat);
+    
+    compile_if_used(gpu_get_tex_filter = WebGL_gpu_get_texfilter);
+    compile_if_used(gpu_get_tex_filter_ext = WebGL_gpu_get_texfilter_ext);
+    compile_if_used(gpu_get_tex_repeat = WebGL_gpu_get_texrepeat);
+    compile_if_used(gpu_get_tex_repeat_ext = WebGL_gpu_get_texrepeat_ext);
 
-    gpu_get_tex_mip_filter = WebGL_gpu_get_tex_mip_filter;
-    gpu_get_tex_mip_filter_ext = WebGL_gpu_get_tex_mip_filter_ext;
-    gpu_get_tex_mip_bias = WebGL_gpu_get_tex_mip_bias;
-    gpu_get_tex_mip_bias_ext = WebGL_gpu_get_tex_mip_bias_ext;
-    gpu_get_tex_min_mip = WebGL_gpu_get_tex_min_mip;
-    gpu_get_tex_min_mip_ext = WebGL_gpu_get_tex_min_mip_ext;
-    gpu_get_tex_max_mip = WebGL_gpu_get_tex_max_mip;
-    gpu_get_tex_max_mip_ext = WebGL_gpu_get_tex_max_mip_ext;
-    gpu_get_tex_max_aniso = WebGL_gpu_get_tex_max_aniso;
-    gpu_get_tex_max_aniso_ext = WebGL_gpu_get_tex_max_aniso_ext;
-    gpu_get_tex_mip_enable = WebGL_gpu_get_tex_mip_enable;
-    gpu_get_tex_mip_enable_ext = WebGL_gpu_get_tex_mip_enable_ext;
+    compile_if_used(gpu_get_tex_mip_filter = WebGL_gpu_get_tex_mip_filter);
+    compile_if_used(gpu_get_tex_mip_filter_ext = WebGL_gpu_get_tex_mip_filter_ext);
+    compile_if_used(gpu_get_tex_mip_bias = WebGL_gpu_get_tex_mip_bias);
+    compile_if_used(gpu_get_tex_mip_bias_ext = WebGL_gpu_get_tex_mip_bias_ext);
+    compile_if_used(gpu_get_tex_min_mip = WebGL_gpu_get_tex_min_mip);
+    compile_if_used(gpu_get_tex_min_mip_ext = WebGL_gpu_get_tex_min_mip_ext);
+    compile_if_used(gpu_get_tex_max_mip = WebGL_gpu_get_tex_max_mip);
+    compile_if_used(gpu_get_tex_max_mip_ext = WebGL_gpu_get_tex_max_mip_ext);
+    compile_if_used(gpu_get_tex_max_aniso = WebGL_gpu_get_tex_max_aniso);
+    compile_if_used(gpu_get_tex_max_aniso_ext = WebGL_gpu_get_tex_max_aniso_ext);
+    compile_if_used(gpu_get_tex_mip_enable = WebGL_gpu_get_tex_mip_enable);
+    compile_if_used(gpu_get_tex_mip_enable_ext = WebGL_gpu_get_tex_mip_enable_ext);
 
-    gpu_push_state = WebGL_gpu_push_state;
-    gpu_pop_state = WebGL_gpu_pop_state;
+    compile_if_used(gpu_push_state = WebGL_gpu_push_state);
+    compile_if_used(gpu_pop_state = WebGL_gpu_pop_state);
 
-    gpu_get_state = WebGL_gpu_get_state;
-    gpu_set_state = WebGL_gpu_set_state;
+    compile_if_used(gpu_get_state = WebGL_gpu_get_state);
+    compile_if_used(gpu_set_state = WebGL_gpu_set_state);
 
     g_matstack[0] = new Matrix();   // this should create a unit matrix
 }
@@ -524,11 +612,6 @@ function WebGL_d3d_set_fog_RELEASE(enable,colour,start,end) {
             
     g_webGL.SetFogData(GR_FogParameters);
 }
-
-//matrix_get = WebGL_Matrix_Get;
-//matrix_set = WebGL_Matrix_Set;
-//matrix_build = WebGL_Matrix_Build;
-//matrix_multiply = WebGL_Matrix_Multiply;		
 
 
 // #############################################################################################
@@ -854,7 +937,6 @@ function WebGL_gpu_set_zwriteenable(_enable)
     g_webGL.RSMan.SetRenderState(yyGL.RenderState_ZWriteEnable, yyGetInt32(_enable) >= 0.5);
 }
 
-//function WebGL_gpu_set_lightingenable(_enable)                                                       { ErrorFunction("gpu_set_lightingenable()"); }
 function WebGL_gpu_set_fog(_enable,_col,_start,_end)
 {
     if (Array.isArray(_enable))
@@ -1292,7 +1374,6 @@ function WebGL_gpu_get_zwriteenable()
     return g_webGL.RSMan.GetRenderState(yyGL.RenderState_ZWriteEnable) ? 1.0 : 0.0;
 }
 
-//function WebGL_gpu_get_lightingenable()                                                             { ErrorFunction("gpu_get_lightingenable()"); }
 function WebGL_gpu_get_fog()
 {
     var params = new Array();
