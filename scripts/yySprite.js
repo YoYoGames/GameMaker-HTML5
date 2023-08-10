@@ -127,7 +127,7 @@ function    yySprite()
 	this.nineslicedata = null;
 	this.m_LoadedFromChunk = false;
 	this.m_LoadedFromIncludedFiles = false;
-}
+};
 yySprite.prototype.GetCollisionChecking = function () { return this.colcheck === yySprite_CollisionType.PRECISE; };
 yySprite.prototype.GetXOrigin = function () { return this.xOrigin; };
 yySprite.prototype.GetYOrigin = function () { return this.yOrigin; };

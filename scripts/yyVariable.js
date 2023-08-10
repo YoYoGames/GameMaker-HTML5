@@ -200,6 +200,12 @@ function is_callable( _v )
     return _v != undefined;
 }
 
+function is_handle( _v )
+{
+    return _v != undefined && _v instanceof YYRef;
+}
+
+
 function __yyg_call_method( _func )
 {
     switch( typeof(_func) )
