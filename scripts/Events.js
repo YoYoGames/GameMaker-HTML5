@@ -416,6 +416,7 @@ function    DoPointToInstance( _event, _sub_event, _x,_y )
 // #############################################################################################
 function HandleMouse() 
 {
+	// @if eventType("Mouse")
     if (g_RunRoom)
     {
         var ind;
@@ -554,7 +555,8 @@ function HandleMouse()
         {
             g_pInstanceManager.PerformEvent(EVENT_MOUSE_WHEEL_DOWN,0);
         }                   
-    }   
+    }
+	// @endif mouse events
 }
 
 

@@ -171,6 +171,7 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if (_pObjectStorage.DrawResize) { pObj.DrawResize = _pObjectStorage.DrawResize; pObj.Event[EVENT_DRAW_RESIZE] = true; }
         
 
+        // @if eventType("Mouse")
         if( _pObjectStorage.NoButtonPressed) {pObj.NoButtonPressed = _pObjectStorage.NoButtonPressed;       pObj.Event[EVENT_MOUSE_NOBUTTON] = true; }
         if( _pObjectStorage.LeftButtonDown) {pObj.LeftButtonDown = _pObjectStorage.LeftButtonDown;          pObj.Event[EVENT_MOUSE_LBUTTON_DOWN] = true; }
         if( _pObjectStorage.RightButtonDown)  {pObj.RightButtonDown = _pObjectStorage.RightButtonDown;      pObj.Event[EVENT_MOUSE_RBUTTON_DOWN] = true; }
@@ -196,7 +197,9 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
 
         if( _pObjectStorage.MouseEnter) {pObj.MouseEnter = _pObjectStorage.MouseEnter;       pObj.Event[EVENT_MOUSE_ENTER] = true; }
         if (_pObjectStorage.MouseLeave) { pObj.MouseLeave = _pObjectStorage.MouseLeave; pObj.Event[EVENT_MOUSE_LEAVE] = true; }
+        // @endif
 
+        // @if eventType("Gesture")
         if (_pObjectStorage.GestureTapEvent) { pObj.GestureTapEvent = _pObjectStorage.GestureTapEvent; pObj.Event[EVENT_GESTURE_TAP] = true; }
         if (_pObjectStorage.GestureDoubleTapEvent) { pObj.GestureDoubleTapEvent = _pObjectStorage.GestureDoubleTapEvent; pObj.Event[EVENT_GESTURE_DOUBLE_TAP] = true; }
         if (_pObjectStorage.GestureDragStartEvent) { pObj.GestureDragStartEvent = _pObjectStorage.GestureDragStartEvent; pObj.Event[EVENT_GESTURE_DRAG_START] = true; }
@@ -210,6 +213,7 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if (_pObjectStorage.GestureGlobalDragMoveEvent) { pObj.GestureGlobalDragMoveEvent = _pObjectStorage.GestureGlobalDragMoveEvent; pObj.Event[EVENT_GESTURE_GLOBAL_DRAG_MOVE] = true; }
         if (_pObjectStorage.GestureGlobalDragEndEvent) { pObj.GestureGlobalDragEndEvent = _pObjectStorage.GestureGlobalDragEndEvent; pObj.Event[EVENT_GESTURE_GLOBAL_DRAG_END] = true; }
         if (_pObjectStorage.GestureGlobalFlickEvent) { pObj.GestureGlobalFlickEvent = _pObjectStorage.GestureGlobalFlickEvent; pObj.Event[EVENT_GESTURE_GLOBAL_FLICK] = true; }
+        // @endif
 
         if( _pObjectStorage.OutsideEvent)       {pObj.OutsideEvent =  _pObjectStorage.OutsideEvent;            pObj.Event[EVENT_OTHER_OUTSIDE] = true; }
         if( _pObjectStorage.BoundaryEvent)      {pObj.BoundaryEvent = _pObjectStorage.BoundaryEvent;           pObj.Event[EVENT_OTHER_BOUNDARY] = true; }
@@ -275,6 +279,7 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if (_pObjectStorage.SystemEvent) { pObj.SystemEvent = _pObjectStorage.SystemEvent; pObj.Event[EVENT_OTHER_SYSTEM_EVENT] = true; }
         if (_pObjectStorage.BroadcastMessageEvent) { pObj.BroadcastMessageEvent = _pObjectStorage.BroadcastMessageEvent; pObj.Event[EVENT_OTHER_BROADCAST_MESSAGE] = true; }
  
+        // @if eventType("Alarm")
         if( _pObjectStorage.ObjAlarm0) {pObj.ObjAlarm[0] = _pObjectStorage.ObjAlarm0;  pObj.Event[EVENT_ALARM_0] = true; }
         if( _pObjectStorage.ObjAlarm1) {pObj.ObjAlarm[1] = _pObjectStorage.ObjAlarm1;  pObj.Event[EVENT_ALARM_1] = true; }
         if( _pObjectStorage.ObjAlarm2) {pObj.ObjAlarm[2] = _pObjectStorage.ObjAlarm2;  pObj.Event[EVENT_ALARM_2] = true; }
@@ -287,6 +292,7 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if( _pObjectStorage.ObjAlarm9) {pObj.ObjAlarm[9] = _pObjectStorage.ObjAlarm9;  pObj.Event[EVENT_ALARM_9] = true; }
         if( _pObjectStorage.ObjAlarm10) {pObj.ObjAlarm[10] = _pObjectStorage.ObjAlarm10; pObj.Event[EVENT_ALARM_10] = true; }
         if( _pObjectStorage.ObjAlarm11) {pObj.ObjAlarm[11] = _pObjectStorage.ObjAlarm11; pObj.Event[EVENT_ALARM_11] = true; }
+        // @endif
         
         
         // Keyboard Pressed events (horrible but here we go....)
@@ -579,9 +585,10 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         
         
         // Triggers...
-        var i = 0;
+        // @if eventType("Trigger")
         if( _pObjectStorage.TriggerEvents != undefined )
         {
+            var i = 0;
         	while (i < _pObjectStorage.TriggerEvents.length)
         	{
         		var key = parseInt(_pObjectStorage.TriggerEvents[i]) + 1;  // get the object ID (no trigger 0 here)
@@ -600,13 +607,15 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
 				i += 2;
         	}
         }
+        // @endif
         
 
 
         // Collisions...
-        i = 0;
+        // @if eventType("Collision")
         if( _pObjectStorage.CollisionEvents != undefined )
         {
+            var i = 0;
         	while (i < _pObjectStorage.CollisionEvents.length)
         	{
         		pObj.Event[EVENT_COLLISION] = true;
@@ -622,6 +631,7 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
 				i += 2;
         	}
         }
+        // @endif
         
         // Physics data
         // @if feature("physics")
@@ -794,7 +804,8 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 		case EVENT_OTHER_USER15: if (this.UserEvent15) this.UserEvent15(_pInst, _pOther); else done = false; break;
 
 
-		case EVENT_MOUSE_NOBUTTON: if (this.NoButtonPressed) this.NoButtonPressed(_pInst, _pOther); else done = false; break;
+		// @if eventType("Mouse")
+        case EVENT_MOUSE_NOBUTTON: if (this.NoButtonPressed) this.NoButtonPressed(_pInst, _pOther); else done = false; break;
 		case EVENT_MOUSE_LBUTTON_DOWN: if (this.LeftButtonDown) this.LeftButtonDown(_pInst, _pOther); else done = false; break;
 		case EVENT_MOUSE_RBUTTON_DOWN: if (this.RightButtonDown) this.RightButtonDown(_pInst, _pOther); else done = false; break;
 		case EVENT_MOUSE_MBUTTON_DOWN: if (this.MiddleButtonDown) this.MiddleButtonDown(_pInst, _pOther); else done = false; break;
@@ -819,8 +830,10 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 
 		case EVENT_MOUSE_ENTER: if (this.MouseEnter) this.MouseEnter(_pInst, _pOther); else done = false; break;
 	    case EVENT_MOUSE_LEAVE: if (this.MouseLeave) this.MouseLeave(_pInst, _pOther); else done = false; break;
+        // @endif
 
-	    case EVENT_GESTURE_TAP: if (this.GestureTapEvent) this.GestureTapEvent(_pInst, _pOther); else done = false; break;
+	    // @if eventType("Gesture")
+        case EVENT_GESTURE_TAP: if (this.GestureTapEvent) this.GestureTapEvent(_pInst, _pOther); else done = false; break;
 	    case EVENT_GESTURE_DOUBLE_TAP: if (this.GestureDoubleTapEvent) this.GestureDoubleTapEvent(_pInst, _pOther); else done = false; break;
 	    case EVENT_GESTURE_DRAG_START: if (this.GestureDragStartEvent) this.GestureDragStartEvent(_pInst, _pOther); else done = false; break;
 	    case EVENT_GESTURE_DRAG_MOVE: if (this.GestureDragMoveEvent) this.GestureDragMoveEvent(_pInst, _pOther); else done = false; break;
@@ -833,8 +846,10 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 	    case EVENT_GESTURE_GLOBAL_DRAG_MOVE: if (this.GestureGlobalDragMoveEvent) this.GestureGlobalDragMoveEvent(_pInst, _pOther); else done = false; break;
 	    case EVENT_GESTURE_GLOBAL_DRAG_END: if (this.GestureGlobalDragEndEvent) this.GestureGlobalDragEndEvent(_pInst, _pOther); else done = false; break;
 	    case EVENT_GESTURE_GLOBAL_FLICK: if (this.GestureGlobalFlickEvent) this.GestureGlobalFlickEvent(_pInst, _pOther); else done = false; break;
+        // @endif
 
-		case EVENT_ALARM_0: if (this.ObjAlarm[0] != null) this.ObjAlarm[0](_pInst, _pOther); else done = false; break;
+		// @if eventType("Alarm")
+        case EVENT_ALARM_0: if (this.ObjAlarm[0] != null) this.ObjAlarm[0](_pInst, _pOther); else done = false; break;
 		case EVENT_ALARM_1: if (this.ObjAlarm[1] != null) this.ObjAlarm[1](_pInst, _pOther); else done = false; break;
 		case EVENT_ALARM_2: if (this.ObjAlarm[2] != null) this.ObjAlarm[2](_pInst, _pOther); else done = false; break;
 		case EVENT_ALARM_3: if (this.ObjAlarm[3] != null) this.ObjAlarm[3](_pInst, _pOther); else done = false; break;
@@ -846,6 +861,7 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 		case EVENT_ALARM_9: if (this.ObjAlarm[9] != null) this.ObjAlarm[9](_pInst, _pOther); else done = false; break;
 		case EVENT_ALARM_10: if (this.ObjAlarm[10] != null) this.ObjAlarm[10](_pInst, _pOther); else done = false; break;
 		case EVENT_ALARM_11: if (this.ObjAlarm[11] != null) this.ObjAlarm[11](_pInst, _pOther); else done = false; break;
+        // @endif
 
 		default:
 			done = false;
@@ -963,6 +979,7 @@ function ConvertEvent(_event)
         case EVENT_OTHER_USER15: return GML_EVENT_OTHER;
 
 
+        // @if eventType("Mouse")
         case EVENT_MOUSE_NOBUTTON:          return GML_EVENT_MOUSE;
         case EVENT_MOUSE_LBUTTON_DOWN:      return GML_EVENT_MOUSE;
         case EVENT_MOUSE_RBUTTON_DOWN:      return GML_EVENT_MOUSE;
@@ -988,7 +1005,9 @@ function ConvertEvent(_event)
 
         case EVENT_MOUSE_ENTER: return GML_EVENT_MOUSE;
         case EVENT_MOUSE_LEAVE: return GML_EVENT_MOUSE;
+        // @endif
 
+        // @if eventType("Gesture")
         case EVENT_GESTURE_TAP:         return GML_EVENT_GESTURE;
         case EVENT_GESTURE_DOUBLE_TAP:  return GML_EVENT_GESTURE;
         case EVENT_GESTURE_DRAG_START:  return GML_EVENT_GESTURE;
@@ -1002,7 +1021,9 @@ function ConvertEvent(_event)
         case EVENT_GESTURE_GLOBAL_DRAG_MOVE: return GML_EVENT_GESTURE;
         case EVENT_GESTURE_GLOBAL_DRAG_END: return GML_EVENT_GESTURE;
         case EVENT_GESTURE_GLOBAL_FLICK: return GML_EVENT_GESTURE;
+        // @endif
 
+        // @if eventType("Alarm")
         case EVENT_ALARM_0: return GML_EVENT_ALARM;
         case EVENT_ALARM_1: return GML_EVENT_ALARM;
         case EVENT_ALARM_2: return GML_EVENT_ALARM;
@@ -1015,6 +1036,7 @@ function ConvertEvent(_event)
         case EVENT_ALARM_9: return GML_EVENT_ALARM;
         case EVENT_ALARM_10: return GML_EVENT_ALARM;
         case EVENT_ALARM_11: return GML_EVENT_ALARM;
+        // @endif
 
         default:
             return -1;      // who knows
@@ -1139,6 +1161,7 @@ function ConvertSubEvent(_event, _subevent)
         case EVENT_OTHER_USER15: return GML_EVENT_OTHER_USER15;
 
 
+        // @if eventType("Mouse")
         case EVENT_MOUSE_NOBUTTON: return GML_MOUSE_NoButton;
         case EVENT_MOUSE_LBUTTON_DOWN: return GML_MOUSE_LeftButton;
         case EVENT_MOUSE_RBUTTON_DOWN: return GML_MOUSE_RightButton;
@@ -1164,7 +1187,9 @@ function ConvertSubEvent(_event, _subevent)
 
         case EVENT_MOUSE_ENTER: return GML_MOUSE_MOUSEEnter;
         case EVENT_MOUSE_LEAVE: return GML_MOUSE_MOUSELeave;
+        // @endif
 
+        // @if eventType("Gesture")
         case EVENT_GESTURE_TAP: return GML_EVENT_GESTURE_TAP;
         case EVENT_GESTURE_DOUBLE_TAP: return GML_EVENT_GESTURE_DOUBLE_TAP;
         case EVENT_GESTURE_DRAG_START: return GML_EVENT_GESTURE_DRAG_START;
@@ -1178,7 +1203,9 @@ function ConvertSubEvent(_event, _subevent)
         case EVENT_GESTURE_GLOBAL_DRAG_MOVE: return GML_EVENT_GESTURE_GLOBAL_DRAG_MOVE;
         case EVENT_GESTURE_GLOBAL_DRAG_END: return GML_EVENT_GESTURE_GLOBAL_DRAG_END;
         case EVENT_GESTURE_GLOBAL_FLICK: return GML_EVENT_GESTURE_GLOBAL_FLICK;
+        // @endif
 
+        // @if eventType("Alarm")
         case EVENT_ALARM_0: return 0;
         case EVENT_ALARM_1: return 1;
         case EVENT_ALARM_2: return 2;
@@ -1191,6 +1218,7 @@ function ConvertSubEvent(_event, _subevent)
         case EVENT_ALARM_9: return 9;
         case EVENT_ALARM_10: return 10;
         case EVENT_ALARM_11: return 11;
+        // @endif
 
         default:
             return 0;      // who knows
