@@ -470,38 +470,6 @@ function move_contact(_inst, _dir, _maxdist, _useall)
     }
 }
 
-function Command_CollisionPoint(_pInst,_x,_y,_obj)
-{
-
-    _obj = yyGetInt32(_obj);
-
-	var Result,pInstance;
-
-    Result=false;
- 
-    if (_obj == OBJECT_SELF) _obj = _pInst.id;
-
-    var x = yyGetReal(_x);
-    var y = yyGetReal(_y);
-
-    x = ~~x;
-    y = ~~y;
-
-    var pool = GetWithArray(_obj);
-	for (var inst = 0; inst < pool.length; inst++) 
-	{
-	    pInstance = pool[inst];
-	    if ((pInstance.active) && (!pInstance.Marked)) {
-	        if (pInstance.Collision_Point(x, y, true)) {
-	            Result = true;
-	            break;
-	        }
-	    }
-	}
-    return Result;
-
-}
-
 function Command_InstancePlace(_pInst,_x,_y,_obj,_list)
 {
 	var xx = _pInst.x;
@@ -998,7 +966,7 @@ function position_meeting(_pInst,_x,_y,_obj)
 		}
 		else
 		{
-			var id = Command_CollisionPoint(_pInst,_x,_y,_obj);
+			var id = Command_CollisionPoint(_pInst,_x,_y,_obj,true,false);
 			
 			return id;
 		}
@@ -1018,7 +986,7 @@ function position_meeting(_pInst,_x,_y,_obj)
 			}
 			else
 			{
-				var id = Command_CollisionPoint(_pInst,_x,_y,obj2);
+				var id = Command_CollisionPoint(_pInst,_x,_y,obj2,true,false);
 				if(id==true)
 					return true;
 			}
@@ -1027,7 +995,7 @@ function position_meeting(_pInst,_x,_y,_obj)
 	}
 	else
 	{
-		var id = Command_CollisionPoint(_pInst,_x,_y,_obj);
+		var id = Command_CollisionPoint(_pInst,_x,_y,_obj,true,false);
 		
 		return id;
 	}
