@@ -1983,9 +1983,22 @@ function	ParticleSystem_Emitter_Relative(_ps, _ind, _enable)
 function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 {
 	var system = g_ParticleSystems[_ps];
-	var em = (system.emitters.length == 0)
-		? ParticleSystem_Emitter_Create(_ps)
-		: 0;
+
+	var em = -1;
+	for (var i = 0; i < system.emitters.length; ++i)
+	{
+		var emitter = system.emitters[i];
+		if (emitter.enabled && emitter.created)
+		{
+			em = i;
+			break;
+		}
+	}
+
+	if (em == -1)
+	{
+		em = ParticleSystem_Emitter_Create(ps);
+	}
 
 	EmitParticles(system, system.emitters[em], _x, _y, _parttype, _numb);
 }
@@ -2016,9 +2029,22 @@ function	ParticleSystem_Particles_Create_Color( _ps, _x, _y, _parttype, _col, _n
 	} // end if
 
 	var system = g_ParticleSystems[_ps];
-	var em = (system.emitters.length == 0)
-		? ParticleSystem_Emitter_Create(_ps)
-		: 0;
+
+	var em = -1;
+	for (var i = 0; i < system.emitters.length; ++i)
+	{
+		var emitter = system.emitters[i];
+		if (emitter.enabled && emitter.created)
+		{
+			em = i;
+			break;
+		}
+	}
+
+	if (em == -1)
+	{
+		em = ParticleSystem_Emitter_Create(ps);
+	}
 
 	EmitParticles(system, system.emitters[em], _x, _y, _parttype, _numb, true, _col);
 }
