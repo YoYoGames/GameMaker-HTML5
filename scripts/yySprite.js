@@ -1161,6 +1161,7 @@ yySprite.prototype.GetSkeletonSlotsAtPoint = function(_inst, _x, _y, _list)
 ///				The sprite data or null
 ///			 </returns>
 // #############################################################################################
+// @if function("draw_sprite_pos")
 yySprite.prototype.Sprite_DrawSimplePos = function (_sub_image, _x1, _y1, _x2, _y2, _x3, _y3, _x4, _y4, _alpha) {
 	if (this.numb <= 0) return;
 
@@ -1170,6 +1171,7 @@ yySprite.prototype.Sprite_DrawSimplePos = function (_sub_image, _x1, _y1, _x2, _
 	if (!this.ppTPE) return;
 	Graphics_TextureDrawPos(this.ppTPE[_sub_image], _x1, _y1, _x2, _y2, _x3, _y3, _x4, _y4, _alpha);
 };
+// @endif
 
 
 
