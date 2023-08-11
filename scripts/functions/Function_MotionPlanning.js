@@ -269,7 +269,7 @@ function mp_potential_step_common(_pInst, _x,_y, _stepsize, _objindex, _checkall
 	{
 		if (TestFree(_pInst, _x, _y, _objindex, _checkall))
 		{
-			_pInst.direction = ComputeDir(_pInst.x, _pInst.y, _x, _y);
+			_pInst.direction = point_direction(_pInst.x, _pInst.y, _x, _y);
 			_pInst.SetPosition(_x, _y);
 		}
 		Result = true;
@@ -277,7 +277,7 @@ function mp_potential_step_common(_pInst, _x,_y, _stepsize, _objindex, _checkall
 	}
 
 	// Try directions as much as possible towards the goal
-	goaldir = ComputeDir(_pInst.x, _pInst.y, _x, _y);
+	goaldir = point_direction(_pInst.x, _pInst.y, _x, _y);
 	curdir = 0;
 	Result = false;
 	while ( curdir < 180 )
@@ -416,7 +416,7 @@ function  Motion_Linear_Step(_inst, _x, _y, _speed, _objind, _checkall)
     { 
         return Result; 
     }
-    _inst.direction = ComputeDir(_inst.x, _inst.y, newx, newy);
+    _inst.direction = point_direction(_inst.x, _inst.y, newx, newy);
     _inst.SetPosition( newx, newy );
 
     return Result;
@@ -599,14 +599,14 @@ function Motion_Potential_Step(_inst, _x, _y, _speed,_objind, _checkall)
 	{
 	    if (true == TestFree(_inst, _x, _y, _objind, _checkall))
 		{
-		    _inst.direction = ComputeDir(_inst.x,_inst.y,_x,_y);
+		    _inst.direction = point_direction(_inst.x,_inst.y,_x,_y);
 			_inst.SetPosition(_x,_y);
 		}
 		return true;
 	}
 
 	// Try directions as much as possible towards the goal
-	goaldir = ComputeDir(_inst.x, _inst.y,_x,_y);
+	goaldir = point_direction(_inst.x, _inst.y,_x,_y);
 	curdir = 0;
 	Result = false;
 	while ( curdir < 180 )

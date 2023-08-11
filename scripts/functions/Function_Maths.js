@@ -282,7 +282,6 @@ function point_direction(_x1,_y1, _x2,_y2)
 		}
 	}
 }
-function ComputeDir(_x1,_y1, _x2,_y2){ return point_direction(_x1,_y1, _x2,_y2); }
 
 
 // #############################################################################################
@@ -987,8 +986,8 @@ function radtodeg(_x) {
 // #############################################################################################
 function mean() 
 {
-	var args = mean.arguments;
-	var argc = mean.arguments.length;
+	var args = arguments;
+	var argc = arguments.length;
 
 	if (argc == 0) return 0;
     
@@ -1012,8 +1011,8 @@ function mean()
 // #############################################################################################
 function median()
 {
-    var args = median.arguments;
-    var argc = median.arguments.length;
+    var args = arguments;
+    var argc = arguments.length;
 
     if (argc == 0) return 0;
 

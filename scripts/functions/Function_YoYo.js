@@ -44,45 +44,6 @@ var     eDS_TypeMap=1,
 var g_GameMakerIdentifier = aa_1241_kz();
 function aa_1241_kz() { return 0x87155211; }
 
-// #############################################################################################
-/// Function:<summary>
-///             Create a security request object that works out the type of http request to
-///             create and allows us to send security checks
-///          </summary>
-///
-/// In:		 <param name="_canvas">The canvcas handle</param>
-/// Out:	 <returns>
-///				
-///			 </returns>
-// #############################################################################################
-/** @constructor */
-function SecurityCheck()
-{
-    var xmlHttp = null;
-    if (window.XMLHttpRequest) {
-		//for firefox, opera and safari browswers
-		xmlHttp = new XMLHttpRequest();
-	}
-	if (typeof(XMLHttpRequest) == "undefined")
-	{
-        xmlHttp = function () {
-                try { return new ActiveXObject("Msxml2.XMLHTTP.6.0"); }
-                    catch (e) {}
-                try { return new ActiveXObject("Msxml2.XMLHTTP.3.0"); }
-                    catch (e) {}
-                try { return new ActiveXObject("Msxml2.XMLHTTP"); }
-                    catch (e) {}
-                //Microsoft.XMLHTTP points to Msxml2.XMLHTTP.3.0 and is redundant
-                throw new yyError("This browser does not support XMLHttpRequest.");
-            };
-    }
-    this.securityRequest = xmlHttp;    
-    this.securityRequestInFlight = false;
-}
-
-// Global security check object and session key
-var g_securityCheck = new SecurityCheck();
-
 function YYPushEventsDispatch() {
 }
 
