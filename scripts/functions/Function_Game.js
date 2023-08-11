@@ -1677,7 +1677,9 @@ function ResourceGetTypeIndex(_name )
     // @if feature("animcurves")
     if ((ret = Resource_Find(_name, g_pGMFile.AnimCurves)) >= 0)               { typeId.type=AT_AnimCurve;  typeId.id = ret; return typeId; }
     // @endif
+    // @if feature("particles")
     if ((ret = CParticleSystem.Find(_name)) >= 0)                              { typeId.type=AT_ParticleSystem;  typeId.id = ret; return typeId; }
+    // @endif
     
     return typeId;
 }

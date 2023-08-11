@@ -123,6 +123,7 @@ function particle_get_info(_ind)
     return pPSI;
 }
 
+// @if feature("particles")
 // #############################################################################################
 /// Function:<summary>
 ///          	Creates a new particle system. It returns the index of the system. 
@@ -1045,6 +1046,8 @@ var part_emitter_interval = ParticleSystem_Emitter_Interval;
 ///			</returns>
 // #############################################################################################
 var part_emitter_relative = ParticleSystem_Emitter_Relative;
+
+// @endif particles
 
 // #############################################################################################
 /// Function:<summary>

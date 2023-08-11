@@ -2014,6 +2014,7 @@ yyRoom.prototype.DrawLayerTilemapElement = function(_rect,_layer,_el,_xpos,_ypos
 
 yyRoom.prototype.DrawLayerParticleSystem = function(_rect,_layer,_el)
 {
+	// @if feature("particles")
 	var ps = _el.m_systemID;
 
 	if (!ParticleSystem_Exists(ps)) return;
@@ -2044,6 +2045,7 @@ yyRoom.prototype.DrawLayerParticleSystem = function(_rect,_layer,_el)
 	ParticleSystem_SetMatrix(ps, matWorldNew);
 	ParticleSystem_Draw(ps, _el.m_imageBlend, _el.m_imageAlpha);
 	WebGL_SetMatrix(MATRIX_WORLD, matWorldOld);
+	// @endif
 };
 
 yyRoom.prototype.DrawLayerTileElement = function (_rect, _layer, _el) {
@@ -4149,6 +4151,7 @@ yyRoom.prototype.ProcessNewInstanceList = function () {
 */
 
 yyRoom.prototype.ProcessParticleDepthChange = function () {
+	// @if feature("particles")
     // Particle systems changing depth
 	if (g_isZeus) {
 	    var len = g_ParticleChanges.length;
@@ -4170,6 +4173,7 @@ yyRoom.prototype.ProcessParticleDepthChange = function () {
         }
 	}
 	if( g_ParticleChanges.length!=0 ) g_ParticleChanges = []; // wipe array
+	// @endif
 };
 
 

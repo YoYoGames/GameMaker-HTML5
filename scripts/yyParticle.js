@@ -65,6 +65,7 @@ var persistentsystemlayernames = [];
 ///				like. We will discuss the settings below. 
 ///          </summary>
 // #############################################################################################
+// @if feature("particles")
 /**@constructor*/
 function yyParticleType()
 {
@@ -432,6 +433,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 
 	return ps;
 };
+// @endif particles
 
 // #############################################################################################
 /// Function:<summary>

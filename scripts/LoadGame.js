@@ -467,6 +467,7 @@ function LoadGame_PreLoadAssets(_GameFile)
 	// @endif
 
 	// Load the particle textures
+	// @if feature("particles") && feature("particle_images")
 	if (true == g_pGMFile.Options.UseParticles) {
 		for (var i = 2; i < 16; i++){
 			g_LoadingTotal++;
@@ -478,6 +479,7 @@ function LoadGame_PreLoadAssets(_GameFile)
 			g_Textures[t].URL = "particles/IDR_GIF" + i + ".png";		
 		}
 	}
+	// @endif
 
 
 	// Now load WAV files (not mp3/ogg)
@@ -879,6 +881,7 @@ function LoadGame(_GameFile)
 	// @endif
 
 	// Load Particle System Emitters
+	// @if feature("particles")
     if (_GameFile.PSEmitters !== undefined) {
 		ParticleSystem_Emitters_Load(_GameFile);
     }
@@ -889,6 +892,7 @@ function LoadGame(_GameFile)
 			CParticleSystem.CreateFromJSON(_GameFile.ParticleSystems[index]);
         }
     }
+	// @endif
 
 	// Load Effect Defs
 	// @if feature("layerEffects")

@@ -1127,7 +1127,9 @@ function StartRoom( _numb, _starting )
     // This must be set before performing the room_end event else the event will be blocked
     New_Room = -1;
     
+    // @if feature("particles") && function("effect_")
     effect_clear();
+    // @endif
     
     // @if feature("layerEffects")
     g_pEffectsManager.ExecuteEffectEventsForRoom(EFFECT_ROOM_END_FUNC, g_RunRoom);
@@ -1135,7 +1137,9 @@ function StartRoom( _numb, _starting )
     
     g_pInstanceManager.PerformEvent(EVENT_OTHER_ENDROOM, 0);
 
+    // @if feature("particles")
     ParticleSystem_RemoveAllFromLayers();
+    // @endif
     
     // @if function("virtual_key_*")
     DeleteAllVirtualKeys();    
@@ -1279,7 +1283,9 @@ function StartRoom( _numb, _starting )
     if(g_pLayerManager!=null)
         g_pLayerManager.BuildRoomLayerRuntimeData(g_RunRoom);
 
+    // @if feature("particles")
     ParticleSystem_AddAllToLayers();
+    // @endif
 
 	// If this room is NOT persistent then we need to recreate all instances EXCEPT those that already exist in the persistent list
 	// Any instance created in here will perform the create event... including "new" PERSISTENT instances
@@ -1720,7 +1726,9 @@ function    GameMaker_DoAStep() {
     if (New_Room != -1) return;
 
 	// Handle the particle systems
+    // @if feature("particles")
 	ParticleSystem_UpdateAll();
+    // @endif
 
 
 	// Bookkeeping && drawing

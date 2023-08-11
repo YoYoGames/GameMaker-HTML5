@@ -628,11 +628,12 @@ LayerManager.prototype.BuildTilemapElementRuntimeData = function( _room ,_layer,
 
 LayerManager.prototype.BuildParticleElementRuntimeData = function( _room ,_layer,_element)
 {
+    // @if feature("particles")
     if (_element.m_ps != -1 && _element.m_systemID == -1)
     {
         CParticleSystem.Get(_element.m_ps).MakeInstance(_layer.m_id, false, _element);
     }
-
+    // @endif
     _element.m_bRuntimeDataInitialised=true;
 };
 
@@ -1928,6 +1929,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                 }
 
                 // Particles
+                // @if feature("particles")
                 var numparticles = 0;
                 if (pLayer.pcount != undefined) numparticles = pLayer.pcount;
 
@@ -1951,6 +1953,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                         this.AddNewElement(_room, NewLayer, NewParticle, false);
                     }
                 }
+                // @endif
             }
             else if(pLayer.type === YYLayerType_Tile)
             {
