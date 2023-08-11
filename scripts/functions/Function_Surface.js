@@ -687,12 +687,9 @@ function GetCanvasPixel(_buffer, _x, _y)
 ///				
 ///			</returns>
 // #############################################################################################
-var surface_getpixel = surface_getpixel_RELEASE;
-var surface_getpixel_ext = surface_getpixel_ext_RELEASE;
-function surface_getpixel_RELEASE(_id, _x, _y) 
-{
-    return surface_getpixel_ext_RELEASE(_id, _x, _y) &0xffffff;
-}
+function surface_getpixel(){}
+function surface_getpixel_ext(){}
+// @if feature("2d")
 function surface_getpixel_ext_RELEASE(_id, _x, _y) 
 {
     var pSurf = g_Surfaces.Get(yyGetInt32(_id));
@@ -702,6 +699,9 @@ function surface_getpixel_ext_RELEASE(_id, _x, _y)
 	}
 	return 0x00000000;
 }
+compile_if_used(surface_getpixel = (_id, _x, _y) => surface_getpixel_ext_RELEASE(_id, _x, _y) & 0xffffff);
+compile_if_used(surface_getpixel_ext = surface_getpixel_ext_RELEASE);
+// @endif
 
 
 
@@ -1103,7 +1103,9 @@ function draw_surface_general(_id,_left,_top,_width,_height,_x,_y,_xscale,_yscal
 ///				
 ///			</returns>
 // #############################################################################################
-function surface_copy(_destination,_x,_y,_source) {
+function surface_copy(){}
+// @if feature("2d") && function("surface_copy")
+surface_copy = (_destination,_x,_y,_source) => {
 
     var pDest = g_Surfaces.Get(yyGetInt32(_destination));
     var pSrc = g_Surfaces.Get(yyGetInt32(_source));
@@ -1117,6 +1119,7 @@ function surface_copy(_destination,_x,_y,_source) {
 		pImg.restore();
 	}
 }
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -1136,8 +1139,9 @@ function surface_copy(_destination,_x,_y,_source) {
 ///				
 ///			</returns>
 // #############################################################################################
-function surface_copy_part(_destination,_x,_y, _source,_xs,_ys,_ws,_hs) 
-{
+function surface_copy_part(){}
+// @if feature("2d") && function("surface_copy_part")
+surface_copy_part = (_destination,_x,_y, _source,_xs,_ys,_ws,_hs) => {
     var pDest = g_Surfaces.Get(yyGetInt32(_destination));
     var pSrc = g_Surfaces.Get(yyGetInt32(_source));
 	if( pDest!=null && pSrc!=null)
@@ -1171,6 +1175,7 @@ function surface_copy_part(_destination,_x,_y, _source,_xs,_ys,_ws,_hs)
 		pImg.restore();
 	} 
 }
+// @endif
 
 function SurfaceFormatSupported(_format)
 {        

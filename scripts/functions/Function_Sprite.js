@@ -661,8 +661,7 @@ function sprite_save(_ind,_subimg,_fname)
 ///				
 ///			 </returns>
 // #############################################################################################
-var sprite_duplicate = sprite_duplicate_RELEASE;
-function sprite_duplicate_RELEASE(_ind) 
+function sprite_duplicate(_ind) 
 {
     var pSpr = g_pSpriteManager.Get(yyGetInt32(_ind));
 	if (pSpr == null) return 0;

@@ -1566,7 +1566,8 @@ function Graphics_DrawGeneral(_pTPE, _left,_top,_width,_height,    _x,_y,_xscale
 ///				true for okay, false for error
 ///			</returns>
 // #############################################################################################
-var CopyImageToAlpha = CopyImageToAlpha_RELEASE;
+function CopyImageToAlpha(){}
+// @if feature("2d")
 function CopyImageToAlpha_RELEASE(_pDestTPE, _pSrcTPE) 
 {
 	if ( g_webGL )
@@ -1612,6 +1613,8 @@ function CopyImageToAlpha_RELEASE(_pDestTPE, _pSrcTPE)
 	pDestImg.putImageData(DestDataLock, 0, 0);
 	return true;
 }
+compile_if_used(sprite_set_alpha_from_sprite, CopyImageToAlpha = CopyImageToAlpha_RELEASE);
+// @endif
 
 
 
