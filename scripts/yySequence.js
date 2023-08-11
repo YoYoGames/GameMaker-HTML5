@@ -279,12 +279,13 @@ function SequenceBaseTrack_Load(_pStorage) {
 
         var newTrack;
         switch (modelName) {
+            case "GMSpriteFramesTrack": newTrack = new yySequenceSpriteFramesTrack(_pStorage); break;
+            // @if feature("sequences")
             case "GMRealTrack": newTrack = new yySequenceRealTrack(_pStorage); break;
             case "GMGraphicTrack": newTrack = new yySequenceGraphicTrack(_pStorage); break;
             case "GMInstanceTrack": newTrack = new yySequenceInstanceTrack(_pStorage); break;
             case "GMParticleTrack": newTrack = new yySequenceParticleTrack(_pStorage); break;
             case "GMColourTrack": newTrack = new yySequenceColourTrack(_pStorage); break;
-            case "GMSpriteFramesTrack": newTrack = new yySequenceSpriteFramesTrack(_pStorage); break;
             case "GMSequenceTrack": newTrack = new yySequenceSequenceTrack(_pStorage); break;
             case "GMAudioTrack": newTrack = new yySequenceAudioTrack(_pStorage); break;
             case "GMTextTrack": newTrack = new yySequenceTextTrack(_pStorage); break;
@@ -294,6 +295,7 @@ function SequenceBaseTrack_Load(_pStorage) {
             case "GMClipMask_Subject": newTrack = new yySequenceClipMask_SubjectTrack(_pStorage); break;
             case "GMStringTrack": newTrack = new yySequenceStringTrack(_pStorage); break;
             case "GMBoolTrack": newTrack = new yySequenceBoolTrack(_pStorage); break;
+            // @endif
         }
 
         newTrack.m_keyframeStore = new yyKeyframeStore(newTrack.m_type, _pStorage.keyframeStore);
@@ -1300,6 +1302,7 @@ function yySequenceBaseTrack(_pStorage) {
         }
     }
 
+    // @if feature("sequences")
     Object.defineProperties(this, {
         gmlname: {
             enumerable: true,
@@ -1386,6 +1389,7 @@ function yySequenceBaseTrack(_pStorage) {
             }
         }
     });
+    // @endif
 
     // #############################################################################################
     /// Function:<summary>
@@ -1420,6 +1424,7 @@ function yySequenceBaseTrack(_pStorage) {
     ///             being pointed to along the track.
     ///          </summary>
     // #############################################################################################
+    // @if feature("sequences")
     this.EvaluateTrack = function (_head, _length, _result, _creationmask)
     {
 
@@ -1625,7 +1630,7 @@ function yySequenceBaseTrack(_pStorage) {
         tempcreationvalue &= _creationmask;
         _result.hascreationvalue = tempcreationvalue;
     };
-
+    
     this.AssignBuiltinTrackName = function() {
         if (this.pName == null) {
             this.builtinName = eT_UserDefined;
@@ -1657,7 +1662,9 @@ function yySequenceBaseTrack(_pStorage) {
         else if (this.pName == "paragraph_spacing") this.builtinName = eT_ParagraphSpacing;     // alias for paragraphSpacing
         else this.builtinName = eT_UserDefined;
     };
+    // @endif
 }
+
 
 
 // #############################################################################################
@@ -2379,6 +2386,10 @@ function yyKeyframe(_type, _pStorage) {
 
             switch(_type)
             {
+                case eSTT_SpriteFrames:
+                    newKeyframe = new yySpriteFramesTrackKey(data);
+                    break;
+                // @if feature("sequences")
                 case eSTT_Graphic:
                     newKeyframe = new yyGraphicTrackKey(data);
                     break;
@@ -2406,12 +2417,10 @@ function yyKeyframe(_type, _pStorage) {
                 case eSTT_Sequence:
                     newKeyframe = new yySequenceTrackKey(data);
                     break;
-                case eSTT_SpriteFrames:
-                    newKeyframe = new yySpriteFramesTrackKey(data);
-                    break;
                 case eSTT_Particle:
                     newKeyframe = new yyParticleTrackKey(data);
                     break;
+                // @endif
             }
 
             if(newKeyframe != null)
@@ -2428,7 +2437,7 @@ function yyKeyframe(_type, _pStorage) {
     }
 
     this.SignalChange();
-
+    // @if feature("sequences")
     Object.defineProperties(this, {
         gmlframe: {
             enumerable: true,
@@ -2482,6 +2491,7 @@ function yyKeyframe(_type, _pStorage) {
             }
         }
     });
+    // @endif
 }
 
 // #############################################################################################

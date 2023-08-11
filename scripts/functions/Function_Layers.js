@@ -644,6 +644,7 @@ LayerManager.prototype.BuildTileElementRuntimeData = function( _room ,_layer,_el
 
 LayerManager.prototype.BuildSequenceElementRuntimeData = function (_room, _layer, _element)
 {
+    // @if feature("sequences")
     var sequenceInstance = g_pSequenceManager.GetNewInstance();
 
     sequenceInstance.m_sequenceIndex = _element.m_sequenceIndex;
@@ -659,6 +660,7 @@ LayerManager.prototype.BuildSequenceElementRuntimeData = function (_room, _layer
     g_pSequenceManager.HandleInstanceEvent(sequenceInstance, EVENT_CREATE);
 
     _element.m_bRuntimeDataInitialised = true;
+    // @endif
 };
 
 LayerManager.prototype.BuildElementRuntimeData = function( _room ,_layer,_element)
@@ -685,7 +687,9 @@ LayerManager.prototype.BuildElementRuntimeData = function( _room ,_layer,_elemen
 		case eLayerElementType_Tilemap: this.BuildTilemapElementRuntimeData(_room, _layer, _element); break;
         case eLayerElementType_ParticleSystem: this.BuildParticleElementRuntimeData(_room, _layer, _element); break;
         case eLayerElementType_Tile: this.BuildTileElementRuntimeData(_room, _layer, _element); break;
+        // @if feature("sequences")
         case eLayerElementType_Sequence: this.BuildSequenceElementRuntimeData(_room, _layer, _element); break;
+        // @endif
     }    
 };  
 
@@ -872,10 +876,12 @@ LayerManager.prototype.CleanElementRuntimeData = function(_element)
             {
                 this.CleanTileElementRuntimeData(_element);
             } break;
+        // @if feature("sequences")
         case eLayerElementType_Sequence:
             {
                 this.CleanSequenceElementRuntimeData(_element);
             } break;
+        // @endif
     }
 
     _element.m_bRuntimeDataInitialised = false;
@@ -1902,6 +1908,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                 }
 
                 // Sequences
+                // @if feature("sequences")
                 var numsequences = 0;
                 if (pLayer.ecount != undefined) numsequences = pLayer.ecount;
                 if (numsequences > 0) {
@@ -1927,6 +1934,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                         this.AddNewElement(_room, NewLayer, NewSequence, false);
                     }
                 }
+                // @endif
 
                 // Particles
                 // @if feature("particles")
