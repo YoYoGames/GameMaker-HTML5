@@ -1222,8 +1222,10 @@ function    InitAboyneGlobals() {
     g_HiscoreFontSize = 16;
     g_HiscoreFontStyle = "";
     g_HiscoreFontBorder = true;
-    
+	
+    // @if function("draw_highscore") || function("highscore_*")
     highscore_clear();
+	// @endif
     
     g_GUIWidth = -1;
     g_GUIHeight = -1;

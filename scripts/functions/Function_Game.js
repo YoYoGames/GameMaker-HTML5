@@ -81,20 +81,7 @@ function display_set_timing_method(_method){
 function display_get_timing_method() {
     return TimingMethod;
 }
-// #############################################################################################
-/// Function:<summary>
-///             get a list of instances for this object (recursive)
-///          </summary>
-///
-/// In:		 <param name="_obj">object ID to use</param>
-/// Out:	 <returns>
-///				list of active instances - recursive
-///			 </returns>
-// #############################################################################################
-//function    instance_number( _obj )
-//{   
-//    return g_pObjectManager.Get(_obj).Instances_Recursive.length;
-//}
+
 
 
 // #############################################################################################
@@ -108,7 +95,7 @@ function yy_HiScoreContainer(_value, _name) {
 	this.value = _value;
 }
 
-
+// @if function("draw_highscore") || function("highscore_*")
 
 // #############################################################################################
 /// Function:<summary>
@@ -152,8 +139,6 @@ function highscore_save() {
 	var file = JSON.stringify(HighScores);
 	SaveTextFile_Block("hiscores_data_", file);
 }
-
-
 // #############################################################################################
 /// Function:<summary>
 ///          	Draws the highscore table in the room in the indicated box, using the current font. 
@@ -189,9 +174,6 @@ function draw_highscore(_x1, _y1, _x2, _y2)
 	g_pFontManager.halign = halign;
 }
 
-
-
-
 // #############################################################################################
 /// Function:<summary>
 ///          	Clears the highscore list.
@@ -203,26 +185,11 @@ function draw_highscore(_x1, _y1, _x2, _y2)
 // #############################################################################################
 function highscore_clear() 
 {
-    g_HighScoreValues[0]=
-    g_HighScoreValues[1]=
-    g_HighScoreValues[2]=
-    g_HighScoreValues[3]=
-    g_HighScoreValues[4]=
-    g_HighScoreValues[5]=
-    g_HighScoreValues[6]=
-    g_HighScoreValues[7]=
-    g_HighScoreValues[8]=
-    g_HighScoreValues[9]=0;
-    g_HighScoreNames[0]=
-    g_HighScoreNames[1]=
-    g_HighScoreNames[2]=
-    g_HighScoreNames[3]=
-    g_HighScoreNames[4]=
-    g_HighScoreNames[5]=
-    g_HighScoreNames[6]=
-    g_HighScoreNames[7]=
-    g_HighScoreNames[8]=
-    g_HighScoreNames[9] = g_HighscoreNobody;
+    for (var i = 0; i < 10; i++)
+    {
+        g_HighScoreValues[i] = 0;
+        g_HighScoreNames[i] = g_HighscoreNobody;
+    }
 }
 
 // #############################################################################################
@@ -300,7 +267,7 @@ function highscore_name(_place)
 	if (_place < 1 || _place > MAX_HIGHSCORE) return "";
     return g_HighScoreNames[_place-1];
 }
-
+// @endif
 
 // #############################################################################################
 /// Function:<summary>

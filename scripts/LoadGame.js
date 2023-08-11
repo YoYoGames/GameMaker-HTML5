@@ -955,8 +955,10 @@ function LoadGame(_GameFile)
 	}
 
 	// Load the games hiscore table
+	// @if function("draw_highscore") || function("highscore_*")
 	highscore_clear();
     highscore_load();
+	// @endif
 
 
 
