@@ -71,7 +71,9 @@ function InitAboyne()
     g_pTagManager = new TagManager();
     g_pASyncManager = new yyASyncManager();
     g_pLayerManager = new LayerManager();
+	// @if feature("layerEffects")
 	g_pEffectsManager = new yyEffectsManager();
+	// @endif
     g_pCameraManager = new CameraManager();
     InitAboyneGlobals();
 
@@ -889,12 +891,14 @@ function LoadGame(_GameFile)
     }
 
 	// Load Effect Defs
+	// @if feature("layerEffects")
 	if (_GameFile.FiltersAndEffectDefs !== undefined) {
 		for (index = 0; index < _GameFile.FiltersAndEffectDefs.length; index++) {
 			var def = _GameFile.FiltersAndEffectDefs[index];
             g_pEffectsManager.AddEffectInfo(def.name, def.json);
         }
 	}
+	// @endif
 
     //Load Tags
     if( Tags !== undefined && IDToTagList !== undefined ) {

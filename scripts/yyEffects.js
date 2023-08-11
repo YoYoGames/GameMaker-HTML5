@@ -15,6 +15,7 @@
 // 
 // **********************************************************************************************************************
 
+// @if feature("layerEffects")
 var EFFECT_CLEANUP_FUNC = "cleanup",
 EFFECT_STEP_FUNC = "step",
 EFFECT_LAYER_BEGIN_FUNC = "layer_begin",
@@ -1610,3 +1611,4 @@ yyEffectsManager.prototype.CleanupOldTempSurfaces = function()
 		}
 	}
 };
+// @endif

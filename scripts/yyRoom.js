@@ -307,6 +307,7 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
 				};
 
 				// Copy effect properties
+				// @if feature("layerEffects")
 				newLayer.effectProperties = new Array( sourceLayer.effectProperties.length );
 
 				var effectPropIdx;
@@ -319,6 +320,7 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
 						value: sourceLayer.effectProperties[effectPropIdx].value
 					};
 				}
+				// @endif
 
 				// Type-specific properties
         		switch(sourceLayer.type)
@@ -3179,15 +3181,12 @@ yyRoom.prototype.DrawRoomLayers = function(_rect){
 		    else
 		    {
 			    WebGL_d3d_set_depth_RELEASE(player.depth);		
-		    }		
-	        
-	        
-	     //   GR_Depth = player.depth;
-	        //TODO SetLayerShader
-	        //TODO ExecuteLayerScript
+		    }
 
+			// @if feature("layerEffects")
 			if (player.m_effectEnabled)
 				ExecuteEffectFunction(player, EFFECT_LAYER_BEGIN_FUNC, EVENT_DRAW, 0);
+			// @endif
 
 	        SetLayerShader(player.m_shaderId);
 	        ExecuteLayerScript(player.m_id, player.m_beginScript);
@@ -3235,8 +3234,10 @@ yyRoom.prototype.DrawRoomLayers = function(_rect){
 	        ExecuteLayerScript(player.m_id, player.m_endScript);
 	        ResetLayerShader(player.m_shaderId);
 
+			// @if feature("layerEffects")
 			if (player.m_effectEnabled)
 				ExecuteEffectFunction(player, EFFECT_LAYER_END_FUNC, EVENT_DRAW, 0);
+			// @endif
 	    }
 
 	    Current_Event_Type = oldtype;
@@ -3343,6 +3344,7 @@ yyRoom.prototype.ClearEffectLayerIDs = function () {
 
 function ExecuteEffectFunction(_pLayer, _funcname, _etype, _enumb)
 {
+	// @if feature("layerEffects")
 	if (_pLayer === null)
 		return;
 
@@ -3384,6 +3386,7 @@ function ExecuteEffectFunction(_pLayer, _funcname, _etype, _enumb)
 	Current_Event_Type = oldtype;
 	Current_Event_Number = oldnumb;
 	*/
+	// @endif
 };
 
 function ExecuteLayerScript(layerid,script)
@@ -3450,8 +3453,10 @@ yyRoom.prototype.ExecuteDrawEvent = function (_rect, _event) {
 
 			Current_Event_Number = EVENT_DRAW_BEGIN;
 
+			// @if feature("layerEffects")
 			if (player.m_effectEnabled)
 				ExecuteEffectFunction(player, EFFECT_LAYER_BEGIN_FUNC, EVENT_DRAW_BEGIN, 0);
+			// @endif
 
 	        SetLayerShader(player.m_shaderId);
 	        ExecuteLayerScript(player.m_id, player.m_beginScript);
@@ -3483,8 +3488,10 @@ yyRoom.prototype.ExecuteDrawEvent = function (_rect, _event) {
 	        ExecuteLayerScript(player.m_id,player.m_endScript);
 	        ResetLayerShader(player.m_shaderId);
 
+			// @if feature("layerEffects")
 			if (player.m_effectEnabled)
 				ExecuteEffectFunction(player, EFFECT_LAYER_END_FUNC, EVENT_DRAW_BEGIN, 0);
+			// @endif
 	    
 	    }
 	}

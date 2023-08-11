@@ -1128,8 +1128,10 @@ function StartRoom( _numb, _starting )
     New_Room = -1;
     
     effect_clear();
-
+    
+    // @if feature("layerEffects")
     g_pEffectsManager.ExecuteEffectEventsForRoom(EFFECT_ROOM_END_FUNC, g_RunRoom);
+    // @endif
     
     g_pInstanceManager.PerformEvent(EVENT_OTHER_ENDROOM, 0);
 
@@ -1269,7 +1271,9 @@ function StartRoom( _numb, _starting )
     CreateRoomBackgrounds( g_RunRoom );
     
     // Initialise effects
+    // @if feature("layerEffects")
     g_pEffectsManager.Init();
+    // @endif
 
     // Set up runtime data for this room's layers
     if(g_pLayerManager!=null)
@@ -1418,7 +1422,9 @@ function StartRoom( _numb, _starting )
     }    
     
     g_pInstanceManager.PerformEvent(EVENT_OTHER_STARTROOM,0);
+    // @if feature("layerEffects")
     g_pEffectsManager.ExecuteEffectEventsForRoom(EFFECT_ROOM_START_FUNC, g_RunRoom);
+    // @endif
     
     g_RunRoom.m_Initialised = true;
 
@@ -1676,8 +1682,10 @@ function    GameMaker_DoAStep() {
 	HandleMouse();
 	UpdateActiveLists();
 	if (New_Room != -1) return;
-
+    
+    // @if feature("layerEffects")
     g_pEffectsManager.StepEffectsForRoom(g_RunRoom);
+    // @endif
     // @if feature("sequences")
 	g_pSequenceManager.UpdateInstancesForRoom(g_RunRoom);                   // update this at the same time as the step event
 	g_pSequenceManager.PerformInstanceEvents(g_RunRoom, EVENT_STEP_NORMAL);

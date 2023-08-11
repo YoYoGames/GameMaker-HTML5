@@ -1647,8 +1647,9 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
             if( pLayer.hspeed!=undefined ) NewLayer.m_hspeed = pLayer.hspeed;
             if( pLayer.vspeed!=undefined ) NewLayer.m_vspeed = pLayer.vspeed;
             if( pLayer.visible!=undefined ) NewLayer.m_visible = pLayer.visible;
+            
+            // @if feature("layerEffects")
             if( pLayer.effectEnabled!=undefined) NewLayer.m_effectEnabled = NewLayer.m_effectToBeEnabled = pLayer.effectEnabled;
-
             if (( pLayer.effectType != undefined) && (pLayer.effectType != ""))
             {
                 var pEffectInfo = new CLayerEffectInfo();					
@@ -1753,6 +1754,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                 pEffectInfo.bAffectsSingleLayerOnly = true;
                 NewLayer.m_pInitialEffectInfo = pEffectInfo;
             }
+            // @endif
             
             if(pLayer.type === YYLayerType_Background)
             {
