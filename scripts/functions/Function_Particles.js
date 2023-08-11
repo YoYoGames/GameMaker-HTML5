@@ -91,32 +91,7 @@ function particle_get_info(_ind)
     var emitters = [];
 
     if (_ind instanceof YYRef
-        && _ind.type == REFID_PARTICLESYSTEM)
-    {
-        // Particle system RESOURCE
-        _ind = GetParticleSystemResourceIndex(_ind);
-        var pPS = CParticleSystem.Get(_ind);
-        if (pPS != null)
-        {
-            pPSI = new GMLObject();
-
-            variable_struct_set(pPSI, "name", pPS.name);
-            variable_struct_set(pPSI, "xorigin", pPS.originX);
-            variable_struct_set(pPSI, "yorigin", pPS.originY);
-            variable_struct_set(pPSI, "oldtonew", (pPS.drawOrder == 0));
-            variable_struct_set(pPSI, "global_space", pPS.globalSpaceParticles);
-
-            for (var i = 0; i < pPS.emitters.length; ++i)
-            {
-                var emitter = g_PSEmitters[pPS.emitters[i]];
-                if (emitter)
-                {
-                    emitters.push(emitter);
-                }
-            }
-        }
-    }
-    else
+        && _ind.type == REFID_PART_SYSTEM)
     {
         // Particle system INSTANCE
         _ind = GetParticleSystemInstanceIndex(_ind);
@@ -136,6 +111,31 @@ function particle_get_info(_ind)
             for (var i = 0; i < pPS.emitters.length; ++i)
             {
                 var emitter = pPS.emitters[i];
+                if (emitter)
+                {
+                    emitters.push(emitter);
+                }
+            }
+        }
+    }
+    else
+    {
+        // Particle system RESOURCE
+        _ind = GetParticleSystemResourceIndex(_ind);
+        var pPS = CParticleSystem.Get(_ind);
+        if (pPS != null)
+        {
+            pPSI = new GMLObject();
+
+            variable_struct_set(pPSI, "name", pPS.name);
+            variable_struct_set(pPSI, "xorigin", pPS.originX);
+            variable_struct_set(pPSI, "yorigin", pPS.originY);
+            variable_struct_set(pPSI, "oldtonew", (pPS.drawOrder == 0));
+            variable_struct_set(pPSI, "global_space", pPS.globalSpaceParticles);
+
+            for (var i = 0; i < pPS.emitters.length; ++i)
+            {
+                var emitter = g_PSEmitters[pPS.emitters[i]];
                 if (emitter)
                 {
                     emitters.push(emitter);
