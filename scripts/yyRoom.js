@@ -2157,6 +2157,7 @@ yyRoom.prototype.DrawLayerSequenceElement = function (_rect, _layer, _pSequenceE
 	// @endif
 };
 
+// @if feature("sequences")
 yyRoom.prototype.DrawSequence = function (_rect, _layer, _pSequenceEl, _evalTree, _headPosition, _lastHeadPosition, _headDirection, _sequence, _isNested, _sequenceMatrix) {
 
     if (_sequence == null)
@@ -3149,6 +3150,7 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 	draw_set_color(oldCol);
 	draw_set_alpha(oldAlpha);
 };
+// @endif sequences
 
 
 

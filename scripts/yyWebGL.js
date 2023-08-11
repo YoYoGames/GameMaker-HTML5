@@ -194,10 +194,10 @@ function InitWebGLFunctions() {
     // Surfaces
     surface_create = WebGL_surface_create_RELEASE;
     surface_free = WebGL_surface_free_RELEASE;
-    surface_getpixel = WebGL_surface_getpixel_RELEASE;
-    surface_getpixel_ext = WebGL_surface_getpixel_ext_RELEASE;    
-    surface_copy = WebGL_surface_copy_RELEASE;
-    surface_copy_part = WebGL_surface_copy_part_RELEASE;
+    compile_if_used(surface_getpixel = WebGL_surface_getpixel_RELEASE);
+    compile_if_used(surface_getpixel_ext = WebGL_surface_getpixel_ext_RELEASE);
+    compile_if_used(surface_copy = WebGL_surface_copy_RELEASE);
+    compile_if_used(surface_copy_part = WebGL_surface_copy_part_RELEASE);
 	
     // Backgrounds (no longer needed..?)		
     //background_create_from_screen = WebGL_background_create_from_screen_RELEASE;
@@ -206,9 +206,9 @@ function InitWebGLFunctions() {
     // Sprites
     compile_if_used(sprite_add_from_screen = WebGL_sprite_add_from_screen_RELEASE);
     compile_if_used(sprite_create_from_surface = WebGL_sprite_create_from_surface_RELEASE);
-    sprite_add_from_surface = WebGL_sprite_add_from_surface_RELEASE;
+    compile_if_used(sprite_add_from_surface = WebGL_sprite_add_from_surface_RELEASE);
 
-    CopyImageToAlpha = WEBGL_CopyImageToAlpha_RELEASE;
+    compile_if_used(sprite_set_alpha_from_sprite, CopyImageToAlpha = WEBGL_CopyImageToAlpha_RELEASE);
 	
     // Shaders		
     fn_texture_get_texel_width = WebGL_texture_get_texel_width_RELEASE;
@@ -230,25 +230,27 @@ function InitWebGLFunctions() {
     fn_shader_get_name = WebGL_shader_get_name_RELEASE;
     
     // textures
-    texture_set_blending = WebGL_texture_set_blending_RELEASE;
-    texture_set_repeat = WebGL_texture_set_repeat_RELEASE;
-    texture_set_repeat_ext = WebGL_texture_set_repeat_ext_RELEASE;
-    texture_set_interpolation = WebGL_texture_set_interpolation_RELEASE;
-    texture_set_interpolation_ext = WebGL_texture_set_interpolation_ext_RELEASE;
-    texture_get_repeat = WebGL_texture_get_repeat_RELEASE;    
-    texture_get_width = WebGL_texture_get_width_RELEASE;
-    texture_get_height = WebGL_texture_get_height_RELEASE;
-    texture_get_uvs = WebGL_texture_get_uvs_RELEASE;
+    compile_if_used(texture_set_blending = WebGL_texture_set_blending_RELEASE);
+    compile_if_used(texture_set_repeat = WebGL_texture_set_repeat_RELEASE);
+    compile_if_used(texture_set_repeat_ext = WebGL_texture_set_repeat_ext_RELEASE);
+    compile_if_used(texture_set_interpolation = WebGL_texture_set_interpolation_RELEASE);
+    compile_if_used(texture_set_interpolation_ext = WebGL_texture_set_interpolation_ext_RELEASE);
+    compile_if_used(texture_get_repeat = WebGL_texture_get_repeat_RELEASE);
+    compile_if_used(texture_get_width = WebGL_texture_get_width_RELEASE);
+    compile_if_used(texture_get_height = WebGL_texture_get_height_RELEASE);
+    compile_if_used(texture_get_uvs = WebGL_texture_get_uvs_RELEASE);
 
     // alpha test    
-    draw_set_alpha_test = WebGL_draw_set_alpha_test_RELEASE;
-    draw_set_alpha_test_ref_value = WebGL_draw_set_alpha_test_ref_value_RELEASE;
-    draw_get_alpha_test = WebGL_draw_get_alpha_test_RELEASE;
-    draw_get_alpha_test_ref_value = WebGL_draw_get_alpha_test_ref_value_RELEASE;
+    compile_if_used(draw_set_alpha_test = WebGL_draw_set_alpha_test_RELEASE);
+    compile_if_used(draw_set_alpha_test_ref_value = WebGL_draw_set_alpha_test_ref_value_RELEASE);
+    compile_if_used(draw_get_alpha_test = WebGL_draw_get_alpha_test_RELEASE);
+    compile_if_used(draw_get_alpha_test_ref_value = WebGL_draw_get_alpha_test_ref_value_RELEASE);
 
     // Buffer surface stuff
-    buffer_get_surface = WEBGL_buffer_get_surface;
+    compile_if_used(buffer_get_surface = WEBGL_buffer_get_surface);
+    // @if function("buffer_set_surface") || function("video_*")
     buffer_set_surface = WEBGL_buffer_set_surface;
+    // @endif
     // 
     PostInitWebGLFunctions();	    	
 }

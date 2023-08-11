@@ -956,6 +956,7 @@ yyBuffer.prototype.yyb_crc32 = function(_offset, _size)
 /// Function:<summary>
 ///          </summary>
 // #############################################################################################
+// @if function("buffer_md5")
 yyBuffer.prototype.yyb_md5 = function(_offset, _size) {
 
     if (this.m_Size == 0)
@@ -990,12 +991,14 @@ yyBuffer.prototype.yyb_md5 = function(_offset, _size) {
         return DoMD5( new Uint8Array(this.m_pRAWUnderlyingBuffer, _offset, _size),_size, 0 );
     }
 };
+// @endif
 
 
 // #############################################################################################
 /// Function:<summary>
 ///          </summary>
 // #############################################################################################
+// @if function("buffer_sha1")
 yyBuffer.prototype.yyb_sha1 = function(_offset, _size) {
 
     if (this.m_Size == 0)
@@ -1029,6 +1032,7 @@ yyBuffer.prototype.yyb_sha1 = function(_offset, _size) {
     else
         return sha1_string_utf8(String.fromCharCode.apply(null, new Uint8Array(this.m_pRAWUnderlyingBuffer, _offset, _size)));
 };
+// @endif
 
 
 // #############################################################################################

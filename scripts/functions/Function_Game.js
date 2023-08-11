@@ -1431,7 +1431,7 @@ function bit_rol(num, cnt)
   return (num << cnt) | (num >>> (32 - cnt));
 }
 
-
+// @if function("sha1_string_*") || function("ds_map_secure_*") || function("buffer_sha1")
 //and the sha-1 version from same place
 
 function hex_sha1(s)    { return rstr2hex(rstr_sha1(str2rstr_utf8(s))); }
@@ -1593,6 +1593,7 @@ function sha1_kt(t)
   return (t < 20) ?  1518500249 : (t < 40) ?  1859775393 :
          (t < 60) ? -1894007588 : -899497514;
 }
+// @endif sha1
 
 // #############################################################################################
 /// Function:<summary>

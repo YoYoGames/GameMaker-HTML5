@@ -1137,19 +1137,23 @@ function script_execute_ext( _self, _other, _index, _array, _offset, _length )
 // #############################################################################################
 function gml_release_mode(_enable) {
     if (yyGetBool(_enable)) {
+        // @if function("position_change") || function("instance_change")
         instance_change = instance_change_RELEASE;
+        // @endif
         yyInst = yyInst_RELEASE;
-        ds_grid_get = ds_grid_get_RELEASE;
-        ds_grid_set = ds_grid_set_RELEASE;
-        ds_grid_set_pre = ds_grid_set_pre_RELEASE;
-        ds_grid_set_post = ds_grid_set_post_RELEASE;
+        compile_if_used(ds_grid_get = ds_grid_get_RELEASE);
+        compile_if_used(ds_grid_set = ds_grid_set_RELEASE);
+        compile_if_used(ds_grid_set_pre = ds_grid_set_pre_RELEASE);
+        compile_if_used(ds_grid_set_post = ds_grid_set_post_RELEASE);
     } else {
+        // @if function("position_change") || function("instance_change")
         instance_change = instance_change_DEBUG;
+        // @endif
         yyInst = yyInst_DEBUG;
-        ds_grid_get = ds_grid_get_DEBUG;
-        ds_grid_set = ds_grid_set_DEBUG;		
-        ds_grid_set_pre = ds_grid_set_pre_DEBUG;
-        ds_grid_set_post = ds_grid_set_post_DEBUG;
+        compile_if_used(ds_grid_get = ds_grid_get_DEBUG);
+        compile_if_used(ds_grid_set = ds_grid_set_DEBUG);
+        compile_if_used(ds_grid_set_pre = ds_grid_set_pre_DEBUG);
+        compile_if_used(ds_grid_set_post = ds_grid_set_post_DEBUG);
     }
 }
 

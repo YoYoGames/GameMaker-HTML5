@@ -510,6 +510,7 @@ function instance_copy(_inst, _performevent)
 ///			<param name="_perf">Perform destroy and create events?</param>
 ///				
 // #############################################################################################
+// @if function("position_change") || function("instance_change")
 function instance_change_RELEASE(_inst, _objindex, _perf) 
 {
     _perf = yyGetBool(_perf);
@@ -543,7 +544,8 @@ function instance_change_DEBUG(_inst, _objindex, _perf)
 	}
 	instance_change_RELEASE(_inst, _objindex, yyGetBool(_perf));
 }
-var instance_change = instance_change_DEBUG; 
+var instance_change = instance_change_DEBUG;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
