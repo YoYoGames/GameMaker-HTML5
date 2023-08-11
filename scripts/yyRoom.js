@@ -1769,6 +1769,7 @@ yyRoom.prototype.DrawLayerTilemapElement = function(_rect,_layer,_el,_xpos,_ypos
                 
                 if(g_webGL)
                 {
+					// @if feature("gl")
                     for(var y=miny;y<maxy;y++)
                     {
                         var index = y*_el.m_mapWidth+minx;
@@ -1921,10 +1922,11 @@ yyRoom.prototype.DrawLayerTilemapElement = function(_rect,_layer,_el,_xpos,_ypos
                     
                     if(tilesinthisrun>0)
                         pVerts.Current -= tilesinthisrun * 6;
-
+					// @endif
                 }
                 else
                 {
+					// @if feature("2d")
                     //Non Web-GL
                     for(var y=miny;y<maxy;y++)
                     {
@@ -2001,6 +2003,7 @@ yyRoom.prototype.DrawLayerTilemapElement = function(_rect,_layer,_el,_xpos,_ypos
 						    }
 					    }
 				    }            
+					// @endif
                 }   
             }
         }
@@ -2962,6 +2965,7 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 	{
 		if (g_webGL)
 		{
+			// @if feature("gl")
 			// Set up stencil
 			if (g_clippingMaskStack == null || g_clippingMaskStack.length == 0)
 			{
@@ -3037,9 +3041,11 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaRef, g_globalClippingMaskState.AlphaRef);
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaFunc, g_globalClippingMaskState.AlphaFunc);
 			}
+			// @endif
 		}
 		else
 		{
+			// @if feature("2d")
 			worldMatrix = g_Matrix[MATRIX_WORLD];
 
 			graphics.save();
@@ -3062,6 +3068,7 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 			graphics.lineTo(transposvec3.X, transposvec3.Y);
 			graphics.closePath();    
 			graphics.clip();
+			// @endif
 		}
 	}
 	
@@ -3071,6 +3078,7 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 	{
 		if (g_webGL)
 		{
+			// @if feature("gl")
 			// Always alpha test
 			if (g_globalClippingMaskState.AlphaTestEnable == 0)
 			{
@@ -3127,10 +3135,13 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 			if (g_clippingMaskStack.length == 0) {
 				g_globalClippingMaskState.Apply();
 			}
+			// @endif
 		}
 		else
 		{
+			// @if feature("2d")
 			graphics.restore();
+			// @endif
 		}
 	}
 

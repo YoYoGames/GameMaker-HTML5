@@ -519,6 +519,7 @@ CCamera.prototype.ApplyMatrices = function () {
         WebGL_SetMatrix(MATRIX_VIEW, this.m_viewMat);
     }
     else {
+        // @if feature("2d")
         WebGL_SetMatrix(MATRIX_VIEW, this.m_viewMat);
         // Work out port scaling
         var wscale = g_clipw / g_worldw;
@@ -535,6 +536,7 @@ CCamera.prototype.ApplyMatrices = function () {
 
         // for some reason this function takes the matrix transposed
         graphics._setTransform(g_transform[0], g_transform[3], g_transform[1], g_transform[4], g_transform[2], g_transform[5]);
+        // @endif
     }
 
     if (g_RenderTargetActive == -1) {

@@ -96,8 +96,7 @@ function code_is_compiled() { return true; }
 /// In:		<param name="_on_off"></param>
 ///				
 // #############################################################################################
-var draw_enable_alphablend = draw_enable_alphablend_html5;
-function draw_enable_alphablend_html5(_on_off)
+function draw_enable_alphablend(_on_off)
 {
 }
 

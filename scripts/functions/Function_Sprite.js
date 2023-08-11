@@ -381,7 +381,8 @@ function sprite_set_alpha_from_sprite( _dest, _src )
 ///			 <param name="_smooth"></param>
 ///				
 // #############################################################################################
-var sprite_add_from_screen = sprite_add_from_screen_RELEASE;
+function sprite_add_from_screen(){}
+// @if feature("2d")
 function sprite_add_from_screen_RELEASE(_ind, _x, _y, _w, _h, _removeback, _smooth) {
 
     _ind = yyGetInt32(_ind);
@@ -433,6 +434,8 @@ function sprite_add_from_screen_RELEASE(_ind, _x, _y, _w, _h, _removeback, _smoo
 
 	return _ind;
 }
+compile_if_used(sprite_add_from_screen = sprite_add_from_screen_RELEASE);
+// @endif
 
 
 // #############################################################################################
@@ -453,7 +456,8 @@ function sprite_add_from_screen_RELEASE(_ind, _x, _y, _w, _h, _removeback, _smoo
 ///				
 ///			 </returns>
 // #############################################################################################
-var sprite_create_from_surface = sprite_create_from_surface_RELEASE;
+function sprite_create_from_surface(){}
+// @if feature("2d")
 function sprite_create_from_surface_RELEASE(_id, _x, _y, _w, _h, _removeback, _smooth, _xorig, _yorig)
 {
     _id = yyGetInt32(_id);
@@ -531,6 +535,8 @@ function sprite_create_from_surface_RELEASE(_id, _x, _y, _w, _h, _removeback, _s
 
 	return newindex;
 }
+compile_if_used(sprite_create_from_surface = sprite_create_from_surface_RELEASE);
+// @endif
 
 
 
@@ -551,7 +557,8 @@ function sprite_create_from_surface_RELEASE(_id, _x, _y, _w, _h, _removeback, _s
 ///				
 ///			 </returns>
 // #############################################################################################
-var sprite_add_from_surface = sprite_add_from_surface_RELEASE;
+function sprite_add_from_surface(){}
+// @if feature("2d")
 function sprite_add_from_surface_RELEASE(_ind, _id, _x, _y, _w, _h, _removeback, _smooth)
 {
     _ind = yyGetInt32(_ind);
@@ -603,6 +610,8 @@ function sprite_add_from_surface_RELEASE(_ind, _id, _x, _y, _w, _h, _removeback,
 
 	return _ind;
 }
+compile_if_used(sprite_add_from_surface = sprite_add_from_surface_RELEASE);
+// @endif
 
 
 

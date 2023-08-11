@@ -775,7 +775,8 @@ function surface_save_part(_id,_fname,_x,_y,_w,_h)
 ///				
 ///			</returns>
 // #############################################################################################
-var draw_surface = draw_surface_RELEASE;
+function draw_surface(){}
+// @if feature("2d")
 function draw_surface_RELEASE(_id, _x, _y) 
 {
     var pSurf = g_Surfaces.Get(yyGetInt32(_id));
@@ -793,6 +794,8 @@ function draw_surface_RELEASE(_id, _x, _y)
     }
     graphics.globalAlpha = alpha;
 }
+compile_if_used(draw_surface = draw_surface_RELEASE);
+// @endif
 
 // #############################################################################################
 /// Function:<summary>

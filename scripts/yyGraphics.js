@@ -180,7 +180,7 @@ function    Graphics_Init( _canvas )
 	g_transform[5] = 0;
 
     if( !g_webGL ){
-
+		// @if feature("2d")
 
 	    // Fill in RELEASE function pointers.
         if (CACHE_SINGLE_IMAGE)
@@ -225,7 +225,8 @@ function    Graphics_Init( _canvas )
     	    }
     	    Graphics_TextureDrawTiled = Graphics_TextureDrawTiled_RELEASE;
     	    Graphics_TextureDraw = Graphics_TextureDraw_DEBUG;
-        } 
+        }
+		// @endif
     }else{
         InitWebGLFunctions();
     }
@@ -1225,6 +1226,8 @@ function    Graphics_ColouriseImage( _texture, _x, _y, _w, _h, _col )
 ///				
 ///			 </returns>
 // #############################################################################################
+function Graphics_TextureDrawPos(){}
+// @if feature("2d")
 function Graphics_TextureDrawPos(_pTPE, _x1, _y1, _x2, _y2, _x3, _y3, _x4, _y4, _alpha) {
 
 	var pTexture = _pTPE.texture;
@@ -1336,6 +1339,7 @@ function drawTexturedTriangle(im, x0, y0, x1, y1, x2, y2, sx0, sy0, sx1, sy1, sx
 	graphics._drawImage(im, 0, 0);
 	Graphics_Restore();
 }
+// @endif
 
 
 

@@ -105,7 +105,8 @@ var g_AppendDerivativesExtToShader = false;
 ///          </summary>
 // #############################################################################################
 function InitWebGLFunctions() {
-
+    // VD: a lot of conditionals here, but oh well
+    
     InitD3DFunctions();
     // @if function("vertex_*")
     InitFVFFunctions();
@@ -149,32 +150,39 @@ function InitWebGLFunctions() {
     draw_rectangle = WebGL_draw_rectangle_RELEASE;
     draw_roundrect_color_ext = WebGL_draw_roundrect_color_EXT_RELEASE;
     draw_rectangle_color = WebGL_draw_rectangle_color_RELEASE;
-    draw_roundrect_colour_ext = WebGL_draw_roundrect_color_EXT_RELEASE;
+    compile_if_used(draw_roundrect_colour_ext = WebGL_draw_roundrect_color_EXT_RELEASE);
     draw_rectangle_colour = WebGL_draw_rectangle_color_RELEASE;
-    draw_rectangle_gradient = WebGL_draw_rectangle_gradient_RELEASE;
-    draw_point = WebGL_draw_point_RELEASE;
-    draw_getpixel = WebGL_draw_getpixel_RELEASE;
-    draw_getpixel_ext = WebGL_draw_getpixel_ext_RELEASE;
+    compile_if_used(draw_point = WebGL_draw_point_RELEASE);
+    compile_if_used(draw_getpixel = WebGL_draw_getpixel_RELEASE);
+    compile_if_used(draw_getpixel_ext = WebGL_draw_getpixel_ext_RELEASE);
     draw_triangle = WebGL_draw_triangle_RELEASE;
-    draw_triangle_color = WebGL_draw_triangle_color_RELEASE;
+    
+    compile_if_used(draw_triangle_color = WebGL_draw_triangle_color_RELEASE);
+    // @if function("draw_ellipse") || function("draw_ellipse_color")
     draw_ellipse_color = WebGL_draw_ellipse_color_RELEASE;
+    // @endif
+    // @if function("draw_circle") || function("draw_circle_color")
     draw_circle_color = WebGL_draw_circle_color_RELEASE;
-    draw_point_color = WebGL_draw_point_color_RELEASE;
+    // @endif
+    compile_if_used(draw_point_color = WebGL_draw_point_color_RELEASE);
+    
     draw_triangle_colour = WebGL_draw_triangle_color_RELEASE;
-    draw_ellipse_colour = WebGL_draw_ellipse_color_RELEASE;
-    draw_circle_colour = WebGL_draw_circle_color_RELEASE;
-    draw_point_colour = WebGL_draw_point_color_RELEASE;
+    compile_if_used(draw_ellipse_colour = WebGL_draw_ellipse_color_RELEASE);
+    compile_if_used(draw_circle_colour = WebGL_draw_circle_color_RELEASE);
+    compile_if_used(draw_point_colour = WebGL_draw_point_color_RELEASE);
+    
+    // line functions are used a lot, don't trim these
     draw_line = WebGL_draw_line_RELEASE;
     draw_line_width =  WebGL_draw_line_width_RELEASE;
     draw_line_width_color = WebGL_draw_line_width_color_RELEASE;
-    draw_line_width_colour = WebGL_draw_line_width_color_RELEASE;
-    draw_clear_alpha = WebGL_draw_clear_alpha_RELEASE;
+    compile_if_used(draw_line_width_colour = WebGL_draw_line_width_color_RELEASE);
+    draw_clear_alpha = WebGL_draw_clear_alpha_RELEASE; // used by yyEffects
     draw_set_color = WebGL_draw_set_color_RELEASE;
     draw_set_colour = WebGL_draw_set_color_RELEASE;
-    draw_set_alpha = WebGL_draw_set_alpha_RELEASE;
+    draw_set_alpha = WebGL_draw_set_alpha_RELEASE; // used for vkeys
     draw_set_blend_mode_ext = WEBGL_draw_set_blend_mode_ext_RELEASE;
     draw_enable_alphablend = WEBGL_draw_enable_alpha_blend_RELEASE;
-    draw_surface = WebGL_draw_surface_RELEASE;    
+    compile_if_used(draw_surface = WebGL_draw_surface_RELEASE);
     // @if feature("paths")
     draw_path = WEBGL_draw_path;
     // @endif
@@ -196,8 +204,8 @@ function InitWebGLFunctions() {
     background_create_from_surface = WebGL_background_create_from_surface_RELEASE;
 
     // Sprites
-    sprite_add_from_screen = WebGL_sprite_add_from_screen_RELEASE;
-    sprite_create_from_surface = WebGL_sprite_create_from_surface_RELEASE;
+    compile_if_used(sprite_add_from_screen = WebGL_sprite_add_from_screen_RELEASE);
+    compile_if_used(sprite_create_from_surface = WebGL_sprite_create_from_surface_RELEASE);
     sprite_add_from_surface = WebGL_sprite_add_from_surface_RELEASE;
 
     CopyImageToAlpha = WEBGL_CopyImageToAlpha_RELEASE;
@@ -3039,31 +3047,6 @@ function WebGL_draw_triangle_RELEASE(_x1, _y1, _x2, _y2, _x3, _y3, _outline) {
     }
 
     pColours[v0] = pColours[v1] = pColours[v2] = pColours[v3] = ((g_GlobalAlpha * 255.0) << 24) | g_GlobalColour;	
-}
-
-// #############################################################################################
-/// Function:<summary>
-///             Draw a rectangle with a gradient
-///          </summary>
-///
-/// In:		 <param name="_x1">Top X coordinate</param>
-///			 <param name="_y1">Top Y coordinate</param>
-///			 <param name="_x2">Bottom X coordinate</param>
-///			 <param name="_y2">Bottom X coordinate</param>
-///			 <param name="_col1">Start colour of the rect as a number</param>
-///			 <param name="_col2">End colour of the rect as a number</param>
-///			 <param name="_vert">Whether or not the gradient should be vertical (or horizontal)</param>
-///			 <param name="_outline">Whether or not to draw the rect as an outline</param>
-///				
-// #############################################################################################
-function WebGL_draw_rectangle_gradient_RELEASE(_x1, _y1, _x2, _y2, _col1, _col2, _vert, _outline) {
-
-    if (_vert) {
-        WebGL_draw_rectangle_color_RELEASE(_x1, _y1, _x2, _y2, _col1, _col1, _col2, _col2, _outline);
-    }
-    else {
-        WebGL_draw_rectangle_color_RELEASE(_x1, _y1, _x2, _y2, _col1, _col2, _col2, _col1, _outline);
-    }
 }
 
 // #############################################################################################
