@@ -199,9 +199,9 @@ function InitWebGLFunctions() {
     surface_copy = WebGL_surface_copy_RELEASE;
     surface_copy_part = WebGL_surface_copy_part_RELEASE;
 	
-    // Backgrounds		
-    background_create_from_screen = WebGL_background_create_from_screen_RELEASE;
-    background_create_from_surface = WebGL_background_create_from_surface_RELEASE;
+    // Backgrounds (no longer needed..?)		
+    //background_create_from_screen = WebGL_background_create_from_screen_RELEASE;
+    //background_create_from_surface = WebGL_background_create_from_surface_RELEASE;
 
     // Sprites
     compile_if_used(sprite_add_from_screen = WebGL_sprite_add_from_screen_RELEASE);
@@ -457,7 +457,7 @@ function InitWebGLTextureGetFunctions() {
         return texture;
     };    
 
-    // And again for background textures    
+    /*// And again for background textures    
     var fn_background_get_texture = background_get_texture;
     background_get_texture = function(_ind) {
     
@@ -467,7 +467,7 @@ function InitWebGLTextureGetFunctions() {
             WebGL_BindTexture(texture.TPE);
         }
         return texture;
-    };
+    };*/
     WebGL_StartFrame_RELEASE();// Call this to setup defaults..
 }
 
