@@ -122,8 +122,9 @@ function display_set_gui_maximise(_xscale, _yscale, _xoffset, _yoffset)
         Calc_GUI_Scale();
     }
 }
-
+// @if function("display_set_gui_maximize")
 var display_set_gui_maximize = display_set_gui_maximise;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -271,7 +272,9 @@ function make_color_rgb(_red,_green,_blue)
 {
     return (yyGetInt32(_red)) | (yyGetInt32(_green) << 8) | (yyGetInt32(_blue) << 16);
 }
+// @if function("make_colour_rgb")
 var make_colour_rgb = make_color_rgb;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -287,7 +290,9 @@ function color_get_blue(_col)
 {
     return (yyGetInt32(_col) >> 16) & 0xff;
 }
+// @if function("colour_get_blue")
 var colour_get_blue = color_get_blue;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -303,7 +308,9 @@ function color_get_green(_col)
 {
     return (yyGetInt32(_col) >> 8) & 0xff;
 }
+// @if function("colour_get_green")
 var colour_get_green = color_get_green;
+// @endif
 
 
 // #############################################################################################
@@ -320,7 +327,9 @@ function color_get_red(_col)
 {
     return (yyGetInt32(_col) & 0xff);
 }
+// @if function("colour_get_red")
 var colour_get_red = color_get_red;
+// @endif
 
 
 // #############################################################################################
@@ -384,7 +393,9 @@ function color_get_hue(_col)
     var hsv = Color_RGBtoHSV(_col);
     return hsv.h;
 }
+// @if function("colour_get_hue")
 var colour_get_hue = color_get_hue;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -401,7 +412,9 @@ function color_get_saturation(_col)
     var hsv = Color_RGBtoHSV(_col);
     return hsv.s;
 }
+// @if function("colour_get_saturation")
 var colour_get_saturation = color_get_saturation;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -418,7 +431,9 @@ function color_get_value(_col)
     var hsv = Color_RGBtoHSV(_col);
     return hsv.v;
 }
+// @if function("colour_get_value")
 var colour_get_value = color_get_value;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>

@@ -1120,7 +1120,9 @@ function dot_product_normalised(_x1,_y1,_x2,_y2)
     // return DOT product
     return (_x1 * _x2 + _y1 * _y2) / (mag1 * mag2);
 }
+// @if function("dot_product_normalized")
 var dot_product_normalized = dot_product_normalised;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -1154,7 +1156,9 @@ function dot_product_3d_normalised(_x1, _y1, _z1, _x2, _y2, _z2) {
     // return DOT product
 	return (_x1 * _x2 + _y1 * _y2 + _z1 * _z2) / (mag1 * mag2);
 }
+// @if function("dot_product_3d_normalized")
 var dot_product_3d_normalized = dot_product_3d_normalised;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
