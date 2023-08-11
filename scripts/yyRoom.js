@@ -312,7 +312,7 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
 				var effectPropIdx;
 				for (effectPropIdx = 0; effectPropIdx < sourceLayer.effectProperties.length; effectPropIdx++) 
         		{
-					newLayer.EffectProperties[effectPropIdx] =
+					newLayer.effectProperties[effectPropIdx] =
 					{
 						type: sourceLayer.effectProperties[effectPropIdx].type,
 						name: sourceLayer.effectProperties[effectPropIdx].name,
