@@ -1,3 +1,4 @@
+// @if feature("audio_effects")
 function Reverb1EffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.Reverb1);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
@@ -57,3 +58,4 @@ Reverb1EffectStruct.paramDescriptors = () => ({
     damp:   { name: "damp", integer: false, defaultValue: 0.1,  minValue: 0.0, maxValue: 1.0 },
     mix:    { name: "mix",  integer: false, defaultValue: 0.35, minValue: 0.0, maxValue: 1.0 }
 });
+// @endif
