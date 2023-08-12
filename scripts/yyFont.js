@@ -477,6 +477,7 @@ function getKerningInfo( ch, pGlyph)
 // #############################################################################################
 yyFont.prototype.Draw_String_GL_Full = function (_x, _y, _pStr, _xscale, _yscale, _angle, _col1, _col2,_col3,_col4, _charSpacing, _wordSpacing) //, _alpha) {
 {
+	// @if feature("gl")
 	var TP = this.TPEntry; //g_Textures[this.TPEntry.tp];
 	if (!TP.texture.complete) return;                   // if texture hasn't loaded, return...
 	var len = _pStr.length;
@@ -531,6 +532,7 @@ yyFont.prototype.Draw_String_GL_Full = function (_x, _y, _pStr, _xscale, _yscale
 		}
 	}
 	//if (Math.abs(_angle) > 0.001) Graphics_SetTransform();
+	// @endif
 };
 
 // #############################################################################################
@@ -564,6 +566,7 @@ yyFont.prototype.BuildWorldMatrix = function(_x, _y, _angle) {
 // #############################################################################################
 yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _angle, _col1, _col2,_col3,_col4, _charSpacing, _wordSpacing) //, _alpha) 
 {
+	// @if feature("gl")
     if( this.runtime_created)
     {
         //original
@@ -753,6 +756,7 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
 	if (worldMatrix != undefined) {
 	    WebGL_SetMatrix(MATRIX_WORLD, worldMatrix);
 	}
+	// @endif
 };
 
 
@@ -772,6 +776,7 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
 // #############################################################################################
 yyFont.prototype.Draw_String = function (_x, _y, _pStr, _xscale, _yscale, _angle, _col1, _col2, _col3, _col4, _charSpacing, _wordSpacing) //, _alpha) {        
 {
+	// @if feature("2d")
     var cached_image = null;
     var ch;
 	var TP = g_Textures[this.TPEntry.tp];
@@ -940,6 +945,7 @@ yyFont.prototype.Draw_String = function (_x, _y, _pStr, _xscale, _yscale, _angle
 	    } // end else
 	} // end else
 	graphics.globalAlpha = la;
+	// @endif
 };
 
 
@@ -960,6 +966,7 @@ yyFont.prototype.Draw_String = function (_x, _y, _pStr, _xscale, _yscale, _angle
 // #############################################################################################
 yyFont.prototype.Draw_Sprite_String = function (_x, _y, _pStr, _xscale, _yscale, _angle, _col1, _col2, _col3, _col4, _charSpacing, _wordSpacing)
 {
+	// @if feature("2d")
 	if (this.pSprites == null) return;
 
 	var charSpacing = 0.0;
@@ -1028,6 +1035,7 @@ yyFont.prototype.Draw_Sprite_String = function (_x, _y, _pStr, _xscale, _yscale,
 
 	if (Math.abs(_angle) >= 0.001) Graphics_SetTransform();
 	graphics.globalAlpha = la;
+	// @endif
 };
 
 
@@ -1050,6 +1058,7 @@ yyFont.prototype.Draw_Sprite_String = function (_x, _y, _pStr, _xscale, _yscale,
 // #############################################################################################
 yyFont.prototype.Draw_Sprite_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _angle, _c1, _c2, _c3, _c4, _charSpacing, _wordSpacing)
 {
+	// @if feature("gl")
 	if (this.pSprites == null) return;
 
 	var charSpacing = 0.0;
@@ -1150,6 +1159,7 @@ yyFont.prototype.Draw_Sprite_String_GL = function (_x, _y, _pStr, _xscale, _ysca
 	if (worldmat !== undefined) {
 	    WebGL_SetMatrix(MATRIX_WORLD, worldmat);
 	}
+	// @endif
 };
 
 
@@ -1210,6 +1220,7 @@ function    yyFontManager( )
 
 yyFontManager.prototype.Start_Rendering_SDF = function()
 {
+	// @if function("font_enable_sdf") && feature("gl")
 	if (g_webGL)
 	{
 		if (shader_current() != -1)
@@ -1221,19 +1232,21 @@ yyFontManager.prototype.Start_Rendering_SDF = function()
 		if (this.SDF_State.usingSDFShader)
 			return;							// already enabled
 
-		shader_set(this.SDF_State.SDFShader);
+		WebGL_shader_set_RELEASE(this.SDF_State.SDFShader);
 
 		var basetexstage = 0;			// we always force the default texture sampler index to be 0
 
-		this.SDF_State.currTexFilter = gpu_get_texfilter_ext(basetexstage);		// we always force the default texture sampler index to be 0
-		gpu_set_texfilter_ext(basetexstage, true);
+		this.SDF_State.currTexFilter = WebGL_gpu_get_texfilter_ext(basetexstage);		// we always force the default texture sampler index to be 0
+		WebGL_gpu_set_texfilter_ext(basetexstage, true);
 
 		this.SDF_State.usingSDFShader = true;
 	}
+	// @endif
 };
 
 yyFontManager.prototype.End_Rendering_SDF = function()
 {
+	// @if function("font_enable_sdf") && feature("gl")
 	if (g_webGL)
 	{
 		if (this.SDF_State.usingSDFShader)	
@@ -1241,11 +1254,12 @@ yyFontManager.prototype.End_Rendering_SDF = function()
 			shader_reset();
 
 			var basetexstage = 0;			// we always force the default texture sampler index to be 0
-			gpu_set_texfilter_ext(basetexstage, this.SDF_State.currTexFilter);
+			WebGL_gpu_set_texfilter_ext(basetexstage, this.SDF_State.currTexFilter);
 
 			this.SDF_State.usingSDFShader = false;
 		}
 	}
+	// @endif
 };
 
 // #############################################################################################
