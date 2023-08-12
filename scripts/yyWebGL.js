@@ -149,13 +149,15 @@ function InitWebGLFunctions() {
     Graphics_DrawPart = WebGL_DrawPart_RELEASE;                
     draw_rectangle = WebGL_draw_rectangle_RELEASE;
     draw_roundrect_color_ext = WebGL_draw_roundrect_color_EXT_RELEASE;
-    draw_rectangle_color = WebGL_draw_rectangle_color_RELEASE;
+    draw_rectangle_color = WebGL_draw_rectangle_color_RELEASE; // NB! used to clear screen
     compile_if_used(draw_roundrect_colour_ext = WebGL_draw_roundrect_color_EXT_RELEASE);
-    draw_rectangle_colour = WebGL_draw_rectangle_color_RELEASE;
+    compile_if_used(draw_rectangle_colour = WebGL_draw_rectangle_color_RELEASE);
     compile_if_used(draw_point = WebGL_draw_point_RELEASE);
     compile_if_used(draw_getpixel = WebGL_draw_getpixel_RELEASE);
     compile_if_used(draw_getpixel_ext = WebGL_draw_getpixel_ext_RELEASE);
+    // @if function("draw_triangle") || function("draw_arrow") || function("physics_world_draw_debug")
     draw_triangle = WebGL_draw_triangle_RELEASE;
+    // @endif
     
     compile_if_used(draw_triangle_color = WebGL_draw_triangle_color_RELEASE);
     // @if function("draw_ellipse") || function("draw_ellipse_color")
@@ -178,7 +180,7 @@ function InitWebGLFunctions() {
     compile_if_used(draw_line_width_colour = WebGL_draw_line_width_color_RELEASE);
     draw_clear_alpha = WebGL_draw_clear_alpha_RELEASE; // used by yyEffects
     draw_set_color = WebGL_draw_set_color_RELEASE;
-    draw_set_colour = WebGL_draw_set_color_RELEASE;
+    compile_if_used(draw_set_colour = WebGL_draw_set_color_RELEASE);
     draw_set_alpha = WebGL_draw_set_alpha_RELEASE; // used for vkeys
     draw_set_blend_mode_ext = WEBGL_draw_set_blend_mode_ext_RELEASE;
     draw_enable_alphablend = WEBGL_draw_enable_alpha_blend_RELEASE;

@@ -1278,7 +1278,7 @@ function    InitAboyneGlobals() {
     
     if(g_isZeus)
     {
-        draw_set_colour(g_pGMFile.Options.DrawColour);
+        draw_set_color(g_pGMFile.Options.DrawColour);
     }
     else
     {

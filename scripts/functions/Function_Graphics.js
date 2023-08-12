@@ -606,8 +606,9 @@ function draw_set_color( _colour )
     g_GlobalColour_HTML_RGB = GetHTMLRGB(g_GlobalColour);
     g_GlobalColour_HTML_RGBA = GetHTMLRGBA(g_GlobalColour,g_GlobalAlpha);
 }
-
+// @if function("draw_set_colour")
 var draw_set_colour = draw_set_color;
+// @endif
 
 function draw_set_lighting(_enable)
 {
@@ -696,7 +697,9 @@ function draw_roundrect_ext(_x1, _y1, _x2, _y2, _radx, _rady, _outline) {
 function draw_roundrect_color(_x1, _y1, _x2, _y2, _col1, _col2, _outline) {
     draw_roundrect_color_ext(_x1, _y1, _x2, _y2, 10, 10, _col1, _col2, _outline);
 }
+// @if function("draw_roundrect_colour")
 var draw_roundrect_colour = draw_roundrect_color;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -888,7 +891,7 @@ function    draw_rectangle_color_RELEASE( _x1,_y1, _x2,_y2, _col1, _col2,_col3,_
         graphics._fillRect(_x1 + 0.5, _y1 + 0.5, (_x2 - _x1), (_y2 - _y1));
     }        
 }
-draw_rectangle_color = draw_rectangle_color_RELEASE;
+draw_rectangle_color = draw_rectangle_color_RELEASE; // NB! used to clear screen
 compile_if_used(draw_rectangle_colour = draw_rectangle_color_RELEASE);
 // @endif
 
@@ -1088,7 +1091,9 @@ function draw_triangle_RELEASE(_x1, _y1, _x2, _y2, _x3, _y3, _outline) {
 	}
 
 }
-compile_if_used(draw_triangle = draw_triangle_RELEASE);
+// @if function("draw_triangle") || function("draw_arrow") || function("physics_world_draw_debug")
+draw_triangle = draw_triangle_RELEASE;
+// @endif
 // @endif
 
 // #############################################################################################
