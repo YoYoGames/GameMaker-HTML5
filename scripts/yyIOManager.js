@@ -345,23 +345,11 @@ function hideshow(which)
 function CheckJSON_Game(_ifr, _can) {
 	try
 	{
-		if (_ifr)
-		{
-			if (_ifr.JSON_game)
-			{
-				if (_ifr.JSON_game.Options)
-				{
-					if (_ifr.JSON_game.Options.gameGuid)
-					{
-						if (_ifr.JSON_game.Options.gameGuid == JSON_game.Options.gameGuid)
-						{
-							_ifr.focus();
-							_can.focus();
-							return true;
-						}
-					}
-				}
-			}
+		let _guid = _ifr?.JSON_game?.Options?.gameGuid;
+		if (_guid && _guid == JSON_game.Options.gameGuid) {
+			_ifr.focus();
+			_can.focus();
+			return true;
 		}
 	} catch (err)
 	{

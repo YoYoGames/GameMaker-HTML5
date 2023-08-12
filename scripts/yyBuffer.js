@@ -2665,11 +2665,12 @@ function buffer_set_surface(_buffer, _surface, _offset)
         // Make new image data with space for the data
         var imgData = pImg.createImageData(pSurf.m_Width, pSurf.m_Height);
         var data = imgData.data;
+        var dataView = pBuff.m_DataView;
 
         // Copy in data
         var len = pSurf.m_Width * pSurf.m_Height * 4;
         for (var i = 0; i < len; i++) {
-            data[i] = pBuff.yyb_peek(eBuffer_U8, i+_offset);
+            data[i] = dataView.getUint8(i+_offset);
         }
 
         // SET the image data

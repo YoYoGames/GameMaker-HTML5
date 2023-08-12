@@ -20,32 +20,6 @@ var MPPot_Maxrot = 30,
     MPPot_Ahead = 3,
     MPPot_OnSpot = true;
 
-// #############################################################################################
-/// Function:<summary>
-///          	Computes the difference between the directions (positive <= 180)
-///          </summary>
-///
-/// In:		<param name="_dir1"></param>
-///			<param name="_dir2"></param>
-/// Out:	<returns>
-///				
-///			</returns>
-// #############################################################################################
-function DiffDir( _dir1 , _dir2)
-{
-	var Result = 0.0;
-
-	while ( _dir1 <= 0.0 ) { _dir1 = _dir1 + 360; }
-	while ( _dir1 >= 360.0 ) { _dir1 = _dir1 - 360; }
-	while ( _dir2 < 0.0 ) { _dir2 = _dir2 + 360; }
-	while ( _dir2 >= 360. ) { _dir2 = _dir2 - 360; }
-	Result = _dir2 - _dir1;
-	if ( Result < 0 ) { Result = -Result; }
-	if ( Result > 180 ) { Result = 360-Result; }
-
-	return Result;
-}
-
 
 // #############################################################################################
 /// Function:<summary>
@@ -189,44 +163,6 @@ function mp_linear_step( _pInst, _x,_y,_stepsize, _checkall)
 function mp_linear_step_object( _pInst, _x,_y,_stepsize,_obj) 
 {
     return  mp_linear_step_common( _pInst, _x,_y,_stepsize, _obj, true); 
-}
-
-
-// #############################################################################################
-/// Function:<summary>
-///             Take a step towards the indicated position with the given speed
-///             avoiding obstacles using some potential field approach
-///             returns whether the goal was reached
-///          </summary>
-// #############################################################################################
-function TryDir(_dir, _pInst, _speed, _objind, _checkall)
-{
-	var Result = false;
-
-	var xnew = 0.0;
-	var ynew = 0.0;	
-
-	// see whether angle is acceptable
-	if (DiffDir(_dir, _pInst.direction) > MPPot_Maxrot) { 
-	    return Result; 
-	}
-	// check position a bit ahead
-	xnew = _pInst.x + _speed * MPPot_Ahead * cos( Pi * _dir / 180 );
-	ynew = _pInst.y - _speed * MPPot_Ahead * sin( Pi * _dir / 180 );
-	if (true != TestFree(_pInst, xnew, ynew, _objind, _checkall)) { 
-	    return Result; 
-	}
-	//check next position
-	xnew = _pInst.x + _speed * cos(Pi * _dir / 180);
-	ynew = _pInst.y - _speed * sin(Pi * _dir / 180);
-	if (true != TestFree(_pInst, xnew, ynew, _objind, _checkall)) { 
-	    return Result; 
-	}
-	// OK, so set the position
-	_pInst.direction = _dir;
-	_pInst.SetPosition(xnew, ynew);
-	Result = true;
-	return Result;
 }
 
 // #############################################################################################

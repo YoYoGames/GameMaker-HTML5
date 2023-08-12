@@ -51,7 +51,6 @@ function object_get_name(_ind)
     if( !pObj ) return "";
     return pObj.Name;
 }
-var object_name = object_get_name;
 
 // #############################################################################################
 /// Function:<summary>
