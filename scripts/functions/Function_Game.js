@@ -499,7 +499,7 @@ function event_user(_pInst, _pOther, _subevent) {
 	{
 		yyError("Error: illegal user event ID: " + _subevent);
 	}
-	_subevent += GML_ev_user0;
+	_subevent += GML_EVENT_OTHER_USER0;
 	event_perform(_pInst, _pOther, GML_EVENT_OTHER, _subevent);
 }
 
