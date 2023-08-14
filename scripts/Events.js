@@ -93,6 +93,7 @@ function HandleOSEvents() {
 // #############################################################################################
 function    HandleOther()
 {
+	// @if event("OutsideEvent") || event("BoundaryEvent") || event("OutsideView*") || event("BoundaryView*")
     var bbox, i, viewIndex;
     var pViews = null;
 	if (g_RunRoom.m_enableviews)
@@ -111,6 +112,7 @@ function    HandleOther()
         if (!inst.marked && (inst.createCounter <= count))
         {
             // Outside events
+			// @if event("OutsideEvent")
             if (pObject.REvent[EVENT_OTHER_OUTSIDE])
             {
                 var outside = false;
@@ -131,8 +133,10 @@ function    HandleOther()
                 }
                 inst.fOutsideRoom = outside;
             }
+			// @endif OutsideEvent
                     
             // Boundary events
+			// @if event("BoundaryEvent")
             if (pObject.REvent[EVENT_OTHER_BOUNDARY])
             {
                 if (sprite_exists(inst.sprite_index) || sprite_exists(inst.mask_index))
@@ -151,10 +155,12 @@ function    HandleOther()
                     }
                 }
             }
+			// @endif
                         
 
             // Handle view related "other" events
             //for (i in pViews)
+			// @if event("OutsideView*") || event("BoundaryView*")
             if (pViews) {
                 for (viewIndex = 0; viewIndex < pViews.length; viewIndex++) {
                     //if (!pViews.hasOwnProperty(i)) continue;
@@ -179,6 +185,7 @@ function    HandleOther()
                         }
 
                         // Outside view events
+						// @if event("OutsideView*")
                         if (pObject.REvent[EVENT_OTHER_OUTSIDE_VIEW0 + viewIndex]) {
 
                             // Make a distinction whether the instance has a mask (or sprite) || not
@@ -200,8 +207,10 @@ function    HandleOther()
                                 }
                             }
                         }
+						// @endif OutsideView
 
                         // Boundary view events
+						// @if event("BoundaryView*")
                         if (pObject.REvent[EVENT_OTHER_BOUNDARY_VIEW0 + viewIndex]) {							
                             if (sprite_exists(inst.sprite_index) || sprite_exists(inst.mask_index)) {
 
@@ -238,12 +247,14 @@ function    HandleOther()
                                 }*/
                             }
                         }
+						// @endif BoundaryView
                     }
                 }
             }
+			// @endif OutsideView || BoundaryView
         }
     }
-    
+    // @endif Outside || Boundary || OutsideView || BoundaryView
 }
 
 
@@ -804,6 +815,7 @@ function    event_lookup(_event, _subevent)
         			case GML_EVENT_OTHER_ENDOFPATH: return EVENT_OTHER_ENDOFPATH;
         			case GML_EVENT_OTHER_NOHEALTH: return EVENT_OTHER_NOHEALTH;
         			case GML_EVENT_OTHER_CLOSEBUTTON: return EVENT_OTHER_CLOSEBUTTON;
+					// @if event("OutsideView*")
         			case GML_EVENT_OTHER_OUTSIDE_VIEW0: return EVENT_OTHER_OUTSIDE_VIEW0;
         			case GML_EVENT_OTHER_OUTSIDE_VIEW1: return EVENT_OTHER_OUTSIDE_VIEW1;
         			case GML_EVENT_OTHER_OUTSIDE_VIEW2: return EVENT_OTHER_OUTSIDE_VIEW2;
@@ -812,6 +824,8 @@ function    event_lookup(_event, _subevent)
         			case GML_EVENT_OTHER_OUTSIDE_VIEW5: return EVENT_OTHER_OUTSIDE_VIEW5;
         			case GML_EVENT_OTHER_OUTSIDE_VIEW6: return EVENT_OTHER_OUTSIDE_VIEW6;
         			case GML_EVENT_OTHER_OUTSIDE_VIEW7: return EVENT_OTHER_OUTSIDE_VIEW7;
+					// @endif
+					// @if event("BoundaryView*")
         			case GML_EVENT_OTHER_BOUNDARY_VIEW0: return EVENT_OTHER_BOUNDARY_VIEW0;
         			case GML_EVENT_OTHER_BOUNDARY_VIEW1: return EVENT_OTHER_BOUNDARY_VIEW1;
         			case GML_EVENT_OTHER_BOUNDARY_VIEW2: return EVENT_OTHER_BOUNDARY_VIEW2;
@@ -820,6 +834,8 @@ function    event_lookup(_event, _subevent)
         			case GML_EVENT_OTHER_BOUNDARY_VIEW5: return EVENT_OTHER_BOUNDARY_VIEW5;
         			case GML_EVENT_OTHER_BOUNDARY_VIEW6: return EVENT_OTHER_BOUNDARY_VIEW6;
         			case GML_EVENT_OTHER_BOUNDARY_VIEW7: return EVENT_OTHER_BOUNDARY_VIEW7;
+					// @endif
+					// @if event("UserEvent*")
         			case GML_EVENT_OTHER_USER0: return EVENT_OTHER_USER0;
         			case GML_EVENT_OTHER_USER1: return EVENT_OTHER_USER1;
         			case GML_EVENT_OTHER_USER2: return EVENT_OTHER_USER2;
@@ -836,6 +852,7 @@ function    event_lookup(_event, _subevent)
         			case GML_EVENT_OTHER_USER13: return EVENT_OTHER_USER13;
         			case GML_EVENT_OTHER_USER14: return EVENT_OTHER_USER14;
         			case GML_EVENT_OTHER_USER15: return EVENT_OTHER_USER15;
+					// @endif
         		    case GML_EVENT_OTHER_ANIMATIONUPDATE: return EVENT_OTHER_ANIMATIONUPDATE;
         		    case GML_EVENT_OTHER_ANIMATIONEVENT: return EVENT_OTHER_ANIMATIONEVENT;
         		    case GML_EVENT_OTHER_WEB_IMAGE_LOAD: return EVENT_OTHER_WEB_IMAGE_LOAD;
