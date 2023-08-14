@@ -445,8 +445,8 @@ function Tilemap_CollisionRectangle(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 			t = b;
 			b = temp;
 		}
-		r = ~~yymin(r, tilewidth-1);
-		b = ~~yymin(b, tileheight - 1);
+		r = ~~yymin(r, el.m_mapWidth - 1);
+		b = ~~yymin(b, el.m_mapHeight - 1);
 
 		var tiledatamask = g_pLayerManager.GetTiledataMask();
 		tiledatamask &= el.m_tiledataMask;
@@ -609,8 +609,8 @@ function Tilemap_CollisionLine(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 			t = b;
 			b = temp;
 		}
-		r = ~~yymin(r, tilewidth-1);
-		b = ~~yymin(b, tileheight - 1);
+		r = ~~yymin(r, el.m_mapWidth - 1);
+		b = ~~yymin(b, el.m_mapHeight - 1);
 
 		var tiledatamask = g_pLayerManager.GetTiledataMask();
 		tiledatamask &= el.m_tiledataMask;
@@ -767,8 +767,8 @@ function Tilemap_CollisionEllipse(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 			t = b;
 			b = temp;
 		}
-		r = ~~yymin(r, tilewidth-1);
-		b = ~~yymin(b, tileheight - 1);
+		r = ~~yymin(r, el.m_mapWidth - 1);
+		b = ~~yymin(b, el.m_mapHeight - 1);
 
 		var tiledatamask = g_pLayerManager.GetTiledataMask();
 		tiledatamask &= el.m_tiledataMask;
@@ -1111,8 +1111,8 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 
 		var tiledatamask = g_pLayerManager.GetTiledataMask();
 		tiledatamask &= el.m_tiledataMask;
-		r = ~~yymin(r, tilewidth - 1);
-		b = ~~yymin(b, tileheight - 1);
+		r = ~~yymin(r, el.m_mapWidth - 1);
+		b = ~~yymin(b, el.m_mapHeight - 1);
 		l = ~~yymax(l, 0);
 		t = ~~yymax(t, 0);
 		for (var x = l; x <= r; x++)
