@@ -248,6 +248,8 @@ function yyParticleSystem()
 /**@constructor*/
 function ParticleSystem_ClearClass()
 {
+	this.m_resourceID = -1;					// the id of the particle system resource that this system was created from
+
 	this.created = false;					// whether created
 	
 	this.emitters = []; 						// the emitters
@@ -388,6 +390,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 	}
 
 	var system = g_ParticleSystems[ps];
+	system.m_resourceID = this.index;
 	system.oldtonew = (this.drawOrder == 0);
 	system.globalSpaceParticles = this.globalSpaceParticles;
 
@@ -400,6 +403,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 		var em = ParticleSystem_Emitter_Create(ps);
 		var instanceEmitter = system.emitters[em];
 
+		instanceEmitter.name = templateEmitter.name;
 		instanceEmitter.enabled = templateEmitter.enabled;
 		instanceEmitter.mode = templateEmitter.mode;
 		instanceEmitter.number = templateEmitter.number;
@@ -1545,10 +1549,12 @@ function ParticleSystem_Emitter_Destroy(_ps, _ind)
 // #############################################################################################
 function ParticleSystem_Emitter_DestroyAll(_ps)
 {
-    var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
-	if( pPartSys ==null || pPartSys==undefined ) return false;
-
-	pPartSys.emitters = [];
+	_ps = yyGetInt32(_ps);
+	if (!ParticleSystem_Exists(_ps)) return false;
+	for (var i = g_ParticleSystems[_ps].emitters.length - 1; i >= 0; --i)
+	{
+		ParticleSystem_Emitter_Destroy(_ps, i);
+	}
 	return true;
 }
 
@@ -1979,9 +1985,22 @@ function	ParticleSystem_Emitter_Relative(_ps, _ind, _enable)
 function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 {
 	var system = g_ParticleSystems[_ps];
-	var em = (system.emitters.length == 0)
-		? ParticleSystem_Emitter_Create(_ps)
-		: 0;
+
+	var em = -1;
+	for (var i = 0; i < system.emitters.length; ++i)
+	{
+		var emitter = system.emitters[i];
+		if (emitter.enabled && emitter.created)
+		{
+			em = i;
+			break;
+		}
+	}
+
+	if (em == -1)
+	{
+		em = ParticleSystem_Emitter_Create(ps);
+	}
 
 	EmitParticles(system, system.emitters[em], _x, _y, _parttype, _numb);
 }
@@ -2012,9 +2031,22 @@ function	ParticleSystem_Particles_Create_Color( _ps, _x, _y, _parttype, _col, _n
 	} // end if
 
 	var system = g_ParticleSystems[_ps];
-	var em = (system.emitters.length == 0)
-		? ParticleSystem_Emitter_Create(_ps)
-		: 0;
+
+	var em = -1;
+	for (var i = 0; i < system.emitters.length; ++i)
+	{
+		var emitter = system.emitters[i];
+		if (emitter.enabled && emitter.created)
+		{
+			em = i;
+			break;
+		}
+	}
+
+	if (em == -1)
+	{
+		em = ParticleSystem_Emitter_Create(ps);
+	}
 
 	EmitParticles(system, system.emitters[em], _x, _y, _parttype, _numb, true, _col);
 }
@@ -2051,18 +2083,28 @@ function ParticleSystem_Particles_Burst(_ps, _x, _y, _partsys)
 
 	var system = g_ParticleSystems[_ps];
 	var emitterCount = asset.emitters.length;
+	var emittersEnabled = [];
 
-	for (var i = emitterCount - system.emitters.length; i > 0; --i)
-		ParticleSystem_Emitter_Create(_ps);
+	for (var i = 0; i < system.emitters.length; ++i)
+	{
+		if (system.emitters[i].enabled)
+			emittersEnabled.push(i);
+	}
+
+	for (var i = emitterCount - emittersEnabled.length; i > 0; --i)
+		emittersEnabled.push(ParticleSystem_Emitter_Create(_ps));
 
 	for (var i = 0; i < emitterCount; ++i)
 	{
 		var emitterIndex = asset.emitters[emitterCount - i - 1];
 		var emitter = g_PSEmitters[emitterIndex];
+
+		if (!emitter.enabled) continue;
+
 		var emitterWidth = emitter.xmax - emitter.xmin;
 		var emitterHeight = emitter.ymax - emitter.ymin;
 
-		ParticleSystem_Emitter_Burst_Impl(system, system.emitters[i], _x + emitter.xmin, _y + emitter.ymin,
+		ParticleSystem_Emitter_Burst_Impl(system, system.emitters[emittersEnabled[i]], _x + emitter.xmin, _y + emitter.ymin,
 			emitterWidth, emitterHeight, emitter.shape, emitter.posdistr, emitter.parttype, emitter.number);
 	}
 }

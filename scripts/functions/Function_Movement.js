@@ -72,39 +72,15 @@ function place_free(_pInst, _x,_y)
 // #############################################################################################
 function place_empty(_pInst,_x,_y,_obj) 
 {
-	var xx,yy, Result,pInstance;
 
-    Result=true;
-	xx = _pInst.x;  
-	yy = _pInst.y;
-	_pInst.SetPosition(yyGetReal(_x),yyGetReal(_y));
- 
+	if (is_undefined(_obj))
+		_obj = OBJECT_ALL;
+	
+	var res = PerformColTest(_pInst, _x, _y, _obj);
 
-	if (is_undefined(_obj)) {
-	    _obj = OBJECT_ALL;
-	}
-	else {
-	    _obj = yyGetInt32(_obj);
-	}
-
-
-	Result = Instance_SearchLoop(_pInst, Math.floor(_obj), true, false,
-        function (_pInstance) {
-            var coll = _pInst.Collision_Instance(_pInstance, true);
-            if (!coll) {
-                return false; //Has to be this way round as Instance_SearchLoop bails on positive result
-            }
-            return true;
-        }
-    );
-
-
-	_pInst.SetPosition(xx, yy);
-
-	if (Result)
-	    return false;
-	else
-	    return true;
+	if(res<0)
+		return true;
+	return false;
 	
 }
 
@@ -126,27 +102,15 @@ function place_empty(_pInst,_x,_y,_obj)
 // #############################################################################################
 function place_meeting(_pInst,_x,_y,_obj) 
 {
-	var xx,yy, Result,pInstance;
 
-    Result=false;
-	xx = _pInst.x;  
-	yy = _pInst.y;
-	_pInst.SetPosition(yyGetReal(_x), yyGetReal(_y));
+	var res = PerformColTest(_pInst, _x, _y, _obj);
 
-
-	var pool = GetWithArray(yyGetInt32(_obj));
-	for (var inst = 0; inst < pool.length; inst++) 
+	if(res<0)
 	{
-	    pInstance = pool[inst];
-	    if ((pInstance.active) && (!pInstance.Marked)) {
-	        if (_pInst.Collision_Instance(pInstance, true)) {
-	            Result = true;
-	            break;
-	        }
-	    }
+		return false;
 	}
-	_pInst.SetPosition(xx,yy);
-    return Result;
+	else
+		return true;
 }
 
 // #############################################################################################
@@ -505,7 +469,8 @@ function move_contact(_inst, _dir, _maxdist, _useall)
 		    return;
     }
 }
-function Command_InstancePlace(_pInst,_x,_y,_obj)
+
+function Command_InstancePlace(_pInst,_x,_y,_obj,_list)
 {
 	var xx = _pInst.x;
 	var yy = _pInst.y;
@@ -515,7 +480,12 @@ function Command_InstancePlace(_pInst,_x,_y,_obj)
 	var pInstance = Instance_SearchLoop(_pInst, yyGetInt32(_obj), false, OBJECT_NOONE,
 		function (_pInstance) {
 			if (_pInstance.Collision_Instance(_pInst, true)) {
-			    return _pInstance.id;
+				if(_list)
+				{
+					_list.push(MAKE_REF(REFID_INSTANCE, _pInstance.id));
+					return OBJECT_NOONE;
+				}	
+           		return MAKE_REF(REFID_INSTANCE, _pInstance.id);
 			}
 			return OBJECT_NOONE;
 		}
@@ -524,17 +494,40 @@ function Command_InstancePlace(_pInst,_x,_y,_obj)
 	return pInstance;
 };
 
+
+function Command_InstancePosition(_x,_y,_obj,_list)
+{
+	var pInstance = Instance_SearchLoop(null, yyGetInt32(_obj), false, OBJECT_NOONE,
+		function (_pInstance) {
+			if (_pInstance.Collision_Point(_x,_y, true)) {
+				if(_list)
+				{
+					_list.push(MAKE_REF(REFID_INSTANCE, _pInstance.id));
+					return OBJECT_NOONE;
+				}	
+           		return MAKE_REF(REFID_INSTANCE, _pInstance.id);
+			}
+			return OBJECT_NOONE;
+		}
+	);
+	
+	return pInstance;
+};
+
 function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint,_y_constraint)
 {
 	var ret =[];
-	if ((ind == OBJECT_SELF) && (selfinst != NULL)) ind = selfinst.id;
-	if (ind == OBJECT_NOONE)
+	if(typeof ind === "number")
 	{
-		return ret;
+		if ((ind == OBJECT_SELF) && (selfinst != NULL)) ind = selfinst.id;
+		if (ind == OBJECT_NOONE)
+		{
+			return ret;
+		}
 	}
 
-	var res = Command_InstancePlace(selfinst,selfinst.x,selfinst.y,ind);
-	if(res!=OBJECT_NOONE)
+	var res = PerformColTest(selfinst,selfinst.x,selfinst.y,ind);
+	if(res>=0)
 		return ret;
 
 	if ((dx == 0) && (dy == 0))
@@ -617,8 +610,8 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint
 			ty = clamp(ty, clamp_miny, clamp_maxy); 
 		} 
  
-		res = Command_InstancePlace(selfinst, tx, ty, ind);
-		if (res == OBJECT_NOONE)
+		res = PerformColTest(selfinst, tx, ty, ind);
+		if (res <0)
 		{
 			selfinst.x =tx;
 			selfinst.y =ty;
@@ -647,8 +640,8 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint
 						ty = clamp(ty, clamp_miny, clamp_maxy); 
 					} 
  
-					res = Command_InstancePlace(selfinst, tx, ty, ind);
-					if (res==OBJECT_NOONE)
+					res = PerformColTest(selfinst, tx, ty, ind);
+					if (res<0)
 					{
 						dist_to_travel -= this_step_dist*j; 
 						has_moved = true;
@@ -675,8 +668,8 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint
 					} 
  
 					
-					res = Command_InstancePlace(selfinst, tx, ty, ind);
-					if (res==OBJECT_NOONE)
+					res = PerformColTest(selfinst, tx, ty, ind);
+					if (res<0)
 					{
 						dist_to_travel -= this_step_dist*j; 
 						has_moved = true;
@@ -708,8 +701,8 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint
 						ty = clamp(ty, clamp_miny, clamp_maxy); 
 					} 
 					
-					res = Command_InstancePlace(selfinst, tx, ty, ind);
-					if (res==OBJECT_NOONE)
+					res = PerformColTest(selfinst, tx, ty, ind);
+					if (res<0)
 					{
 
 						dist_to_travel -= this_step_dist*j; 
@@ -960,32 +953,52 @@ function position_empty(_inst,_x,_y)
 // #############################################################################################
 function position_meeting(_pInst,_x,_y,_obj) 
 {
-    _obj = yyGetInt32(_obj);
-
-	var Result,pInstance;
-
-    Result=false;
- 
-    if (_obj == OBJECT_SELF) _obj = _pInst.id;
-
-    var x = yyGetReal(_x);
-    var y = yyGetReal(_y);
-
-    x = ~~x;
-    y = ~~y;
-
-    var pool = GetWithArray(_obj);
-	for (var inst = 0; inst < pool.length; inst++) 
+	if(_obj instanceof YYRef)
 	{
-	    pInstance = pool[inst];
-	    if ((pInstance.active) && (!pInstance.Marked)) {
-	        if (pInstance.Collision_Point(x, y, true)) {
-	            Result = true;
-	            break;
-	        }
-	    }
+		var reftype = _obj.type;
+		if (reftype == REFID_BACKGROUND)
+		{
+			if (Tilemap_PointPlace( _x, _y, _obj, null,true))
+			{
+				return true;
+			}
+			return false;
+		}
+		else
+		{
+			var id = Command_CollisionPoint(_pInst,_x,_y,_obj,true,false);
+			
+			return id;
+		}
 	}
-    return Result;
+	else if (_obj instanceof Array)
+	{
+		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
+		{
+			var obj2 = _obj[i]; 
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			{
+				if (Tilemap_PointPlace( _x, _y, obj2, null,true))
+				{
+					return true;
+				}
+				
+			}
+			else
+			{
+				var id = Command_CollisionPoint(_pInst,_x,_y,obj2,true,false);
+				if(id==true)
+					return true;
+			}
+		}
+		return false;
+	}
+	else
+	{
+		var id = Command_CollisionPoint(_pInst,_x,_y,_obj,true,false);
+		
+		return id;
+	}
 }
 
 

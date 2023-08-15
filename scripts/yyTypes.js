@@ -14,6 +14,119 @@
 // 
 // **********************************************************************************************************************
 
+var AT_Object = 0,
+	AT_Sprite = 1,
+	AT_Sound = 2,
+	AT_Room = 3,
+	AT_Background = 4,
+	AT_Path = 5,
+	AT_Script = 6,
+	AT_Font = 7,
+	AT_Timeline = 8,
+    AT_Tiles = 9, // In HTML5 tile resources are added as part of the background array
+	AT_Shader = 10,
+    AT_Sequence = 11,
+    AT_AnimCurve = 12;
+    AT_ParticleSystem = 13;
+
+var REFCAT_RESOURCE			= 0x01000000;
+var REFCAT_DATA_STRUCTURE	= 0x02000000;
+var REFCAT_INSTANCE			= 0x04000000;
+
+// Runtime instances of resources
+var REFID_INSTANCE			= (0x00000001 | REFCAT_INSTANCE);
+var REFID_DBG				= (0x00000002 | REFCAT_INSTANCE);
+var REFID_PART_SYSTEM		= (0x00000004 | REFCAT_INSTANCE);
+var REFID_PART_EMITTER		= (0x00000008 | REFCAT_INSTANCE);
+var REFID_PART_TYPE			= (0x00000010 | REFCAT_INSTANCE);
+
+// 
+var REFID_OBJECT			= (AT_Object | REFCAT_RESOURCE);
+var REFID_SPRITE			= (AT_Sprite | REFCAT_RESOURCE);
+var REFID_SOUND				= (AT_Sound | REFCAT_RESOURCE);
+var REFID_ROOM				= (AT_Room | REFCAT_RESOURCE);
+var REFID_BACKGROUND		= (AT_Background | REFCAT_RESOURCE);
+var REFID_PATH				= (AT_Path | REFCAT_RESOURCE);
+var REFID_SCRIPT			= (AT_Script | REFCAT_RESOURCE);
+var REFID_FONT				= (AT_Font | REFCAT_RESOURCE);
+var REFID_TIMELINE			= (AT_Timeline | REFCAT_RESOURCE);
+var REFID_TILES				= (AT_Tiles | REFCAT_RESOURCE);
+var REFID_SHADER			= (AT_Shader | REFCAT_RESOURCE);
+var REFID_SEQUENCE			= (AT_Sequence | REFCAT_RESOURCE);
+var REFID_ANIMCURVE			= (AT_AnimCurve | REFCAT_RESOURCE);
+var REFID_PARTICLESYSTEM	= (AT_ParticleSystem | REFCAT_RESOURCE);
+
+var REFID_DS_LIST		= (0x00000001 | REFCAT_DATA_STRUCTURE);
+var REFID_DS_MAP		= (0x00000002 | REFCAT_DATA_STRUCTURE);
+var REFID_DS_GRID		= (0x00000004 | REFCAT_DATA_STRUCTURE);
+var REFID_DS_QUEUE		= (0x00000008 | REFCAT_DATA_STRUCTURE);
+var REFID_DS_STACK		= (0x00000010 | REFCAT_DATA_STRUCTURE);
+var REFID_DS_PRIORITY	= (0x00000020 | REFCAT_DATA_STRUCTURE);
+
+function YYRef(_type, _value)
+{
+    this.type = _type;
+    this.value = _value;
+}
+
+function MAKE_REF(a, b)
+{
+    return new YYRef(a, b);
+}
+
+function YYASSET_REF(a)
+{
+    var index = a & 0x00ffffff;
+    var type = (a >> 24) & 0xff | REFCAT_RESOURCE;
+
+    switch (type)
+    {
+    // TODO: Move resources to references
+    case REFID_OBJECT:
+    case REFID_PARTICLESYSTEM:
+        return MAKE_REF(type, index);
+    
+    default:
+        return index;
+    }
+}
+
+function RefName(_ref)
+{
+    var pRet = "unknown";
+    switch (_ref)
+    {
+    case REFID_INSTANCE:	pRet = "instance";  break;
+    case REFID_DS_LIST:		pRet = "ds_list"; break;
+    case REFID_DS_MAP:		pRet = "ds_map"; break;
+    case REFID_DS_GRID:		pRet = "ds_grid"; break;
+    case REFID_DS_QUEUE:	pRet = "ds_queue"; break;
+    case REFID_DS_STACK:	pRet = "ds_stack"; break;
+    case REFID_DS_PRIORITY:	pRet = "ds_priority"; break;
+    case REFID_OBJECT:		pRet = "object"; break;
+    case REFID_SPRITE:		pRet = "sprite"; break;
+    case REFID_SOUND:		pRet = "sound"; break;
+    case REFID_ROOM:		pRet = "room"; break;
+    case REFID_BACKGROUND:	pRet = "background"; break;
+    case REFID_PATH:		pRet = "path"; break;
+    case REFID_SCRIPT:		pRet = "script"; break;
+    case REFID_FONT:		pRet = "font"; break;
+    case REFID_TIMELINE:	pRet = "timeline"; break;
+    case REFID_TILES:		pRet = "tiles"; break;
+    case REFID_SHADER:		pRet = "shader"; break;
+    case REFID_SEQUENCE:	pRet = "sequence"; break;
+    case REFID_ANIMCURVE:	pRet = "animcurve"; break;
+    case REFID_PARTICLESYSTEM:		pRet = "particle system resource"; break;
+    case REFID_DBG:			pRet = "dbgref"; break;
+    case REFID_PART_SYSTEM:	pRet = "particle system instance"; break;
+    case REFID_PART_EMITTER:pRet = "particle emitter"; break;
+    case REFID_PART_TYPE:	pRet = "particle type"; break;
+    default:
+        break;
+    } // end switch
+    return pRet;
+} // end RefName
+
 // #############################################################################################
 /// Function:<summary>
 ///				Converts the given type to a real number if required and returns the result.
@@ -26,7 +139,9 @@
 // #############################################################################################
 function yyGetReal(_v)
 {
-    if (typeof _v === "number")
+    if (_v instanceof YYRef)
+        return _v.value;
+    else if (typeof _v === "number")
         return _v;
     else if (typeof _v === "boolean") 
         return _v ? 1 : 0;
@@ -72,7 +187,9 @@ function yyGetReal(_v)
 ///			 </returns>
 // #############################################################################################
 function yyGetInt64(_v) {
-    if (typeof _v === "number")
+    if (_v instanceof YYRef)
+        return _v.value;
+    else if (typeof _v === "number")
         return Long.fromValue(_v, false);
     else if (typeof _v === "boolean") 
         return Long.fromValue(_v ? 1 : 0, false);
@@ -118,7 +235,9 @@ function yyGetInt64(_v) {
 ///			 </returns>
 // #############################################################################################
 function yyGetInt32(_v) {
-    if (typeof _v === "number")
+    if (_v instanceof YYRef)
+        return _v.value;
+    else if (typeof _v === "number")
         return ~~_v;
     else if (typeof _v === "boolean") 
         return _v ? 1 : 0;
@@ -164,7 +283,9 @@ function yyGetInt32(_v) {
 ///			 </returns>
 // #############################################################################################
 function yyGetBool(_v) {
-    if (typeof _v === "boolean") 
+    if (_v instanceof YYRef)
+        return _v.value > 0;
+    else if (typeof _v === "boolean") 
         return _v;
     else if (_v === undefined) 
         return false;
@@ -211,6 +332,29 @@ function yyGetBool(_v) {
     return false;
 }
 
+function yyGetRef(_value, _ref, _maxNum, _array, _allowOutOfRange) {
+    var ret = -1;
+    if (_value instanceof YYRef) {
+        var type = _value.type;
+        if (type != _ref) {
+            if(!_allowOutOfRange)
+                yyError("incorrect type (" + RefName(type) + ") expecting a " + RefName(_ref));
+        }
+        else
+            ret = _value.value;
+    }
+    else {
+        ret = yyGetInt32(_value);
+    }
+
+    if (!_allowOutOfRange) {
+        if (ret < 0 || ret >= _maxNum || (_array && !_array[ret])) {
+            yyError("invalid reference to (" + RefName(_ref) + ")");
+        }
+    }
+
+    return ret;
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -247,7 +391,9 @@ function STRING_RemoveVisited( _v )
 
 
 function yyGetString(_v) {
-    if (typeof _v === "string") {
+    if (_v instanceof YYRef)
+        return "ref " + _v.value;
+    else if (typeof _v === "string") {
         var ret = "";
         if (g_incQuotesSTRING_RValue > 0)
             ret += "\"";
