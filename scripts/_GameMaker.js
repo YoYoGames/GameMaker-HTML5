@@ -566,8 +566,10 @@ function GameMaker_Init()
 	graphics = null;
 	if( !canvas) return;
 	
+    // @if function("parameter_*")
     ParseURL( window.location );
-	g_pGMFile = JSON_game;
+	// @endif
+    g_pGMFile = JSON_game;
 
 	// initialise the map of obfuscated names to var 
 	if (typeof g_var2obf !== "undefined") {
