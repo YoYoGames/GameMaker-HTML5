@@ -1999,8 +1999,7 @@ function DetectBrowser()
 	{
 		if (document.URL.substring(0, 5) == "file:")
 		{
-			alert("WARNING:  Running this via a file and not a web server is not advised as the browser will enable additional security, and things like files and colours won't work correctly. " +
-			chr(13) + chr(13) + "Please check the FAQ for more details. " + chr(13) + chr(13) + "https://help.yoyogames.com/hc/en-us/articles/360011372851");
+			alert("WARNING:  Running this via a file and not a web server is not advised as the browser will enable additional security, and things like files and colours won't work correctly.\r\rPlease check the FAQ for more details.\r\rhttps://help.yoyogames.com/hc/en-us/articles/360011372851");
 		}
 	}
 }
