@@ -884,6 +884,7 @@ function DoMD5(_buff, _size,_offset)
 }
 // @endif buffer_md5
 
+// @if function("buffer_crc32")
 function crc32_init() { 
     var poly = -306674912; 
     var tab = new Array(256); 
@@ -910,6 +911,7 @@ function crc32(b, pos, len) {
         crc = (tab[(crc ^ b[i]) & 255] ^ ((crc >>> 8) & 0x00ffffff)) >>> 0;
     return crc; 
 }
+// @endif
 
 
 // #############################################################################################
