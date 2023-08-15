@@ -251,7 +251,7 @@ draw_clear_alpha = (_col, _alpha) => {
 	}
 
 	Graphics_Restore();
-}
+};
 // @endif
 
 
@@ -921,7 +921,7 @@ draw_point = (_x, _y) => {
     graphics.globalAlpha = g_GlobalAlpha;
     graphics.fillStyle = g_GlobalColour_HTML_RGBA;
     graphics._fillRect(_x, _y, 1, 1);
-}
+};
 // @endif
 
 
@@ -965,7 +965,7 @@ draw_line_width = (_x1, _y1, _x2, _y2, _w) => {
 	graphics._closePath();
 	graphics._stroke();
 	graphics._fillRect(_x2, _y2, 1, 1);		// CHROME doesn't fill in the bottom pixel!
-}
+};
 // @endif
 
 
