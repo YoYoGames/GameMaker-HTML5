@@ -209,6 +209,7 @@ window.addEventListener( "unhandledrejection", yyUnhandledRejectionHandler );
 
 
 //external access for js extensions
+// @if feature("js_extensions")
 var GMS_API = {
     "debug_msg": show_debug_message,
     "ds_list_size": ds_list_size,
@@ -220,6 +221,7 @@ var GMS_API = {
     "get_facebook_app_id": YYGetFacebookAppId,
 	"get_app_version_string": YYGetAppVersionString
 };
+// @endif
 
 function YYGetFacebookAppId() {
     return g_pGMFile.Options.Facebook;
