@@ -1334,23 +1334,6 @@ yyInstance.prototype.PerformEventInherited = function (_event, _index, _pOther) 
 	}
 };
 
-// #############################################################################################
-/// Function:<summary>
-///             Perform an event on this instance.
-///          </summary>
-///
-/// In:		 <param name="_pInst">the event to perform</param>
-///          <param name="_pInst">the THIS to use in the event</param>
-///			 <param name="_pOther">the OTHER to use in the event</param>
-// #############################################################################################
-/*yyInstance.prototype.PerformEvent = function (_event, _index, _pInst, _pOther) {
-
-    //if( pObject.Name == "oAssessmentBack" & _event==EVENT_DRAW){
-	//    this.testcode = 1;
-	//}
-    return this.PerformEvent_Common(_event, _index, _pInst, _pOther, _pInst.pObject);
-};*/
-
 
 // #############################################################################################
 /// Function:<summary>
@@ -2566,6 +2549,7 @@ yyInstance.prototype.Collision_Instance = function (_pInst, _prec) {
 
 		if (g_Collision_Compatibility_Mode)
 		{
+			// @if feature("collision_compatibility")
 		    return pSpr1.OrigPreciseCollision(this.image_index | 0, this.bbox, Round(this.x), Round(this.y), 
                                           this.image_xscale, this.image_yscale,
                                           this.image_angle,
@@ -2573,9 +2557,11 @@ yyInstance.prototype.Collision_Instance = function (_pInst, _prec) {
                                           _pInst.image_index | 0, _pInst.bbox, Round(_pInst.x), Round(_pInst.y),
                                           _pInst.image_xscale, _pInst.image_yscale,
                                           _pInst.image_angle);
+            // @endif
 		}
 		else
 		{
+		    // @if !feature("collision_compatibility")
 		    return pSpr1.PreciseCollision(this.image_index | 0, this.bbox, Round(this.x), Round(this.y), 
                                           this.image_xscale, this.image_yscale,
                                           this.image_angle,
@@ -2583,6 +2569,7 @@ yyInstance.prototype.Collision_Instance = function (_pInst, _prec) {
                                           _pInst.image_index | 0, _pInst.bbox, Round(_pInst.x), Round(_pInst.y),
                                           _pInst.image_xscale, _pInst.image_yscale,
                                           _pInst.image_angle);
+            // @endif
 		}
 	}
 	return false;
