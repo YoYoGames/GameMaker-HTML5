@@ -720,12 +720,18 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 		case EVENT_ALARM: done = false; break;  // Shouldn't get called directly
 		case EVENT_STEP: done = false; break;
 		case EVENT_COLLISION: if (this.Collisions[index]) this.Collisions[index].m_pFunction(_pInst, _pOther); break;
+        // @if eventType("Keyboard")
 		case EVENT_KEYBOARD: if (this.ObjKeyDown[_event | index]) this.ObjKeyDown[_event | index](_pInst, _pOther); else done = false; break;
-		case EVENT_MOUSE: done = false; break;  // Shouldn't get called directly
+		// @endif
+        case EVENT_MOUSE: done = false; break;  // Shouldn't get called directly
 		case EVENT_OTHER: done = false; break;  // Shouldn't get called directly
 		case EVENT_DRAW: if (this.DrawEvent) this.DrawEvent(_pInst, _pOther); else done = false; break;
+        // @if eventType("KeyPress")
 		case EVENT_KEYPRESS: if (this.ObjKeyPressed[_event | index]) this.ObjKeyPressed[_event | index](_pInst, _pOther); else done = false; break;
-		case EVENT_KEYRELEASE: if (this.ObjKeyReleased[_event | index]) this.ObjKeyReleased[_event | index](_pInst, _pOther); else done = false; break;
+        // @endif
+		// @if eventType("KeyRelease")
+        case EVENT_KEYRELEASE: if (this.ObjKeyReleased[_event | index]) this.ObjKeyReleased[_event | index](_pInst, _pOther); else done = false; break;
+        // @endif
         // @if eventType("Trigger")
 		case EVENT_TRIGGER: if (this.Triggers[_event | index])
 			{

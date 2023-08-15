@@ -1678,7 +1678,9 @@ function    GameMaker_DoAStep() {
 	UpdateActiveLists();
 	if (New_Room != -1) return;
 
-	HandleKeyboard();
+	// @if feature("keyboard")
+    HandleKeyboard();
+    // @endif
 	UpdateActiveLists();
 	if (New_Room != -1) return;
 

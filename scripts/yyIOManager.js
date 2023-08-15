@@ -69,7 +69,7 @@ var g_LastVirtualKeys = 0;
 
 // Collects together all touch events as single-button mice
 var g_TouchEvents = [];
-
+// @if feature("keyboard")
 var g_UnshiftedKeyboardMapping = {
 8: String.fromCharCode(8),
 9:0,
@@ -286,7 +286,7 @@ var g_ShiftedKeyboardMapping = {
 	222: "~",	//single quote	222
 	223: "¬"
 };
-
+// @endif
 
 
 // #############################################################################################
@@ -664,6 +664,7 @@ function CancelFullScreenMode() {
 // #############################################################################################
 function CaptureBrowserInput() {
 	if (g_InputCaught) return;
+	// @if feature("keyboard")
 	window.onkeyup = function () { yyKeyUpCallback(arguments[0] || window.event); };
 	window.onkeydown = function ()
 	{
@@ -689,6 +690,7 @@ function CaptureBrowserInput() {
             return false;
 		}
 	};
+	// @endif
 	window.onmouseup = onMouseUp;
 	g_InputCaught = true;
 }
@@ -701,8 +703,10 @@ function CaptureBrowserInput() {
 // #############################################################################################
 function ReleaseBrowserInput() {
 	if (g_InputCaught == false) return;
+	// @if feature("keyboard")
 	window.onkeydown = null;
 	window.onkeyup = null;
+	// @endif
 	window.onmouseup = null;
 
 	g_InputCaught = false;
@@ -1032,6 +1036,7 @@ function    yyIOManager( )
     this.Update = IO_Update;
     //this.Clear = IO_Clear;
     this.StartStep = IO_StartStep;
+	// @if feature("keyboard")
     this.Char_Last_Get = Char_Last_Get;
     this.Char_Last_Set = Char_Last_Set;
     this.Key_Last_Get = Key_Last_Get;
@@ -1041,7 +1046,8 @@ function    yyIOManager( )
     this.Key_Down = Key_Down;
     this.Key_Pressed = Key_Pressed;
     this.Key_Released = Key_Released;
-    this.Key_Clear = Key_Clear;
+	this.Key_Clear = Key_Clear;
+    // @endif keyboard
     this.Button_Last_Get = Button_Last_Get;
     this.Button_Current_Get = Button_Current_Get;
 	this.Button_Last_Set = Button_Last_Set;
@@ -1051,9 +1057,11 @@ function    yyIOManager( )
     this.Button_Released = Button_Released;
     this.Button_Clear = Button_Clear;
     this.Button_Clear_All = Button_Clear_All;
+	// @if feature("keyboard")
     this.HandleKeyDown =    IO_HandleKeyDown;
     this.HandleKeyPressed=  IO_HandleKeyPressed;
     this.HandleKeyReleased= IO_HandleKeyReleased;
+	// @endif
 	// @if function("virtual_key_*")
     this.ProcessVirtualKeys = ProcessVirtualKeys;
 	// @endif
@@ -1193,7 +1201,9 @@ function yyInputEvent()
 // #############################################################################################
 function Clear_Pressed() 
 {
+	// @if feature("keyboard")
 	IO_Key_Clear_All();
+	// @endif keyboard
 	IO_Button_Clear_All();
 	g_pBuiltIn.keyboard_key = 0;
 	g_pBuiltIn.keyboard_key = "";
@@ -1215,7 +1225,9 @@ function Clear_Pressed()
 //function IO_Clear()
 yyIOManager.prototype.Clear = function () {
 	//String_Clear();
+	// @if feature("keyboard")
 	this.Key_Clear_All();
+	// @endif keyboard
 	this.Button_Clear_All();
 
 	g_pBuiltIn.keyboard_key = 0;
@@ -1678,6 +1690,7 @@ function    IO_Update()
         g_CurrentInputEvents[eventIndex].Flags &= ~NEW_INPUT_EVENT;
     }
 
+	// @if feature("keyboard")
 	if (g_LastKeyPressed_code)
 	{
 		if (g_LastKeyPressed)
@@ -1713,6 +1726,7 @@ function    IO_Update()
 	    g_pBuiltIn.keyboard_lastkey = g_pBuiltIn.keyboard_key;
 	    g_pBuiltIn.keyboard_key = 0;
 	}
+	// @endif
 
     this.MouseX = g_EventMouseX;
     this.MouseY = g_EventMouseY;
