@@ -116,14 +116,14 @@ function gpu_set_state(){}
     compile_if_used(draw_set_color_write_enable = _stub("draw_set_color_write_enable"));
     compile_if_used(draw_set_colour_write_enable = _stub("draw_set_colour_write_enable"));
     
-    d3d_set_lighting = _stub("d3d_set_lighting");
-    d3d_light_define_direction = _stub("d3d_light_define_direction");
-    d3d_light_define_point = _stub("d3d_light_define_point");
-    d3d_light_enable = _stub("d3d_light_enable");
-    d3d_light_define_ambient = _stub("d3d_light_define_ambient");
-    d3d_light_get = _stub("d3d_light_get");
-    d3d_light_get_ambient = _stub("d3d_light_get_ambient");
-    d3d_get_lighting = _stub("d3d_get_lighting");
+    compile_if_used(draw_set_lighting, d3d_set_lighting = _stub("d3d_set_lighting"));
+    compile_if_used(draw_light_define_direction, d3d_light_define_direction = _stub("d3d_light_define_direction"));
+    compile_if_used(draw_light_define_point, d3d_light_define_point = _stub("d3d_light_define_point"));
+    compile_if_used(draw_light_enable, d3d_light_enable = _stub("d3d_light_enable"));
+    compile_if_used(draw_light_define_ambient, d3d_light_define_ambient = _stub("d3d_light_define_ambient"));
+    compile_if_used(draw_light_get, d3d_light_get = _stub("d3d_light_get"));
+    compile_if_used(draw_light_get_ambient, d3d_light_get_ambient = _stub("d3d_light_get_ambient"));
+    compile_if_used(draw_get_lighting, d3d_get_lighting = _stub("d3d_get_lighting"));
     
     compile_if_used(d3d_set_perspective = _stub("d3d_set_perspective"));
     d3d_set_fog = _stub("d3d_set_fog"); // used by yyWebGL
@@ -258,15 +258,15 @@ function InitD3DFunctions() {
     d3d_set_perspective = WebGL_d3d_set_perspective_RELEASE;
     
     // Lighting
-    d3d_set_lighting = WebGL_d3d_set_lighting_RELEASE;
-    d3d_light_define_direction = WebGL_d3d_light_define_direction_RELEASE;
-    d3d_light_define_point = WebGL_d3d_light_define_point_RELEASE;
-    d3d_light_enable = WebGL_d3d_light_enable_RELEASE;
-    d3d_light_define_ambient = WebGL_d3d_light_define_ambient_RELEASE;
+    compile_if_used(draw_set_lighting, d3d_set_lighting = WebGL_d3d_set_lighting_RELEASE);
+    compile_if_used(draw_light_define_direction, d3d_light_define_direction = WebGL_d3d_light_define_direction_RELEASE);
+    compile_if_used(draw_light_define_point, d3d_light_define_point = WebGL_d3d_light_define_point_RELEASE);
+    compile_if_used(draw_light_enable, d3d_light_enable = WebGL_d3d_light_enable_RELEASE);
+    compile_if_used(draw_light_define_ambient, d3d_light_define_ambient = WebGL_d3d_light_define_ambient_RELEASE);
+    compile_if_used(draw_light_get, d3d_light_get = WebGL_d3d_light_get_RELEASE);
+    compile_if_used(draw_light_get_ambient, d3d_light_get_ambient = WebGL_d3d_light_get_ambient_RELEASE);
+    compile_if_used(draw_get_lighting, d3d_get_lighting = WebGL_d3d_get_lighting_RELEASE);
     d3d_set_fog = WebGL_d3d_set_fog_RELEASE;
-    d3d_light_get = WebGL_d3d_light_get_RELEASE;
-    d3d_light_get_ambient = WebGL_d3d_light_get_ambient_RELEASE;
-    d3d_get_lighting = WebGL_d3d_get_lighting_RELEASE;
 
     compile_if_used(matrix_get = WebGL_Matrix_Get);
     compile_if_used(matrix_set = WebGL_Matrix_Set);

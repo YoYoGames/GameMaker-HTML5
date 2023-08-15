@@ -1226,7 +1226,7 @@ yyFontManager.prototype.Start_Rendering_SDF = function()
 		if (shader_current() != -1)
 			return;							// don't override existing user shader
 
-		if ((this.SDF_State.SDFShader == -1) || (shader_is_compiled(this.SDF_State.SDFShader) == false))
+		if ((this.SDF_State.SDFShader == -1) || (!WebGL_shader_is_compiled_RELEASE(this.SDF_State.SDFShader)))
 			return;							// our SDF shader either doesn't exist or hasn't been compiled
 
 		if (this.SDF_State.usingSDFShader)
@@ -1251,7 +1251,7 @@ yyFontManager.prototype.End_Rendering_SDF = function()
 	{
 		if (this.SDF_State.usingSDFShader)	
 		{
-			shader_reset();
+			WebGL_shader_set_RELEASE(-1);
 
 			var basetexstage = 0;			// we always force the default texture sampler index to be 0
 			WebGL_gpu_set_texfilter_ext(basetexstage, this.SDF_State.currTexFilter);

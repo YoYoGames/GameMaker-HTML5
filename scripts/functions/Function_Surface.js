@@ -30,8 +30,7 @@ var g_createsurfacedepthbuffers = true;
 ///				
 ///			</returns>
 // #############################################################################################
-var surface_resize = surface_resize_RELEASE;
-function surface_resize_RELEASE(_id, _w, _h) 
+function surface_resize(_id, _w, _h) 
 {
     _id = yyGetInt32(_id);
     _w = yyGetInt32(_w);

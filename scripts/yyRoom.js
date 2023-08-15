@@ -3412,18 +3412,22 @@ function ExecuteLayerScript(layerid,script)
 
 function SetLayerShader(shaderid)
 {
+	// @if feature("shaders")
     if(shaderid!=-1)
     {
         shader_set(shaderid);    
     
     }
+	// @endif
 };
 function ResetLayerShader(shaderid)
 {
+	// @if feature("shaders")
     if(shaderid!=-1)
     {
         shader_reset();
     }
+	// @endif
 };
 // #############################################################################################
 /// Function:<summary>
