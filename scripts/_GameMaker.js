@@ -312,7 +312,7 @@ function CreateDebugConsole() {
 	    		{
 	    		    g_debug_window.document.write('<!DOCTYPE html><html>' +
                     '<header>'+
-	                    '<title>GameMaker: Studio - DEBUG console</title>'+
+	                    '<title>GameMaker - DEBUG console</title>'+
                     '</header>'+
                     '<body>'+
 	                    '<table border="0"><tr>' +

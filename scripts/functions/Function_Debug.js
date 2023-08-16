@@ -313,6 +313,27 @@ function debug_event(_event)
     }
 }
 
+function dbg_view() { ErrorFunction( "dbg_view()" ); }
+function dbg_section() { ErrorFunction( "dbg_seciton()" ); }
+function dbg_view_delete() { ErrorFunction( "dbg_view_delete()" ); }
+function dbg_section_delete() { ErrorFunction( "dbg_section_delete()" ); }
+function dbg_slider() { ErrorFunction( "dbg_slider()" ); }
+function dbg_drop_down() { ErrorFunction( "dbg_drop_down()" ); }
+function dbg_watch() { ErrorFunction( "dbg_watch()" ); }
+function dbg_same_line() { ErrorFunction( "dbg_same_line()" ); }
+function dbg_button() { ErrorFunction( "dbg_button()" ); }
+function dbg_text_input() { ErrorFunction( "dbg_text_input()" ); }
+function dbg_checkbox() { ErrorFunction( "dbg_checkbox()" ); }
+function dbg_colour() { ErrorFunction( "dbg_colour()" ); }
+function dbg_color() { ErrorFunction( "dbg_color()" ); }
+function dbg_text() { ErrorFunction( "dbg_text()" ); }
+function dbg_sprite() { ErrorFunction( "dbg_sprite()" ); }
+function ref_create() { ErrorFunction( "ref_create()" ); return 0; }
+function is_debug_overlay_open() { return false; }
+function show_debug_log() { ErrorFunction( "show_debug_log()" ); ; }
+
+
+
 // #############################################################################################
 /// Function:<summary>
 ///             Output a message to the debug console

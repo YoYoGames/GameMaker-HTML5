@@ -289,7 +289,7 @@ function sequence_get_objects(_sequenceOrId)
 
 	if (pSeq != null)
 	{
-		return pSeq.GetObjectIDs();
+		return pSeq.GetObjectIDs().map((id) => MAKE_REF(REFID_OBJECT, id));
 	}
 
 	return -1;

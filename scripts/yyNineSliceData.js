@@ -223,8 +223,8 @@ yyNineSliceData.prototype.GenerateCacheData = function (_width, _height, _ind, _
     texbasex = TPE.x;
     texbasey = TPE.y;
 
-    var nineSliceScaleX = TPE.ow / TPE.w;
-    var nineSliceScaleY = TPE.oh / TPE.h;
+    var nineSliceScaleX = CropWidth / TPE.w;
+    var nineSliceScaleY = CropHeight / TPE.h;
 
     // Work out widths/heights and scaling factors
     var leftwidth = this.left;
@@ -1676,8 +1676,8 @@ yyNineSliceData.prototype.Draw = function (_x, _y, _width, _height, _rot, _colou
         texbasex = TPE.x;
         texbasey = TPE.y;
 
-        var nineSliceScaleX = TPE.ow / TPE.w;
-        var nineSliceScaleY = TPE.oh / TPE.h;
+        var nineSliceScaleX = CropWidth / TPE.w;
+        var nineSliceScaleY = CropHeight / TPE.h;
 
         // Work out widths/heights and scaling factors
         var leftwidth = this.left;
