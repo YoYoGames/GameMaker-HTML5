@@ -2901,7 +2901,7 @@ yyRoom.prototype.HandleSequenceParticle = function (_rect, _layer, _pSequenceEl,
 };
 
 yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _node, _track, _headPosition, _lastHeadPosition, _headDirection, _sequence) {
-
+	// @if feature("fonts")
     var keyframeStore = _track.m_keyframeStore;
 
     var keyframeIndex = keyframeStore.GetKeyframeIndexAtFrame(_headPosition, _sequence.m_length);
@@ -3153,6 +3153,7 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 	draw_set_font(oldFontID);
 	draw_set_color(oldCol);
 	draw_set_alpha(oldAlpha);
+	// @endif fonts
 };
 // @endif sequences
 

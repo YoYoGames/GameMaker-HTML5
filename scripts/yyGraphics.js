@@ -202,7 +202,9 @@ function    Graphics_Init( _canvas )
         Graphics_DrawPart = Graphics_DrawPart_RELEASE;
         Graphics_Save = Graphics_Save_RELEASE;
         Graphics_Restore = Graphics_Restore_RELEASE;
+		// @if feature("fonts")
         Graphics_DrawText = Graphics_DrawText_RELEASE;
+		// @endif fonts
         Graphics_StartFrame = Graphics_StartFrame_RELEASE;
         Graphics_EndFrame = Graphics_EndFrame_RELEASE;
         Graphics_DrawComment = Graphics_DrawComment_RELEASE;

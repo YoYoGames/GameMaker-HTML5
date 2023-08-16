@@ -131,7 +131,9 @@ function InitWebGLFunctions() {
     Graphics_PushMatrix = WebGL_PushMatrix_RELEASE;
     Graphics_Save = WebGL_Save_RELEASE;
     Graphics_Restore = WebGL_Restore_RELEASE;
+    // @if feature("fonts")
     Graphics_DrawText = WebGL_DrawText_RELEASE;
+    // @endif fonts
     Graphics_StartFrame = WebGL_StartFrame_RELEASE;
     Graphics_EndFrame = WebGL_EndFrame_RELEASE;
     Graphics_DrawComment = WEBGL_DrawComment_RELEASE;    

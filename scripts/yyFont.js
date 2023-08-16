@@ -21,6 +21,7 @@
 ///
 /// In:		 <param name="_pStorage"></param>
 // #############################################################################################
+// @if feature("fonts")
 /** @constructor */
 function    yyFont( )
 {
@@ -1161,6 +1162,7 @@ yyFont.prototype.Draw_Sprite_String_GL = function (_x, _y, _pStr, _xscale, _ysca
 	}
 	// @endif
 };
+// @endif fonts
 
 
 
@@ -1194,6 +1196,7 @@ yyFont.prototype.Draw_Sprite_String_GL = function (_x, _y, _pStr, _xscale, _ysca
 ///             Create a new Font manager
 ///          </summary>
 // #############################################################################################
+// @if feature("fonts")
 /** @constructor */
 function    yyFontManager( )
 {
@@ -1370,6 +1373,7 @@ yyFontManager.prototype.Get = function( _id ) {
 	}
 	return null;
 };
+// @endif fonts
 
 
 // #############################################################################################
@@ -1437,6 +1441,7 @@ function    String_Replace_Hash(str, thefont, _override_zeus)
 ///				
 ///			 </returns>
 // #############################################################################################
+// @if feature("fonts")
 yyFontManager.prototype.Split_TextBlock = function (_pStr, linewidth, thefont) {
 
 	if (_pStr == null) return;
@@ -2202,3 +2207,4 @@ yyFontManager.prototype.GR_Text_Sizes = function (_str, x, y, linesep, linewidth
 	w = thefont.TextWidth(pStr, true);
 	if (g_ActualTextWidth < w) g_ActualTextWidth = w;	
 };
+// @endif fonts

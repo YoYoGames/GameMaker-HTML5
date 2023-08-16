@@ -945,7 +945,11 @@ function string_count(_substr,_str)
 // #############################################################################################
 function string_hash_to_newline( _str )
 {
+    // @if feature("fonts")
     return String_Replace_Hash(yyGetString(_str), g_pFontManager.Font_Get(g_pFontManager.fontid), true);
+    // @else
+    return String_Replace_Hash(yyGetString(_str), null, true);
+    // @endif fonts
 }
 
 // #############################################################################################

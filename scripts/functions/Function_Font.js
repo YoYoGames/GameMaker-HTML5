@@ -458,7 +458,6 @@ function font_get_name(_id) {
     if (!pFont) return "";
     return pFont.pName;
 }
-var font_name = font_get_name;
 
 // #############################################################################################
 /// Function:<summary>

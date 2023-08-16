@@ -56,7 +56,9 @@ function InitAboyne()
 	// @if feature("audio")
     g_pSoundManager = new yySoundManager();
 	// @endif audio
+	// @if feature("fonts")
     g_pFontManager = new yyFontManager();
+	// @endif fonts
     g_pCollisionList = [];
 	// @if feature("paths")
     g_pPathManager = new yyPathManager();
@@ -786,6 +788,7 @@ function LoadGame(_GameFile)
     }
     
     // Load Fonts
+	// @if feature("fonts")
     for(index=0; index<_GameFile.Fonts.length; index++ ){
         g_pFontManager.Add( _GameFile.Fonts[index]);
     }
@@ -798,6 +801,7 @@ function LoadGame(_GameFile)
     		g_pFontManager.AddEmbedded(_GameFile.EmbeddedFonts[index]);
 		}
 	}
+	// @endif fonts
 
     //Make Rooms    
     for (var index = 0; index < _GameFile.GMRooms.length; index++)
@@ -950,6 +954,7 @@ function LoadGame(_GameFile)
 				}
 			}
 			// @endif
+			// @if feature("fonts")
 			if (pStore.FontIDs !== undefined)
 			{
 				for(var i = 0; i < pStore.FontIDs.length; i++)
@@ -957,6 +962,7 @@ function LoadGame(_GameFile)
 					pTGInfo.fonts[i] = pStore.FontIDs[i];
 				}
 			}
+			// @endif fonts
 			if (pStore.TilesetIDs !== undefined)
 			{
 				for(var i = 0; i < pStore.TilesetIDs.length; i++)

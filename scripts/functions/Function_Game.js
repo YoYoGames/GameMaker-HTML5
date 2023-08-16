@@ -154,6 +154,7 @@ function highscore_save() {
 // #############################################################################################
 function draw_highscore(_x1, _y1, _x2, _y2)
 {
+    // @if feature("fonts")
     _x1 = yyGetInt32(_x1);
     _y1 = yyGetInt32(_y1);
     _x2 = yyGetInt32(_x2);
@@ -172,6 +173,7 @@ function draw_highscore(_x1, _y1, _x2, _y2)
 		_y1 += dy;
 	}
 	g_pFontManager.halign = halign;
+    // @endif fonts
 }
 
 // #############################################################################################
