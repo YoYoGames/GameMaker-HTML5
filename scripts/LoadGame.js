@@ -53,7 +53,9 @@ function InitAboyne()
 	g_pSpriteManager = new yySpriteManager();
 	g_pTextureGroupInfoManager = new yyTextureGroupInfoManager();
     g_pBackgroundManager = new yyBackgroundManager();
+	// @if feature("audio")
     g_pSoundManager = new yySoundManager();
+	// @endif audio
     g_pFontManager = new yyFontManager();
     g_pCollisionList = [];
 	// @if feature("paths")
@@ -77,7 +79,9 @@ function InitAboyne()
     g_pCameraManager = new CameraManager();
     InitAboyneGlobals();
 
-    Audio_Init(); 
+    // @if feature("audio")
+	Audio_Init(); 
+	// @endif audio
 
 	if (g_isZeus)
 	{
@@ -182,6 +186,7 @@ function LoadedGame_ExtensionError(_event) {
 ///          	Callbacks for sound loading... (this is set to the image)
 ///          </summary>  
 // #############################################################################################
+// @if feature("audio")
 function ClearEventListeners(_snd) {
 	_snd.removeEventListener('canplaythrough', LoadGame_SoundLoad, false);
 	_snd.removeEventListener('error', LoadGame_SoundLoad_Error, false);
@@ -239,7 +244,7 @@ function LoadGame_SoundLoad_Suspended(_event) {
 function LoadGame_SoundLoad_Stalled(_event) {
 	//debug(this.URL + ' loading stalled');
 }
-
+// @endif audio
 
 
 // #############################################################################################
@@ -483,6 +488,7 @@ function LoadGame_PreLoadAssets(_GameFile)
 
 
 	// Now load WAV files (not mp3/ogg)
+	// @if feature("audio")
 	if(g_AudioModel == Audio_WebAudio)
     {
         for (index = 0; index < _GameFile.Sounds.length; index++)
@@ -551,6 +557,7 @@ function LoadGame_PreLoadAssets(_GameFile)
 		    }
 	    }
 	}		
+	// @endif audio load
 }
 
 
@@ -847,9 +854,11 @@ function LoadGame(_GameFile)
 
 
     // Load Sounds
+	// @if feature("audio")
     for(index=0; index<_GameFile.Sounds.length; index++ ){
         g_pSoundManager.Add( _GameFile.Sounds[index]);
     }
+	// @endif audio
     
 
     // Load Timelines

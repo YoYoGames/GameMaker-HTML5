@@ -14,6 +14,7 @@
 // 
 // **********************************************************************************************************************
 
+// @if feature("audio")
 var audio_sounds = [];
 var BASE_SOUND_INDEX = 300000;
 var audio_sounds_index = BASE_SOUND_INDEX;
@@ -1059,6 +1060,7 @@ function Audio_EngineReportState()
     ds_map_destroy(map);
     g_pBuiltIn.async_load = -1;
 }
+// @endif audio
 
 function audio_system_is_available()
 {
@@ -2408,6 +2410,7 @@ function audio_get_listener_info(index)
 }
 function audio_debug(trueFalse)                             {}
 
+// @if feature("audio")
 //loading -------------------------
 /** @this {XMLHttpRequest} */
 function Audio_SoundError(e)
@@ -2908,6 +2911,7 @@ function AudioGroups_Init()
         }
     }
 }
+// @endif audio
 
 function audio_group_load( _groupId )
 {

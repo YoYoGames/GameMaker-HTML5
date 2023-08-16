@@ -1115,7 +1115,8 @@ function    InitAboyneGlobals() {
     InitFastCRC();
     DetectBrowser();
 
-    if(g_AudioModel!= Audio_NoAudio) {
+    // @if feature("audio")
+	if(g_AudioModel!= Audio_NoAudio) {
         
         try {
         var pAudioTest = new Audio();
@@ -1133,6 +1134,7 @@ function    InitAboyneGlobals() {
           
         }
     }
+	// @endif audio
 
     if (g_canPlayMp3) debug("Browser CAN play MP3");
     if (g_canPlayOgg) debug("Browser CAN play OGG");

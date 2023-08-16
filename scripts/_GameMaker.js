@@ -640,9 +640,11 @@ function GameMaker_Init()
  	g_LastCanvasWidth = canvas.width;
     g_LastCanvasHeight = canvas.height;    
     
+    // @if feature("audio")
     if ((g_pGMFile.Options.UseNewAudio == true) || g_isZeus) {
         g_AudioModel = Audio_WebAudio;
     }
+    // @endif audio
 
     
 
@@ -1483,11 +1485,13 @@ function    StartGame()
 	g_pBuiltIn.fps = Fps;
 	g_pBuiltIn.fps_real = Fps;
 
+    // @if feature("audio")
     if(g_AudioModel == Audio_WebAudio)
     {
         // Audio: Report current device status to the newly created room
         Audio_EngineReportState();
     }
+    // @endif audio
 }
 
 // #############################################################################################
@@ -1546,13 +1550,15 @@ function Run_EndGame(_reset) {
 	}
 	g_pInstanceManager.Clear();
 
-	if (_reset) {
+	// @if feature("audio")
+    if (_reset) {
 		// Just stops all audio instances.
 		audio_stop_all();
 	} else {
 		// Destroys the AudioContext instance.
 		Audio_Quit();
 	}
+    // @endif audio
 }
 
 
@@ -1753,7 +1759,9 @@ function    GameMaker_DoAStep() {
 
 	RenderSystemOverlays();
 	
-	audio_update();
+	// @if feature("audio")
+    audio_update();
+    // @endif audio
 }
 
 

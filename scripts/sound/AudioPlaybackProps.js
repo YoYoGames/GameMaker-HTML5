@@ -1,3 +1,4 @@
+// @if feature("audio")
 var AudioPlaybackType = {
     NON_POSITIONAL: 0,
     POSITIONAL_SPECIFIED: 1,
@@ -91,3 +92,4 @@ AudioPlaybackProps.prototype.invalid = function() {
 
     return false;
 };
+// @endif audio

@@ -1,3 +1,4 @@
+// @if feature("audio")
 class AudioEmitter {
     constructor() {
         if (Audio_IsMainBusInitialised() === false) {
@@ -100,3 +101,4 @@ AudioEmitter.prototype.setPosition = function(_x, _y, _z) {
     this.pannerNode.positionY.value = _y;
     this.pannerNode.positionZ.value = _z;
 };
+// @endif audio
