@@ -141,7 +141,9 @@ function InitWebGLFunctions() {
     Graphics_TextureDrawSimple = WebGL_TextureDrawSimple_RELEASE;
     Graphics_TextureDrawTiled = WebGL_TextureDrawTiled_RELEASE;
     Graphics_TextureDraw = WebGL_TextureDraw_RELEASE;
+    // @if function("draw_sprite_pos")
     Graphics_TextureDrawPos = WebGL_TextureDrawPos_RELEASE;
+    // @endif
     // @if feature("swf")
     Graphics_SWFDraw = WebGL_DrawSWF_RELEASE;
     Graphics_SWFDrawObject = WebGL_DrawSWFObject_RELEASE;

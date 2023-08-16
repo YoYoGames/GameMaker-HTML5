@@ -1229,8 +1229,8 @@ function    Graphics_ColouriseImage( _texture, _x, _y, _w, _h, _col )
 ///			 </returns>
 // #############################################################################################
 function Graphics_TextureDrawPos(){}
-// @if feature("2d")
-function Graphics_TextureDrawPos(_pTPE, _x1, _y1, _x2, _y2, _x3, _y3, _x4, _y4, _alpha) {
+// @if feature("2d") && function("draw_sprite_pos")
+Graphics_TextureDrawPos = function(_pTPE, _x1, _y1, _x2, _y2, _x3, _y3, _x4, _y4, _alpha) {
 
 	var pTexture = _pTPE.texture;
 
