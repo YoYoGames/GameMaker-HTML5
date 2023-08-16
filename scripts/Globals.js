@@ -869,12 +869,7 @@ Audio_WebAudio=1,
 	g_pTempTPE =null,
 	g_VirtualKeyDrawList =null,
 	g_HighScoreValues =null,
-	g_HighScoreNames =null,
-	g_HiscoreCaption =null,
 	g_HighscoreNobody =null,
-	g_HighscoreEscape =null,
-	g_HiscoreFont =null,
-	g_HiscoreFontStyle =null,
 	g_Arguments =null,
 	g_ArgumentIndex =null,
 	g_ArgumentValue =null,
@@ -914,7 +909,6 @@ Audio_WebAudio=1,
 
     g_AudioModel = Audio_Sound,
 // assign to true
-    g_HiscoreFontBorder =true,    
 	Draw_Automatic = true,             // Whether to automatically draw the room each step
 
 // assign to false
@@ -964,11 +958,6 @@ Audio_WebAudio=1,
     g_LastCanvasWidth =  0,
 	g_LastCanvasHeight =  0,
 	g_DynamicTileID = 0,
-	g_HiscoreBackgroundColour = 0,
-	g_HiscoreNewColour = 0,
-	g_HiscoreOtherColour = 0,
-	g_HiscoreFontSize = 0,
-	g_HiscoreBackground = 0,
  
 	g_AsyncUserID =  0,
 	g_LastEventpObject = 0,
@@ -1214,17 +1203,7 @@ function    InitAboyneGlobals() {
 	g_HighScoreValues = [];
 	g_HighScoreNames = [];
 
-	g_HiscoreCaption = "Hiscore Table";
 	g_HighscoreNobody = "<Nobody>";
-	g_HighscoreEscape ="Press <ESC> to Continue";
-	g_HiscoreBackgroundColour = 0x000000;
-	g_HiscoreBackground = -1;
-	g_HiscoreNewColour = 0xffff00;
-	g_HiscoreOtherColour = 0xffffff;
-    g_HiscoreFont = "verdana";
-    g_HiscoreFontSize = 16;
-    g_HiscoreFontStyle = "";
-    g_HiscoreFontBorder = true;
 	
     // @if function("draw_highscore") || function("highscore_*")
     highscore_clear();
