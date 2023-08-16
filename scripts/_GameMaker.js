@@ -822,7 +822,9 @@ function animate() {
             case -2:
                 {
                     if (g_LoadingCanvasCreated) DeleteLoadingCanvas();
+                    // @if feature("gl")
                     yyWebGLRequiredError(graphics, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+                    // @endif gl
                     break;
                 }
 

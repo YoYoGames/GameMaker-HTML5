@@ -228,7 +228,9 @@ function    Graphics_Init( _canvas )
         }
 		// @endif
     }else{
+		// @if feature("gl")
         InitWebGLFunctions();
+		// @endif gl
     }
 
 

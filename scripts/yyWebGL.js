@@ -262,7 +262,7 @@ function InitWebGLFunctions() {
 ///          </summary>
 // #############################################################################################
 function InitWebGL(_canvas) {
-
+    // @if feature("gl")
     var options = {
         Stencil: ((g_pGMFile.Swfs !== undefined) ? true : false),
         PreserveDrawingBuffer: (g_pGMFile.Options.WebGLPreserveDrawingBuffer ? true : false),
@@ -288,6 +288,7 @@ function InitWebGL(_canvas) {
         GR_TextureRepeat[i] = false;
     }
     return true;
+    // @endif gl
 }
 
 // #############################################################################################
@@ -4896,6 +4897,7 @@ function WebGL_SetMatrix(_type, _matrix) {
 
     g_ViewFrustumDirty |= (_type == MATRIX_VIEW || _type == MATRIX_PROJECTION);
 
+    // @if feature("gl")
     if(g_webGL==null)
         return;
     switch (_type) {
@@ -4912,7 +4914,8 @@ function WebGL_SetMatrix(_type, _matrix) {
             g_webGL.SetWorldMatrix(g_Matrix[_type]);
             break;
     }
-    g_webGL.Flush(); 
+    g_webGL.Flush();
+    // @endif gl
 }
 
 // #############################################################################################
