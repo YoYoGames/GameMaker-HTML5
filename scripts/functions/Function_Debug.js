@@ -437,7 +437,7 @@ function show_message(_txt)
 {
     var msg = yyGetString(_txt);
     if (!msg) return;
-    alert(SplitText(msg));
+    alert(msg);
 }
 
 // #############################################################################################
@@ -487,13 +487,8 @@ function show_question_async(_str) {
 ///			</returns>
 // #############################################################################################
 function show_question(_str) {
-    _str = yyGetString(_str);
-
-    if (!_str) {
-        _str = "";
-    }
     if (window.confirm) {
-        return confirm(SplitText(_str)) ? 1.0 : 0.0;
+        return confirm(yyGetString(_str) || "") ? 1.0 : 0.0;
     }
     ErrorFunction("show_question()");
     return 0;
