@@ -209,7 +209,7 @@ window.addEventListener( "unhandledrejection", yyUnhandledRejectionHandler );
 
 
 //external access for js extensions
-// @if feature("js_extensions")
+// @if feature("extension_api")
 var GMS_API = {
     "debug_msg": show_debug_message,
     "ds_list_size": ds_list_size,
