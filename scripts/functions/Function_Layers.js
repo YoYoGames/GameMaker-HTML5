@@ -452,9 +452,11 @@ LayerManager.prototype.RemoveElementFromLayer= function(_room,_el,_layer,_remove
         case eLayerElementType_OldTilemap:
             this.RemoveOldTilemapElement(layer,element);
             break;
+        // @if feature("sprites")
         case eLayerElementType_Sprite:
             this.RemoveSpriteElement(layer,element);
             break;
+        // @endif sprites
         case eLayerElementType_Tilemap:
             this.RemoveTilemapElement(layer,element);
             break;       
@@ -464,9 +466,11 @@ LayerManager.prototype.RemoveElementFromLayer= function(_room,_el,_layer,_remove
         case eLayerElementType_Tile:
             this.RemoveTileElement(layer,element);
             break;
+        // @if feature("sequences")
         case eLayerElementType_Sequence:
             this.RemoveSequenceElement(layer,element);
-            break;    
+            break;
+        // @endif 
     };
 
     // This doesn't exist just now - need to implement
@@ -1516,8 +1520,10 @@ LayerManager.prototype.UpdateLayers = function()
                     //el.m_pBackground.image_index += el.m_pBackground.image_speed;
                 }
             }
+            // @if feature("sprites")
             else if (type == eLayerElementType_Sprite)
             {
+                
                 var sprite = g_pSpriteManager.Get(el.m_spriteIndex);
 
                 if (sprite.sequence != null)
@@ -1566,6 +1572,7 @@ LayerManager.prototype.UpdateLayers = function()
                     }                    
                 }
             }
+            // @endif sprites
             else if( type == eLayerElementType_Tilemap)
             {
                 var back = g_pBackgroundManager.GetImage(el.m_backgroundIndex);
@@ -1875,6 +1882,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                     this.AddNewElement(_room,NewLayer,NewTileLayer,false);*/
                 }
                 
+                // @if feature("sprites")
                 var numsprites = 0;
                 if(pLayer.scount!=undefined) numsprites = pLayer.scount;
                 if(numsprites>0)
@@ -1906,6 +1914,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                     
                     }
                 }
+                // @endif sprites
 
                 // Sequences
                 // @if feature("sequences")
@@ -2807,6 +2816,7 @@ function layer_sprite_index( arg1,arg2)
         el.m_imageIndex = yyGetInt32(arg2);
 
         var frame = yyGetInt32(arg2);
+        // @if feature("sprites")
         var sprite = g_pSpriteManager.Get(el.m_spriteIndex);
 
         if (sprite != null)
@@ -2842,6 +2852,7 @@ function layer_sprite_index( arg1,arg2)
             }
         }
         else
+        // @endif sprites
         {
             el.m_imageIndex = frame;	// just use value as-is
         }

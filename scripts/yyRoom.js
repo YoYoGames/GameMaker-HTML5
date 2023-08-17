@@ -1078,6 +1078,7 @@ yyRoom.prototype.DrawLayerInstanceElement = function(_rect,_layer,_el)
 				    g_skeletonDrawInstance = null;
 				    
 				}
+				// @if feature("sprites")
 				else
 				{
 	
@@ -1103,6 +1104,7 @@ yyRoom.prototype.DrawLayerInstanceElement = function(_rect,_layer,_el)
 					}
 					
 				}
+				// @endif sprites
 			}
 		} // end if
 	}
@@ -1187,6 +1189,7 @@ yyRoom.prototype.DrawLayerBackgroundElement = function(_rect,_layer,_el)
 
 
     // Does this background have a sprite?	
+	// @if feature("sprites")
 	if (sprite_exists(back.index))
 	{
 	    // get sprite details
@@ -1209,6 +1212,7 @@ yyRoom.prototype.DrawLayerBackgroundElement = function(_rect,_layer,_el)
         }
 	}
 	else
+	// @endif sprites
 	{
 		// Don't "just" clear - it doesn't respect the current viewport
 	    var oldAlpha = g_GlobalAlpha;
@@ -1232,6 +1236,7 @@ yyRoom.prototype.DrawLayerBackgroundElement = function(_rect,_layer,_el)
 // #############################################################################################
 yyRoom.prototype.DrawLayerSpriteElement = function(_rect,_layer,_el)
 {
+	// @if feature("sprites")
     if (sprite_exists(_el.m_spriteIndex))
 	{
 	    var pImage = g_pSpriteManager.Get( _el.m_spriteIndex );
@@ -1260,6 +1265,7 @@ yyRoom.prototype.DrawLayerSpriteElement = function(_rect,_layer,_el)
 			}	
 		}
 	}
+	// @endif sprites
 };
 
 var g_DefaultCameraID = -1;
@@ -2050,6 +2056,7 @@ yyRoom.prototype.DrawLayerParticleSystem = function(_rect,_layer,_el)
 
 yyRoom.prototype.DrawLayerTileElement = function (_rect, _layer, _el) {
     // TODO - cull according to screen rect
+	// @if feature("sprites")
     if (!_el.m_visible) return false;
     var pImage = g_pSpriteManager.Get(_el.m_index);
     if (pImage != null) {
@@ -2101,6 +2108,7 @@ yyRoom.prototype.DrawLayerTileElement = function (_rect, _layer, _el) {
             graphics._drawImage(pTPE, pTPE.x + (_el.m_xo * scalex), pTPE.y + (_el.m_yo * scalex), _el.m_w * scalex, _el.m_h * scalex, _el.m_x, _el.m_y, _el.m_w * _el.m_imageScaleX, _el.m_h * _el.m_imageScaleY, col);
         }*/
     }
+	// @endif sprites
 };
 
 
@@ -2291,7 +2299,7 @@ yyRoom.prototype.DrawTrackList = function (_rect, _layer, _pSequenceEl, _evalTre
 };
 
 yyRoom.prototype.HandleSequenceGraphic = function (_rect, _layer, _pSequenceEl, _node, _track, _headPosition, _lastHeadPosition, _headDirection, _sequence) {
-
+	// @if feature("sprites")
     var keyframeStore = _track.m_keyframeStore;
 
     var keyframeIndex = keyframeStore.GetKeyframeIndexAtFrame(_headPosition, _sequence.m_length);
@@ -2478,6 +2486,7 @@ yyRoom.prototype.HandleSequenceGraphic = function (_rect, _layer, _pSequenceEl, 
     {
         WebGL_SetMatrix(MATRIX_WORLD, oldworldmat);
     }
+	// @endif sprites
 };
 
 
@@ -2787,6 +2796,7 @@ yyRoom.prototype.HandleSequenceInstance = function (_rect, _layer, _pSequenceEl,
 								//if (!pInst.PerformEvent(EVENT_DRAW, 0, pInst, pInst))
 								if( !pInst.REvent[EVENT_DRAW] )
 								{
+									// @if feature("sprites")
 									// Otherwise just DRAW it..
 									var pSprite = g_pSpriteManager.Get(pInst.sprite_index);
 									if (pSprite)
@@ -2806,6 +2816,7 @@ yyRoom.prototype.HandleSequenceInstance = function (_rect, _layer, _pSequenceEl,
 														);
 										}
 									}
+									// @endif sprites
 								}
 								else
 								{
@@ -3211,10 +3222,12 @@ yyRoom.prototype.DrawRoomLayers = function(_rect){
 	                {
 	                    this.DrawLayerOldTilemapElement(_rect,player,el);
 	                }
+					// @if feature("sprites")
 	                else if(el.m_type === eLayerElementType_Sprite)
 	                {
 	                    this.DrawLayerSpriteElement(_rect,player,el,0,0,0);
 	                }
+					// @endif sprites
 	                else if(el.m_type === eLayerElementType_Tilemap)
 	                {
 	                    this.DrawLayerTilemapElement(_rect,player,el);
@@ -3289,6 +3302,7 @@ yyRoom.prototype.DrawTheRoom = function (_rect) {
 // #############################################################################################
 yyRoom.prototype.DrawUserCursor = function () {
 	// Draw USER curser
+	// @if feature("sprites")
 	if (g_CurrentCursor >= 0)
 	{
 		var pSpr = g_pSpriteManager.Get(g_CurrentCursor);
@@ -3299,6 +3313,7 @@ yyRoom.prototype.DrawUserCursor = function () {
 		g_CurrentCursorFrame++;
 		if (g_CurrentCursorFrame > pSpr.numb) g_CurrentCursorFrame -= pSpr.numb;
 	}
+	// @endif sprites
 };
 
 // #############################################################################################
@@ -3438,7 +3453,7 @@ function ResetLayerShader(shaderid)
 /// In:		 <param name="r">Rect to "fit" in</param>
 // #############################################################################################
 yyRoom.prototype.ExecuteDrawEvent = function (_rect, _event) {
-	var pSprite, pInst, i, pool, pSprites;
+	var pSprite, pInst, i, pool;
 	
 	Current_Event_Type = _event;
 
@@ -3507,7 +3522,6 @@ yyRoom.prototype.ExecuteDrawEvent = function (_rect, _event) {
 	
 	
 	    pool = this.m_Active.pool;
-	    pSprites = g_pSpriteManager.Sprites;
 
 	    for (i = pool.length - 1; i >= 0; i--)
 	    {

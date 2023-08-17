@@ -33,8 +33,11 @@ var		MASK_PRECISE   = 0,
 // #############################################################################################
 function    sprite_exists( _index )
 {
-    if( g_pSpriteManager.Get(yyGetInt32(_index)) == null ) return false;
-    return true;
+	// @if feature("sprites")
+	return g_pSpriteManager.Get(yyGetInt32(_index)) != null;
+	// @else
+	return false;
+	// @endif sprites
 }
 
 
@@ -51,9 +54,11 @@ function    sprite_exists( _index )
 // #############################################################################################
 function    sprite_get_width( _index )
 {
+	// @if feature("sprites")
     var pSpr = g_pSpriteManager.Get(yyGetInt32(_index));
-    if( pSpr==null) return 0;
-    return pSpr.width;
+    if( pSpr!=null) return pSpr.width;
+	// @endif sprites
+    return 0;
 }
 
 
@@ -69,9 +74,11 @@ function    sprite_get_width( _index )
 // #############################################################################################
 function    sprite_get_height( _index )
 {
+	// @if feature("sprites")
     var pSpr = g_pSpriteManager.Get(yyGetInt32(_index));
-    if( pSpr==null) return 0;
-    return pSpr.height;
+    if( pSpr!=null) return pSpr.height;;
+	// @endif sprites
+    return 0;
 }
 
 

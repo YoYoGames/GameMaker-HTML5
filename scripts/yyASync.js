@@ -104,7 +104,7 @@ function ASync_ImageLoad_Callback(_event) {
     pFile.m_Complete = true;
     pFile.m_Status = ASYNC_STATUS_LOADED;
     
-    
+    // @if feature("sprites")
     if( pFile.m_Type == ASYNC_SPRITE )
     {
         // Now actually UPDATE the sprite and TPage stuff.
@@ -170,6 +170,7 @@ function ASync_ImageLoad_Callback(_event) {
 		}
         return;
     }    
+	// @endif sprites
     
     if( pFile.m_Type == ASYNC_BACKGROUND )
     {
@@ -379,7 +380,9 @@ yyASyncManager.prototype.Process = function () {
 				}
 
 				if (pFile.m_Type == ASYNC_IMAGE) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_IMAGE_LOAD, 0, true); // Throw an event for the image
+				// @if feature("sprites")
 				else if (pFile.m_Type == ASYNC_SPRITE) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_IMAGE_LOAD, 0, true); // Throw an event for the image
+				// @endif sprites
 				else if (pFile.m_Type == ASYNC_BACKGROUND) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_IMAGE_LOAD, 0, true); // Throw an event for the image
 				else if (pFile.m_Type == ASYNC_SOUND) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_SOUND_LOAD, 0, true);
 				else if (pFile.m_Type == ASYNC_WEB) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_ASYNC, 0, true);

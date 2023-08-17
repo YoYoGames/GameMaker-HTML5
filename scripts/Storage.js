@@ -52,6 +52,7 @@ function TPE_Copy(_pTPE)
 }
 
 
+// @if feature("sprites")
 /** @constructor */
 function    YYSprite()
 {
@@ -71,6 +72,7 @@ function    YYSprite()
     this.yOrigin = 0;
     this.TPageEntrys = [];          // followed by count * (YYTPageEntry*)
 }
+// @endif sprites
 
 
 /** @constructor */

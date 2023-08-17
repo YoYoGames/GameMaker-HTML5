@@ -2912,8 +2912,9 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 	if ( _pParticle.lifetime <= 0 ) return;
 	var pParType = g_ParticleTypes[ _pParticle.parttype ];
 
-
+	// @if feature("sprites")
 	spr = g_pSpriteManager.Get( pParType.sprite );
+	// @endif sprites
 	if( spr == null )
 	{
 		var shape = pParType.shape;

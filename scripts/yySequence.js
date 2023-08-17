@@ -34,6 +34,7 @@ function CHashMapCalculateHash(snap)
 ///             dirtiness and signals when instances need to be updated due to changes.
 ///          </summary>
 // #############################################################################################
+// @if feature("sequences_min")
 /** @constructor */
 function CSequenceBaseClass()
 {
@@ -167,7 +168,7 @@ SEQ_KEY_LENGTH_EPSILON = -0.0001;
 
 g_CurrSequenceID = 0;
 g_CurrAnimCurveID = 0;
-// @endif
+// @endif sequences
 
 // used to track which sequences have been changed and need to be recomputed
 g_CurrSequenceObjectID = 0;
@@ -4467,7 +4468,7 @@ yySequenceManager.prototype.HandleUpdateTracks = function (_el, _sequence, _inst
 ///
 // #############################################################################################
 yySequenceManager.prototype.HandleSpriteTrackUpdate = function(_node, _srcVars, _instance, _track, _fps, _headDir, _lastHeadPos, _headPosition, _seqlength) {
-
+    // @if feature("sprites")
     _srcVars.spriteIndex = -1;
 
     var keyframeStore = _track.m_keyframeStore;
@@ -4486,6 +4487,7 @@ yySequenceManager.prototype.HandleSpriteTrackUpdate = function(_node, _srcVars, 
     if (!_srcVars.Overrides(eT_OriginY)) _srcVars.yOrigin += sprite.yOrigin;
 
     HandleSpriteSequenceMessageEvents(_node, _track, _instance, _fps, _headPosition, _lastHeadPos, _headDir, sprite.sequence, sprite, graphicKeyframe, keyframeStore);
+    // @endif sprites
 };
 // @endif
 
@@ -4968,6 +4970,7 @@ yySequenceManager.prototype.HandleInstanceTrackUpdate = function (_pEl, _pSeq, _
                             else if (_srcVars.paramset & (1<<eT_ImageSpeed))
                             {
                                 //calculate image index from image speed track
+                                // @if feature("sprites")
                                 var sprite = g_pSpriteManager.Get(pInst.sprite_index);
                         	    if (sprite != null) 
                                 {
@@ -5011,6 +5014,7 @@ yySequenceManager.prototype.HandleInstanceTrackUpdate = function (_pEl, _pSeq, _
                                         }
                                     }
                                 }
+                                // @endif sprites
                             }
 						}
 					}
@@ -6543,3 +6547,4 @@ function CSeqTrackInstanceInfo()
 	//bool beenCreated;
 };
 // @endif sequences - tracks
+// @endif sequences_min

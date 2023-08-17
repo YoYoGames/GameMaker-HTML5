@@ -60,6 +60,7 @@ YYRECT.prototype.Copy = function (_bbox) {
 };
 
 
+// @if feature("sprites")
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new SPRITE object
@@ -2183,3 +2184,4 @@ yySpriteManager.prototype.SkeletonLoad = function (_spineText) {
     }
 	// @endif spine
 };
+// @endif sprites

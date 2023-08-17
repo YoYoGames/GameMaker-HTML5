@@ -1642,7 +1642,9 @@ function    GameMaker_DoAStep() {
 	g_pBuiltIn.delta_time = (g_CurrentTime - g_pBuiltIn.last_time)*1000;
 	g_pBuiltIn.last_time = g_CurrentTime;
 
+    // @if feature("sequences_min")
     ResetSpriteMessageEvents();
+    // @endif sequences_min
     
 	g_pIOManager.StartStep();	
 	HandleOSEvents();
@@ -1714,7 +1716,9 @@ function    GameMaker_DoAStep() {
     UpdateActiveLists();
     if (New_Room != -1) return;
 
+    // @if feature("sequences_min")
     ProcessSpriteMessageEvents();
+    // @endif sequences_min
 
     UpdateInstancePositions();
 

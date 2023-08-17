@@ -543,6 +543,7 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 						} break;
 						case FAE_PARAM_SAMPLER:
 						{
+							// @if feature("sprites")
 							var spriteID = pVar;
 							var pSprite = g_pSpriteManager.Get(spriteID);
 							if ((pSprite != null) && (pSprite.SWFTimeline === undefined) && (pSprite.m_skeletonSprite === undefined))
@@ -581,6 +582,7 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 							args[1].kind = VALUE_PTR;
 							args[1].ptr = YYGetPtr(pVar, 0);
 							F_Shader_Set_Texture(res, NULL, NULL, 2, args);*/
+							// @endif sprites
 						} break;
 					}
 				}
@@ -831,12 +833,14 @@ yyEffectInstance.prototype.SetParam = function (_pParamName, _type, _elements, _
 			case FAE_PARAM_FLOAT: pEntry = _data[j]; break;
 			case FAE_PARAM_INT: pEntry = _data[j]; break;
 			case FAE_PARAM_BOOL: pEntry = _data[j] ? 1 : 0; break;
+			// @if feature("sprites")
 			case FAE_PARAM_SAMPLER:
 			{
 				var spriteID = g_pSpriteManager.Sprite_Find(_data[j]);
 				pEntry = spriteID;
 				break;
 			}
+			// @endif sprites
 			}
 
 			pVar.push(pEntry);
@@ -849,12 +853,14 @@ yyEffectInstance.prototype.SetParam = function (_pParamName, _type, _elements, _
 		case FAE_PARAM_FLOAT: pVar = _data[0]; break;
 		case FAE_PARAM_INT: pVar = _data[0]; break;
 		case FAE_PARAM_BOOL: pVar = _data[0] ? 1 : 0; break;
+		// @if feature("sprites")
 		case FAE_PARAM_SAMPLER:
 		{
 			var spriteID = g_pSpriteManager.Sprite_Find(_data[0]);
 			pVar = spriteID;
 			break;
 		}
+		// @endif sprites
 		}
 	}
 

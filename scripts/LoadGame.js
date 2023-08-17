@@ -50,7 +50,9 @@ function InitAboyne()
     g_pInstanceManager = new yyInstanceManager();
 	g_pObjectManager = new yyObjectManager();
     g_pRoomManager = new yyRoomManager();
+	// @if feature("sprites")
 	g_pSpriteManager = new yySpriteManager();
+	// @endif sprites
 	g_pTextureGroupInfoManager = new yyTextureGroupInfoManager();
     g_pBackgroundManager = new yyBackgroundManager();
 	// @if feature("audio")
@@ -770,6 +772,7 @@ function LoadGame(_GameFile)
 	Graphics_SetEntryTable(_GameFile.TPageEntries);
 
     // Load Sprites
+	// @if feature("sprites")
     for(index=0; index<_GameFile.Sprites.length; index++ ){
         if(  _GameFile.Sprites[index]===null ){
             g_pSpriteManager.AddSprite( null );
@@ -778,6 +781,7 @@ function LoadGame(_GameFile)
             g_pSpriteManager.AddSprite( pSprite );
         }
     }
+	// @endif sprites
     
 
     // Load Backgrounds
@@ -938,6 +942,7 @@ function LoadGame(_GameFile)
 					pTGInfo.textures[i] = g_YYTextures[pStore.TextureIDs[i]];			// need to remap the texture IDs here
 				}
 			}
+			// @if feature("sprites")
 			if (pStore.SpriteIDs !== undefined)
 			{
 				for(var i = 0; i < pStore.SpriteIDs.length; i++)
@@ -945,6 +950,7 @@ function LoadGame(_GameFile)
 					pTGInfo.sprites[i] = pStore.SpriteIDs[i];
 				}
 			}
+			// @endif sprites
 			// @if feature("spine")
 			if (pStore.SpineSpriteIDs !== undefined)
 			{

@@ -431,7 +431,7 @@ yyInstance.prototype = {
 	set image_index(_frame) {
 
 	    _frame = yyGetReal(_frame);
-
+		// @if feature("sprites")
 		var sprite = g_pSpriteManager.Get(this.sprite_index);
 
 	    if (sprite != null)
@@ -468,6 +468,7 @@ yyInstance.prototype = {
 			}
 		}
 		else
+		// @endif sprites
 		{
 			this.__image_index = _frame;	// just use value as-is
 		}
@@ -494,50 +495,57 @@ yyInstance.prototype = {
 
 	// image_number property (no setter)
 	get image_number() { 
+		// @if feature("sprites")
 		var pSprite = g_pSpriteManager.Get(this.sprite_index);
-		if (!pSprite) return 0;
-		
-		// @if feature("spine")
-		var skeletonAnim = this.SkeletonAnimation();
-	    if (skeletonAnim) {
-	        return skeletonAnim.FrameCount(pSprite);
-	    }
-		// @endif spine
-		// @if feature("swf")
-		if ((pSprite.SWFTimeline !== null) && (pSprite.SWFTimeline !== undefined)) {
-		    return pSprite.SWFTimeline.numFrames;
+		if (pSprite) {
+			// @if feature("spine")
+			var skeletonAnim = this.SkeletonAnimation();
+			if (skeletonAnim) return skeletonAnim.FrameCount(pSprite);
+			// @endif spine
+			// @if feature("swf")
+			if (pSprite.SWFTimeline != null) return pSprite.SWFTimeline.numFrames;
+			// @endif
+			return pSprite.ppTPE.length;
 		}
-		// @endif
-		return pSprite.ppTPE.length;
+		// @endif sprites
+		return 0;
 	},
 
 
 	// sprite_width property
 	get sprite_width()  {
+		// @if feature("sprites")
 		var pSprite = g_pSpriteManager.Get(this.sprite_index);
-		if (!pSprite) return 0;
-		return pSprite.width * this.image_xscale;
+		if (pSprite) return pSprite.width * this.image_xscale;
+		// @endif sprites
+		return 0;
 	},
 
 	// sprite_height property
 	get sprite_height()  {
+		// @if feature("sprites")
 		var pSprite = g_pSpriteManager.Get(this.sprite_index);
-		if (!pSprite) return 0;
-		return pSprite.height * this.image_yscale;
+		if (pSprite) return pSprite.height * this.image_yscale;
+		// @endif sprites
+		return 0;
 	},
 
 	// sprite_xoffset property
 	get sprite_xoffset()  {
+		// @if feature("sprites")
 		var pSprite = g_pSpriteManager.Get(this.sprite_index);
-		if (!pSprite) return 0;
-		return pSprite.xOrigin * this.image_xscale;	
+		if (pSprite) return pSprite.xOrigin * this.image_xscale;
+		// @endif sprites
+		return 0;
 	},
 
 	// sprite_yoffset property
 	get sprite_yoffset() {
+		// @if feature("sprites")
 		var pSprite = g_pSpriteManager.Get(this.sprite_index);
-		if (!pSprite) return 0;
-		return pSprite.yOrigin * this.image_yscale;
+		if (pSprite) return pSprite.yOrigin * this.image_yscale;
+		// @endif sprites
+		return 0;
 	},
 
 	// image_xscale property
@@ -945,7 +953,7 @@ yyInstance.prototype.SetObjectIndex = function (_objindex, _LinkToObjectType, _S
 ///          </summary>
 // #############################################################################################
 yyInstance.prototype.UpdateSpriteIndex = function (_index) {
-        
+    // @if feature("sprites")
     var pSprite = g_pSpriteManager.Get(_index);
     if (pSprite) {
         this.bbox.left = pSprite.bbox.left;
@@ -953,6 +961,7 @@ yyInstance.prototype.UpdateSpriteIndex = function (_index) {
         this.bbox.top = pSprite.bbox.top;
         this.bbox.bottom = pSprite.bbox.bottom;
     }
+	// @endif sprites
     this.sprite_index = _index;
     
     this.m_pSkeletonAnimation = null;
@@ -1002,7 +1011,6 @@ yyInstance.prototype.BuildPhysicsBody = function () {
 	if (!sprite_exists(this.sprite_index)) {
 		return;		
 	}
-	var spr = g_pSpriteManager.Get(this.sprite_index);
 	
 	// Without a physics world we won't get far
 	if (!g_RunRoom.m_pPhysicsWorld) {
@@ -1221,14 +1229,18 @@ yyInstance.prototype.AdaptSpeed = function () {
 ///			 </returns>
 // #############################################################################################
 yyInstance.prototype.GetImageNumber = function () {
-    var pSprite = g_pSpriteManager.Get(this.sprite_index);    
+    // @if feature("sprites")
 	// @if feature("spine")
     var skeletonAnim = this.SkeletonAnimation();
     if (skeletonAnim) {
+		var pSprite = g_pSpriteManager.Get(this.sprite_index);    
         return skeletonAnim.FrameCount(pSprite);
     }
 	// @endif spine
 	return g_pSpriteManager.GetImageCount(this.sprite_index);
+	// @else
+	return 0;
+	// @endif sprites
 };
 
 // #############################################################################################
@@ -1464,7 +1476,9 @@ yyInstance.prototype.Compute_BoundingBox = function() {
 
     var spr, t;
     var ix = (this.mask_index >= 0) ? this.mask_index : this.sprite_index;
+	// @if feature("sprites")
     if (ix < 0 || ix > g_pSpriteManager.Sprites.length) {
+	// @endif sprites
             
         if (!this.bbox) {
             this.bbox = new YYRECT(0, 0, 0, 0);
@@ -1475,6 +1489,7 @@ yyInstance.prototype.Compute_BoundingBox = function() {
         this.bbox.bottom = this.y;
 
         this.colcheck = yySprite_CollisionType.AXIS_ALIGNED_RECT;
+	// @if feature("sprites")
     }
     else 
     {
@@ -1632,7 +1647,8 @@ yyInstance.prototype.Compute_BoundingBox = function() {
 			this.colcheck = spr.colcheck;
         }
         this.bbox = bbox;
-    }    
+    }
+	// @endif sprites
     this.bbox_dirty = false;
 };
 
@@ -1710,6 +1726,8 @@ yyInstance.prototype.Collision_Point = function (_x, _y, _prec) {
 			return false;
 		}
 	}
+    var Result = false;
+	// @if feature("sprites")
 
 	var pSpr;
 	if (this.mask_index < 0) {
@@ -1726,7 +1744,6 @@ yyInstance.prototype.Collision_Point = function (_x, _y, _prec) {
 
 
 	// handle precise collision tests
-    var Result = false;
 	// @if feature("spine")
 	var collisionSkel = this.GetCollisionSkeleton();
     if (collisionSkel !== null) {
@@ -1741,6 +1758,7 @@ yyInstance.prototype.Collision_Point = function (_x, _y, _prec) {
                                             Round(_x), Round(_y)
                                         );
     }
+	// @endif sprites
 	return Result;
 };
 
@@ -1765,6 +1783,7 @@ yyInstance.prototype.Collision_Rectangle = function (_x1, _y1, _x2, _y2, _prec) 
 	this.Maybe_Compute_BoundingBox();
 
 	// easy cases first
+	var Result = false;
 	var bbox = this.bbox;
 
 	var col_delta = 0; //To avoid floating point inaccuracies
@@ -1801,6 +1820,7 @@ yyInstance.prototype.Collision_Rectangle = function (_x1, _y1, _x2, _y2, _prec) 
 	    return Result;
 	}
 
+	// @if feature("sprites")
 	var pSpr;
 	if (this.mask_index < 0) {
 	    pSpr = g_pSpriteManager.Get(this.sprite_index);
@@ -1835,8 +1855,7 @@ yyInstance.prototype.Collision_Rectangle = function (_x1, _y1, _x2, _y2, _prec) 
 	}
 
 	// handle precise collision tests
-    var Result = false;
-	// @if feature("spine")
+    // @if feature("spine")
 	var collisionSkel = this.GetCollisionSkeleton();
     if (collisionSkel !== null) {
         Result = collisionSkel.RectangleCollision(this.CollisionImageIndex(), this.x, this.y, 
@@ -1854,6 +1873,7 @@ yyInstance.prototype.Collision_Rectangle = function (_x1, _y1, _x2, _y2, _prec) 
 	    Result = pSpr.PreciseCollisionRectangle(Math.floor(this.image_index), bbox, Round(this.x), Round(this.y),
 	    											this.image_xscale, this.image_yscale, this.image_angle, g_rr);
     }
+	// @endif sprites
 	return Result;
 };
 
@@ -1952,6 +1972,7 @@ yyInstance.prototype.Collision_Ellipse = function (_x1, _y1, _x2, _y2, _prec) {
 	        return false;
 	}
 
+	// @if feature("sprites")
 	var pSpr;
 	if (this.mask_index < 0) {
 	    pSpr = g_pSpriteManager.Get(this.sprite_index);
@@ -1983,6 +2004,8 @@ yyInstance.prototype.Collision_Ellipse = function (_x1, _y1, _x2, _y2, _prec) {
 	{	    
 	    return pSpr.PreciseCollisionEllipse(Math.floor(this.image_index), bbox, Round(this.x), Round(this.y), this.image_xscale, this.image_yscale, this.image_angle, g_rr);
     }
+	// @endif sprites
+	return false;
 };
 
 
@@ -2044,6 +2067,7 @@ yyInstance.prototype.Collision_Line = function (_x1, _y1, _x2, _y2, _prec) {
 	if ((_y1 < i_bbox.top) && (_y2 < i_bbox.top)) { return false; }
 	if ((_y1 >= i_bbox.bottom + 1) && (_y2 >= i_bbox.bottom + 1)) { return false; }
 
+	// @if feature("sprites")
 		var pSpr;
 	    if (this.mask_index < 0) {
 	    	pSpr = g_pSpriteManager.Get(this.sprite_index);
@@ -2071,6 +2095,8 @@ yyInstance.prototype.Collision_Line = function (_x1, _y1, _x2, _y2, _prec) {
 	}
 	// @endif
 	return pSpr.PreciseCollisionLine(this.image_index | 0, i_bbox, Round(this.x), Round(this.y), this.image_xscale, this.image_yscale, this.image_angle, Round(_x1), Round(_y1), Round(_x2), Round(_y2));
+	// @endif sprites
+	return false;
 };
 
 
@@ -2095,7 +2121,7 @@ yyInstance.prototype.Collision_Skeleton = function (inst, prec)
 
 
 	// If the other instance doesn't actually have a sprite then we can't do precise collision testing with it
-	var spr1 = g_pSpriteManager.Get(this.sprite_index);
+	// @if feature("sprites")
 	var spr2 = (inst.mask_index < 0) 
 	    ? g_pSpriteManager.Get(inst.sprite_index)
 	    : g_pSpriteManager.Get(inst.mask_index);
@@ -2122,11 +2148,13 @@ yyInstance.prototype.Collision_Skeleton = function (inst, prec)
 	// @endif spine
 	/* inst/spr2 is using bounding box collisions - no more to do. */
 	return true;
+	// @endif sprites
+	return false;
 };
 
 
 yyInstance.prototype.Animate = function() {
-
+	// @if feature("sprites")
     if(g_isZeus)
     {
         var pImage = g_pSpriteManager.Get( this.sprite_index );
@@ -2148,6 +2176,7 @@ yyInstance.prototype.Animate = function() {
             return;
         }
     }
+	// @endif sprites
 
 	// BUGFIX: 30634 If we have no valid image set, increment image_index anyway just like in the Win32 runner
     this.image_index += this.image_speed;
@@ -2504,6 +2533,7 @@ yyInstance.prototype.Collision_Instance = function (_pInst, _prec) {
 		}
 
 	    // dealing with precise collision checking
+		// @if feature("sprites")
 		var pSpr1 = null;
 		var pSpr2 = null;
 		if (this.mask_index < 0) {
@@ -2571,6 +2601,7 @@ yyInstance.prototype.Collision_Instance = function (_pInst, _prec) {
                                           _pInst.image_angle);
             // @endif
 		}
+		// @endif sprites
 	}
 	return false;
 };
@@ -2826,19 +2857,17 @@ yyInstance.prototype.get_bbox = function () {
 // #############################################################################################
 yyInstance.prototype.wrap = function(_hor, _vert)
 {
-    var w, h;
+    var w = 0, h = 0;
     
     // find the sprite size
-    if (!sprite_exists(this.sprite_index))
-    {
-        w = h =0;
-	}
-    else
+	// @if feature("sprites")
+    if (sprite_exists(this.sprite_index))
     {
         var pSpr = g_pSpriteManager.Get(this.sprite_index);
         w = pSpr.width * this.image_xscale;
         h = pSpr.height * this.image_yscale;
     }
+	// @endif sprites
     
     // do horizontal wrap
     if (_hor)
@@ -3507,86 +3536,79 @@ yyInstanceManager.prototype.UpdateImages = function () {
 		if (pInst.marked) continue;
         if (!pInst.active) continue;
 
+		// @if feature("sprites")
 		var sprite = g_pSpriteManager.Get(pInst.sprite_index);
-		
-		var usesSpriteSequences = false;
-
-	    if (sprite != null)
+	    if (sprite?.sequence != null)
 	    {
-	        if(sprite.sequence != null)
-	        {
-				/*
-	            var sequence_image_index = pInst.sequence_pos;
-	            if ((sprite.sequence.m_tracks != null) && (sprite.sequence.m_tracks[0].m_type == eSTT_SpriteFrames))
-                {
-	                var pTrack = sprite.sequence.m_tracks[0];
-                    var pKey = pTrack.m_keyframeStore.GetKeyframeAtFrame(pInst.sequence_pos, sprite.sequence.m_length);
-                    if (pKey == null)
-                    {
-                        pInst.SetImageIndex(-1);		// no key at this time
-                    }
-                    else if(pTrack.m_numTracks > 0)
-                    {
-                        sequence_image_index = pTrack.m_tracks[0].getValue(0, pInst.sequence_pos, sprite.sequence.m_length);
-                       
-                        if (Math.abs(pInst.image_index - sequence_image_index) > g_GMLMathEpsilon)
-                        {
-                            var newseqpos = ConvertImageIndexToSequencePos(pInst, sprite, pInst.image_index);
-                            SetNewSequencePosition(pInst, sprite, newseqpos, true);
-                        }
-                    }
-                }
-				*/
-				var sequence_image_index = pInst.sequence_pos;
-				if ((sprite.sequence.m_tracks != null) && (sprite.sequence.m_tracks[0].m_type == eSTT_SpriteFrames))
-			   	{
-				   var pTrack = sprite.sequence.m_tracks[0];
-				   if (pTrack != null)
-				   {
-					   sequence_image_index = pTrack.getValue(pInst.sequence_pos);
-	   
-					   if (Math.abs(pInst.image_index - sequence_image_index)>g_GMLMathEpsilon)
-					   {
-						   var numkeyframes = pTrack.m_keyframeStore.numKeyframes;
-						   if (numkeyframes > 0) { 
-							   var keyindex = ~~(pInst.image_index);
-							   var fracval = pInst.image_index - keyindex;
-
-							   var newseqpos = pInst.image_index;
-							   if (keyindex >= numkeyframes)
-							   {
-								   newseqpos = pTrack.m_keyframeStore.keyframes[numkeyframes - 1].m_key + (pInst.image_index - (numkeyframes - 1));
-							   }
-							   else if (keyindex < 0)
-							   {
-								   newseqpos = pInst.image_index;
-							   }
-							   else
-								   newseqpos = (pTrack.m_keyframeStore.keyframes[keyindex].m_key + (fracval * pTrack.m_keyframeStore.keyframes[keyindex].m_length));
-
-							   newseqpos = ConvertImageIndexToSequencePos(pInst, sprite, pInst.image_index);
-							   SetNewSequencePosition(pInst, sprite, newseqpos, true);
-						   } // end if
-					   }
-
-				   }
+			/*
+			var sequence_image_index = pInst.sequence_pos;
+			if ((sprite.sequence.m_tracks != null) && (sprite.sequence.m_tracks[0].m_type == eSTT_SpriteFrames))
+			{
+				var pTrack = sprite.sequence.m_tracks[0];
+				var pKey = pTrack.m_keyframeStore.GetKeyframeAtFrame(pInst.sequence_pos, sprite.sequence.m_length);
+				if (pKey == null)
+				{
+					pInst.SetImageIndex(-1);		// no key at this time
 				}
+				else if(pTrack.m_numTracks > 0)
+				{
+					sequence_image_index = pTrack.m_tracks[0].getValue(0, pInst.sequence_pos, sprite.sequence.m_length);
+					
+					if (Math.abs(pInst.image_index - sequence_image_index) > g_GMLMathEpsilon)
+					{
+						var newseqpos = ConvertImageIndexToSequencePos(pInst, sprite, pInst.image_index);
+						SetNewSequencePosition(pInst, sprite, newseqpos, true);
+					}
+				}
+			}
+			*/
+			var sequence_image_index = pInst.sequence_pos;
+			if ((sprite.sequence.m_tracks != null) && (sprite.sequence.m_tracks[0].m_type == eSTT_SpriteFrames))
+			{
+				var pTrack = sprite.sequence.m_tracks[0];
+				if (pTrack != null)
+				{
+					sequence_image_index = pTrack.getValue(pInst.sequence_pos);
+	
+					if (Math.abs(pInst.image_index - sequence_image_index)>g_GMLMathEpsilon)
+					{
+						var numkeyframes = pTrack.m_keyframeStore.numKeyframes;
+						if (numkeyframes > 0) { 
+							var keyindex = ~~(pInst.image_index);
+							var fracval = pInst.image_index - keyindex;
 
-				usesSpriteSequences = true;
+							var newseqpos = pInst.image_index;
+							if (keyindex >= numkeyframes)
+							{
+								newseqpos = pTrack.m_keyframeStore.keyframes[numkeyframes - 1].m_key + (pInst.image_index - (numkeyframes - 1));
+							}
+							else if (keyindex < 0)
+							{
+								newseqpos = pInst.image_index;
+							}
+							else
+								newseqpos = (pTrack.m_keyframeStore.keyframes[keyindex].m_key + (fracval * pTrack.m_keyframeStore.keyframes[keyindex].m_length));
 
-	            var fps = g_GameTimer.GetFPS();
+							newseqpos = ConvertImageIndexToSequencePos(pInst, sprite, pInst.image_index);
+							SetNewSequencePosition(pInst, sprite, newseqpos, true);
+						} // end if
+					}
 
-	            // Get sequence length
-	            var length = sprite.sequence.m_length;
-				
-	            var seqSpeed = sprite.sequence.m_playbackSpeed;
-	            if (sprite.sequence.m_playbackSpeedType == ePlaybackSpeedType_FramesPerSecond) seqSpeed /= fps;
+				}
+			}
 
-	            SetNewSequencePosition(pInst, sprite, (pInst.sequence_pos + (pInst.sequence_dir * pInst.image_speed * seqSpeed)), false);
-	        }
+			var fps = g_GameTimer.GetFPS();
+
+			// Get sequence length
+			var length = sprite.sequence.m_length;
+			
+			var seqSpeed = sprite.sequence.m_playbackSpeed;
+			if (sprite.sequence.m_playbackSpeedType == ePlaybackSpeedType_FramesPerSecond) seqSpeed /= fps;
+
+			SetNewSequencePosition(pInst, sprite, (pInst.sequence_pos + (pInst.sequence_dir * pInst.image_speed * seqSpeed)), false);
 		}
-		
-		if(!usesSpriteSequences)
+		else
+		// @endif sprites
 	    {
 	        var num = pInst.GetImageNumber();
 	        if (pInst.image_index >= num) {
