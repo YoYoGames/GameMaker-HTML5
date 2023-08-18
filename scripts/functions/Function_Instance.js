@@ -928,6 +928,9 @@ function Tilemap_PointPlace( _x, _y, tilemapind, instlist,prec)
 		l = ~~yymax(l, 0);
 		t = ~~yymax(t, 0);
 
+		l = ~~yymin(l, el.m_mapWidth - 1);
+		t = ~~yymin(t, el.m_mapHeight - 1);
+
 		var index = (t * el.m_mapWidth) + l;
 		//int tmapindex = pTilemapEl->m_pTiles[index];
 		index = ~~index;
