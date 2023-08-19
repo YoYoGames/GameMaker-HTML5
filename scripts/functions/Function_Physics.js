@@ -28,26 +28,11 @@ function physics_world_create(_pixelToMetreScale) {
     if (g_RunRoom.m_pPhysicsWorld) {
     
         g_RunRoom.m_pPhysicsWorld.SetPixelToMetreScale(_pixelToMetreScale);
-        if(g_isZeus)
-        {
-		    g_RunRoom.m_pPhysicsWorld.SetUpdateSpeed(g_GameTimer.GetFPS());
-		}
-		else
-		{
-		    g_RunRoom.m_pPhysicsWorld.SetUpdateSpeed(g_RunRoom.GetSpeed());
-		}
+        g_RunRoom.m_pPhysicsWorld.SetUpdateSpeed(g_GameTimer.GetFPS());
     }
     else {
-        if(g_isZeus)
-        {
-            var physicsWorld = new yyPhysicsWorld(_pixelToMetreScale, g_GameTimer.GetFPS());
-            g_RunRoom.m_pPhysicsWorld = physicsWorld;	
-        }
-        else
-        {
-            var physicsWorld = new yyPhysicsWorld(_pixelToMetreScale, g_RunRoom.GetSpeed());
-            g_RunRoom.m_pPhysicsWorld = physicsWorld;	
-        }
+        var physicsWorld = new yyPhysicsWorld(_pixelToMetreScale, g_GameTimer.GetFPS());
+        g_RunRoom.m_pPhysicsWorld = physicsWorld;	
     }
 }
 

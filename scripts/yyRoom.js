@@ -518,15 +518,7 @@ yyRoom.prototype.BuildPhysicsWorld = function() {
 
     // evaluates to true if value is not: null, undefined, NaN, empty string, 0, false
     if (this.m_pStorage.physicsWorld) {
-    
-        if(g_isZeus)
-        {
-            this.m_pPhysicsWorld = new yyPhysicsWorld(this.m_pStorage.physicsPixToMeters, g_GameTimer.GetFPS());
-        }
-        else
-        {
-            this.m_pPhysicsWorld = new yyPhysicsWorld(this.m_pStorage.physicsPixToMeters, this.GetSpeed());
-        }
+        this.m_pPhysicsWorld = new yyPhysicsWorld(this.m_pStorage.physicsPixToMeters, g_GameTimer.GetFPS());
         this.m_pPhysicsWorld.SetGravity(this.m_pStorage.physicsGravityX, this.m_pStorage.physicsGravityY);
     }
 };
@@ -943,87 +935,6 @@ yyRoom.prototype.UpdateViews = function () {
 				}
 			}
 		}
-		else if ((pView.visible) && (pView.objid >= 0))
-		{
-			// Find the pInstance to follow
-			pInst = null;
-			if (pView.objid < 100000)
-			{
-				// if they selected an OBJECT, then pick the 1st unmarked one!
-				var pObj = g_pObjectManager.Get(pView.objid);
-				if (pObj != null)
-				{
-					var pool = pObj.GetRPool();					
-					for (var o = 0; o < pool.length; o++)
-					{
-						pInst = pool[o];
-						if (!pInst.marked) break;   // if NOT marked, use this one!
-						pInst = null;               // makes sure we can tell we found one		        
-					}
-				}
-
-			}
-			else                           // pView object is an pInstance
-			{
-				pInst = g_pInstanceManager.Get(pView.objid);
-				if (!pInst && pInst.marked) pInst = null;
-			}
-
-			// if we have an object to follow.... then follow it!
-			if (pInst != null)
-			{
-				// Find the new position
-				l = pView.worldx;
-				t = pView.worldy;
-				ix = pInst.x;
-				iy = pInst.y;
-
-				if (2 * pView.hborder >= pView.worldw)
-				{
-					l = ix - pView.worldw / 2;
-				} else if (ix - pView.hborder < pView.worldx)
-				{
-					l = ix - pView.hborder;
-				} else if (ix + pView.hborder > pView.worldx + pView.worldw)
-				{
-					l = ix + pView.hborder - pView.worldw;
-				}
-
-				if (2 * pView.vborder >= pView.worldh)
-				{
-					t = iy - pView.worldh / 2;
-				} else if (iy - pView.vborder < pView.worldy)
-				{
-					t = iy - pView.vborder;
-				} else if (iy + pView.vborder > pView.worldy + pView.worldh)
-				{
-					t = iy + pView.vborder - pView.worldh;
-				}
-
-
-				// Make sure it does not extend beyond the room
-				if (l < 0) l = 0;
-				if (l + pView.worldw > this.m_width) l = this.m_width - pView.worldw;
-				if (t < 0) t = 0;
-				if (t + pView.worldh > this.m_height) t = this.m_height - pView.worldh;
-
-				// Restrict motion speed
-				if (pView.hspeed >= 0)
-				{
-					if ((l < pView.worldx) && (pView.worldx - l > pView.hspeed)) l = pView.worldx - pView.hspeed;
-					if ((l > pView.worldx) && (l - pView.worldx > pView.hspeed)) l = pView.worldx + pView.hspeed;
-				}
-				if (pView.vspeed >= 0)
-				{
-					if ((t < pView.worldy) && (pView.worldy - t > pView.vspeed)) t = pView.worldy - pView.vspeed;
-					if ((t > pView.worldy) && (t - pView.worldy > pView.vspeed)) t = pView.worldy + pView.vspeed;
-				}
-				pView.worldx = l;
-				pView.worldy = t;
-
-			} //if (pInst != null) 
-
-		} // if((pView.visible) && (pView.objid>=0))
 
 	}
 
@@ -3634,13 +3545,8 @@ yyRoom.prototype.DrawViews = function (r) {
 	
 		Graphics_SetViewPort(0, 0, g_ApplicationWidth, g_ApplicationHeight);
          
-		if (g_isZeus) {
-			g_DefaultView.cameraID = g_DefaultCameraID;
-		    UpdateDefaultCamera(0, 0, g_RunRoom.m_width, g_RunRoom.m_height, 0);
-		}
-		else {
-		    Graphics_SetViewArea(0, 0, g_RunRoom.m_width, g_RunRoom.m_height, 0);
-		}
+		g_DefaultView.cameraID = g_DefaultCameraID;
+		UpdateDefaultCamera(0, 0, g_RunRoom.m_width, g_RunRoom.m_height, 0);
 	} 
 	else {
 	
@@ -3701,51 +3607,17 @@ yyRoom.prototype.DrawViews = function (r) {
                                               g_pCurrentView.portw * sx, g_pCurrentView.porth * sy );
                     }
 
-			        if(g_isZeus/* && (g_webGL!=null)*/)
-			        {
-			            g_pCameraManager.SetActiveCamera(g_pCurrentView.cameraID);
-			            var pCam = g_pCameraManager.GetActiveCamera();
-			            if(pCam!=null)
-			            {
-			                pCam.Begin();						
-			                pCam.ApplyMatrices();												
-			            }
-			        }
-			        else
-			            Graphics_SetViewArea(g_pCurrentView.worldx, g_pCurrentView.worldy, g_pCurrentView.worldw, g_pCurrentView.worldh, g_pCurrentView.angle);
+					g_pCameraManager.SetActiveCamera(g_pCurrentView.cameraID);
+					var pCam = g_pCameraManager.GetActiveCamera();
+					if(pCam!=null)
+					{
+						pCam.Begin();						
+						pCam.ApplyMatrices();												
+		            }
 
-                    if(/*(g_webGL==null) || */(!g_isZeus))
-                    {
-			            // no Angle allowed on view....unless it's webgl...
-			            if( Math.abs( g_pCurrentView.angle) < 0.001)
-			            {
-			                r.left = g_pCurrentView.worldx;
-			                r.top = g_pCurrentView.worldy;
-			                r.right = g_pCurrentView.worldx + g_pCurrentView.worldw;
-			                r.bottom = g_pCurrentView.worldy + g_pCurrentView.worldh;
-			            } 
-			            else
-			            {
-			                // We need a larger area here to make sure we draw enough - calculate extents from rotation
-			                var rad = g_pCurrentView.angle * (Pi/180);
-			                var s = Math.abs( Math.sin(rad));
-			                var c = Math.abs( Math.cos(rad));
-			                var ex = (c * g_pCurrentView.worldw) + (s * g_pCurrentView.worldh);
-			                var ey = (s * g_pCurrentView.worldw) + (c * g_pCurrentView.worldh);
-			                r.left = g_pCurrentView.worldx + (g_pCurrentView.worldw - ex)/2;
-			                r.right = g_pCurrentView.worldx + (g_pCurrentView.worldw + ex)/2;
-			                r.top = g_pCurrentView.worldy + (g_pCurrentView.worldh - ey)/2; 
-			                r.bottom = g_pCurrentView.worldy + (g_pCurrentView.worldh + ey)/2; 
-			            }
-			            g_pBuiltIn.view_current = i;
-			            this.DrawTheRoom(r);
-			        }
-			        else
-			        {
-
-			            g_pBuiltIn.view_current = i;
-			            this.DrawTheRoom(g_roomExtents);
-			        }
+                    
+					g_pBuiltIn.view_current = i;
+					this.DrawTheRoom(g_roomExtents);
 
 
 			        if (g_pCurrentView.surface_id != -1) {
@@ -3754,16 +3626,12 @@ yyRoom.prototype.DrawViews = function (r) {
 			        Current_View++;
     			    
     			  
-			        if (g_isZeus)
-			        {			
-    			    
-			            var pCam = g_pCameraManager.GetActiveCamera();
-			            if(pCam!=null)
-			            {
-			                pCam.End(); 
-			            }			    
-				        g_pCameraManager.SetActiveCamera(-1);		// no active camera
-			        }
+					var pCam = g_pCameraManager.GetActiveCamera();
+					if(pCam!=null)
+					{
+						pCam.End(); 
+					}			    
+					g_pCameraManager.SetActiveCamera(-1);		// no active camera
 
 			    }
 			    Graphics_Restore();

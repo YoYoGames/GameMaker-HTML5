@@ -2244,17 +2244,8 @@ function GameMaker_Tick()
     }
     
     //
-    var TargetSpeed;
-    if (g_isZeus) {
-        g_GameTimer.Update();
-        TargetSpeed = g_GameTimer.GetFPS();
-    } else {
-        TargetSpeed = g_RunRoom.GetSpeed();
-        if (TargetSpeed <= 0) {
-            TargetSpeed = 1;
-            g_RunRoom.SetSpeed(1);
-        }
-    }
+    g_GameTimer.Update();
+    var TargetSpeed = g_GameTimer.GetFPS();
 
     const last_time_ms = g_CurrentTime;
     g_CurrentTime = Date.now();

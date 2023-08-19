@@ -278,8 +278,8 @@ yyBuiltIn.prototype.getbackground_blend = function () { return g_pBuiltIn.backgr
 yyBuiltIn.prototype.getbackground_alpha = function () { return g_pBuiltIn.background_alpha[0]; };
 
 
-yyBuiltIn.prototype.set_room_speed = function (_val) { _val = yyGetReal(_val); if (g_isZeus) { return g_GameTimer.SetFrameRate(_val); } else { return g_RunRoom.SetSpeed(_val); } };
-yyBuiltIn.prototype.get_room_speed = function (_val) { if (g_isZeus) { return g_GameTimer.GetFPS(_val); } else { return g_RunRoom.m_speed; } };
+yyBuiltIn.prototype.set_room_speed = function (_val) { _val = yyGetReal(_val); return g_GameTimer.SetFrameRate(yyGetReal(_val)); };
+yyBuiltIn.prototype.get_room_speed = function (_val) { return g_GameTimer.GetFPS(_val); };
 
 yyBuiltIn.prototype.set_room_caption = function (_val) { return g_RunRoom.SetCaption(yyGetString(_val)); };
 yyBuiltIn.prototype.set_room_width = function (_val) { return g_RunRoom.SetWidth(yyGetReal(_val)); };

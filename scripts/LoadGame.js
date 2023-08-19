@@ -87,11 +87,8 @@ function InitAboyne()
 	Audio_Init(); 
 	// @endif audio
 
-	if (g_isZeus)
-	{
-		g_pCameraManager.Clean();
-		CreateDefaultCamera();
-	}
+	g_pCameraManager.Clean();
+	CreateDefaultCamera();
 }
 
 

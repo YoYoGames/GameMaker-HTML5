@@ -535,12 +535,9 @@ function WebGL_Save_RELEASE(_storeSettings) {
             g_savedWebGLState.GR_LightingEnabled = GR_LightingEnabled;
             g_savedWebGLState.GR_FogParameters = new Float32Array(GR_FogParameters);
             
-            if(g_isZeus)
-            {
-                g_savedWebGLState.GR_Cull=gpu_get_cullmode();
-                g_savedWebGLState.GR_ZEnable=gpu_get_ztestenable();
-                g_savedWebGLState.GR_ZWriteEnable=gpu_get_zwriteenable();
-            }
+            g_savedWebGLState.GR_Cull=gpu_get_cullmode();
+            g_savedWebGLState.GR_ZEnable=gpu_get_ztestenable();
+            g_savedWebGLState.GR_ZWriteEnable=gpu_get_zwriteenable();
             
             // Set to defaults
             GR_3DMode = false;
@@ -579,22 +576,10 @@ function WebGL_Restore_RELEASE(_restoreSettings) {
             g_webGL.SetFogData(GR_FogParameters);
 
             // Setting either of these will flush the vertex buffer
-            if (GR_3DMode || g_isZeus) {
-              
-                
-                if(g_isZeus)
-                {
-                    g_webGL.SetCull(g_savedWebGLState.GR_Cull);
-                    g_webGL.SetZEnable(g_savedWebGLState.GR_ZEnable);
-                    g_webGL.SetZWriteEnable(g_savedWebGLState.GR_ZWriteEnable);
-                }
-                else
-                {
-                    g_webGL.SetZEnable(GR_ZEnable);
-                    g_webGL.SetZWriteEnable(GR_ZWriteEnable);
-                    g_webGL.SetCull(GR_Cull);    
-                }
-            }
+            g_webGL.SetCull(g_savedWebGLState.GR_Cull);
+            g_webGL.SetZEnable(g_savedWebGLState.GR_ZEnable);
+            g_webGL.SetZWriteEnable(g_savedWebGLState.GR_ZWriteEnable);
+            
             g_webGL.SetShader(WebGL_GetDefaultShader());               
         }
         if (_restoreSettings.RestoreState) {

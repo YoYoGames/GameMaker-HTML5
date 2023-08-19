@@ -380,45 +380,6 @@ function    HandleCollision()
 }*/
 
 
-// #############################################################################################
-/// Function:<summary>
-///             Given a point, do a collision test with each instance that has the desired
-///             event. (mouse click etc).
-///          </summary>
-///
-/// In:		 <param name="_event">Primary event</param>
-///    		 <param name="_sub_event">Secondary event</param>
-///			 <param name="x">X Point to test with</param>
-///			 <param name="y">Y Point to test with</param>
-///				
-// #############################################################################################
-function    DoPointToInstance( _event, _sub_event, _x,_y )
-{
-    // First scale the coordinate into the current screen scale.
-    //_x = _x * scale;
-
-    // Might be better to loop through objects, rather than active instances... less getSprite stuff...
-    for(var i=g_RunRoom.m_Active.length-1;i>=0;i-- )
-    {
-        var pInst = g_RunRoom.m_Active.Get(i);
-      //  with( pInst )
-        {
-            if (pInst.bbox_dirty) pInst.Compute_BoundingBox();
-            if (!pInst.marked && pInst.pObject.REvent[_event | _sub_event])
-            {
-                var pSprite = g_pSpriteManager.Get( pInst.sprite_index );
-                var ox = pSprite.xOrigin;
-                var oy = pSprite.yOrigin;
-                if ((_x >= pInst.bbox.left) && (_x < pInst.bbox.right) && (_y >= pInst.bbox.top) && (_y < pInst.bbox.bottom))
-                {
-                	pInst.PerformEvent(_event, _sub_event, pInst, pInst);        // timer enum starts at 1..
-                }
-            }
-        }
-    }
-}
-
-
 
 // #############################################################################################
 /// Function:<summary>

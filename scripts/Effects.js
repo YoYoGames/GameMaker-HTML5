@@ -58,32 +58,14 @@ var types_created = false,                 // whether the types have been create
 // #############################################################################################
 function Speed_Factor()
 {
-    if(g_isZeus)
-    {
-    
-	    if( ( g_GameTimer.GetFPS() <= 30) || (Fps <= 30) ){
-		    return 1.0; 
-	    }
+	if( ( g_GameTimer.GetFPS() <= 30) || (Fps <= 30) ){
+		return 1.0; 
+	}
 
-	    if( (g_GameTimer.GetFPS()/ Fps) < 1.2 ){
-		    return 30.0/g_GameTimer.GetFPS();
-	    }else{
-		    return 30.0/Fps;
-	    }
-    }
-    else
-    {
-
-
-	    if( ( g_RunRoom.GetSpeed() <= 30) || (Fps <= 30) ){
-		    return 1.0; 
-	    }
-
-	    if( (g_RunRoom.GetSpeed() / Fps) < 1.2 ){
-		    return 30.0/g_RunRoom.GetSpeed();
-	    }else{
-		    return 30.0/Fps;
-	    }
+	if( (g_GameTimer.GetFPS()/ Fps) < 1.2 ){
+		return 30.0/g_GameTimer.GetFPS();
+	}else{
+		return 30.0/Fps;
 	}
 }
 

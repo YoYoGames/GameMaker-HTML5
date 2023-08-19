@@ -525,12 +525,7 @@ function surface_set_target_RELEASE(_id)
 
     Graphics_SetViewPort(0, 0, pSurf.m_Width, pSurf.m_Height);
 
-    if (g_isZeus) {
-        UpdateDefaultCamera(0, 0, pSurf.m_Width, pSurf.m_Height, 0);
-    }
-    else {
-        Graphics_SetViewArea(0, 0, pSurf.m_Width, pSurf.m_Height, 0);
-    }
+    UpdateDefaultCamera(0, 0, pSurf.m_Width, pSurf.m_Height, 0);
 
     if (g_webGL) g_webGL.Flush();
     DirtyRoomExtents();
@@ -606,22 +601,17 @@ function surface_reset_target_RELEASE()
             Calc_GUI_Scale();
         } else {
             Graphics_SetViewPort(g_clipx, g_clipy, g_clipw, g_cliph);
-            if (g_isZeus) {
-                var currcam = g_pCameraManager.GetActiveCamera();
-                if ((activeCam == true) && (currcam != null))
-                {
-                    UpdateCamera(camx, camy, camw, camh, cama, currcam);
-                    currcam.SetViewMat(new Matrix(camviewmat));
-                    currcam.SetProjMat(new Matrix(camprojmat));
-                    currcam.ApplyMatrices();
-                }
-                else
-                {
-                    UpdateDefaultCamera(g_worldx, g_worldy, g_worldw, g_worldh, 0);
-                }
+            var currcam = g_pCameraManager.GetActiveCamera();
+            if ((activeCam == true) && (currcam != null))
+            {
+                UpdateCamera(camx, camy, camw, camh, cama, currcam);
+                currcam.SetViewMat(new Matrix(camviewmat));
+                currcam.SetProjMat(new Matrix(camprojmat));
+                currcam.ApplyMatrices();
             }
-            else {
-                Graphics_SetViewArea(g_worldx, g_worldy, g_worldw, g_worldh, 0);
+            else
+            {
+                UpdateDefaultCamera(g_worldx, g_worldy, g_worldw, g_worldh, 0);
             }
         }
     }

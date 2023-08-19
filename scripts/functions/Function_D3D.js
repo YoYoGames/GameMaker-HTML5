@@ -364,12 +364,7 @@ function InitD3DFunctions() {
 function WebGL_d3d_set_depth_RELEASE(_newdepth) {
     
     // _depth is a new depth value used for drawing...
-    if (GR_3DMode || g_isZeus) {
-        GR_Depth = Math.min(16000.0, Math.max(-16000.0, _newdepth) );
-    }
-    else {
-        GR_Depth = 0.0;
-    }
+    GR_Depth = Math.min(16000.0, Math.max(-16000.0, _newdepth) );
 }
 
 // #############################################################################################

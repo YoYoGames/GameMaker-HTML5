@@ -925,18 +925,6 @@ yyInstance.prototype.SetObjectIndex = function (_objindex, _LinkToObjectType, _S
 		// and copy the data over...
 		this.mask_index = this.pObject.SpriteMask;
 		
-		if(!g_isZeus)
-		{
-		//Zeus, no object has a depth defined
-		    if (_SetDepthNow)
-		    {
-		    	// RK :: set the underlying variable rather than going through the property
-			    this.__depth = this.pObject.Depth;
-		    } else
-		    {
-			    this.depth = this.pObject.Depth;
-		    }
-		}
 		this.solid = this.pObject.Solid;
 		this.visible = this.pObject.Visible;
 		this.persistent = this.pObject.Persistent;
@@ -2923,9 +2911,7 @@ yyInstance.prototype.ApplyVisualOffset = function (_angle, _visualOffs) {
 // @if feature("physics")
 yyInstance.prototype.RefreshPhysicalProperties = function (_physicsBody) {
     
-    var TargetSpeed =g_RunRoom.GetSpeed();
-    if(g_isZeus)
-        TargetSpeed = g_GameTimer.GetFPS();
+    var TargetSpeed = g_GameTimer.GetFPS();
         
     var metreToPixelScale = 1.0 / g_RunRoom.m_pPhysicsWorld.m_pixelToMetreScale;
     
@@ -3028,9 +3014,7 @@ yyInstance.prototype.set_physics_linear_velocity_y = function(_vel) {
 // #############################################################################################
 yyInstance.prototype.set_physics_speed_x = function(_speed) {
     
-    var TargetSpeed = g_RunRoom.GetSpeed();
-    if(g_isZeus)
-        TargetSpeed = g_GameTimer.GetFPS();
+    var TargetSpeed = g_GameTimer.GetFPS();
 
     this.m_physicsObject.SetLinearVelocityX(yyGetReal(_speed) * g_RunRoom.m_pPhysicsWorld.m_pixelToMetreScale * TargetSpeed);
     this.RefreshPhysicalProperties(this.m_physicsObject.m_physicsBody);
@@ -3044,9 +3028,7 @@ yyInstance.prototype.set_physics_speed_x = function(_speed) {
 yyInstance.prototype.set_physics_speed_y = function(_speed) {
 
    
-    var TargetSpeed = g_RunRoom.GetSpeed();
-    if(g_isZeus)
-        TargetSpeed = g_GameTimer.GetFPS();
+    var TargetSpeed = g_GameTimer.GetFPS();
     this.m_physicsObject.SetLinearVelocityY(yyGetReal(_speed) * g_RunRoom.m_pPhysicsWorld.m_pixelToMetreScale * TargetSpeed);
     this.RefreshPhysicalProperties(this.m_physicsObject.m_physicsBody);
 };

@@ -1252,17 +1252,7 @@ function    InitAboyneGlobals() {
     g_room_maxid = 100000;
     g_GlobalAlpha = 1.0;
     
-    if(g_isZeus)
-    {
-        draw_set_color(g_pGMFile.Options.DrawColour);
-    }
-    else
-    {
-        g_GlobalColour_GM = 0x00000000;
-        g_GlobalColour = 0x000000; // 0xffffff;
-        g_GlobalColour_HTML_RGB = GetHTMLRGB(g_GlobalColour);
-        g_GlobalColour_HTML_RGBA = GetHTMLRGBA(g_GlobalColour,g_GlobalAlpha);
-    }
+    draw_set_color(g_pGMFile.Options.DrawColour);
 
     c_black = GetHTMLRGB(0x000000);
     c_white = GetHTMLRGB(0xffffff);
