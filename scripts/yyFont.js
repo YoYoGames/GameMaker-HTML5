@@ -1376,58 +1376,6 @@ yyFontManager.prototype.Get = function( _id ) {
 // @endif fonts
 
 
-// #############################################################################################
-/// Function:<summary>
-///				replaces hash marks with newline characters
-///          </summary>
-///
-/// In:		 <param name="str">Start to parse</param>
-///          <param name="thefont">font to get sizes and mapping from</param>
-/// In:		 <param name="_override_zeus">override the GMS2 setting?</param>
-/// Out:	 <returns>
-///				converted string or the original one back again
-///			 </returns>
-// #############################################################################################
-function    String_Replace_Hash(str, thefont, _override_zeus)
-{
-    // don't convert anything in ZEUS - unless we come from string_hash_to_newline() function...
-    if (_override_zeus === undefined) _override_zeus = false;
-    if( _override_zeus==false && g_isZeus) return str;
-
-	if ( str == null) return 0;
-
-	var pS = str;
-	var pD = "";	
-	var i=0;
-	var si = 0;
-
-	while(si<pS.length )
-	{
-		var s = pS[si];
-		if ( s == "#" )
-		{		    
-			if ((i > 0) && (pS[si-1] == '\\'))
-			{							
-				pD = pD.substring(0,pD.length-1)+'#';       // the length doesn't change here, so we don't need curr++
-			}			
-			else
-			{
-			    pD += String.fromCharCode(0x0d);
-				pD += String.fromCharCode(0x0a);
-				i++;
-			} 
-		} 
-		else
-		{
-			pD += s;
-			i++;
-		} 		
-		si++;
-	} 
-	return pD;
-}
-
-
 
 // #############################################################################################
 /// Function:<summary>
@@ -1455,7 +1403,6 @@ yyFontManager.prototype.Split_TextBlock = function (_pStr, linewidth, thefont) {
 	var sl_index = 0;
 
     // put newlines in
-	if(!g_isZeus) _pStr = String_Replace_Hash(_pStr, thefont);
 	var len = _pStr.length;
 
 	// Allocate new space
@@ -1599,7 +1546,6 @@ yyFontManager.prototype.Split_TextBlock_IDEstyle = function (_pStr, _boundsWidth
 	var sl = [];	
 
     // put newlines in
-	if(!g_isZeus) _pStr = String_Replace_Hash(_pStr, this.thefont);
 	var len = _pStr.length;
 
 	// Allocate new space
