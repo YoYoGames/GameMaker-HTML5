@@ -1705,6 +1705,10 @@ function ResourceGetName( _index, _assetType )
         case AT_Shader:	        return ( shader_exists(_index)) ? shader_get_name(_index) : "";
         case AT_Sequence:	    return ( _sequence_exists(_index)) ? sequence_get_name(_index) : "";
         case AT_AnimCurve:	    return ( _animcurve_exists(_index)) ? animcurve_get_name(_index) : "";
+        case AT_ParticleSystem:	{
+            var ps = CParticleSystem.Get(_index);
+            return (ps != null) ? ps.name : "";
+        }
     }
     return "";
 }
