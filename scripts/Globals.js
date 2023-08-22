@@ -1155,7 +1155,9 @@ function    InitAboyneGlobals() {
     g_ParticleTextures = [];
     g_ParticleTypes = [];
     g_ParticleSystems = [];
+	// @if function("ds_grid_*")
     g_ActiveGrids = new yyAllocate(5);
+	// @endif
     g_ActivePriorityQueues = new yyAllocate(5);
     g_BufferStorage = new yyAllocate(5);
     g_ListCollection = new yyAllocate(5);

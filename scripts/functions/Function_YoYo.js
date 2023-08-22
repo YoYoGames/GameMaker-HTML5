@@ -943,7 +943,9 @@ function ds_exists(_ind, _type) {
         case eDS_TypeList:      return (g_ListCollection.Get(_ind) ? 1.0 : 0.0);
 	    case eDS_TypeStack:     return (g_StackCollection.Get(_ind) ? 1.0 : 0.0);
 	    case eDS_TypeQueue:     return (g_ActiveQueues.Get(_ind) ? 1.0 : 0.0);
+        // @if function("ds_grid_*")
 	    case eDS_TypeGrid:      return (g_ActiveGrids.Get(_ind) ? 1.0 : 0.0);
+        // @endif
 	    case eDS_TypePriority:  return (g_ActivePriorityQueues.Get(_ind) ? 1.0 : 0.0);
 	}
 	return 0;
@@ -1059,7 +1061,9 @@ function script_execute( _self, _other, _index )
     return 0;
 } // end script_execute
 
+// @if function("method_call")
 var method_call = script_execute_ext;
+// @endif
 function script_execute_ext( _self, _other, _index, _array, _offset, _length )
 {
     _offset = _offset || 0;

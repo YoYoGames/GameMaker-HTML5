@@ -1298,6 +1298,7 @@ function mp_grid_path(_pInst, _id, _path, _xstart, _ystart, _xgoal, _ygoal, _all
 
 function mp_grid_to_ds_grid(_src, _dest)
 {
+	// @if function("ds_grid_*")
     _src = yyGetInt32(_src);
     _dest = yyGetInt32(_dest);
 
@@ -1339,6 +1340,7 @@ function mp_grid_to_ds_grid(_src, _dest)
 		    pGrid.m_pGrid[x + (y * pGrid.m_Width)] = pMPGrid.m_cells[(x * pMPGrid.m_vcells) + y];
         }
     }
+	// @endif
 }
 
 // @endif mp_grid

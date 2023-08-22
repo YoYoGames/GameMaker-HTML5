@@ -13,9 +13,11 @@
 // 15/02/2012		1.0         CPH     1st version
 // 
 // **********************************************************************************************************************
+// @if feature("physics")
 var g_physicsFixtures = new yyAllocate();
 var g_physicsObjects = new yyAllocate();
 var g_physicsJoints = new yyAllocate();
+// @endif
 
 // #############################################################################################
 /// Function:<summary>

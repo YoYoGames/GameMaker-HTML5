@@ -1581,6 +1581,7 @@ function draw_tile(_inst,_back,_tileindex,_frame,_x,_y)
 
 yyRoom.prototype.DrawLayerTilemapElement = function(_rect,_layer,_el,_xpos,_ypos,_depth)
 {
+	// @if feature("tilemaps")
     if(background_exists(_el.m_backgroundIndex))
     {
         var backwidth = background_get_width(_el.m_backgroundIndex);
@@ -1927,6 +1928,7 @@ yyRoom.prototype.DrawLayerTilemapElement = function(_rect,_layer,_el,_xpos,_ypos
             }
         }
     }
+	// @endif
 };
 
 yyRoom.prototype.DrawLayerParticleSystem = function(_rect,_layer,_el)
@@ -3129,20 +3131,22 @@ yyRoom.prototype.DrawRoomLayers = function(_rect){
 	                {
 	                    this.DrawLayerInstanceElement(_rect,player,el);
 	                }
-	                else if(el.m_type === eLayerElementType_OldTilemap)
-	                {
-	                    this.DrawLayerOldTilemapElement(_rect,player,el);
-	                }
+	                //else if(el.m_type === eLayerElementType_OldTilemap)
+	                //{
+	                //    this.DrawLayerOldTilemapElement(_rect,player,el);
+	                //}
 					// @if feature("sprites")
 	                else if(el.m_type === eLayerElementType_Sprite)
 	                {
 	                    this.DrawLayerSpriteElement(_rect,player,el,0,0,0);
 	                }
 					// @endif sprites
+					// @if feature("tilemaps")
 	                else if(el.m_type === eLayerElementType_Tilemap)
 	                {
 	                    this.DrawLayerTilemapElement(_rect,player,el);
 	                }   
+					// @endif
 					else if(el.m_type === eLayerElementType_ParticleSystem)
 					{
 						this.DrawLayerParticleSystem(_rect,player,el);
@@ -3151,10 +3155,12 @@ yyRoom.prototype.DrawRoomLayers = function(_rect){
 					{
 						this.DrawLayerTileElement(_rect,player,el);
 					}
+					// @if feature("sequences")
 					else if (el.m_type === eLayerElementType_Sequence)
 					{
 					    this.DrawLayerSequenceElement(_rect, player, el);
 					}
+					// @endif
 	            }
 	        }
 
