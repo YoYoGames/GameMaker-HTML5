@@ -1881,7 +1881,7 @@ function PtInEllipse(_x1, _y1, _x2, _y2, _px, _py)
     var a = (_px - mx) / ww;
     var b = (_py - my) / hh;
     return ((a * a) + (b * b) <= 1) ? true : false;
-}
+};   
 
 
 // #############################################################################################
@@ -2188,7 +2188,7 @@ function sa_getAxes(points)
 	}
 
 	return rv;
-}
+};
 
 function sa_checkCollision(p1, p2)
 {
@@ -2218,7 +2218,7 @@ function sa_checkCollision(p1, p2)
 	}
 
 	return true;
-}
+};
 
 function sa_getProjection(points, axis)
 {
@@ -2236,7 +2236,7 @@ function sa_getProjection(points, axis)
 	}
 
 	return result;
-}
+};
 
 function getPoints(i1)
 {
@@ -2292,7 +2292,7 @@ function getPoints(i1)
 	rv[3] = { "x": (ix + cc_xmin - ss_ymax), "y": (iy + cc_ymax + ss_xmin) };
 
 	return rv;
-}
+};
 
 function SeparatingAxisCollision(i1, i2)
 {
@@ -2300,7 +2300,7 @@ function SeparatingAxisCollision(i1, i2)
 	var p2 = getPoints(i2);
 
 	return sa_checkCollision(p1, p2);
-}
+};
 
 function sa_getAxesLine(points)
 {
@@ -2315,7 +2315,7 @@ function sa_getAxesLine(points)
 	rv = {"x" : -y, "y" : x};
 
 	return rv;
-}
+};
 
 function sa_checkCollisionPoint(p1, p2)
 {
@@ -2333,7 +2333,7 @@ function sa_checkCollisionPoint(p1, p2)
     }
 
     return true;
-}
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -2428,7 +2428,7 @@ function getPointsLine(_x1, _y1, _x2, _y2)
 	rv[1] = {"x" : _x2, "y" : _y2};
 
 	return rv;
-}
+};
 
 function SeparatingAxisCollisionLine(i1, _x1, _y1, _x2, _y2)
 {
@@ -2436,14 +2436,14 @@ function SeparatingAxisCollisionLine(i1, _x1, _y1, _x2, _y2)
 	var p2 = getPointsLine(_x1, _y1, _x2, _y2);
 
 	return sa_checkCollisionLine(p1, p2);
-}
+};
 
 function SeparatingAxisCollisionPoint(i1, _x1, _y1)
 {
     var p1 = getPoints(i1);
     var p2 = { "x": _x1, "y": _y1 };
     return sa_checkCollisionPoint(p1, p2);
-}
+};
 
 function SeparatingAxisCollisionEllipse(i1, _x1, _y1, _x2, _y2)
 {
@@ -2452,7 +2452,7 @@ function SeparatingAxisCollisionEllipse(i1, _x1, _y1, _x2, _y2)
     var rx = Math.abs(_x1 - _x2) * 0.5;
     var ry = Math.abs(_y1 - _y2) * 0.5;
     return sa_checkCollisionEllipse(p1, pcentre, rx, ry);
-}
+};
 
 function SeparatingAxisCollisionBox(i1, _x1, _y1, _x2, _y2)
 {
@@ -2464,7 +2464,7 @@ function SeparatingAxisCollisionBox(i1, _x1, _y1, _x2, _y2)
     p2[3] = { "x": _x2, "y": _y2 };
 
     return sa_checkCollision(p1, p2);
-}
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -3667,7 +3667,11 @@ yyInstanceManager.prototype.PerformEvent = function (_event, _index) {
 // #############################################################################################
 var yyInst = yyInst_DEBUG;
 function yyInst_RELEASE(_inst, _other, _id) {
-	if (typeof _id === "object" || typeof _id === "function" ) return _id;
+	if (_id instanceof YYRef) {
+		_id = yyGetInt32(_id);
+	} else {
+		if (typeof _id === "object" || typeof _id === "function" ) return _id;
+	}
     if (_id == -1) return _inst;
     if (_id == -2) return _other;
     if (_id == -3) return _inst;
@@ -3680,7 +3684,11 @@ function yyInst_RELEASE(_inst, _other, _id) {
 }
 
 function yyInst_DEBUG(_inst, _other, _id) {
-	if (typeof _id === "object" || typeof _id === "function" ) return _id;
+	if (_id instanceof YYRef) {
+		_id = yyGetInt32(_id);
+	} else {
+		if (typeof _id === "object" || typeof _id === "function" ) return _id;
+	}
     if (_id == -1) return _inst;
     if (_id == -2) return _other;
     if (_id == -3) return _inst;

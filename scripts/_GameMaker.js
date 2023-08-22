@@ -315,7 +315,7 @@ function CreateDebugConsole() {
 	    		{
 	    		    g_debug_window.document.write('<!DOCTYPE html><html>' +
                     '<header>'+
-	                    '<title>GameMaker: Studio - DEBUG console</title>'+
+	                    '<title>GameMaker - DEBUG console</title>'+
                     '</header>'+
                     '<body>'+
 	                    '<table border="0"><tr>' +
@@ -856,17 +856,24 @@ function animate() {
                     done = false;
                 }
                 ProcessFileLoading();
+                var _loadingBarCallback = g_LoadingBarCallback;
                 if(g_pGMFile.Options.loadingBarCallback)
                 {
                     if (g_ExtensionTotal == g_ExtensionCount)
                     {
-                        g_CustomLoadingBarCallback = eval(g_pGMFile.Options.loadingBarCallback);
-                        g_CustomLoadingBarCallback(g_LoadGraphics, DISPLAY_WIDTH, DISPLAY_HEIGHT, g_LoadingTotal, g_LoadingCount, g_LoadingScreen);
+                        try
+                        {
+                            _loadingBarCallback = eval(g_pGMFile.Options.loadingBarCallback);
+                            g_CustomLoadingBarCallback = _loadingBarCallback;
+                        }
+                        catch (_err)
+                        {
+                            console.error('Invalid loading bar extension "' + g_pGMFile.Options.loadingBarCallback + '", using default!');
+                            console.dir(_err);
+                        }
                     }
-					
                 }
-                else
-                    g_LoadingBarCallback(g_LoadGraphics, DISPLAY_WIDTH, DISPLAY_HEIGHT, g_LoadingTotal, g_LoadingCount, g_LoadingScreen);
+                _loadingBarCallback(g_LoadGraphics, DISPLAY_WIDTH, DISPLAY_HEIGHT, g_LoadingTotal, g_LoadingCount, g_LoadingScreen);
                 //g_LoadingCount++;
                 break;
 

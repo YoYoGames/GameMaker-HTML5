@@ -276,6 +276,7 @@ function InitD3DFunctions() {
     compile_if_used(gpu_set_blendmode = WebGL_gpu_set_blendmode);
     compile_if_used(gpu_set_blendenable = WebGL_gpu_set_blendenable);
     compile_if_used(gpu_set_ztestenable = WebGL_gpu_set_ztestenable);
+    compile_if_used(gpu_set_depth = WebGL_gpu_set_depth);
     compile_if_used(gpu_set_zfunc = WebGL_gpu_set_zfunc);
     compile_if_used(gpu_set_zwriteenable = WebGL_gpu_set_zwriteenable);
     compile_if_used(gpu_set_fog = WebGL_gpu_set_fog);
@@ -311,6 +312,7 @@ function InitD3DFunctions() {
 
     compile_if_used(gpu_get_blendenable = WebGL_gpu_get_blendenable);
     gpu_get_ztestenable = WebGL_gpu_get_ztestenable;
+    compile_if_used(gpu_get_depth = WebGL_gpu_get_depth);
     compile_if_used(gpu_get_zfunc = WebGL_gpu_get_zfunc);
     gpu_get_zwriteenable = WebGL_gpu_get_zwriteenable;
     compile_if_used(gpu_get_fog = WebGL_gpu_get_fog);
@@ -922,6 +924,11 @@ function WebGL_gpu_set_ztestenable(_enable)
     g_webGL.RSMan.SetRenderState(yyGL.RenderState_ZEnable, yyGetInt32(_enable) >= 0.5);
 }
 
+function WebGL_gpu_set_depth(_depth)
+{
+    GR_Depth = _depth;
+}
+
 function WebGL_gpu_set_zfunc(_cmp_func)
 {
     g_webGL.RSMan.SetRenderState(yyGL.RenderState_ZFunc, yyGetInt32(_cmp_func));
@@ -1357,6 +1364,11 @@ function WebGL_gpu_get_blendenable()
 function WebGL_gpu_get_ztestenable()
 {
     return g_webGL.RSMan.GetRenderState(yyGL.RenderState_ZEnable) ? 1.0 : 0.0;
+}
+
+function WebGL_gpu_get_depth()
+{
+    return GR_Depth;
 }
 
 function WebGL_gpu_get_zfunc()

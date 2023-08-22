@@ -640,6 +640,20 @@ function font_get_sdf_spread(id)
 	return 0;
 }
 
+function font_enable_effects(id,enable,params)
+{
+	if (g_webGL)
+	{
+		id = yyGetInt32(id);
+		if(g_pFontManager.Fonts[id]!=undefined)
+		{
+			var font = g_pFontManager.Fonts[id];
+			font.effect_params.enabled = yyGetBool(enable);
+
+			font.SetEffectParams(params);			
+		}		
+	}	
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -861,6 +875,10 @@ function font_get_info( _ind )
     variable_struct_set(ret, "name", pFont.pName); //ret.gmlname = pFont.pName;
     variable_struct_set(ret, "bold", pFont.bold); //ret.gmlbold = pFont.bold;
     variable_struct_set(ret, "italic", pFont.italic); //ret.gmlitalic = pFont.italic;	
+
+	variable_struct_set(ret, "effectsEnabled", pFont.effect_params.enabled);
+	variable_struct_set(ret, "effectParams", pFont.GetEffectParams());
+
     variable_struct_set(ret, "glyphs", new GMLObject()); //ret.gmlglyphs = new GMLObject();
     var glyphs = variable_struct_get(ret, "glyphs");
 

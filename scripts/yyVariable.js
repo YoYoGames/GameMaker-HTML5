@@ -200,6 +200,12 @@ function is_callable( _v )
     return _v != undefined;
 }
 
+function is_handle( _v )
+{
+    return _v != undefined && _v instanceof YYRef;
+}
+
+
 function __yyg_call_method( _func )
 {
     switch( typeof(_func) )
@@ -252,7 +258,7 @@ function method( _inst, _func )
         _func = JSON_game.Scripts[_func - 100000];
     }
 
-    if (typeof _inst == "number")
+    if ((typeof _inst == "number") || (_inst instanceof YYRef))
     {
         _inst = yyInst(null, null, _inst);
     }

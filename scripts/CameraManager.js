@@ -1020,7 +1020,10 @@ function camera_get_proj_mat(arg0) {
 function camera_get_view_target(arg0) {
     var pCam = g_pCameraManager.GetCamera(yyGetInt32(arg0));
     if (pCam != null) {
-        return pCam.GetTargetInstance();
+        var instanceID = pCam.GetTargetInstance();
+        return (instanceID < 0)
+            ? instanceID
+            : MAKE_REF(REFID_INSTANCE, instanceID);
     }
     return -1;
 };

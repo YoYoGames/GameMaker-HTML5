@@ -758,7 +758,7 @@ yyPhysicsWorld.prototype.CreateBody = function (_pFixture, _pInst, _xoffs, _yoff
 	// Don't just blow up if they've screwed up the setup
 	if (fixtureDef.shape == null) {
 		var err = "No fixture shape data present for " + _pInst.GetObj().GetName() + "\n";
-		YYError(err, true);
+		yyError(err, true);
 	}
 	else {
 		var collisionCategory = this.BuildCollisionBits(_pInst.object_index);
