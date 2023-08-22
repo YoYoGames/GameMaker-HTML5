@@ -1242,7 +1242,7 @@ Graphics_TextureDrawPos = function(_pTPE, _x1, _y1, _x2, _y2, _x3, _y3, _x4, _y4
 	graphics.globalAlpha = _alpha;
 	drawTexturedTriangle(pTexture, _x1, _y1, _x2, _y2, _x3, _y3, _pTPE.x, _pTPE.y, _pTPE.x + _pTPE.w, _pTPE.y, _pTPE.x + _pTPE.w, _pTPE.y + _pTPE.h);
 	drawTexturedTriangle(pTexture, _x3, _y3, _x4, _y4, _x1, _y1, _pTPE.x + _pTPE.w, _pTPE.y + _pTPE.h, _pTPE.x, _pTPE.y + _pTPE.h, _pTPE.x, _pTPE.y);
-}
+};
 
 
 // #############################################################################################

@@ -1107,7 +1107,7 @@ surface_copy = (_destination,_x,_y,_source) => {
 		pImg.drawImage(pSrc, yyGetInt32(_x), yyGetInt32(_y));
 		pImg.restore();
 	}
-}
+};
 // @endif
 
 // #############################################################################################
@@ -1163,7 +1163,7 @@ surface_copy_part = (_destination,_x,_y, _source,_xs,_ys,_ws,_hs) => {
 		pImg.drawImage(pSrc,  _xs,_ys,_ws,_hs,  _x, _y, _ws,_hs);
 		pImg.restore();
 	} 
-}
+};
 // @endif
 
 function SurfaceFormatSupported(_format)
