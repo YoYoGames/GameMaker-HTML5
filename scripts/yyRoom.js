@@ -1022,7 +1022,7 @@ yyRoom.prototype.DrawLayerInstanceElement = function(_rect,_layer,_el)
 };
 yyRoom.prototype.DrawLayerOldTilemapElement = function(_rect,_layer,_el)
 {
-    //Don't have one of these in our project, so bit hard to test...
+/*    //Don't have one of these in our project, so bit hard to test...
 //    LinkedList<CTileSlab>::iterator slabiter = _pOldTilemapEl->m_tiles.GetIterator();
 //	while (*slabiter != NULL)
 	
@@ -1040,7 +1040,7 @@ yyRoom.prototype.DrawLayerOldTilemapElement = function(_rect,_layer,_el)
 	
 	}
 	
-/*	{
+	{
 		CTileSlab* pSlab = *slabiter;
 		RTile* pTiles = pSlab->m_Tiles;
 		int numTiles = pSlab->m_nTilesUsed;
