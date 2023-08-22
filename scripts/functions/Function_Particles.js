@@ -282,7 +282,7 @@ function part_system_destroy(_ind)
 
 // #############################################################################################
 /// Function:<summary>
-///          	Returns whether the indicated particle system exists.
+///          	Returns whether the indicated particle system instance or resource exists.
 ///          </summary>
 ///
 /// In:		<param name="_ind"></param>
@@ -292,8 +292,19 @@ function part_system_destroy(_ind)
 // #############################################################################################
 function part_system_exists(_ind)
 {
-    _ind = GetParticleSystemInstanceIndex(_ind, true);
-    return ParticleSystem_Exists(_ind);
+    if (_ind instanceof YYRef
+        && _ind.type == REFID_PART_SYSTEM)
+    {
+        // Particle system INSTANCE
+        var ps = GetParticleSystemInstanceIndex(_ind, true);
+        return ParticleSystem_Exists(ps);
+    }
+    else
+    {
+        // Particle system RESOURCE
+        var ps = yyGetInt32(_ind);
+        return (CParticleSystem.Get(ps) != null);
+    }
 }
 
 // #############################################################################################
