@@ -752,7 +752,7 @@ yyNineSliceData.prototype.DrawFromCache = function (_x, _y, _rot, _colour, _alph
     var a = (_alpha * 255.0) << 24;
     var _col = a | _colour;
 
-    var maxtrisinrun = DEFAULT_VB_SIZE / 3;     // not sure if this is actually the max we support but it's a reasonable value
+    var maxtrisinrun = ~~(DEFAULT_VB_SIZE / 3);     // not sure if this is actually the max we support but it's a reasonable value
     var trisremaining = (this.cache.verts.length / 2) / 3;
 
     var srcvert = this.cache.verts;
