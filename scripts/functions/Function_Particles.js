@@ -15,9 +15,9 @@
 // 
 // **********************************************************************************************************************
 
-function GetParticleSystemResourceIndex(_arg)
+function GetParticleSystemResourceIndex(_arg, _optional)
 {
-    return yyGetRef(_arg, REFID_PARTICLESYSTEM, CParticleSystem.instances.length, CParticleSystem.instances);
+    return yyGetRef(_arg, REFID_PARTICLESYSTEM, CParticleSystem.instances.length, CParticleSystem.instances, _optional);
 }
 
 function GetParticleSystemInstanceIndex(_arg, _optional)
@@ -230,6 +230,22 @@ function particle_get_info(_ind)
     variable_struct_set(pPSI, "emitters", emittersArray);
 
     return pPSI;
+}
+
+// #############################################################################################
+/// Function:<summary>
+///          	Checks whether a particle system asset with given index exists.
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+function particle_exists(_ind)
+{
+    var ps = GetParticleSystemResourceIndex(_ind, true);
+    return (CParticleSystem.Get(ps) != null);
 }
 
 // #############################################################################################
