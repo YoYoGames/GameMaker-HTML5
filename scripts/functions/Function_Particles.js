@@ -77,21 +77,12 @@ function GetLayer(_layerID)
     return layer;
 }
 
-// #############################################################################################
-/// Function:<summary>
-///          </summary>
-///
-/// In:		<param name="_ind"></param>
-/// Out:	<returns>
-///			</returns>
-// #############################################################################################
-function particle_get_info(_ind)
+function ParticleSystemGetInfoImpl(_ind, _isInstance)
 {
     var pPSI = undefined;
     var emitters = [];
 
-    if (_ind instanceof YYRef
-        && _ind.type == REFID_PART_SYSTEM)
+    if (_isInstance)
     {
         // Particle system INSTANCE
         _ind = GetParticleSystemInstanceIndex(_ind);
@@ -230,6 +221,20 @@ function particle_get_info(_ind)
     variable_struct_set(pPSI, "emitters", emittersArray);
 
     return pPSI;
+}
+
+// #############################################################################################
+/// Function:<summary>
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+/// Out:	<returns>
+///			</returns>
+// #############################################################################################
+function particle_get_info(_ind)
+{
+    var isInstance = ((_ind instanceof YYRef) && _(ind.type == REFID_PART_SYSTEM));
+    return ParticleSystemGetInfoImpl(_ind, isInstance);
 }
 
 // #############################################################################################
@@ -1579,4 +1584,9 @@ function part_system_global_space(_ind, _enable)
 {
     _ind = GetParticleSystemInstanceIndex(_ind);
     return ParticleSystem_GlobalSpace(_ind, _enable);
+}
+
+function part_system_get_info(_ind)
+{
+    return ParticleSystemGetInfoImpl(_ind, true);
 }
