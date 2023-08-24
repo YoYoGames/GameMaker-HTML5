@@ -39,6 +39,8 @@ var vertex_get_number = function (buffer) { ErrorFunction("vertex_get_number"); 
 var vertex_get_buffer_size = function (buffer) { ErrorFunction("vertex_get_buffer_size"); };
 var vertex_create_buffer_from_buffer = function (buffer) { ErrorFunction("vertex_create_buffer_from_buffer"); };
 var vertex_create_buffer_from_buffer_ext = function (buffer) { ErrorFunction("vertex_create_buffer_from_buffer_ext"); };
+var vertex_update_buffer_from_buffer = function (buffer, src_buffer, format) { ErrorFunction("vertex_update_buffer_from_buffer"); };
+var vertex_update_buffer_from_buffer_ext = function (buffer, src_buffer, format, offset, num_vertices) { ErrorFunction("vertex_update_buffer_from_buffer_ext"); };
 var draw_flush = function () { };
 
 // Constant for the default vertex buffer storage size
@@ -59,6 +61,8 @@ function InitBufferVertexFunctions() {
     vertex_create_buffer_ext = WebGL_vertex_create_buffer_ext_RELEASE;
     vertex_create_buffer_from_buffer = WebGL_vertex_create_buffer_from_buffer;
     vertex_create_buffer_from_buffer_ext = WebGL_vertex_create_buffer_from_buffer_ext;
+    vertex_update_buffer_from_buffer = WebGL_vertex_update_buffer_from_buffer;
+    vertex_update_buffer_from_buffer_ext = WebGL_vertex_update_buffer_from_buffer_ext;
     vertex_delete_buffer = WebGL_vertex_delete_buffer_RELEASE;
     vertex_begin = WebGL_vertex_begin_RELEASE;
     vertex_end = WebGL_vertex_end_RELEASE;
@@ -159,6 +163,82 @@ function WebGL_vertex_create_buffer_from_buffer_ext(_buffer, _format, _src_offse
 function WebGL_vertex_create_buffer_from_buffer(_buffer, _format)
 {
     return WebGL_vertex_create_buffer_from_buffer_ext(_buffer, _format, 0, -1);
+}
+
+// #############################################################################################
+/// Function:<summary>
+///             Updates a vertex buffer from a portion of a regular buffer
+///          </summary>
+/// In:		<param name="_buffer"></param>
+///         <param name="_src_buffer"></param>
+///         <param name="_format"></param>
+///         <param name="_offset"></param>
+///         <param name="_num_vertices"></param>
+/// Out:	<returns>
+///				N/A 
+///			</returns>
+// #############################################################################################
+function WebGL_vertex_update_buffer_from_buffer_ext(_buffer, _src_buffer, _format, _offset, _num_vertices)
+{
+    _buffer = yyGetInt32(_buffer);
+    _format = yyGetInt32(_format);
+    _offset = yyGetInt32(_offset);
+    _num_vertices = yyGetInt32(_num_vertices);
+
+    var total = 0;
+
+    // get actual vertex format and buffer
+    var VertexFormat = g_webGL.GetVertexFormat(_format);
+    var pBuff = g_BufferStorage.Get(yyGetInt32(_src_buffer));
+    if (!pBuff || !VertexFormat) return;
+    
+
+    // if no vertex count passed in, then use the whole buffer - ignoring src offset as well
+    if (_num_vertices == -1) {
+        _offset = 0;
+        total = pBuff.m_UsedSize;
+        _num_vertices = total / VertexFormat.ByteSize;
+    } else {
+        total = _num_vertices * VertexFormat.ByteSize;
+        if ((total + _offset) > pBuff.m_UsedSize) {         // past end of buffer?
+            total = (pBuff.m_UsedSize - _offset);
+            _num_vertices = ~~(total / VertexFormat.ByteSize);      // round to nearest vertex
+            total = _num_vertices * VertexFormat.ByteSize;
+        }
+    }
+
+
+    // Create the new buffer and get it's class
+    var pVBuffer = g_vertexBuffers[_buffer];
+
+    // Now get the underlying arrays
+    var srcbytebuff = new Uint8Array(pBuff.m_pRAWUnderlyingBuffer);     // src
+    var dstbytebuff = new Uint8Array(pVBuffer.GetArrayBuffer());                 // dest
+
+    // And do the actual copy
+    pVBuffer.Begin(_format);
+    var src = _offset;
+    for (var i = 0; i < total; i++) {
+        dstbytebuff[i] = srcbytebuff[src++];
+    }
+    pVBuffer.SetVertexCount(_num_vertices);
+    pVBuffer.End();
+}
+
+// #############################################################################################
+/// Function:<summary>
+///             Updates a vertex buffer from a regular buffer
+///          </summary>
+/// In:		<param name="_buffer"></param>
+///         <param name="_src_buffer"></param>
+///         <param name="_format"></param>
+/// Out:	<returns>
+///				N/A
+///			</returns>
+// #############################################################################################
+function WebGL_vertex_update_buffer_from_buffer(_buffer, _src_buffer, _format)
+{
+    return WebGL_vertex_update_buffer_from_buffer_ext(_buffer, _src_buffer, _format, 0, -1);
 }
 
 // #############################################################################################
