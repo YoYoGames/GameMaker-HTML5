@@ -969,8 +969,8 @@ function Tilemap_PointPlace( _x, _y, tilemapind, instlist,prec)
 
 				GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata);
 				
-				var xfrac = (_x - CVert[0].x) / tilewidth;
-				var yfrac = (_y - CVert[0].y) / tileheight;
+				var xfrac = ((_x+0.5) - CVert[0].x) / tilewidth;
+				var yfrac = ((_y+0.5) - CVert[0].y) / tileheight;
 				var upoint = CTVert[0].u + xfrac * (CTVert[1].u - CTVert[0].u) + yfrac*(CTVert[3].u-CTVert[0].u);
 				var vpoint = CTVert[0].v + xfrac * (CTVert[1].v - CTVert[0].v) + yfrac * (CTVert[3].v - CTVert[0].v);
 
