@@ -92,20 +92,22 @@ function yyVBufferBuilder(_size) {
 
     // #############################################################################################
     /// Function:<summary>
-    ///             Resizes the buffer 
+    ///             Resizes the buffer if its size is different than the size provided.
     ///          </summary>
     // #############################################################################################
     /** @this {yyVBufferBuilder} */	
     this.Resize = function (_size) {
-
-        var arrayBufferReplacement = new ArrayBuffer(_size);
-    					    					    
-        var oldBufferView = new Int8Array(m_arrayBuffer);
-        var newbufferView = new Int8Array(arrayBufferReplacement);
-        newbufferView.set(oldBufferView);
-        
-        m_arrayBuffer = arrayBufferReplacement;
-        m_dataView = new DataView(m_arrayBuffer);
+        if (m_arrayBuffer.byteLength != _size)
+        {
+            var arrayBufferReplacement = new ArrayBuffer(_size);
+                                                        
+            var oldBufferView = new Int8Array(m_arrayBuffer);
+            var newbufferView = new Int8Array(arrayBufferReplacement);
+            newbufferView.set(oldBufferView);
+            
+            m_arrayBuffer = arrayBufferReplacement;
+            m_dataView = new DataView(m_arrayBuffer);
+        }
     };
 
     // #############################################################################################
