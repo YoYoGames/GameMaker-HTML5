@@ -1002,6 +1002,27 @@ function Tilemap_PointPlace( _x, _y, tilemapind, instlist,prec)
 
 	return false;
 }
+function ValidBBoxOverlap(_l, _r, _t, _b, _tl,_tr,_tt,_tb)
+{
+
+	var l = (yymax(_l, _tl));
+
+
+	var t = (yymax(_t, _tt));
+
+
+	var r = (yymin(_r, _tr));
+	var b = (yymin(_b, _tb));
+	//As per precise sprite collisions, only accept an overlap that crosses a pixel centre
+
+	if (Math.floor(l + 0.49999) == Math.floor(r + 0.5))
+		return false;
+	if (Math.floor(t + 0.49999) == Math.floor(b + 0.5))
+		return false;
+
+	return true;
+}
+
 
 function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 {
@@ -1171,14 +1192,21 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 					}
 					else
 					{
+						var tl = tmapbb.left + tilewidth * x;
+						var tr =tl + tilewidth;
 
-						inst.SetPosition(xx, yy);
-						inst.bbox = old_bbox;
-						if (instlist != null)
+						var tt = tmapbb.top + tileheight * y;
+						var tb = tt + tileheight;
+						if (ValidBBoxOverlap(bb1.left, bb1.right, bb1.top, bb1.bottom, tl,tr,tt,tb))
 						{
-							instlist.push(tilemapind);
+							inst.SetPosition(xx, yy);
+							inst.bbox = old_bbox;
+							if (instlist != null)
+							{
+								instlist.push(tilemapind);
+							}
+							return true;
 						}
-						return true;
 					}
 				}
 			}
