@@ -210,6 +210,7 @@ function WebGL_vertex_update_buffer_from_buffer_ext(_buffer, _src_buffer, _forma
 
     // Create the new buffer and get it's class
     var pVBuffer = g_vertexBuffers[_buffer];
+    pVBuffer.Resize(total);
 
     // Now get the underlying arrays
     var srcbytebuff = new Uint8Array(pBuff.m_pRAWUnderlyingBuffer);     // src
