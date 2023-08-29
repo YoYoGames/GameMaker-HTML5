@@ -143,6 +143,10 @@ function yyVBufferBuilder(_size) {
     };
     
     this.GetFVF = function () { return m_FVF; };
+    this.SetFVF = function (_fvf) {
+        m_FVF = _fvf;
+        m_vertexFormat = g_webGL.GetVertexFormat(_fvf);
+    };
     this.GetFormat = function () { return g_webGL.GetVertexFormat(m_FVF); };
 
     // #############################################################################################
