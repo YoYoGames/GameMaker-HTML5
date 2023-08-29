@@ -225,7 +225,7 @@ function WebGL_vertex_update_buffer_from_buffer(_dest_vbuff, _dest_offset, _src_
     _dest_vbuff = yyGetInt32(_dest_vbuff);
     _dest_offset = yyGetInt32(_dest_offset);
     _src_buffer = yyGetInt32(_src_buffer);
-    _src_offset = (_src_offset !== undefined) ? yyGetInt32(_src_off) : 0;
+    _src_offset = (_src_offset !== undefined) ? yyGetInt32(_src_offset) : 0;
     _src_size = (_src_size !== undefined) ? yyGetInt32(_src_size) : -1;
 
     var pVBuffer = g_vertexBuffers[_dest_vbuff];
@@ -271,6 +271,7 @@ function WebGL_vertex_update_buffer_from_buffer(_dest_vbuff, _dest_offset, _src_
     {
         _src_size = pBuff.m_UsedSize;
     }
+    _src_size = Math.min(_src_size, pBuff.m_UsedSize - _src_offset);
 
     if (_src_size == 0)
     {
