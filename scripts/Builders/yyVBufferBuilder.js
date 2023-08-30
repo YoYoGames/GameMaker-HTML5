@@ -414,7 +414,10 @@ function yyVBufferBuilder(_size) {
         return m_arrayBuffer;
     };
 
-
+    this.IsFrozen = function ()
+    {
+        return m_frozen;
+    };
 }
 
 

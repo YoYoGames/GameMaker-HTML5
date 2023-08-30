@@ -628,9 +628,11 @@ function WebGL_vertex_ubyte4_RELEASE(_buffer, x, y, z, w) {
 function WebGL_vertex_freeze_RELEASE(_buffer) {
 
     var vertexBuffer = g_vertexBuffers[yyGetInt32(_buffer)];
-    if (vertexBuffer) {    
-        vertexBuffer.Freeze();          
+    if (vertexBuffer && !vertexBuffer.IsFrozen()) {
+        vertexBuffer.Freeze();
+        return 0;
     }
+    return -1;
 }
 
 // #############################################################################################
