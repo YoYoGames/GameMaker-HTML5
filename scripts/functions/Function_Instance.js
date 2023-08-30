@@ -928,6 +928,9 @@ function Tilemap_PointPlace( _x, _y, tilemapind, instlist,prec)
 		l = ~~yymax(l, 0);
 		t = ~~yymax(t, 0);
 
+		l = ~~yymin(l, el.m_mapWidth - 1);
+		t = ~~yymin(t, el.m_mapHeight - 1);
+
 		var index = (t * el.m_mapWidth) + l;
 		//int tmapindex = pTilemapEl->m_pTiles[index];
 		index = ~~index;
@@ -966,8 +969,8 @@ function Tilemap_PointPlace( _x, _y, tilemapind, instlist,prec)
 
 				GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata);
 				
-				var xfrac = (_x - CVert[0].x) / tilewidth;
-				var yfrac = (_y - CVert[0].y) / tileheight;
+				var xfrac = ((_x+0.5) - CVert[0].x) / tilewidth;
+				var yfrac = ((_y+0.5) - CVert[0].y) / tileheight;
 				var upoint = CTVert[0].u + xfrac * (CTVert[1].u - CTVert[0].u) + yfrac*(CTVert[3].u-CTVert[0].u);
 				var vpoint = CTVert[0].v + xfrac * (CTVert[1].v - CTVert[0].v) + yfrac * (CTVert[3].v - CTVert[0].v);
 
@@ -999,6 +1002,27 @@ function Tilemap_PointPlace( _x, _y, tilemapind, instlist,prec)
 
 	return false;
 }
+function ValidBBoxOverlap(_l, _r, _t, _b, _tl,_tr,_tt,_tb)
+{
+
+	var l = (yymax(_l, _tl));
+
+
+	var t = (yymax(_t, _tt));
+
+
+	var r = (yymin(_r, _tr));
+	var b = (yymin(_b, _tb));
+	//As per precise sprite collisions, only accept an overlap that crosses a pixel centre
+
+	if (Math.floor(l + 0.49999) == Math.floor(r + 0.5))
+		return false;
+	if (Math.floor(t + 0.49999) == Math.floor(b + 0.5))
+		return false;
+
+	return true;
+}
+
 
 function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 {
@@ -1168,14 +1192,21 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 					}
 					else
 					{
+						var tl = tmapbb.left + tilewidth * x;
+						var tr =tl + tilewidth;
 
-						inst.SetPosition(xx, yy);
-						inst.bbox = old_bbox;
-						if (instlist != null)
+						var tt = tmapbb.top + tileheight * y;
+						var tb = tt + tileheight;
+						if (ValidBBoxOverlap(bb1.left, bb1.right, bb1.top, bb1.bottom, tl,tr,tt,tb))
 						{
-							instlist.push(tilemapind);
+							inst.SetPosition(xx, yy);
+							inst.bbox = old_bbox;
+							if (instlist != null)
+							{
+								instlist.push(tilemapind);
+							}
+							return true;
 						}
-						return true;
 					}
 				}
 			}
