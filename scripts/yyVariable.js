@@ -869,8 +869,9 @@ function array_create_ext(_size, _func) {
     _obj = "boundObject" in _func ? _func.boundObject : {};
 
     var ret = new Array(_size);
-    ret = ret.map((_, i) => _func(_obj, _obj, i));
-
+    for (var i = 0; i < _size; i++) {
+        ret[i] = _func(_obj, _obj, i);
+    }
     ret.__yy_owner = g_CurrentArrayOwner;
     
     return ret;
