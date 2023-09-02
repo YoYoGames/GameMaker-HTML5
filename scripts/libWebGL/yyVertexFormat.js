@@ -218,4 +218,53 @@ function yyVertexFormat() {
         }
         return true;
     };
+
+    // #############################################################################################
+    /// Function:<summary>
+    ///             Retrieves size of given vertex format element type.
+    ///          </summary>
+    // #############################################################################################
+    /** @this {yyVertexFormat} */
+    this.GetTypeSize = function (_type) {
+        switch (_type) {
+            case yyGL.VT_FLOAT1: return 4;
+            case yyGL.VT_FLOAT2: return 8;
+            case yyGL.VT_FLOAT3: return 12;
+            case yyGL.VT_FLOAT4: return 16;
+            case yyGL.VT_COLOR:  return 4;
+            case yyGL.VT_UBYTE4: return 4;
+            default:
+                return 0;
+        }
+    };
+
+    // TODO: put this stuff in lookup tables
+
+    /** @this {yyVertexFormat} */
+    this.GetNumElementsInType = function (_type) {
+        switch(_type) {
+            case yyGL.VT_FLOAT1: return 1;
+            case yyGL.VT_FLOAT2: return 2;
+            case yyGL.VT_FLOAT3: return 3;
+            case yyGL.VT_FLOAT4: return 4;
+            case yyGL.VT_COLOR:  return 1;
+            case yyGL.VT_UBYTE4: return 1;
+            default:
+                return 0;
+        };
+    };
+
+    /** @this {yyVertexFormat} */
+    this.GetElementSizeInType = function (_type) {
+        switch(_type) {
+            case yyGL.VT_FLOAT1: return 4;
+            case yyGL.VT_FLOAT2: return 4;
+            case yyGL.VT_FLOAT3: return 4;
+            case yyGL.VT_FLOAT4: return 4;
+            case yyGL.VT_COLOR:  return 4;
+            case yyGL.VT_UBYTE4: return 4;
+            default:
+                return 0;
+        };
+    };
 }

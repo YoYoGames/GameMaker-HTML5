@@ -22,7 +22,8 @@ var vertex_format_begin,
     vertex_format_add_normal,
     vertex_format_add_texcoord,
     vertex_format_add_textcoord,
-    vertex_format_add_custom;
+    vertex_format_add_custom,
+    vertex_format_get_info;
 
 // @if feature("2d")
 (() => {
@@ -38,6 +39,7 @@ var vertex_format_begin,
     vertex_format_add_texcoord = _stub("vertex_format_add_texcoord");
     vertex_format_add_textcoord = _stub("vertex_format_add_textcoord");
     vertex_format_add_custom = _stub("vertex_format_add_custom");
+    vertex_format_get_info = _stub("vertex_format_get_info");
 })();
 // @endif 2d
 
@@ -66,6 +68,7 @@ function InitFVFFunctions() {
     vertex_format_add_texcoord = WebGL_vertex_format_add_texcoord_RELEASE;
     vertex_format_add_textcoord = WebGL_vertex_format_add_texcoord_RELEASE; //This was in wrongly, add both spellings...
     vertex_format_add_custom = WebGL_vertex_format_add_custom_RELEASE;
+    vertex_format_get_info = WebGL_vertex_format_get_info_RELEASE;
 }
 
 // #############################################################################################
@@ -196,6 +199,35 @@ function WebGL_vertex_format_delete_RELEASE(_format_id)
     debug("WARNING vertex_format_delete not implemented on HTML5 (System shares vertex formats but doesn't reference count)");
 }
 
+function WebGL_vertex_format_get_info_RELEASE(_format_id)
+{
+    var format = g_webGL.GetVertexFormat(yyGetInt32(_format_id));
+
+    if (!format)
+        return undefined;
+
+    pVFI = new GMLObject();
+
+    variable_struct_set(pVFI, "stride", format.ByteSize);
+    variable_struct_set(pVFI, "num_elements", format.Format.length);
+
+    var elementsArray = [];
+    for (var i = 0; i < format.Format.length; ++i)
+    {
+        var element = format.Format[i];
+        var pElementI = new GMLObject();
+
+        variable_struct_set(pElementI, "usage", element.usage);
+        variable_struct_set(pElementI, "type", element.type);
+        variable_struct_set(pElementI, "size", format.GetTypeSize(element.type));
+        variable_struct_set(pElementI, "offset", element.offset);
+
+        elementsArray.push(pElementI);
+    }
+    variable_struct_set(pVFI, "elements", elementsArray);
+
+    return pVFI;
+}
 // @endif gl
 
 // @endif vertex_

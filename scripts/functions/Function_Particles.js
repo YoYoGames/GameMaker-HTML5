@@ -15,9 +15,9 @@
 // 
 // **********************************************************************************************************************
 
-function GetParticleSystemResourceIndex(_arg)
+function GetParticleSystemResourceIndex(_arg, _optional)
 {
-    return yyGetRef(_arg, REFID_PARTICLESYSTEM, CParticleSystem.instances.length, CParticleSystem.instances);
+    return yyGetRef(_arg, REFID_PARTICLESYSTEM, CParticleSystem.instances.length, CParticleSystem.instances, _optional);
 }
 
 function GetParticleSystemInstanceIndex(_arg, _optional)
@@ -77,21 +77,12 @@ function GetLayer(_layerID)
     return layer;
 }
 
-// #############################################################################################
-/// Function:<summary>
-///          </summary>
-///
-/// In:		<param name="_ind"></param>
-/// Out:	<returns>
-///			</returns>
-// #############################################################################################
-function particle_get_info(_ind)
+function ParticleSystemGetInfoImpl(_ind, _isInstance)
 {
     var pPSI = undefined;
     var emitters = [];
 
-    if (_ind instanceof YYRef
-        && _ind.type == REFID_PART_SYSTEM)
+    if (_isInstance)
     {
         // Particle system INSTANCE
         _ind = GetParticleSystemInstanceIndex(_ind);
@@ -233,6 +224,36 @@ function particle_get_info(_ind)
 }
 
 // @if feature("particles")
+// #############################################################################################
+/// Function:<summary>
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+/// Out:	<returns>
+///			</returns>
+// #############################################################################################
+function particle_get_info(_ind)
+{
+    var isInstance = ((_ind instanceof YYRef) && _(ind.type == REFID_PART_SYSTEM));
+    return ParticleSystemGetInfoImpl(_ind, isInstance);
+}
+
+// #############################################################################################
+/// Function:<summary>
+///          	Checks whether a particle system asset with given index exists.
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+function particle_exists(_ind)
+{
+    var ps = GetParticleSystemResourceIndex(_ind, true);
+    return (CParticleSystem.Get(ps) != null);
+}
+
 // #############################################################################################
 /// Function:<summary>
 ///          	Creates a new particle system. It returns the index of the system. 
@@ -1566,4 +1587,9 @@ function part_system_global_space(_ind, _enable)
 {
     _ind = GetParticleSystemInstanceIndex(_ind);
     return ParticleSystem_GlobalSpace(_ind, _enable);
+}
+
+function part_system_get_info(_ind)
+{
+    return ParticleSystemGetInfoImpl(_ind, true);
 }

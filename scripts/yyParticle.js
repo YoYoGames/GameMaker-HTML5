@@ -2677,7 +2677,7 @@ function HandleLife( _ps, _em )
 		{
 			numb = pParType.deathnumber;
 			if ( numb<0 ){
-				if ( YYRandom(-numb) == 0 ) numb = 1;
+				if ( ~~YYRandom(-numb) == 0 ) numb = 1;
 			}
 			if  ( numb > 0 ){
 				EmitParticles(pPartSys, pEmitter, pParticle.x, pParticle.y, pParType.deathtype, numb);
@@ -2687,7 +2687,7 @@ function HandleLife( _ps, _em )
 			// Create step particles
 			numb = pParType.stepnumber;
 			if ( numb<0 ){
-				if ( YYRandom(-numb) == 0 ) numb = 1;
+				if ( ~~YYRandom(-numb) == 0 ) numb = 1;
 			}
 			if ( numb > 0 ){
 				EmitParticles(pPartSys, pEmitter, pParticle.x, pParticle.y, pParType.steptype, numb);
