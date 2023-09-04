@@ -1140,8 +1140,8 @@ function device_mouse_x_to_gui(_dev) {
     if (_dev == 0) {
         x = g_EventMouseX;
     }
-    else if (g_TouchEvents[_dev]) {
-        x = g_TouchEvents[_dev].x;
+    else if (g_InputEvents[_dev]) {
+        x = g_InputEvents[_dev].x;
     } 
     CalcCanvasLocation(canvas, g_CanvasRect);
     x  -= g_CanvasRect.left;
@@ -1170,8 +1170,8 @@ function device_mouse_y_to_gui(_dev) {
     if (_dev == 0) {
         y = g_EventMouseY;
     }
-    else if (g_TouchEvents[_dev]) {
-        y = g_TouchEvents[_dev].y;
+    else if (g_InputEvents[_dev]) {
+        y = g_InputEvents[_dev].y;
     }
 
     CalcCanvasLocation(canvas, g_CanvasRect);
