@@ -620,9 +620,13 @@ class AudioPlaybackProps
         this.priority = yyGetReal(_priority);
         this.loop = yyGetReal(_loop);
 
-        this.gain = _gain;
+        this.gain = Math.max(0, _gain);
+        this.pitch = Math.max(0, _pitch);
         this.offset = _offset;
-        this.pitch = _pitch;
+
+        if (this.offset !== AudioPropsCalc.not_specified) {
+            this.offset = Math.max(0, this.offset);
+        }
     }
 
     Invalid()
