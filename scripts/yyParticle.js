@@ -1999,7 +1999,7 @@ function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 
 	if (em == -1)
 	{
-		em = ParticleSystem_Emitter_Create(ps);
+		em = ParticleSystem_Emitter_Create(_ps);
 	}
 
 	EmitParticles(system, system.emitters[em], _x, _y, _parttype, _numb);
@@ -2045,7 +2045,7 @@ function	ParticleSystem_Particles_Create_Color( _ps, _x, _y, _parttype, _col, _n
 
 	if (em == -1)
 	{
-		em = ParticleSystem_Emitter_Create(ps);
+		em = ParticleSystem_Emitter_Create(_ps);
 	}
 
 	EmitParticles(system, system.emitters[em], _x, _y, _parttype, _numb, true, _col);
