@@ -314,7 +314,7 @@ function CreateDebugConsole() {
 	    		{
 	    		    g_debug_window.document.write('<!DOCTYPE html><html>' +
                     '<header>'+
-	                    '<title>GameMaker: Studio - DEBUG console</title>'+
+	                    '<title>GameMaker - DEBUG console</title>'+
                     '</header>'+
                     '<body>'+
 	                    '<table border="0"><tr>' +
@@ -846,17 +846,24 @@ function animate() {
                     done = false;
                 }
                 ProcessFileLoading();
+                var _loadingBarCallback = g_LoadingBarCallback;
                 if(g_pGMFile.Options.loadingBarCallback)
                 {
                     if (g_ExtensionTotal == g_ExtensionCount)
                     {
-                        g_CustomLoadingBarCallback = eval(g_pGMFile.Options.loadingBarCallback);
-                        g_CustomLoadingBarCallback(g_LoadGraphics, DISPLAY_WIDTH, DISPLAY_HEIGHT, g_LoadingTotal, g_LoadingCount, g_LoadingScreen);
+                        try
+                        {
+                            _loadingBarCallback = eval(g_pGMFile.Options.loadingBarCallback);
+                            g_CustomLoadingBarCallback = _loadingBarCallback;
+                        }
+                        catch (_err)
+                        {
+                            console.error('Invalid loading bar extension "' + g_pGMFile.Options.loadingBarCallback + '", using default!');
+                            console.dir(_err);
+                        }
                     }
-					
                 }
-                else
-                    g_LoadingBarCallback(g_LoadGraphics, DISPLAY_WIDTH, DISPLAY_HEIGHT, g_LoadingTotal, g_LoadingCount, g_LoadingScreen);
+                _loadingBarCallback(g_LoadGraphics, DISPLAY_WIDTH, DISPLAY_HEIGHT, g_LoadingTotal, g_LoadingCount, g_LoadingScreen);
                 //g_LoadingCount++;
                 break;
 
@@ -1190,6 +1197,8 @@ function StartRoom( _numb, _starting )
         		var pInst = g_CurrentRoom.m_Active.Get(i);
         		pInst.pObject.RemoveInstance(pInst);
         	}
+
+            g_pLayerManager.CleanRoomLayerRuntimeData(g_CurrentRoom);
         }
     }
 
@@ -1262,6 +1271,12 @@ function StartRoom( _numb, _starting )
     
     // Initialise effects
     g_pEffectsManager.Init();
+
+    // Set up runtime data for this room's layers
+    if(g_pLayerManager!=null)
+        g_pLayerManager.BuildRoomLayerRuntimeData(g_RunRoom);
+
+    ParticleSystem_AddAllToLayers();
 
 	// If this room is NOT persistent then we need to recreate all instances EXCEPT those that already exist in the persistent list
 	// Any instance created in here will perform the create event... including "new" PERSISTENT instances
@@ -1382,12 +1397,6 @@ function StartRoom( _numb, _starting )
         }
     }
     
-    // Set up runtime data for this room's layers
-    if(g_pLayerManager!=null)
-        g_pLayerManager.BuildRoomLayerRuntimeData(g_RunRoom);
-
-    ParticleSystem_AddAllToLayers();
-	
     // Start the room, performing the correct events
     if (_starting) {
         g_pInstanceManager.PerformEvent(EVENT_OTHER_STARTGAME, 0 );
@@ -2328,8 +2337,8 @@ function GameMaker_Tick()
 		    if (ErrorCount <= 0) break;
 		}
 
-
-
+        g_MouseDeltaX = 0;
+        g_MouseDeltaY = 0;
     }
     
 	// if in DEBUG mode, do debug "stuff"

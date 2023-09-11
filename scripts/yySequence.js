@@ -1131,51 +1131,80 @@ function yySequenceClipMaskTrack(_pStorage) {
     yySequenceBaseTrack.call(this, _pStorage); //base constructor
     this.m_type = eSTT_ClipMask;
 
-    this.pMaskTrack = null;
-    this.pSubjectTrack = null;
+    Object.defineProperties(this, {
+        gmlmask: {
+            enumerable: true,
+            get: function () { return this.GetMaskTrack(); },
+            set: function (_val) { this.SetMaskTrack(_val); }
+        }, 
+        gmlsubject: {
+            enumerable: true,
+            get: function () { return this.GetSubjectTrack(); },
+            set: function (_val) { this.SetSubjectTrack(_val); }
+        } 
+    });
+}
+
+yySequenceClipMaskTrack.prototype.ReplaceTrack = function(_pTrack, _trackType)
+{
+    for(var i = 0; i < this.m_tracks.length; i++)
+	{
+		var subtrack = this.m_tracks[i];
+		if(subtrack.m_type == _trackType)
+		{
+            if (_pTrack == null)
+                this.m_tracks.splice(i, 1);     // remove existing track
+            else
+                this.m_tracks[i] = _pTrack;     // replace track
+
+            return;
+		}		
+	}
+
+    if (_pTrack != NULL)
+    {
+        // If we got here then we didn't find any instances of the specified track type
+        // so add the track to the end of the list
+        this.m_tracks[this.m_tracks.length] = _pTrack;
+    }
+};
+
+yySequenceClipMaskTrack.prototype.SetMaskTrack = function(_pTrack)
+{
+    this.ReplaceTrack(_pTrack, eSTT_ClipMask_Mask);    
+};
+
+yySequenceClipMaskTrack.prototype.SetSubjectTrack = function(_pTrack)
+{
+    this.ReplaceTrack(_pTrack, eSTT_ClipMask_Subject);    
+};
+
+yySequenceClipMaskTrack.prototype.GetMaskTrack = function()
+{
     for(var i = 0; i < this.m_tracks.length; i++)
 	{
 		var subtrack = this.m_tracks[i];
 		if(subtrack.m_type == eSTT_ClipMask_Mask)
 		{
-			this.pMaskTrack = subtrack;
-			if(this.pSubjectTrack != null)
-			{
-				break;
-			}
-		}
-		else if(subtrack.m_type == eSTT_ClipMask_Subject)
-		{
-			this.pSubjectTrack = subtrack;
-			if(this.pMaskTrack != null)
-			{
-				break;
-			}
-		}
+            return subtrack;			
+		}		
 	}
 
-    Object.defineProperties(this, {
-        gmlmask: {
-            enumerable: true,
-            get: function () { return this.pMaskTrack; },
-            set: function (_val) { this.pMaskTrack = _val; }
-        }, 
-        gmlsubject: {
-            enumerable: true,
-            get: function () { return this.pSubjectTrack; },
-            set: function (_val) { this.pSubjectTrack = _val; }
-        } 
-    });
-}
-
-yySequenceClipMaskTrack.prototype.GetMaskTrack = function()
-{
-    return this.pMaskTrack;
+    return null;
 };
 
 yySequenceClipMaskTrack.prototype.GetSubjectTrack = function()
 {
-    return this.pSubjectTrack;
+    for(var i = 0; i < this.m_tracks.length; i++)
+	{
+		var subtrack = this.m_tracks[i];
+		if(subtrack.m_type == eSTT_ClipMask_Subject)
+		{
+            return subtrack;			
+		}		
+	}
+
+    return null;    
 };
 
 // #############################################################################################
@@ -1262,8 +1291,8 @@ function yySequenceBaseTrack(_pStorage) {
         if(_pStorage.tags !== undefined && _pStorage.tags.length > 0)
         {            
             for(var tagI = 0; tagI < _pStorage.tags.length; tagI++)
-            {
-                this.m_tags[_pStorage.tags[tagI]["UniqueTagTypeId"]] = _pStorage.tags[tagI];
+            {                
+                this.m_tags[_pStorage.tags[tagI].UniqueTagTypeId] = _pStorage.tags[tagI];
             }
         }
 
@@ -5011,6 +5040,8 @@ yySequenceManager.prototype.HandleParticleTrackUpdate = function (_pEl, _pSeq, _
 
         if (ps != -1)
         {
+            ParticleSystem_SetMatrix(ps, _matrix);
+
             // Re-burst emitters when the sequence loops
 			if (_pInst.m_wrapped)
 			{
@@ -5021,11 +5052,13 @@ yySequenceManager.prototype.HandleParticleTrackUpdate = function (_pEl, _pSeq, _
                     for (var i = 0; i < pEmitters.length; i++)
                     {
                         var emitter = pEmitters[i];
-                        if (!emitter.enabled) continue;
+
+                        EmitterRandomizeDelay(emitter);
 
                         if (emitter.created
+                            && emitter.enabled
                             && emitter.mode == PT_MODE_BURST
-                            && emitter.number != 0)
+                            && emitter.delayCurrent <= 0.0)
                         {
                             ParticleSystem_Emitter_Burst(ps, i, emitter.parttype, emitter.number);
                         }
@@ -5765,6 +5798,7 @@ function TrackEval() {
     this.LineSpacing = 0;
     this.ParagraphSpacing = 0;
 
+    this.pFontEffectParams = new FontEffectParams();
 }
 
 TrackEval.prototype.ApplyCreationMask = function (_creationmask)

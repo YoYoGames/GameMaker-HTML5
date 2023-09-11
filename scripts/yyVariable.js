@@ -200,6 +200,12 @@ function is_callable( _v )
     return _v != undefined;
 }
 
+function is_handle( _v )
+{
+    return _v != undefined && _v instanceof YYRef;
+}
+
+
 function __yyg_call_method( _func )
 {
     switch( typeof(_func) )
@@ -252,7 +258,7 @@ function method( _inst, _func )
         _func = JSON_game.Scripts[_func - 100000];
     }
 
-    if (typeof _inst == "number")
+    if ((typeof _inst == "number") || (_inst instanceof YYRef))
     {
         _inst = yyInst(null, null, _inst);
     }
@@ -862,13 +868,12 @@ function array_create_ext(_size, _func) {
     _func = getFunction(_func, 1);
     _obj = "boundObject" in _func ? _func.boundObject : {};
 
-    var ret = [];
+    var ret = new Array(_size);
+    for (var i = 0; i < _size; i++) {
+        ret[i] = _func(_obj, _obj, i);
+    }
     ret.__yy_owner = g_CurrentArrayOwner;
     
-    for (var i = _size - 1; i >= 0; --i) {
-        ret[i] = _func(_obj, _obj, i);
-    } // end for
-
     return ret;
 } // end array_create_ext
 

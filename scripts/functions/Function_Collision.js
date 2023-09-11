@@ -15,8 +15,32 @@
 // 
 // **********************************************************************************************************************
 
+function Command_CollisionPoint(_pInst,_x,_y,_obj,_prec,_notme)
+{
+    return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x, _y, _prec,  
+        function( _pInstance )
+        {
+            var coll = _pInstance.Collision_Point(_x,_y,_prec);
+            if (!coll) {
+                return OBJECT_NOONE;
+            }
+            return MAKE_REF(REFID_INSTANCE, _pInstance.id);
+        }
+    );
+};
 
 
+function Command_CollisionPointList(_pInst,_x,_y,_obj,_prec,_notme,_list)
+{
+    Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x, _y, _prec,  
+        function( _pInstance ) {
+            if (_pInstance.Collision_Point(_x,_y,_prec)) {
+                _list.push(MAKE_REF(REFID_INSTANCE, _pInstance.id));
+            }
+            return OBJECT_NOONE;
+        }
+    );
+};
 // #############################################################################################
 /// Function:<summary>
 ///          	This function tests whether at point (x,y) there is a collision with entities of 
@@ -39,17 +63,55 @@ function collision_point(_pInst, _x,_y,_obj,_prec,_notme)
     _y = yyGetReal(_y);
     _prec = yyGetBool(_prec);
 
-    return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x, _y, _prec,  
-        function( _pInstance )
-        {
-            var coll = _pInstance.Collision_Point(_x,_y,_prec);
-            if (!coll) {
-                return OBJECT_NOONE;
-            }
-            return _pInstance.id;
-        }
-    );
-}
+
+    if(_obj instanceof YYRef)
+	{
+		var reftype = _obj.type;
+		if (reftype == REFID_BACKGROUND)
+		{
+			if (Tilemap_PointPlace( _x, _y, _obj, null,_prec))
+			{
+				return _obj;
+			}
+			return -1;
+		}
+		else
+		{
+            var id = Command_CollisionPoint(_pInst,_x,_y,_obj,_prec,_notme);
+			return id;
+		}
+	}
+	else if (_obj instanceof Array)
+	{
+		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
+		{
+			var obj2 = _obj[i]; 
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			{
+				if (Tilemap_PointPlace( _x, _y, obj2, null,_prec))
+				{
+					return obj2;
+				}
+			}
+			else
+			{
+				var id = Command_CollisionPoint(_pInst,_x,_y,obj2,_prec,_notme);
+				if(id!=OBJECT_NOONE)
+					return id;
+			}
+		}
+		return -1;
+	}
+	else
+	{
+		var id = Command_CollisionPoint(_pInst,_x,_y,_obj,_prec,_notme);
+		return id;
+	}
+
+
+
+
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -65,18 +127,41 @@ function AppendCollisionResults(_instArray, _destList, _px, _py) {
     var sortArr = [];
     for (var i = 0; i < _instArray.length; ++i) {
         var pInst = _instArray[i];
-        var dx = pInst.x - _px;
-        var dy = pInst.y - _py;
-        var distSq = (dx * dx) + (dy * dy);
-        var obj = { instId: pInst.id, dist: distSq };
-        sortArr.push(obj);
+
+        if(pInst instanceof YYRef)
+        {
+            var reftype = pInst.type;
+		    if (reftype == REFID_BACKGROUND)
+            {
+                var pRoom = g_pLayerManager.GetTargetRoomObj();
+                var elementAndLayer = g_pLayerManager.GetElementFromID( pRoom,pInst.value);
+                var dx = elementAndLayer.x - _px;
+                var dy = elementAndLayer.y - _py;
+                var distSq = (dx * dx) + (dy * dy);
+                var obj = { ref:pInst, dist: distSq };
+                sortArr.push(obj);
+                pInst = null;
+            }
+            else
+                pInst = yyInst(null,null,yyGetInt32(pInst));
+        }
+    
+        if(pInst)
+        {
+            var dx = pInst.x - _px;
+            var dy = pInst.y - _py;
+            var distSq = (dx * dx) + (dy * dy);
+            var obj = { ref:MAKE_REF(REFID_INSTANCE, pInst.id), dist: distSq };
+            sortArr.push(obj);
+        }
+
     }
     sortArr.sort(function (a, b) { return a.dist - b.dist; });
 
     for (var i = 0; i < sortArr.length; ++i) {
-        _destList.Add(sortArr[i].instId);
+        _destList.Add( sortArr[i].ref);
     }
-}
+};
 
 function collision_point_list(_pInst, _x, _y, _obj, _prec, _notme, _list, _ordered)
 {
@@ -84,32 +169,68 @@ function collision_point_list(_pInst, _x, _y, _obj, _prec, _notme, _list, _order
     _y = yyGetReal(_y);
     _prec = yyGetBool(_prec);
 
-    var list = g_ListCollection.Get(yyGetInt32(_list));
-    if (!list) {
-        yyError("Error: invalid ds_list ID (collision_point_list)");
-        return 0;
-    }
-    var found = 0;
-    var sort = yyGetBool(_ordered);
-    var arr = [];
-    Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x, _y, _prec,  
-        function( _pInstance ) {
-            if (_pInstance.Collision_Point(_x,_y,_prec)) {
-                if (sort)
-                    arr[found] = _pInstance;
-                else
-                    list.Add(_pInstance.id);
-                found += 1;
-            }
-            return OBJECT_NOONE;
+
+
+	var list = g_ListCollection.Get(yyGetInt32(_list));
+	if (!list) {
+		yyError("Error: invalid ds_list ID (instance_position_list)");
+		return 0;
+	}
+	var skipafterswitch = false;
+	var instList = [];
+
+	if(_obj instanceof YYRef)
+	{
+		var reftype = _obj.type;
+		if (reftype == REFID_BACKGROUND)
+		{
+			Tilemap_PointPlace( _x, _y, _obj, instList,_prec);
+			skipafterswitch = true;
+		}
+		
+	}
+	else if (_obj instanceof Array)
+	{
+		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
+		{
+			var obj2 = _obj[i]; 
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			{
+				Tilemap_PointPlace( _x, _y, obj2, instList,_prec);
+			}
+			else
+			{
+				Command_CollisionPointList(_pInst,_x,_y,obj2,_prec,_notme,instList);
+			}
+		}
+		skipafterswitch = true;
+	}
+		
+	if(!skipafterswitch) //If we've been passed an array or a tilemap ref don't do this call
+        Command_CollisionPointList(_pInst,_x,_y,_obj,_prec,_notme,instList);
+	
+	var count = instList.length;
+	AppendCollisionResults(instList, list, _x, _y, _ordered);
+
+	return count;
+
+
+};
+
+
+function Command_CollisionRectangle(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
+{
+	return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
+        function (_pInstance) {
+        	var coll = _pInstance.Collision_Rectangle(_x1, _y1, _x2, _y2, _prec);
+        	if (!coll) {
+        	    return OBJECT_NOONE;
+        	}
+        	return MAKE_REF(REFID_INSTANCE, _pInstance.id);
         }
     );
 
-    if (sort)
-        AppendCollisionResults(arr, list, _x, _y);
-
-    return found;
-}
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -138,16 +259,75 @@ function collision_rectangle(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
     _y2 = yyGetReal(_y2);
     _prec = yyGetBool(_prec);
 
-	return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
-        function (_pInstance) {
-        	var coll = _pInstance.Collision_Rectangle(_x1, _y1, _x2, _y2, _prec);
-        	if (!coll) {
-        	    return OBJECT_NOONE;
-        	}
-        	return _pInstance.id;
+    if(_obj instanceof YYRef)
+	{
+		var reftype = _obj.type;
+		if (reftype == REFID_BACKGROUND)
+		{
+			if (Tilemap_CollisionRectangle( _x1, _y1,_x2,_y2, _obj, null,_prec))
+			{
+				return _obj;
+			}
+			return -1;
+		}
+		else
+		{
+			var id = Command_CollisionRectangle(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme);
+		
+			return id;
+		}
+	}
+	else if (_obj instanceof Array)
+	{
+		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
+		{
+			var obj2 = _obj[i]; 
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			{
+				if (Tilemap_CollisionRectangle( _x1, _y1,_x2,_y2, obj2, null,_prec))
+				{
+					return obj2;
+				}
+				
+			}
+			else
+			{
+				var id = Command_CollisionRectangle(_pInst, _x1,_y1,_x2,_y2,obj2,_prec,_notme);
+				if(id!=OBJECT_NOONE)
+					return id;
+			}
+		}
+		return -1;
+	}
+	else
+	{
+		var id = Command_CollisionRectangle(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme);
+		return id;
+	}
+
+
+};
+
+function Command_CollisionRectangleList(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,_list)
+{
+    _x1 = yyGetReal(_x1);
+    _y1 = yyGetReal(_y1);
+    _x2 = yyGetReal(_x2);
+    _y2 = yyGetReal(_y2);
+    _prec = yyGetBool(_prec);
+
+	return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,  
+        function(_pInstance) 
+        {
+            if (_pInstance.Collision_Rectangle(_x1, _y1, _x2, _y2, _prec)) 
+        	{
+                _list.push(MAKE_REF(REFID_INSTANCE, _pInstance.id));
+            }
+            return OBJECT_NOONE;
         }
     );
-}
+};
+
 function collision_rectangle_list(_pInst, _x1, _y1, _x2, _y2, _obj, _prec, _notme, _list, _ordered)
 {
     _x1 = yyGetReal(_x1);
@@ -156,35 +336,54 @@ function collision_rectangle_list(_pInst, _x1, _y1, _x2, _y2, _obj, _prec, _notm
     _y2 = yyGetReal(_y2);
     _prec = yyGetBool(_prec);
 
-    var list = g_ListCollection.Get(yyGetInt32(_list));
-    if (!list) {
-        yyError("Error: invalid ds_list ID (collision_rectangle_list)");
-        return 0;
-    }
-    var found = 0;
-    var sort = yyGetBool(_ordered);
-    var arr = [];
-    Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
-        function (_pInstance) {
-        	if (_pInstance.Collision_Rectangle(_x1, _y1, _x2, _y2, _prec)) {
-        	    if (sort)
-        	        arr[found] = _pInstance;
-                else
-        	        list.Add(_pInstance.id);
-                found += 1;
-            }
-            return OBJECT_NOONE;
-        }
-    );
+    
 
-    if (sort) {
-        var cx = (_x1 + _x2) * 0.5;
-        var cy = (_y1 + _y2) * 0.5;
-        AppendCollisionResults(arr, list, cx,cy);
-    }
+	var list = g_ListCollection.Get(yyGetInt32(_list));
+	if (!list) {
+		yyError("Error: invalid ds_list ID (instance_position_list)");
+		return 0;
+	}
+	var skipafterswitch = false;
+	var instList = [];
 
-    return found;
-}
+	if(_obj instanceof YYRef)
+	{
+		var reftype = _obj.type;
+		if (reftype == REFID_BACKGROUND)
+		{
+			Tilemap_CollisionRectangle( _x1, _y1,_x2,_y2, _obj, instList,_prec);
+			skipafterswitch = true;
+		}
+		
+	}
+	else if (_obj instanceof Array)
+	{
+		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
+		{
+			var obj2 = _obj[i]; 
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			{
+				Tilemap_CollisionRectangle( _x1, _y1,_x2,_y2, obj2,instList,_prec);
+			}
+			else
+			{
+				Command_CollisionRectangleList(_pInst,_x1,_y1,_x2,_y2,obj2,_prec,_notme,instList);
+			}
+		}
+		skipafterswitch = true;
+	}
+		
+	if(!skipafterswitch) //If we've been passed an array or a tilemap ref don't do this call
+        Command_CollisionRectangleList(_pInst,_x1,_y1,_x2,_y2,_obj,_prec,_notme,instList);
+	
+	var count = instList.length;
+    var cx = (_x1 + _x2) * 0.5;
+    var cy = (_y1 + _y2) * 0.5;
+	AppendCollisionResults(instList, list, cx, cy, _ordered);
+
+	return count;
+
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -214,7 +413,7 @@ function collision_circle(_pInst, _xc,_yc,_radius,_obj,_prec,_notme)
                             _prec,
                             _notme
                             );
-}
+};
 function collision_circle_list(_pInst, _xc,_yc,_radius,_obj,_prec,_notme,_list,_ordered) {
     var list = g_ListCollection.Get(yyGetInt32(_list));
     if (!list) {
@@ -225,8 +424,46 @@ function collision_circle_list(_pInst, _xc,_yc,_radius,_obj,_prec,_notme,_list,_
                             _xc-_radius, _yc-_radius,
                             _xc+_radius, _yc+_radius,
                             _obj, _prec, _notme, _list,_ordered);
-}
+};
+function Command_CollisionEllipse(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
+{
+    _x1 = yyGetReal(_x1);
+    _y1 = yyGetReal(_y1);
+    _x2 = yyGetReal(_x2);
+    _y2 = yyGetReal(_y2);
+    _prec = yyGetBool(_prec);
 
+	return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,  
+        function(_pInstance) 
+        {
+            var coll = _pInstance.Collision_Ellipse(_x1,_y1,_x2,_y2,_prec);
+        	if (!coll) {
+        	    return OBJECT_NOONE;
+        	}
+        	return MAKE_REF(REFID_INSTANCE, _pInstance.id);
+        }
+    );
+};
+
+function Command_CollisionEllipseList(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,_list)
+{
+    _x1 = yyGetReal(_x1);
+    _y1 = yyGetReal(_y1);
+    _x2 = yyGetReal(_x2);
+    _y2 = yyGetReal(_y2);
+    _prec = yyGetBool(_prec);
+
+	return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,  
+        function(_pInstance) 
+        {
+            if(_pInstance.Collision_Ellipse(_x1,_y1,_x2,_y2,_prec))
+        	{
+                _list.push(MAKE_REF(REFID_INSTANCE, _pInstance.id));
+            }
+            return OBJECT_NOONE;
+        }
+    );
+};
 // #############################################################################################
 /// Function:<summary>
 ///          	This function tests whether there is a collision between the (filled) ellipse 
@@ -253,17 +490,52 @@ function collision_ellipse(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
     _y2 = yyGetReal(_y2);
     _prec = yyGetBool(_prec);
 
-	return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,  
-        function(_pInstance) 
-        {
-            var coll = _pInstance.Collision_Ellipse(_x1,_y1,_x2,_y2,_prec);
-        	if (!coll) {
-        	    return OBJECT_NOONE;
-        	}
-        	return _pInstance.id;
-        }
-    );
-}
+    if(_obj instanceof YYRef)
+	{
+		var reftype = _obj.type;
+		if (reftype == REFID_BACKGROUND)
+		{
+			if (Tilemap_CollisionEllipse( _x1, _y1,_x2,_y2, _obj, null,_prec))
+			{
+				return _obj;
+			}
+			return -1;
+		}
+		else
+		{
+			var id = Command_CollisionEllipse(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme);
+		
+			return id;
+		}
+	}
+	else if (_obj instanceof Array)
+	{
+		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
+		{
+			var obj2 = _obj[i]; 
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			{
+				if (Tilemap_CollisionEllipse( _x1, _y1,_x2,_y2, obj2, null,_prec))
+				{
+					return obj2;
+				}
+				
+			}
+			else
+			{
+				var id = Command_CollisionEllipse(_pInst, _x1,_y1,_x2,_y2,obj2,_prec,_notme);
+				if(id!=OBJECT_NOONE)
+					return id;
+			}
+		}
+		return -1;
+	}
+	else
+	{
+		var id = Command_CollisionEllipse(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme);
+		return id;
+	}
+};
 function collision_ellipse_list(_pInst, _x1, _y1, _x2, _y2, _obj, _prec, _notme, _list, _ordered)
 {
     _x1 = yyGetReal(_x1);
@@ -272,36 +544,78 @@ function collision_ellipse_list(_pInst, _x1, _y1, _x2, _y2, _obj, _prec, _notme,
     _y2 = yyGetReal(_y2);
     _prec = yyGetBool(_prec);
 
-    var list = g_ListCollection.Get(yyGetInt32(_list));
-    if (!list) {
-        yyError("Error: invalid ds_list ID (collision_ellipse_list)");
-        return 0;
-    }
-    var found = 0;
-    var sort = (_ordered >= 0.5) ? true : false;
-    var arr = [];
-	Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,  
+
+
+	var list = g_ListCollection.Get(yyGetInt32(_list));
+	if (!list) {
+		yyError("Error: invalid ds_list ID (instance_position_list)");
+		return 0;
+	}
+	var skipafterswitch = false;
+	var instList = [];
+
+	if(_obj instanceof YYRef)
+	{
+		var reftype = _obj.type;
+		if (reftype == REFID_BACKGROUND)
+		{
+			Tilemap_CollisionEllipse( _x1, _y1,_x2,_y2, _obj, instList,_prec);
+			skipafterswitch = true;
+		}
+		
+	}
+	else if (_obj instanceof Array)
+	{
+		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
+		{
+			var obj2 = _obj[i]; 
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			{
+				Tilemap_CollisionEllipse( _x1, _y1,_x2,_y2, obj2,instList,_prec);
+			}
+			else
+			{
+				Command_CollisionEllipseList(_pInst,_x1,_y1,_x2,_y2,obj2,_prec,_notme,instList);
+			}
+		}
+		skipafterswitch = true;
+	}
+		
+	if(!skipafterswitch) //If we've been passed an array or a tilemap ref don't do this call
+        Command_CollisionEllipseList(_pInst,_x1,_y1,_x2,_y2,_obj,_prec,_notme,instList);
+	
+	var count = instList.length;
+    var cx = (_x1 + _x2) * 0.5;
+    var cy = (_y1 + _y2) * 0.5;
+	AppendCollisionResults(instList, list, cx, cy, _ordered);
+
+	return count;
+
+};
+function Command_CollisionLine(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
+{
+    return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
+        function(_pInstance) 
+        {
+            var coll = _pInstance.Collision_Line(_x1, _y1, _x2, _y2, _prec);
+        	if (!coll) {
+        	    return OBJECT_NOONE;        	
+        	}
+        	return MAKE_REF(REFID_INSTANCE, _pInstance.id);
+        }
+    );
+};
+function Command_CollisionLineList(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,_list)
+{
+    Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
         function(_pInstance) {
-            if (_pInstance.Collision_Ellipse(_x1,_y1,_x2,_y2,_prec)) {
-                if (sort)
-                    arr[found] = _pInstance;
-                else
-                    list.Add(_pInstance.id);
-                found += 1;
+            if (_pInstance.Collision_Line(_x1, _y1, _x2, _y2, _prec)) {
+                _list.push(MAKE_REF(REFID_INSTANCE, _pInstance.id));
             }
         	return OBJECT_NOONE;
         }
     );
-
-	if (sort) {
-	    var cx = (_x1 + _x2) * 0.5;
-	    var cy = (_y1 + _y2) * 0.5;
-	    AppendCollisionResults(arr, list, cx,cy);
-	}
-
-    return found;
-}
-
+};
 // #############################################################################################
 /// Function:<summary>
 ///          	This function tests whether there is a collision between the line segment from 
@@ -330,19 +644,58 @@ function collision_line(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
     _y2 = yyGetReal(_y2);
     _prec = yyGetBool(_prec);
 
-    return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
-        function(_pInstance) 
-        {
-            var coll = _pInstance.Collision_Line(_x1, _y1, _x2, _y2, _prec);
-        	if (!coll) {
-        	    return OBJECT_NOONE;        	
-        	}
-        	return _pInstance.id;
-        }
-    );
-}
+
+    if(_obj instanceof YYRef)
+	{
+		var reftype = _obj.type;
+		if (reftype == REFID_BACKGROUND)
+		{
+			if (Tilemap_CollisionLine( _x1, _y1,_x2,_y2, _obj, null,_prec))
+			{
+				return _obj;
+			}
+			return -1;
+		}
+		else
+		{
+			var id = Command_CollisionLine(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme);
+		
+			return id;
+		}
+	}
+	else if (_obj instanceof Array)
+	{
+		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
+		{
+			var obj2 = _obj[i]; 
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			{
+				if (Tilemap_CollisionLine( _x1, _y1,_x2,_y2, obj2, null,_prec))
+				{
+					return obj2;
+				}
+				
+			}
+			else
+			{
+				var id = Command_CollisionLine(_pInst, _x1,_y1,_x2,_y2,obj2,_prec,_notme);
+				if(id!=OBJECT_NOONE)
+					return id;
+			}
+		}
+		return -1;
+	}
+	else
+	{
+		var id = Command_CollisionLine(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme);
+		return id;
+	}
+
+
+};
 function collision_line_list(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,_list,_ordered)
 {
+
     _x1 = yyGetReal(_x1);
     _y1 = yyGetReal(_y1);
     _x2 = yyGetReal(_x2);
@@ -354,27 +707,48 @@ function collision_line_list(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,_list,_or
         yyError("Error: invalid ds_list ID (collision_line_list)");
         return 0;
     }
-    var found = 0;
-    var sort = yyGetBool(_ordered);
-    var arr = [];
-    Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
-        function(_pInstance) {
-            if (_pInstance.Collision_Line(_x1, _y1, _x2, _y2, _prec)) {
-                if (sort)
-                    arr[found] = _pInstance;
-                else
-                    list.Add(_pInstance.id);
-                found += 1;
-            }
-        	return OBJECT_NOONE;
-        }
-    );
 
-    if (sort)
-        AppendCollisionResults(arr, list, _x1, _y1);
+    
+	var skipafterswitch = false;
+	var instList = [];
 
-    return found;
-}
+	if(_obj instanceof YYRef)
+	{
+		var reftype = _obj.type;
+		if (reftype == REFID_BACKGROUND)
+		{
+			Tilemap_CollisionLine( _x1, _y1,_x2,_y2, _obj, instList,_prec);
+			skipafterswitch = true;
+		}
+		
+	}
+	else if (_obj instanceof Array)
+	{
+		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
+		{
+			var obj2 = _obj[i]; 
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			{
+				Tilemap_CollisionLine( _x1, _y1,_x2,_y2, obj2,instList,_prec);
+			}
+			else
+			{
+				Command_CollisionLineList(_pInst,_x1,_y1,_x2,_y2,obj2,_prec,_notme,instList);
+			}
+		}
+		skipafterswitch = true;
+	}
+		
+	if(!skipafterswitch) //If we've been passed an array or a tilemap ref don't do this call
+        Command_CollisionLineList(_pInst,_x1,_y1,_x2,_y2,_obj,_prec,_notme,instList);
+	
+	var count = instList.length;
+
+	AppendCollisionResults(instList, list, _x1, _y1, _ordered);
+
+	return count;
+
+};
 
 
 
@@ -403,7 +777,7 @@ function point_in_rectangle(_px, _py, _x1, _y1, _x2, _y2)
 	    return true;
 	}
 	return false;
-}
+};
 
 
 // #############################################################################################
@@ -488,7 +862,7 @@ function rectangle_in_rectangle(_px1, _py1, _px2, _py2, _x1, _y1, _x2, _y2)
     }
 
     return result;
-}
+};
 
 
 // #############################################################################################
@@ -529,7 +903,7 @@ function PointInTriangle(px, py, x1, y1, x2, y2, x3, y3) {
     var v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
     return ((u >= 0.0) && (v >= 0.0) && (u + v < 1.0));
-}
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -550,7 +924,7 @@ function PointInTriangle(px, py, x1, y1, x2, y2, x3, y3) {
 // #############################################################################################
 function point_in_triangle(_px, _py, _x1, _y1, _x2, _y2, _x3, _y3) {
     return PointInTriangle(yyGetReal(_px), yyGetReal(_py), yyGetReal(_x1), yyGetReal(_y1), yyGetReal(_x2), yyGetReal(_y2), yyGetReal(_x3), yyGetReal(_y3));
-}
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -571,11 +945,11 @@ function PointInCircle(_px, _py, _cx, _cy, _rad_squared )
 	var d = (((_px-_cx)*(_px-_cx))+((_py-_cy)*(_py-_cy)));
 	if( d<=_rad_squared ) return true;
 	return false;
-}
+};
 
 function point_in_circle(_px, _py, _cx, _cy, _rad) {
     return PointInCircle(yyGetReal(_px), yyGetReal(_py), yyGetReal(_cx), yyGetReal(_cy), yyGetReal(_rad) * yyGetReal(_rad));
-}
+};
 
 
 // #############################################################################################
@@ -632,7 +1006,7 @@ function rectangle_in_circle(_sx1, _sy1, _sx2, _sy2, _cx, _cy, _rad)
 		}
     }
     return Result;
-}
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -684,7 +1058,7 @@ function circle_in_rectangle(_sx1, _sy1, _sx2, _sy2, _cx, _cy, _rad)
         }
     }
     return Result;
-}
+};
 
 function get_axis(p0, p1)
 {
@@ -692,7 +1066,7 @@ function get_axis(p0, p1)
     var dy = p1.y - p0.y;
     var axis = { "x": -dy, "y": dx };
     return axis;
-}
+};
 
 function project_pts(pts, num, axis)
 {
@@ -708,7 +1082,7 @@ function project_pts(pts, num, axis)
     }
     var proj = { "min": min, "max": max };
     return proj;
-}
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -782,4 +1156,4 @@ function rectangle_in_triangle(_sx1, _sy1, _sx2, _sy2, _x1, _y1, _x2, _y2, _x3, 
         }
     }
     return 2.0; //no separating axes, overlapping
-}
+};

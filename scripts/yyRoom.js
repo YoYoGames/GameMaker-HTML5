@@ -2068,6 +2068,7 @@ yyRoom.prototype.DrawLayerParticleSystem = function(_rect,_layer,_el)
 	matWorldNew.Translation(pSystem.xdraw + _el.m_x, pSystem.ydraw + _el.m_y, 0.0);
 
 	WebGL_SetMatrix(MATRIX_WORLD, matWorldNew);
+	ParticleSystem_SetMatrix(ps, matWorldNew);
 	ParticleSystem_Draw(ps, _el.m_imageBlend, _el.m_imageAlpha);
 	WebGL_SetMatrix(MATRIX_WORLD, matWorldOld);
 };
@@ -2980,6 +2981,8 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 		paraSpacing = _node.value.ParagraphSpacing;
 	}
 
+	var pFontParams = _node.value.pFontEffectParams;
+
 	g_pFontManager.SetFont();
 	var sldata = g_pFontManager.Split_TextBlock_IDEstyle(text, frameWidth, frameHeight, alignment, wrap, charSpacing, lineSpacing, paraSpacing);
 
@@ -3091,7 +3094,7 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 		}
 	}
 	
-	g_pFontManager.GR_StringList_Draw_IDEstyle(sldata.sl, 0.0, 0.0, charSpacing, 0.0, sldata.totalW);
+	g_pFontManager.GR_StringList_Draw_IDEstyle(sldata.sl, 0.0, 0.0, charSpacing, 0.0, sldata.totalW, pFontParams);
 
 	if (mask)
 	{
@@ -3564,7 +3567,7 @@ yyRoom.prototype.SetApplicationSurface = function () {
     if( g_bUsingAppSurface )
     {
         //Create Application Surface?
-        if( g_ApplicationSurface < 0 )
+        if( (g_ApplicationSurface < 0) || !surface_exists(g_ApplicationSurface) )
         {
             g_ApplicationSurface = surface_create( g_ApplicationWidth, g_ApplicationHeight, eTextureFormat_A8R8G8B8 );
             g_pBuiltIn.application_surface = g_ApplicationSurface;
@@ -4246,7 +4249,7 @@ yyRoom.prototype.ProcessParticleDepthChange = function () {
 	            var pPartEl = new CLayerParticleElement();
 	            pPartEl.m_systemID = id;
 	            //pPartEl.m_origLayerID = -1;  // scrub any associated layer ID if we're manually changing depth
-	            pPartEl.m_elementID = g_pLayerManager.AddNewElementAtDepth(g_RunRoom, pPartSys.depth, pPartEl, true, true);
+	            pPartSys.m_elementID = g_pLayerManager.AddNewElementAtDepth(g_RunRoom, pPartSys.depth, pPartEl, true, true);
 	        }
         }
 	}

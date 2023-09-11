@@ -14,20 +14,6 @@
 // 25/02/2011		V1.0        MJD     1st version.
 // 
 // **********************************************************************************************************************
-var AT_Object = 0,
-	AT_Sprite = 1,
-	AT_Sound = 2,
-	AT_Room = 3,
-	AT_Background = 4,
-	AT_Path = 5,
-	AT_Script = 6,
-	AT_Font = 7,
-	AT_Timeline = 8,
-    AT_Tiles = 9, // In HTML5 tile resources are added as part of the background array
-	AT_Shader = 10,
-    AT_Sequence = 11,
-    AT_AnimCurve = 12;
-    AT_ParticleSystem = 13;
 
 var TimingMethod = 1;       //tm_countvsyncs=1, tm_sleep=0
 
@@ -1719,6 +1705,10 @@ function ResourceGetName( _index, _assetType )
         case AT_Shader:	        return ( shader_exists(_index)) ? shader_get_name(_index) : "";
         case AT_Sequence:	    return ( _sequence_exists(_index)) ? sequence_get_name(_index) : "";
         case AT_AnimCurve:	    return ( _animcurve_exists(_index)) ? animcurve_get_name(_index) : "";
+        case AT_ParticleSystem:	{
+            var ps = CParticleSystem.Get(_index);
+            return (ps != null) ? ps.name : "";
+        }
     }
     return "";
 }

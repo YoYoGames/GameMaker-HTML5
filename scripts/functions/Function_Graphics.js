@@ -2434,7 +2434,7 @@ function skeleton_bone_state_set(_inst, _bone, _map) {
     var skeletonAnim = _inst.SkeletonAnimation();
     if (skeletonAnim)
 	{		
-        skeletonAnim.SetBoneState(yyGetString(_bone), yyGetInt32(_map));
+        skeletonAnim.SetBoneState(_inst, yyGetString(_bone), yyGetInt32(_map));
 	}
 }
 

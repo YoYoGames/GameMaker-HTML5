@@ -663,7 +663,20 @@ yyObject.prototype.HasEvent = function (_event, _subevent) {
 yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_async) {
     // Stop when room has changed or an error occured
     //+allow certain events when room or instance is persistent (as native runner)
-    if (!_is_async && (_event != EVENT_CLEAN_UP) && New_Room != -1  && !((_pInst.persistent || g_RunRoom.m_persistent) && ((_event==EVENT_CREATE) || (_event == EVENT_PRE_CREATE) || (_event==EVENT_DESTROY) || (_event==EVENT_ALARM) || (_event == EVENT_OTHER) || (_event == EVENT_OTHER_NETWORKING) || (_event == EVENT_OTHER_WEB_ASYNC)))){
+
+    var eventType = _event & EVENT_TYPE_MASK;
+    if (!_is_async
+        && (_event != EVENT_CLEAN_UP)
+        && New_Room != -1
+        && !(
+                (_pInst.persistent || g_RunRoom.m_persistent)
+                && (
+                    eventType == EVENT_CREATE
+                    || eventType == EVENT_PRE_CREATE
+                    || eventType == EVENT_DESTROY
+                    || eventType == EVENT_ALARM
+                    || eventType == EVENT_OTHER
+                ))){
         return;
     }
 
@@ -1472,7 +1485,7 @@ function  GetWithArray( _ID )
 {
     var candidates = [];
 
-    if ((typeof _ID === "object") && !((_ID instanceof Array) || (_ID instanceof ArrayBuffer))) {
+    if ((typeof _ID === "object" && !(_ID instanceof YYRef)) && !((_ID instanceof Array) || (_ID instanceof ArrayBuffer))) {
         candidates[0] =  _ID;
     } // end if
     else

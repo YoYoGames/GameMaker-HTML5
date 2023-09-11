@@ -537,7 +537,7 @@ LayerManager.prototype.MoveElement = function(_room, _element, _targetlayer)
     if (_room == null)
         return;
 
-    if (_element = null)
+    if (_element == null)
         return;
 
     if (_targetlayer == null)
@@ -630,7 +630,7 @@ LayerManager.prototype.BuildParticleElementRuntimeData = function( _room ,_layer
 {
     if (_element.m_ps != -1 && _element.m_systemID == -1)
     {
-        CParticleSystem.Get(_element.m_ps).MakeInstance(-1, false, _element);
+        CParticleSystem.Get(_element.m_ps).MakeInstance(_layer.m_id, false, _element);
     }
 
     _element.m_bRuntimeDataInitialised=true;
@@ -1283,6 +1283,8 @@ LayerManager.prototype.ChangeLayerDepth = function(_room, _layer, _newDepth, _al
 
 LayerManager.prototype.GetLayerWithDepth=function(_room,_depth,_dynamicOnly)
 {
+    if (_room == null) return null;
+
     //c++ uses a hash map for this but we'll just blit through for now...    
     for(var i=0;i<_room.m_Layers.length;i++)
     {        
@@ -1590,6 +1592,25 @@ LayerManager.prototype.CleanRoomLayers = function(_room)
         }
 
         this.RemoveLayer(_room, pLayer.m_id, false);        
+    }
+};
+
+LayerManager.prototype.CleanRoomLayerRuntimeData = function (_room)
+{
+    if(_room==null)
+        return;
+
+    if (_room.m_Layers == null)
+        return;
+
+    for (var l = 0; l < _room.m_Layers.pool.length; ++l)
+    {
+        var _layer = _room.m_Layers.pool[l];
+        for (var e = 0; e < _layer.m_elements.pool.length; ++e)
+        {
+            var _element = _layer.m_elements.pool[e];
+            this.CleanElementRuntimeData(_element);
+        }
     }
 };
 
@@ -2017,6 +2038,8 @@ function layerGetObj(room, id_or_name) {
 
 function layerGetFromTargetRoom(_id_or_name) {
     var room = g_pLayerManager.GetTargetRoomObj();
+    if (room == null) return null;
+    
     return layerGetObj(room, _id_or_name);
 };
 
@@ -2223,7 +2246,7 @@ function layer_instance_get_instance(_id) {
     if (room != null) {
         var el = g_pLayerManager.GetElementFromID(room, yyGetInt32(_id));
         if (el != null && el.m_type === eLayerElementType_Instance) {
-            return el.m_instanceID;
+            return MAKE_REF(REFID_INSTANCE, el.m_instanceID);
         }
     }
     return OBJECT_NOONE;
@@ -2985,7 +3008,7 @@ function layerTilemapGetElement(tm_element_id)
 function layer_tilemap_get_id( arg1) 
 {
     var room = g_pLayerManager.GetTargetRoomObj();
-    if (room === null) return -1;
+    if (room === null) MAKE_REF(REFID_BACKGROUND,-1);
 
     var layer = layerGetObj(room, arg1); 
     if(layer!=null)
@@ -2993,10 +3016,10 @@ function layer_tilemap_get_id( arg1)
         var element = g_pLayerManager.GetElementFromName(layer,layer.m_pName);
         if(element!=null && element.m_type == eLayerElementType_Tilemap)
         {
-            return element.m_id;
+            return MAKE_REF(REFID_BACKGROUND,element.m_id);
         }
     }
-    return -1;
+    return MAKE_REF(REFID_BACKGROUND,-1);
 
 };
 function layer_tilemap_exists( arg1,arg2) 
@@ -3373,6 +3396,7 @@ function tileset_get_info(_ind) {
         variable_struct_set(ret, "tile_vertical_separator", pDest.tilevsep); 
         variable_struct_set(ret, "tile_columns", pDest.tilecolumns); 
         variable_struct_set(ret, "tile_count", pDest.tilecount); 
+        variable_struct_set(ret, "sprite_index", pDest.spriteindex); 
         variable_struct_set(ret, "frame_count", pDest.frames); 
         variable_struct_set(ret, "frame_length_ms", pDest.framelength); 
 
@@ -3837,6 +3861,7 @@ function draw_tilemap(inst, arg1,arg2,arg3)
     var el = layerTilemapGetElement(yyGetInt32(arg1));
     if (el != null)
     {
+        var room = g_pLayerManager.GetTargetRoomObj();
         var x = yyGetReal(arg2);
         var y = yyGetReal(arg3);
         var depth = GetInstanceDepth(inst);
@@ -3982,6 +4007,7 @@ function instance_create_depth( _x,_y,_depth,_objind, _basis)
 
 	if(_depth == undefined)
 		_depth = 0;
+    _objind = yyGetInt32(_objind);
 	
     var o = g_pObjectManager.Get(_objind);
 	if (!o)
@@ -3989,14 +4015,14 @@ function instance_create_depth( _x,_y,_depth,_objind, _basis)
 		yyError("Error: Trying to create an instance using non-existent object type (" + _objind + ")");
 		return OBJECT_NOONE;
 	}
-    var inst =g_RunRoom.GML_AddInstanceDepth(yyGetReal(_x), yyGetReal(_y), yyGetInt32(_depth), yyGetInt32(_objind));
+    var inst =g_RunRoom.GML_AddInstanceDepth(yyGetReal(_x), yyGetReal(_y), yyGetInt32(_depth), _objind);
   
     if(inst!=null)
     {
         inst.PerformEvent(EVENT_PRE_CREATE, 0, inst, inst );
         ShallowCopyVars( inst, _basis );
         inst.PerformEvent(EVENT_CREATE, 0, inst, inst );
-	    return inst.id;
+	    return MAKE_REF(REFID_INSTANCE, inst.id);
     }
 
 	return OBJECT_NOONE;
@@ -4029,7 +4055,7 @@ function instance_create_layer( _x,_y,_layerid,_obj, _basis)
         pInst.PerformEvent(EVENT_PRE_CREATE, 0, pInst, pInst);
         ShallowCopyVars( pInst, _basis );
         pInst.PerformEvent(EVENT_CREATE, 0, pInst, pInst);
-        return pInst.id;
+        return MAKE_REF(REFID_INSTANCE, pInst.id);
     } else {
         yyError("Error: Trying to create an instance on a non-existant layer");
     }
@@ -4148,7 +4174,7 @@ function layer_element_move(_elid, _targetlayerID) {
         return -1;
     }
 
-    var targetlayer = g_pLayerManager.GetLayerFromID(yyGetInt32(_targetlayerID));
+    var targetlayer = g_pLayerManager.GetLayerFromID(room, yyGetInt32(_targetlayerID));
     if (targetlayer != null)
     {
         g_pLayerManager.MoveElement(room, elandlay.element, targetlayer);

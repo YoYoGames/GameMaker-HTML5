@@ -1494,6 +1494,11 @@ function yyCommandBuilder(_interpolatePixels) {
 	                	    case gl.INT_VEC2: gl.uniform2iv(uniformData.location, shaderData); break;
 	                	    case gl.INT_VEC3: gl.uniform3iv(uniformData.location, shaderData); break;
 	                	    case gl.INT_VEC4: gl.uniform4iv(uniformData.location, shaderData); break;
+
+                            case gl.BOOL: gl.uniform1iv(uniformData.location, shaderData); break;
+	                	    case gl.BOOL_VEC2: gl.uniform2iv(uniformData.location, shaderData); break;
+	                	    case gl.BOOL_VEC3: gl.uniform3iv(uniformData.location, shaderData); break;
+	                	    case gl.BOOL_VEC4: gl.uniform4iv(uniformData.location, shaderData); break;
 	                    } 	                    
 	                    break;
 	                }            
