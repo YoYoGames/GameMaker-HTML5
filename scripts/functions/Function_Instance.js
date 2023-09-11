@@ -1125,7 +1125,7 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 		r -= tilemaptopleftX;
 
 		l *= rcpTileWidth;
-		r *= rcpTileHeight;
+		r *= rcpTileWidth;
 
 		t -= tilemaptopleftY;
 		b -= tilemaptopleftY;
