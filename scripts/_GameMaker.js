@@ -187,8 +187,8 @@ function yyUnhandledRejectionHandler( error )
 							_urlPos = _url.lastIndexOf("/");
 							if (_urlPos > 0) {
 								var _errUrl = new URL(_url.slice(0, _urlPos + 1));
-								if ((_errUrl.hostname != window.location.hostname) ||
-									(_errUrl.pathname.indexOf(g_pGMFile.Options.GameDir) < 0)){
+								if ((_errUrl['hostname'] != window['location']['hostname']) ||
+									(_errUrl['pathname'].indexOf(g_pGMFile.Options.GameDir) < 0)){
 									// The error is caused by an external resource.
 									_endGame = false;
 								}
