@@ -1750,11 +1750,12 @@ function  buffer_create_from_vertex_buffer( vbindex, _type, _alignment )
         var buffindex = buffer_create(size, yyGetInt32(_type), _alignment);
         if (buffindex >= 0)
         {
+            var buffobj = g_BufferStorage.Get(buffindex);
             var ua0 = new Int8Array(vbuff.GetArrayBuffer(), 0, vbuff.GetVertexCount() * vbuff.GetFormat().ByteSize);
-            var ua1 = new Int8Array(g_BufferStorage.Get(buffindex).m_pRAWUnderlyingBuffer);
+            var ua1 = new Int8Array(buffobj.m_pRAWUnderlyingBuffer);
             for (var i = 0; i < size; i++)
                 ua1[i] = ua0[i];
-
+            buffobj.m_UsedSize = size;
             return buffindex;
         }
         else
@@ -1809,11 +1810,12 @@ function  buffer_create_from_vertex_buffer_ext( vbindex, _type, _alignment, _sta
         var buffindex = buffer_create(size, yyGetInt32(_type), _alignment);
         if (buffindex >= 0)
         {
+            var buffobj = g_BufferStorage.Get(buffindex);
             var ua0 = new Int8Array(vbuff.GetArrayBuffer(), offset, size);
-            var ua1 = new Int8Array(g_BufferStorage.Get(buffindex).m_pRAWUnderlyingBuffer);
+            var ua1 = new Int8Array(buffobj.m_pRAWUnderlyingBuffer);
             for (var i = 0; i < size; i++)
                 ua1[i] = ua0[i];
-
+            buffobj.m_UsedSize = size;
             return buffindex;
         }
         else
