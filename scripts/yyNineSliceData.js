@@ -223,6 +223,9 @@ yyNineSliceData.prototype.GenerateCacheData = function (_width, _height, _ind, _
     texbasex = TPE.x;
     texbasey = TPE.y;
 
+    var nineSliceScaleX = CropWidth / TPE.w;
+    var nineSliceScaleY = CropHeight / TPE.h;
+
     // Work out widths/heights and scaling factors
     var leftwidth = this.left;
     var midwidth = (pSpr.width - this.right) - this.left;
@@ -442,11 +445,11 @@ yyNineSliceData.prototype.GenerateCacheData = function (_width, _height, _ind, _
                 // Rescale U and V coordinates into texture space
                 for (i = 0; i < 2; i++)
                 {
-                    tempU[i] += texbasex;
-                    tempV[i] += texbasey;
+                    tempU[i] += texbasex * nineSliceScaleX;
+                    tempV[i] += texbasey * nineSliceScaleY;
 
-                    tempU[i] /= tex.width;
-                    tempV[i] /= tex.height;
+                    tempU[i] /= tex.width * nineSliceScaleX;
+                    tempV[i] /= tex.height * nineSliceScaleY;
                 }
 
                 // Transform our vertex coordinates
@@ -629,8 +632,8 @@ yyNineSliceData.prototype.GenerateCacheData = function (_width, _height, _ind, _
                     // Finally, rescale U and V coordinates into texture space
                     for (i = 0; i < 2; i++)
                     {
-                        localV[i] += texbasey;
-                        localV[i] /= tex.height;      // webgl specific
+                        localV[i] += texbasey * nineSliceScaleY;
+                        localV[i] /= tex.height * nineSliceScaleY;      // webgl specific
                     }
 
                     var currx;
@@ -677,8 +680,8 @@ yyNineSliceData.prototype.GenerateCacheData = function (_width, _height, _ind, _
                         // Finally, rescale U and V coordinates into texture space
                         for (i = 0; i < 2; i++)
                         {
-                            localU[i] += texbasex;
-                            localU[i] /= tex.width;       // webgl specific                            
+                            localU[i] += texbasex * nineSliceScaleX;
+                            localU[i] /= tex.width * nineSliceScaleX;       // webgl specific                            
                         }
 
                         // Transform our vertex coordinates
@@ -1673,6 +1676,9 @@ yyNineSliceData.prototype.Draw = function (_x, _y, _width, _height, _rot, _colou
         texbasex = TPE.x;
         texbasey = TPE.y;
 
+        var nineSliceScaleX = CropWidth / TPE.w;
+        var nineSliceScaleY = CropHeight / TPE.h;
+
         // Work out widths/heights and scaling factors
         var leftwidth = this.left;
         var midwidth = (pSpr.width - this.right) - this.left;
@@ -1851,8 +1857,8 @@ yyNineSliceData.prototype.Draw = function (_x, _y, _width, _height, _rot, _colou
             U[i] = X[i] - XOffset;
             V[i] = Y[i] - YOffset;
 
-            U[i] += texbasex;
-            V[i] += texbasey;
+            U[i] += texbasex * nineSliceScaleX;
+            V[i] += texbasey * nineSliceScaleY;
 
             // Now done in webGL specific section
             //U[i] /= tex.width;
@@ -1938,8 +1944,8 @@ yyNineSliceData.prototype.Draw = function (_x, _y, _width, _height, _rot, _colou
             for (i = 0; i < 4; i++)
             {
                 // Rescale texture coordinates into texture space
-                U[i] /= tex.width;
-                V[i] /= tex.height;
+                U[i] /= tex.width * nineSliceScaleX;
+                V[i] /= tex.height * nineSliceScaleY;
             }
 
             if (_rot != 0.0)
