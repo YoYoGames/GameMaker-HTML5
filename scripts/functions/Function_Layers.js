@@ -1387,6 +1387,24 @@ LayerManager.prototype.GetElementFromIDWithLayer=function(_layer,_elID)
 
 };
 
+LayerManager.prototype.GetFirstElementOfType=function(_layer,_eltype)
+{
+
+    if(_layer==null)
+        return null;
+        
+    for(var i=_layer.m_elements.length-1;i>=0;i--)
+    {
+        var el = _layer.m_elements.Get(i);
+        if (el == null || el===undefined)continue;
+        if (el.m_type==_eltype) 
+            return el;
+    }
+
+    return null;
+
+};
+
 LayerManager.prototype.GetElementFromName=function(_layer,_elname)
 {
 
@@ -3013,7 +3031,7 @@ function layer_tilemap_get_id( arg1)
     var layer = layerGetObj(room, arg1); 
     if(layer!=null)
     {
-        var element = g_pLayerManager.GetElementFromName(layer,layer.m_pName);
+        var element = g_pLayerManager.GetFirstElementOfType(layer,eLayerElementType_Tilemap);
         if(element!=null && element.m_type == eLayerElementType_Tilemap)
         {
             return MAKE_REF(REFID_BACKGROUND,element.m_id);
@@ -3045,7 +3063,7 @@ function layer_tilemap_exists( arg1,arg2)
 function layer_tilemap_create( arg1,arg2,arg3,arg4,arg5,arg6) 
 {
     var room = g_pLayerManager.GetTargetRoomObj();
-    if (room === null) return -1;
+    if (room === null) return MAKE_REF(REFID_BACKGROUND,-1);;
 
     var layer = layerGetObj(room, arg1);
    
@@ -3071,10 +3089,10 @@ function layer_tilemap_create( arg1,arg2,arg3,arg4,arg5,arg6)
    
         g_pLayerManager.AddNewElement(room,layer,TileLayer,true);
 
-        return TileLayer.m_id;
+        return MAKE_REF(REFID_BACKGROUND,TileLayer.m_id);
+       
     }
-
-    return -1;
+    return MAKE_REF(REFID_BACKGROUND,-1);
 };
 function layer_tilemap_destroy( arg1) 
 {
