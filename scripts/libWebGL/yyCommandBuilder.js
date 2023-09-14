@@ -1321,9 +1321,15 @@ function yyCommandBuilder(_interpolatePixels) {
                 // Clear the screen
                 case CMD_CLEARSCREEN:
                     {
+                        var depthMask = gl.getParameter(gl.DEPTH_WRITEMASK);
+                        var colorMask = gl.getParameter(gl.COLOR_WRITEMASK);
+                        gl.depthMask(true);
+                        gl.colorMask(true, true, true, true);
                         col = m_commandList[i + 2];
                         gl.clearColor((col & 0xff) / 255.0, ((col >> 8) & 0xff) / 255.0, ((col >> 16) & 0xff) / 255.0, ((col >>24) & 0xff) / 255.0);
                         gl.clear(m_commandList[i + 1]);
+                        gl.depthMask(depthMask);
+                        gl.colorMask(colorMask[0], colorMask[1], colorMask[2], colorMask[3]);
                         i += 3;
                         break;
                     }
