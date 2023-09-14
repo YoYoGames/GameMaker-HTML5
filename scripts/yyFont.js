@@ -920,7 +920,7 @@ yyFont.prototype.Draw_String = function (_x, _y, _pStr, _xscale, _yscale, _angle
 ///				
 ///			 </returns>
 // #############################################################################################
-yyFont.prototype.Draw_Sprite_String = function (_x, _y, _pStr, _xscale, _yscale, _angle, _col1, _col2, _col3, _col4, _charSpacing, wordSpacing)
+yyFont.prototype.Draw_Sprite_String = function (_x, _y, _pStr, _xscale, _yscale, _angle, _col1, _col2, _col3, _col4, _charSpacing, _wordSpacing)
 {
 	if (this.pSprites == null) return;
 
@@ -964,8 +964,8 @@ yyFont.prototype.Draw_Sprite_String = function (_x, _y, _pStr, _xscale, _yscale,
 		            var TP = g_Textures[pTPE.tp]; 		        // get texture page
 		            if (TP.complete)							// make sure texture has loaded
 		            {
-		                var ox = pTPE.XOffset + this.pSprites.xOrigin;
-		                var oy = pTPE.YOffset + this.pSprites.yOrigin;
+		                var ox = pTPE.XOffset - this.pSprites.xOrigin;
+		                var oy = pTPE.YOffset - this.pSprites.yOrigin;
 		                if (this.prop) ox = 0;
 
 		                // If coloured, then cache a "colourised" version
@@ -1089,8 +1089,8 @@ yyFont.prototype.Draw_Sprite_String_GL = function (_x, _y, _pStr, _xscale, _ysca
 		            var TP = g_Textures[pTPE.tp]; 				// get texture page
 		            if (TP.complete)							// make sure texture has loaded
 		            {
-		                var ox = pTPE.XOffset + this.pSprites.xOrigin;
-		                var oy = pTPE.YOffset + this.pSprites.yOrigin;
+		                var ox = pTPE.XOffset - this.pSprites.xOrigin;
+		                var oy = pTPE.YOffset - this.pSprites.yOrigin;
 		                if (this.prop) ox = 0;
 
 		                graphics._drawImage(pTPE, pTPE.x, pTPE.y, pTPE.w, pTPE.h, _x + (ox * xsc), _y + (oy * ysc), pTPE.CropWidth * xsc, pTPE.CropHeight * ysc, c1, c2, c3, c4);
@@ -1877,12 +1877,6 @@ yyFontManager.prototype.GR_Text_Draw = function (_str, x, y, linesep, linewidth,
 			{				
 			    if (this.halign == 1) xoff = -(xscale * thefont.TextWidth(pStr, true) / 2);
 			    if (this.halign == 2) xoff = -(xscale * thefont.TextWidth(pStr, true));
-				
-				// Adjust offsets to allow for the (x,y) origin of sprite fonts
-				if (thefont.spritefont) {
-				    xoff -= (xscale * thefont.pSprites.xOrigin);
-				    yoff -= (yscale * thefont.pSprites.yOrigin);
-				}
 
 				var xx = x + (cc * xoff) + (ss * yoff);
 				var yy = y - (ss * xoff) + (cc * yoff);
