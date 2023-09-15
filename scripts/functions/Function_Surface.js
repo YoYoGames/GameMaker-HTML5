@@ -103,6 +103,10 @@ function surface_create_RELEASE(_w, _h, _forceid)
     _w = yyGetInt32(_w);
     _h = yyGetInt32(_h);
 
+    if (_w <= 0 || _h <= 0) {
+        yyError("create_surface : Trying to create a surface with size equal to or less than zero.");
+    }
+
 	var pSurf = document.createElement(g_CanvasName);
     pSurf.m_Width = pSurf.width = _w;
     pSurf.m_Height = pSurf.height = _h;
@@ -533,7 +537,7 @@ function surface_reset_target_RELEASE()
         }
     }
     else {
-        ErrorOnce("Error: Surface stacking error detected");
+        yyError("surface_reset_target : Surface stacking error detected");
     }
     if (g_webGL) g_webGL.SetRenderTarget(g_CurrentFrameBuffer);
     g_CurrentSurfaceId = g_CurrentSurfaceIdStack.pop();    if (g_CurrentSurfaceId == null) g_CurrentSurfaceId = -1;

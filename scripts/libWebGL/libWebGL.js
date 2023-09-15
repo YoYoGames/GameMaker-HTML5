@@ -1619,7 +1619,7 @@ function yyWebGL(_canvas, _options) {
 
 	    // Clear the command builder state
 	    m_CommandBuilder.Reset();
-	    return col;
+	    return new Long(col);
     };    
     
     // #############################################################################################
