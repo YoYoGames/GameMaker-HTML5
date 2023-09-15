@@ -1,4 +1,4 @@
-﻿// **********************************************************************************************************************
+// **********************************************************************************************************************
 // 
 // Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
 // 
@@ -1242,6 +1242,7 @@ function is_nan(_x) {
     {
         // If x is a pointer then it's a number.
         if (is_ptr(_x)) return false;
+        if (is_struct(_x)) return true;
 
         // Else try to convert to real
         value = yyGetReal(_x);
