@@ -1219,16 +1219,42 @@ function is_ptr(_x) {
     return (typeof(_x) == "object" && (_x instanceof ArrayBuffer)) ? true : false;
 }
 
-function is_vec3(_x) {
-    return 0;
+function is_struct(_x) {
+    return ((typeof _x === "object") && (_x.__yyIsGMLObject)) ? true : false;
 }
 
-function is_vec4(_x) {
-    return 0;
+function is_nan(_x) {
+    
+    // Try to convert to Real and check isNaN
+    try 
+    {
+        // If x is a pointer then it's a number.
+        if (is_ptr(_x)) return false;
+
+        // Else try to convert to real
+        value = yyGetReal(_x);
+        return Number.isNaN(value);
+    }
+    // If there was an error then it's not-a-number
+    catch 
+    { 
+        return true;
+    }
 }
 
-function is_matrix(_x) {
-    return 0;
+function is_infinity(_x) {
+
+    // Try to convert to Real and check for infinity
+    try 
+    {
+        _x = yyGetReal(_x);
+        return !Number.isFinite(_x) && !Number.isNaN(_x);
+    }
+    // If there was an error then it's not infinity.
+    catch 
+    { 
+        return false;
+    }
 }
 
 function is_struct(_x) {
