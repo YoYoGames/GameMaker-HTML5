@@ -1772,68 +1772,60 @@ function addFade(index, level, time)
     //console.log("Added fade " + (g_fadingSounds.length - 1));
 }
 
-function audio_sound_gain(_index, _level, _time)
+function audio_sound_gain(_index, _gain, _timeMs)
 {
-    if (g_AudioModel != Audio_WebAudio)
-        return;
-
     _index = yyGetInt32(_index);
-    _level = yyGetReal(_level);
-    _time = yyGetInt32(_time); 
+
+    _gain = yyGetReal(_gain);
+    _gain = Math.max(0, _gain);
+
+    _timeMs = yyGetInt32(_timeMs);
+    _timeMs = Math.max(0, _timeMs);
 
     if (_index >= BASE_SOUND_INDEX) {
-        var sound = GetAudioSoundFromHandle(_index);
-        if (sound == null) {
+        const voice = GetAudioSoundFromHandle(_index);
+        
+        if (voice == null) {
             return;
         }
 
-        if (sound.bActive) 
-        {
-            if (_time <= 0) 
-            {
+        if (voice.bActive) {
+            if (_timeMs <= 0) {
                 removeFade(_index);
 
-                const new_gain = yymax(_level, 0.0);
-                sound.gain = new_gain;
-                sound.pgainnode.gain.value = AudioPropsCalc.CalcGain(sound);
+                voice.gain = _gain;
+                voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(voice);
             }
-            else 
-            {
-                addFade(_index, _level, _time);
+            else {
+                addFade(_index, _gain, _timeMs);
             }
         }
     }
-    else
-    {
-        var ind = _index;
-        if (audio_sampledata[ind] != undefined)
-        {
-            //apply the initial sample gain setting from GMS
-            var configGain = audio_sampledata[ind].configGain;
-            _level *= configGain;
+    else {
+        const asset = Audio_GetSound(_index);
 
-            if (_time <= 0) 
-            {
-                removeFade(_index);
+        if (asset === null)
+            return;
 
-                const new_gain = yymax(_level, 0.0);
-                audio_sampledata[ind].gain = new_gain;
+        if (_timeMs <= 0) {
+            removeFade(_index);
 
-                //-should apply to all sounds currently playing this sample!
-                for (var i = 0; i < g_audioSoundCount; ++i) {
-                    var psound = audio_sounds[i];
-                    if (psound.bActive && psound.soundid == ind) {
-                        psound.pgainnode.gain.value = AudioPropsCalc.CalcGain(psound);
-                    }
+            asset.gain = _gain;
+
+            //-should apply to all sounds currently playing this sample!
+            for (let i = 0; i < g_audioSoundCount; ++i) {
+                const voice = audio_sounds[i];
+
+                if (voice.bActive && voice.soundid == _index) {
+                    voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(voice);
                 }
             }
-            else {
-                addFade(_index, _level, _time);
-            }
+        }
+        else {
+            addFade(_index, _gain, _timeMs);
         }
     }
 }
-
 
 function audio_music_gain(level, time) 
 {
