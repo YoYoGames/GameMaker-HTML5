@@ -660,91 +660,79 @@ class AudioPlaybackProps
     } 
 }
 
-class AudioPropsCalc
-{
-    static invalid_index = -1;
-    static not_specified = -1.0;
+function AudioPropsCalc() {}
 
-	static default_priority = 0.0;
-	static default_loop = false;
-	static default_gain = 1.0;
-	static default_offset = 0.0;
-	static default_pitch = 1.0;
-	static default_listener_mask = 1;
+AudioPropsCalc.invalid_index = -1;
+AudioPropsCalc.not_specified = -1;
+AudioPropsCalc.default_priority = 0;
+AudioPropsCalc.default_loop = false;
+AudioPropsCalc.default_gain = 1;
+AudioPropsCalc.default_offset = 0;
+AudioPropsCalc.default_pitch = 1;
 
-	static CalcGain(_voice)
-    {
+AudioPropsCalc.CalcGain = function(_voice) {
+    const asset = AudioPropsCalc.GetAssetProps(_voice.soundid);
+    
+    // Emitter gains are stored in their own audio node and 
+    // will be multiplied with this value by the audio context
+    return _voice.gain * asset.gain;
+};
+
+AudioPropsCalc.CalcOffset = function(_voice) {
+    if (_voice.startoffset == AudioPropsCalc.not_specified) {
         const asset = AudioPropsCalc.GetAssetProps(_voice.soundid);
-    
-        // Emitter gains are stored in their own audio node and 
-        // will be multiplied with this value by the audio context
-        return _voice.gain * asset.gain;
+        return asset.offset;
     }
 
-	static CalcOffset(_voice)
-    {
-        if (_voice.startoffset == AudioPropsCalc.not_specified)
-        {
-            const asset = AudioPropsCalc.GetAssetProps(_voice.soundid);
-    
-            return asset.offset;
-        }
-    
-        return _voice.startoffset;
-    }
+    return _voice.startoffset;
+};
 
-	static CalcPitch(_voice)
-    {
-        const asset = AudioPropsCalc.GetAssetProps(_voice.soundid);
-        const emitter = AudioPropsCalc.GetEmitterProps(_voice.pemitter);
-    
-        return _voice.pitch *  asset.pitch * emitter.pitch;
-    }
+AudioPropsCalc.CalcPitch = function(_voice) {
+    const asset = AudioPropsCalc.GetAssetProps(_voice.soundid);
+    const emitter = AudioPropsCalc.GetEmitterProps(_voice.pemitter);
 
-    static GetAssetProps(_asset_index)
-    {
-        const asset = Audio_GetSound(_asset_index);
+    return _voice.pitch * asset.pitch * emitter.pitch;
+};
 
-        if (asset != null)
-        {
-            const props = {
-                gain: asset.gain,
-                offset: asset.trackPos,
-                pitch: asset.pitch
-            };
+AudioPropsCalc.GetAssetProps = function(_asset_index) {
+    const asset = Audio_GetSound(_asset_index);
 
-            return props;
-        }
-    
+    if (asset != null) {
         const props = {
-            gain: AudioPropsCalc.default_gain,
-            offset: AudioPropsCalc.default_offset,
-            pitch: AudioPropsCalc.default_pitch
+            gain: asset.gain,
+            offset: asset.trackPos,
+            pitch: asset.pitch
         };
 
         return props;
     }
 
-    static GetEmitterProps(_emitter)
-    {
-        if (_emitter != null)
-        {
-            const props = {
-                gain: _emitter.gainnode.gain.value,
-                pitch: _emitter.pitch
-            };
+    const props = {
+        gain: AudioPropsCalc.default_gain,
+        offset: AudioPropsCalc.default_offset,
+        pitch: AudioPropsCalc.default_pitch
+    };
 
-            return props;
-        }
-    
+    return props;
+};
+
+AudioPropsCalc.GetEmitterProps = function(_emitter) {
+    if (_emitter != null) {
         const props = {
-            gain: AudioPropsCalc.default_gain,
-            pitch: AudioPropsCalc.default_pitch
+            gain: _emitter.gainnode.gain.value,
+            pitch: _emitter.pitch
         };
 
         return props;
     }
-}
+
+    const props = {
+        gain: AudioPropsCalc.default_gain,
+        pitch: AudioPropsCalc.default_pitch
+    };
+
+    return props;
+};
 
 function Audio_Play(_voice)
 {
@@ -1772,68 +1760,60 @@ function addFade(index, level, time)
     //console.log("Added fade " + (g_fadingSounds.length - 1));
 }
 
-function audio_sound_gain(_index, _level, _time)
+function audio_sound_gain(_index, _gain, _timeMs)
 {
-    if (g_AudioModel != Audio_WebAudio)
-        return;
-
     _index = yyGetInt32(_index);
-    _level = yyGetReal(_level);
-    _time = yyGetInt32(_time); 
+
+    _gain = yyGetReal(_gain);
+    _gain = Math.max(0, _gain);
+
+    _timeMs = yyGetInt32(_timeMs);
+    _timeMs = Math.max(0, _timeMs);
 
     if (_index >= BASE_SOUND_INDEX) {
-        var sound = GetAudioSoundFromHandle(_index);
-        if (sound == null) {
+        const voice = GetAudioSoundFromHandle(_index);
+        
+        if (voice == null) {
             return;
         }
 
-        if (sound.bActive) 
-        {
-            if (_time <= 0) 
-            {
+        if (voice.bActive) {
+            if (_timeMs <= 0) {
                 removeFade(_index);
 
-                const new_gain = yymax(_level, 0.0);
-                sound.gain = new_gain;
-                sound.pgainnode.gain.value = AudioPropsCalc.CalcGain(sound);
+                voice.gain = _gain;
+                voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(voice);
             }
-            else 
-            {
-                addFade(_index, _level, _time);
+            else {
+                addFade(_index, _gain, _timeMs);
             }
         }
     }
-    else
-    {
-        var ind = _index;
-        if (audio_sampledata[ind] != undefined)
-        {
-            //apply the initial sample gain setting from GMS
-            var configGain = audio_sampledata[ind].configGain;
-            _level *= configGain;
+    else {
+        const asset = Audio_GetSound(_index);
 
-            if (_time <= 0) 
-            {
-                removeFade(_index);
+        if (asset === null)
+            return;
 
-                const new_gain = yymax(_level, 0.0);
-                audio_sampledata[ind].gain = new_gain;
+        if (_timeMs <= 0) {
+            removeFade(_index);
 
-                //-should apply to all sounds currently playing this sample!
-                for (var i = 0; i < g_audioSoundCount; ++i) {
-                    var psound = audio_sounds[i];
-                    if (psound.bActive && psound.soundid == ind) {
-                        psound.pgainnode.gain.value = AudioPropsCalc.CalcGain(psound);
-                    }
+            asset.gain = _gain;
+
+            //-should apply to all sounds currently playing this sample!
+            for (let i = 0; i < g_audioSoundCount; ++i) {
+                const voice = audio_sounds[i];
+
+                if (voice.bActive && voice.soundid == _index) {
+                    voice.pgainnode.gain.value = AudioPropsCalc.CalcGain(voice);
                 }
             }
-            else {
-                addFade(_index, _level, _time);
-            }
+        }
+        else {
+            addFade(_index, _gain, _timeMs);
         }
     }
 }
-
 
 function audio_music_gain(level, time) 
 {
