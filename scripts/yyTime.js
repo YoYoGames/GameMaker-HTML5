@@ -480,8 +480,7 @@ class CConfigurableTimeSource extends CStatefulTimeSource
         this.period = this.ConvertPeriod(_period, _units);
         this.units = _units;
         this.callback = (typeof _callback === "number") ? script_get(_callback) : _callback;
-        // __yy_method both replaces the first arg with the context and expects argument0 to be index 2...
-        this.args = [null, null, ..._args];
+        this.args = [global, global, ..._args]; // self, other, [destructured args]
         this.repsRequested = _reps;
         this.expiryType = _expiryType;
 
