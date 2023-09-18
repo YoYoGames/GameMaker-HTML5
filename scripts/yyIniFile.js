@@ -923,7 +923,8 @@ function FileExists_Block(_FileName, _fLocal) {
 	    else if (g_SupportsLocalStorage) {
 			try {
 			    var name = GetLocalStorageName(_FileName);
-				if (window.localStorage[name] && (window.localStorage[name] !== undefined)) {
+				// We should consider empty files (empty strings) has "existing".
+				if (window.localStorage[name] !== undefined) {
 				    return true;
 				}				
 				return false;
