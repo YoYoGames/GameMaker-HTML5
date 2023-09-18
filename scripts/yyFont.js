@@ -1503,7 +1503,7 @@ yyFontManager.prototype.Split_TextBlock_IDEstyle = function (_pStr, _boundsWidth
 			var thechar = pNew[char];
 			char++;
 
-			if (((pNew[char] == newline) || (pNew[char] == newline2)) && (pNew[char] != thechar))			
+			if ((char != len) && ((pNew[char] == newline) || (pNew[char] == newline2)) && (pNew[char] != thechar))			
 			{
 				char++;
 			}
