@@ -76,6 +76,7 @@ yyFont.prototype.CreateFromStorage = function (_pStorage) {
 	this.runtime_created = false;
 	this.ascenderOffset = _pStorage.ascenderOffset;
 	this.ascender = _pStorage.ascender;
+	this.max_glyph_height = _pStorage.lineHeight;
 
 	this.antialias = 0;
 	this.charset = 0;
@@ -103,7 +104,10 @@ yyFont.prototype.CreateFromStorage = function (_pStorage) {
 		
 		if (pGlyph.h > maxHeight) maxHeight = pGlyph.h;
 	}
-	this.max_glyph_height = maxHeight;
+	if (this.max_glyph_height == 0)
+	{
+		this.max_glyph_height = maxHeight;
+	}
 	this.first = f;
 	this.last = l;
 	this.TPEntry = Graphics_GetTextureEntry(_pStorage.TPageEntry);
@@ -1496,7 +1500,10 @@ yyFontManager.prototype.Split_TextBlock_IDEstyle = function (_pStr, _boundsWidth
 		{
 			textLines[textLines.length] = pNew.substring(start, char);
 
-			while((pNew[char] == newline) || (pNew[char] == newline2))
+			var thechar = pNew[char];
+			char++;
+
+			if (((pNew[char] == newline) || (pNew[char] == newline2)) && (pNew[char] != thechar))			
 			{
 				char++;
 			}
