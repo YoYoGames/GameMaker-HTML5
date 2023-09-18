@@ -44,7 +44,7 @@ function GetParticleTypeIndex(_arg, _optional)
 
 function GetSpriteIndex(_arg)
 {
-    var index = yyGetInt32(_spriteIndex);
+    var index = yyGetInt32(_arg);
     if (g_pSpriteManager.Get(index) == null)
         yyError("invalid reference to sprite");
     return index;
