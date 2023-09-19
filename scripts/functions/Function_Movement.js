@@ -967,8 +967,8 @@ function position_meeting(_pInst,_x,_y,_obj)
 		else
 		{
 			var id = Command_CollisionPoint(_pInst,_x,_y,_obj,true,false);
-			
-			return id;
+			if(id != OBJECT_NOONE)
+				return true;
 		}
 	}
 	else if (_obj instanceof Array)
@@ -987,18 +987,19 @@ function position_meeting(_pInst,_x,_y,_obj)
 			else
 			{
 				var id = Command_CollisionPoint(_pInst,_x,_y,obj2,true,false);
-				if(id==true)
+				if(id!=OBJECT_NOONE)
 					return true;
 			}
 		}
-		return false;
+		
 	}
 	else
 	{
 		var id = Command_CollisionPoint(_pInst,_x,_y,_obj,true,false);
-		
-		return id;
+		if(id!=OBJECT_NOONE)
+			return true;
 	}
+	return false;
 }
 
 
