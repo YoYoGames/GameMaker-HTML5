@@ -10,6 +10,12 @@
 //
 // **********************************************************************************************************************
 
+const timeSourceMap = new Map([
+	[eTimeSource_Global, g_GlobalTimeSource],
+	[eTimeSource_Game, g_GameTimeSource]
+	// g_SDTimeSourceParent is invisible
+]);
+
 function NonExistentError(_id)
 {
 	console.error("Error: Index %d does not correspond to an existing time source\n", _id);
@@ -66,33 +72,31 @@ function IsStateful(_ts)
 		|| type == eTimeSourceType_Configurable);
 }
 
-function GetTimeSourceWithId(_id)
-{
-	const visibleBuiltInSources = [
-		g_GlobalTimeSource,
-		g_GameTimeSource
-	];
+function GetTimeSourceWithId(id) {
+	const ts = timeSourceMap.get(id);
 
-	for (const source of visibleBuiltInSources)
-	{
-		const ts = source.FindSourceWithId(_id);
+	if (ts === undefined)
+		return null;
 
-		if (ts != null)
-		{
-			if (IsConfigurable(ts))
-			{
-				// The time source is considered destroyed - its actual destruction has just been slightly delayed
-				if (ts.IsMarkedForDestruction())
-				{
-					return null;
-				}
-			}
+	return ts;
+}
 
-			return ts;
-		}
+function AddToMap(id, ts) {
+	timeSourceMap.set(id, ts);
+}
+
+function EraseFromMap(id) {
+	const ts = GetTimeSourceWithId(id);
+
+	if (ts === null) {
+		return;
 	}
 
-	return null;
+	const children = ts.GetChildren();
+
+	children.forEach(child => EraseFromMap(child.GetId()));
+
+	timeSourceMap.delete(id);
 }
 
 function time_source_create(_parent, _period, _units, _callback, _args = [],
@@ -119,7 +123,11 @@ function TimeSource_Create(_parent, _period, _units, _callback, _args, _reps, _e
 
 		if (ts != null)
 		{
-			return ts.GetId();
+			const id = ts.GetId();
+			
+			AddToMap(id, ts);
+
+			return id;
 		}
 
 		CreationError();
@@ -157,6 +165,8 @@ function TimeSource_Destroy(_id)
 		{
 			if (ts.GetNumChildren() == 0)
 			{
+				EraseFromMap(_id);
+
 				if (ts.IsLocked())
 				{
 					return ts.MarkForDestruction(false);
@@ -180,6 +190,8 @@ function TimeSource_DestroyTree(_id)
 
 	if (ts != null)
 	{
+		EraseFromMap(_id);
+
 		// If there is a source in the tree which is executing its callback
 		if (ts.FindLockedSource())
 		{
