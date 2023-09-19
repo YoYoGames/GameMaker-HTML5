@@ -1120,7 +1120,10 @@ function yyWebGL(_canvas, _options) {
     /** @this {yyWebGL} */
     this.SetTexture = function (_stage, _texture) {
     
-        yyGL.REQUIRE(_texture instanceof yyGLTexture, "Texture is not a yyGLTexture", yyGL.ERRORLEVEL_Development);
+        if (_texture != null)       // we want to allow null textures to be passed to the command builder
+        {
+            yyGL.REQUIRE(_texture instanceof yyGLTexture, "Texture is not a yyGLTexture", yyGL.ERRORLEVEL_Development);
+        }
         
         m_VBufferManager.Flush();
         m_CommandBuilder.SetTexture(_stage, _texture);
@@ -1616,7 +1619,7 @@ function yyWebGL(_canvas, _options) {
 
 	    // Clear the command builder state
 	    m_CommandBuilder.Reset();
-	    return col;
+	    return new Long(col);
     };    
     
     // #############################################################################################
@@ -1709,6 +1712,9 @@ function yyWebGL(_canvas, _options) {
     // #############################################################################################
     /** @this {yyWebGL} */
     this.DeleteFramebuffer = function (_frameBuffer) {
+
+        // Update state manager here
+        g_webGL.RSMan.ClearTexture(_frameBuffer.Texture);
         
         gl.deleteFramebuffer(_frameBuffer.FrameBuffer);
         gl.deleteRenderbuffer(_frameBuffer.RenderBuffer);

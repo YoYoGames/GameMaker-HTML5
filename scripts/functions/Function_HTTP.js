@@ -406,9 +406,11 @@ function http_request(_url, _method, _headerMap, _body)
     // Turn the supplied header ds_map into a set of key-value pairs
     var headers = [];
     var pMap = g_ActiveMaps.Get(_headerMap);    
-    for (var key in pMap) {    
-        if (pMap.hasOwnProperty(key)) {
-            headers.push({ key: key, value: pMap[key] });
+    if (pMap !== null) {
+        for (var key in pMap) {
+            if (pMap.hasOwnProperty(key)) {
+                headers.push({ key: key, value: pMap[key] });
+            }
         }
     }
 

@@ -350,7 +350,7 @@ function TimeSource_GetPeriod(_id)
 		NonExistentError(_id);
 	}
 
-	return null;
+	return undefined;
 }
 
 function time_source_get_reps_completed(_id)
@@ -375,7 +375,7 @@ function TimeSource_GetRepsCompleted(_id)
 		NonExistentError(_id);
 	}
 
-	return null;
+	return undefined;
 }
 
 function time_source_get_reps_remaining(_id)
@@ -400,7 +400,7 @@ function TimeSource_GetRepsRemaining(_id)
 		NonExistentError(_id);
 	}
 
-	return null;
+	return undefined;
 }
 
 function time_source_get_units(_id)
@@ -425,7 +425,7 @@ function TimeSource_GetUnits(_id)
 		NonExistentError(_id);
 	}
 
-	return null;
+	return undefined;
 }
 
 function time_source_get_time_remaining(_id)
@@ -450,7 +450,7 @@ function TimeSource_GetTimeRemaining(_id)
 		NonExistentError(_id);
 	}
 
-	return null;
+	return undefined;
 }
 
 function time_source_get_state(_id)
@@ -475,7 +475,7 @@ function TimeSource_GetState(_id)
 		NonExistentError(_id);
 	}
 
-	return null;
+	return undefined;
 }
 
 function time_source_get_parent(_id)
@@ -500,7 +500,7 @@ function TimeSource_GetParent(_id)
 		NonExistentError(_id);
 	}
 
-	return null;
+	return undefined;
 }
 
 function time_source_get_children(_id)
@@ -515,12 +515,12 @@ function TimeSource_GetChildren(_id)
 
 	if (ts != null)
 	{
-		return ts.GetChildren();
+		return ts.GetChildren().map(_child => _child.GetId());
 	}
 
 	NonExistentError(_id);
 
-	return null;
+	return undefined;
 }
 
 function time_source_exists(_id)

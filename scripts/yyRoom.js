@@ -1621,8 +1621,12 @@ function UpdateCamera(_x, _y, _w, _h, _angle, pCam)
 function UpdateDefaultCamera(_x, _y, _w, _h, _angle)
 {
 	var defaultcam = g_pCameraManager.GetCamera(g_DefaultCameraID);
+	if (defaultcam == null)
+		defaultcam = g_pCameraManager.GetTempCamera();
+	// Note: This may override user's camera configuration if it's a cam passed
+	// in with camera_set_default!
 	UpdateCamera(_x, _y, _w, _h, _angle, defaultcam);
-	g_pCameraManager.SetActiveCamera(g_DefaultCameraID);		
+	g_pCameraManager.SetActiveCamera(defaultcam.GetID());
 }
 
 function DrawTile(_rect,_back,_indexdata,_frame,_x,_y,_depth)
@@ -3368,7 +3372,6 @@ yyRoom.prototype.DrawRoomLayers = function(_rect){
     Current_Event_Type = EVENT_DRAW;
     Current_Event_Number = 0;
 
-	Graphics_ClearScreen(ConvertGMColour(0xfff7ffff));
      var player,el,i,pool;
 	    pool = this.m_Layers.pool;
 	    for (i = pool.length - 1; i >= 0; i--)
@@ -3467,6 +3470,10 @@ yyRoom.prototype.DrawTheRoom = function (_rect) {
 	if (this.m_showcolor)
 	{
 		Graphics_ClearScreen(ConvertGMColour(g_pBuiltIn.background_color));
+	}
+	else if(this.m_Layers!=null && this.m_Layers.length>0)
+	{
+		Graphics_ClearScreen(ConvertGMColour(0xfff7ffff));
 	}
 
 	this.ExecuteDrawEvent(_rect, EVENT_DRAW_BEGIN);
@@ -3890,6 +3897,7 @@ yyRoom.prototype.DrawViews = function (r) {
 		Graphics_SetViewPort(0, 0, g_ApplicationWidth, g_ApplicationHeight);
          
 		if (g_isZeus) {
+			g_DefaultView.cameraID = g_DefaultCameraID;
 		    UpdateDefaultCamera(0, 0, g_RunRoom.m_width, g_RunRoom.m_height, 0);
 		}
 		else {

@@ -219,6 +219,10 @@ function yyCommandBuilder(_interpolatePixels) {
     /** @this {yyCommandBuilder} */
     this.SetTexture = function (_stage, _texture) {
 
+        // Update state manager here
+        // Although the state isn't actually *set* at this point from the game's perspective this is the current state
+        g_webGL.RSMan.SetTexture(_stage, _texture);
+        
 	    // Track texture setting so we don't have redundant texture setting.
 	    if (m_lastTexture[_stage] == _texture) {
 	        return;
@@ -1317,9 +1321,15 @@ function yyCommandBuilder(_interpolatePixels) {
                 // Clear the screen
                 case CMD_CLEARSCREEN:
                     {
+                        var depthMask = gl.getParameter(gl.DEPTH_WRITEMASK);
+                        var colorMask = gl.getParameter(gl.COLOR_WRITEMASK);
+                        gl.depthMask(true);
+                        gl.colorMask(true, true, true, true);
                         col = m_commandList[i + 2];
                         gl.clearColor((col & 0xff) / 255.0, ((col >> 8) & 0xff) / 255.0, ((col >> 16) & 0xff) / 255.0, ((col >>24) & 0xff) / 255.0);
                         gl.clear(m_commandList[i + 1]);
+                        gl.depthMask(depthMask);
+                        gl.colorMask(colorMask[0], colorMask[1], colorMask[2], colorMask[3]);
                         i += 3;
                         break;
                     }

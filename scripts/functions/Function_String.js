@@ -436,7 +436,6 @@ function string_pos_ext(_substr, _str, _startPos)
     var inSubstr = yyGetString(_substr);
     var inStr = yyGetString(_str);
     var startPos = __yy_GMLIndex2JSIndex( inStr, yyGetInt32(_startPos) );
-    ++startPos;
     var resIndex = inStr.indexOf(inSubstr, startPos);
     return __yy_JSIndex2GMLIndex(inStr, resIndex);
 }

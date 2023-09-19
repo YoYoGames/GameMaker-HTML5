@@ -1268,6 +1268,8 @@ LayerManager.prototype.ChangeLayerDepth = function(_room, _layer, _newDepth, _al
 
 LayerManager.prototype.GetLayerWithDepth=function(_room,_depth,_dynamicOnly)
 {
+    if (_room == null) return null;
+
     //c++ uses a hash map for this but we'll just blit through for now...    
     for(var i=0;i<_room.m_Layers.length;i++)
     {        
@@ -1969,6 +1971,19 @@ LayerManager.prototype.SetScriptInstance = function(_inst)
 LayerManager.prototype.GetScriptInstance = function()
 {
     return this.m_ScriptInstance;
+};
+
+
+function layerGetObj(room, id_or_name) {
+    if (typeof (id_or_name) === "string") return g_pLayerManager.GetLayerFromName(room, yyGetString(id_or_name));
+    return g_pLayerManager.GetLayerFromID(room, yyGetInt32(id_or_name));
+};
+
+function layerGetFromTargetRoom(_id_or_name) {
+    var room = g_pLayerManager.GetTargetRoomObj();
+    if (room == null) return null;
+    
+    return layerGetObj(room, _id_or_name);
 };
 
 function layer_get_id( _name) 
@@ -5075,7 +5090,7 @@ function layer_sequence_play(sequence_element_id)
                     var seq = g_pSequenceManager.GetSequenceFromID(seqInst.m_sequenceIndex);
                     if(seq != null)
                     {
-                        seqInst.m_headPosition = seqInst.lastHeadPosition = (seq.length - 1);
+                        seqInst.m_headPosition = seqInst.lastHeadPosition = (seq.m_length - 1);
                     }
                 }
                 else
