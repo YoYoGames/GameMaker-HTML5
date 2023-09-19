@@ -127,7 +127,7 @@ function instance_position(_x,_y,_obj)
 		{
 			if (Tilemap_PointPlace( _x, _y, _obj, null,true))
 			{
-				return true;
+				return _obj;
 			}
 
 		}
@@ -136,7 +136,7 @@ function instance_position(_x,_y,_obj)
 			var id = Command_InstancePosition(_x,_y,_obj,null);
 		
 			if(id!=OBJECT_NOONE)
-				return true;
+				return id;
 		}
 	}
 	else if (_obj instanceof Array)
@@ -148,7 +148,7 @@ function instance_position(_x,_y,_obj)
 			{
 				if (Tilemap_PointPlace( _x, _y, obj2, null,true))
 				{
-					return true;
+					return obj2;
 				}
 				
 			}
@@ -156,18 +156,17 @@ function instance_position(_x,_y,_obj)
 			{
 				var id = Command_InstancePosition(_x,_y,obj2,null);
 				if(id!=OBJECT_NOONE)
-					return true;
+					return id;
 			}
 		}
-		return false;
 	}
 	else
 	{
 		var id = Command_InstancePosition(_x,_y,_obj,null);
 		if(id!=OBJECT_NOONE)
-			return true;
+			return id;
 	}
-	return false;
+	return OBJECT_NOONE;
 }
 function instance_position_list(_x, _y, _obj, _list, _ordered)
 {
