@@ -1031,6 +1031,13 @@ Audio_WebAudio=1,
     g_CanvasName = 'canvas',
     g_Hex='0123456789ABCDEF';
 
+/// With conditional compilation enabled, the call will be replaced with `expr`
+/// if `ident` (typically the function name) is used in GML code and will be stripped otherwise.
+/// If called with one argument, `expr` is presumed to be `ident` and `ident` is the first token
+/// of the expression (like `fun` in `compile_if_used(fun = fun_impl)`)
+function compile_if_used(ident, expr) {}
+/// Akin to above, but works based on referenes in final JS code.
+function compile_if_weak_ref(ident, expr) {}
 
 // #############################################################################################
 /// Function:<summary>
