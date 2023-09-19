@@ -1447,7 +1447,9 @@ function part_emitter_relative(_ps, _ind, _enable)
 // #############################################################################################
 function effect_create_below(_kind, _x, _y, _size, _color)
 {
-	Effect_Create(ps_below, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
+    if (ps_below == -1)
+        Eff_Check_Systems();
+    Effect_Create(ps_below, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
 }
 
 // #############################################################################################
@@ -1467,7 +1469,9 @@ function effect_create_below(_kind, _x, _y, _size, _color)
 // #############################################################################################
 function effect_create_above(_kind, _x, _y, _size, _color)
 {
-	Effect_Create(ps_above, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
+    if (ps_above == -1)
+        Eff_Check_Systems();
+    Effect_Create(ps_above, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
 }
 
 // #############################################################################################
