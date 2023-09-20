@@ -132,6 +132,10 @@ function real(_v) {
 	        return stringAsNumber;
 	    }
     }
+    else if (_v instanceof YYRef)
+    {
+        return _v.value;
+    }
     else if (_v instanceof Long)
     {
         return _v.toNumber();

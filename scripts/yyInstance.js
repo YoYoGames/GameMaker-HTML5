@@ -868,6 +868,19 @@ yyInstance.prototype.Assign = function (_pInst, _LinkToObjectType) {
 
 // #############################################################################################
 /// Function:<summary>
+///				Retrieves object_index as a YYRef
+///          </summary>
+///
+/// Out:	 <returns>
+///				
+///			 </returns>
+// #############################################################################################
+yyInstance.prototype.GetObjectIndex = function () {
+	return MAKE_REF(REFID_OBJECT, this.object_index);
+};
+
+// #############################################################################################
+/// Function:<summary>
 ///             Copies object "type" (using index) _val into this one.
 ///          </summary>
 ///
