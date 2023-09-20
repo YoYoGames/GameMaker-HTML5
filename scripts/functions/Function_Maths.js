@@ -1617,7 +1617,18 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
     }
     else if (_val1 instanceof YYRef && _val2 instanceof YYRef)
     {
-        ret = (_val1.type == _val2.type && _val1.value == _val2.value) ? 0 : 1;
+        var v = _val1.type - _val2.type;
+        ret = (v == 0) ? 0 : (v < 0) ? -1 : 1;
+    }
+    else if (_val1 instanceof YYRef && !(_val2 instanceof YYRef))
+    {
+        var v = _val1.value - yyGetReal(_val2);
+        ret = (v == 0) ? 0 : (v < 0) ? -1 : 1;
+    }
+    else if (!(_val1 instanceof YYRef) && _val2 instanceof YYRef)
+    {
+        var v = yyGetReal(_val1) - _val2.value;
+        ret = (v == 0) ? 0 : (v < 0) ? -1 : 1;
     }
     else if (_val1 instanceof ArrayBuffer && _val2 instanceof ArrayBuffer)
     {

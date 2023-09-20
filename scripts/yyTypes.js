@@ -391,8 +391,9 @@ function STRING_RemoveVisited( _v )
 
 
 function yyGetString(_v) {
-    if (_v instanceof YYRef)
-        return "ref " + _v.value;
+    if (_v instanceof YYRef) {
+        return "ref " + RefName(_v.type) + " " + _v.value;
+    } // end if
     else if (typeof _v === "string") {
         var ret = "";
         if (g_incQuotesSTRING_RValue > 0)
