@@ -1615,6 +1615,10 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
         // both values are undefined
         ret = 0;
     }
+    else if (_val1 instanceof YYRef && _val2 instanceof YYRef)
+    {
+        ret = (_val1.type == _val2.type && _val1.value == _val2.value) ? 0 : 1;
+    }
     else if (_val1 instanceof ArrayBuffer && _val2 instanceof ArrayBuffer)
     {
         ret = _val1 == _val2 ? 0 : 1;
