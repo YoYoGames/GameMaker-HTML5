@@ -10,12 +10,6 @@
 //
 // **********************************************************************************************************************
 
-const timeSourceMap = new Map([
-	[eTimeSource_Global, g_GlobalTimeSource],
-	[eTimeSource_Game, g_GameTimeSource]
-	// g_SDTimeSourceParent is invisible
-]);
-
 function NonExistentError(_id)
 {
 	console.error("Error: Index %d does not correspond to an existing time source\n", _id);
@@ -73,7 +67,7 @@ function IsStateful(_ts)
 }
 
 function GetTimeSourceWithId(id) {
-	const ts = timeSourceMap.get(id);
+	const ts = g_TimeSourceMap.get(id);
 
 	if (ts === undefined)
 		return null;
@@ -82,7 +76,7 @@ function GetTimeSourceWithId(id) {
 }
 
 function AddToMap(id, ts) {
-	timeSourceMap.set(id, ts);
+	g_TimeSourceMap.set(id, ts);
 }
 
 function EraseFromMap(id) {
@@ -96,7 +90,7 @@ function EraseFromMap(id) {
 
 	children.forEach(child => EraseFromMap(child.GetId()));
 
-	timeSourceMap.delete(id);
+	g_TimeSourceMap.delete(id);
 }
 
 function time_source_create(_parent, _period, _units, _callback, _args = [],
