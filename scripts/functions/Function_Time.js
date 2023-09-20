@@ -90,6 +90,10 @@ function EraseFromMap(id) {
 
 	children.forEach(child => EraseFromMap(child.GetId()));
 
+	if (id === eTimeSource_Global || id === eTimeSource_Game) {
+		return;
+	}
+
 	g_TimeSourceMap.delete(id);
 }
 
