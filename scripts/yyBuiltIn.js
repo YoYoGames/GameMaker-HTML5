@@ -37,6 +37,7 @@ function    yyBuiltIn()
     this.working_directory = "/";
     this.temp_directory = "/";
     this.program_directory = "/";
+    this.cache_directory = "/";
     this.delta_time = 0;
     this.last_time = 0;
 
