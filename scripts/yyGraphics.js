@@ -1617,7 +1617,9 @@ function CopyImageToAlpha_RELEASE(_pDestTPE, _pSrcTPE)
 	pDestImg.putImageData(DestDataLock, 0, 0);
 	return true;
 }
-compile_if_used(sprite_set_alpha_from_sprite, CopyImageToAlpha = CopyImageToAlpha_RELEASE);
+// @if function("sprite_set_alpha_from_sprite")
+CopyImageToAlpha = CopyImageToAlpha_RELEASE;
+// @endif
 // @endif
 
 
