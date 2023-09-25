@@ -1344,6 +1344,7 @@ function yySequenceBaseTrack(_pStorage) {
                 if(_val instanceof Array)
                 {
                     this.m_tracks = _val;
+                    this.m_numTracks = _val.length;
                 }
                 else
                 {
@@ -1372,7 +1373,18 @@ function yySequenceBaseTrack(_pStorage) {
         gmlembeddedAnimCurves: {
             enumerable: true,
             get: function () { return this.m_ownedResources; },
-            set: function (_val) { this.m_ownedResources = _val; }
+            set: function (_val)
+            {
+                if(_val instanceof Array)
+                {
+                    this.m_ownedResources = _val;
+                    this.m_numResources = _val.length;
+                }
+                else
+                {
+                    throw new Error("value must be an array of animcurves");
+                }
+            }
         },
         gmllinkedTrack: {
             enumerable: true,
@@ -2480,8 +2492,8 @@ function yyKeyframe(_type, _pStorage) {
                     this.m_channels = {};
                     for(var channelIndex = 0; channelIndex < _val.length; channelIndex++)
                     {
-                        var key = _val[channelIndex].m_channel;
-                        this.m_channels[key] = _val[channelIndex];
+                        _val[channelIndex].key = channelIndex.toString();
+                        this.m_channels[channelIndex] = _val[channelIndex];
                     }
                 }
                 else
@@ -3223,6 +3235,7 @@ function yySequence(_pStorage) {
                 if(_val instanceof Array)
                 {
                     this.m_tracks = _val;
+                    this.m_numTracks = _val.length;
                 }
                 else
                 {
@@ -3569,6 +3582,25 @@ yySequenceManager.prototype.FreeInstance = function (_pInst)
 yySequenceManager.prototype.FindSequence = function (_name) {
     for (var i = 0; i < this.Sequences.length; i++) {
         if (this.Sequences[i].pName == _name) {
+            return i;
+        }
+    }
+    return -1;
+};
+
+// #############################################################################################
+/// Function:<summary>
+///             Finds the index of the given Sequence
+///          </summary>
+///
+/// In:		 <param name="_seq">Sequence</param>
+// #############################################################################################
+yySequenceManager.prototype.FindSequenceID = function (_seq)
+{
+    for (var i = 0; i < this.Sequences.length; i++)
+    {
+        if (this.Sequences[i] == _seq)
+        {
             return i;
         }
     }

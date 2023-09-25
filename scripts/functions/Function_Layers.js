@@ -4467,7 +4467,24 @@ function layer_sequence_get_instance(sequence_element_id)
 
 function layer_sequence_create(layer_id, posx, posy, sequence_id)
 {
-    sequence_id = yyGetInt32(sequence_id);
+    var sequence;
+
+    if (typeof(sequence_id) == "object")
+    //if (sequence_id instanceof yySequence)
+    {
+        sequence = sequence_id;
+        sequence_id = g_pSequenceManager.FindSequenceID(sequence);
+    }
+    else
+    {
+        sequence_id = yyGetInt32(sequence_id);
+        sequence = g_pSequenceManager.GetSequenceFromID(sequence_id);
+    }
+
+    if(sequence == null)
+    {
+        return -1;
+    }
 
     var room = g_pLayerManager.GetTargetRoomObj();
 
@@ -4486,11 +4503,6 @@ function layer_sequence_create(layer_id, posx, posy, sequence_id)
         return -1;
     }
 
-    var sequence = g_pSequenceManager.GetSequenceFromID(sequence_id);
-    if(sequence == null)
-    {
-        return -1;
-    }
 
     var newSeqEl = new CLayerSequenceElement();
     newSeqEl.m_sequenceIndex = sequence_id;    
