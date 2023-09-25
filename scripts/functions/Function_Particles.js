@@ -297,7 +297,7 @@ function part_system_create(_partsys)
 // #############################################################################################
 function part_system_destroy(_ind)
 {
-    _ind = GetParticleSystemInstanceIndex(_ind);
+    _ind = GetParticleSystemInstanceIndex(_ind, true);
     return ParticleSystem_Destroy(_ind);
 }
 
@@ -711,7 +711,7 @@ function part_type_shape(_ind, _shape)
 function part_type_sprite(_ind, _sprite, _animate, _stretch, _random)
 {
     _ind = GetParticleTypeIndex(_ind);
-    _sprite = GetSpriteIndex(_ind);
+    _sprite = GetSpriteIndex(_sprite);
     return ParticleType_Sprite(_ind, _sprite, _animate, _stretch, _random);
 }
 
@@ -1221,8 +1221,8 @@ function part_emitter_create(_ps)
 // #############################################################################################
 function part_emitter_destroy(_ps, _ind)
 {
-    _ps = GetParticleSystemInstanceIndex(_ps);
-    _ind = GetParticleEmitterIndex(_ps, _ind);
+    _ps = GetParticleSystemInstanceIndex(_ps, true);
+    _ind = GetParticleEmitterIndex(_ps, _ind, true);
     return ParticleSystem_Emitter_Destroy(_ps, _ind);
 }
 
