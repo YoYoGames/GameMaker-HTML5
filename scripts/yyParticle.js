@@ -1154,12 +1154,12 @@ function ParticleType_Colour_RGB(_ind, _rmin, _rmax, _gmin, _gmax, _bmin, _bmax)
 	if( pPar == null || pPar==undefined ) return;
 
 	pPar.colmode = COLMODE_RGB;
-	pPar.colpar[0] = yyGetInt32(_rmin);
-	pPar.colpar[1] = yyGetInt32(_rmax);
+	pPar.colpar[0] = yyGetInt32(_bmin);
+	pPar.colpar[1] = yyGetInt32(_bmax);
 	pPar.colpar[2] = yyGetInt32(_gmin);
 	pPar.colpar[3] = yyGetInt32(_gmax);
-	pPar.colpar[4] = yyGetInt32(_bmin);
-	pPar.colpar[5] = yyGetInt32(_bmax);
+	pPar.colpar[4] = yyGetInt32(_rmin);
+	pPar.colpar[5] = yyGetInt32(_rmax);
 }
 
 
