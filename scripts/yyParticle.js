@@ -622,8 +622,7 @@ function Compute_Color(_pParticle)
 											 var h = ~~(MyRandom( pPartType.colpar[0], pPartType.colpar[1], PART_EDISTR_LINEAR));
 											 var s = ~~(MyRandom( pPartType.colpar[2], pPartType.colpar[3], PART_EDISTR_LINEAR));
 											 var v = ~~(MyRandom( pPartType.colpar[4], pPartType.colpar[5], PART_EDISTR_LINEAR));
-											 //THSV thsv = Color_HSV(h,s,v);
-											 _pParticle.color = 0xffffff; //Color_HSVToColor( thsv );
+											 _pParticle.color = make_color_hsv(h, s, v);
 										}
 										break;
 									case COLMODE_MIX: _pParticle.color = ConvertGMColour( Color_Merge(pPartType.colpar[0], pPartType.colpar[1], YYRandom(1)) );
