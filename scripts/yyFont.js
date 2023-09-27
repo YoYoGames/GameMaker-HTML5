@@ -1689,6 +1689,26 @@ yyFontManager.prototype.Get = function( _id ) {
 	return null;
 };
 
+// #############################################################################################
+/// Function:<summary>
+///             Retrieves an array of all font asset IDs.
+///          </summary>
+///
+/// Out:	 <returns>
+///				An array of all font asset IDs.
+///			 </returns>
+// #############################################################################################
+yyFontManager.prototype.List = function () {
+	var ids = [];
+	for (var i = 0; i < this.Fonts.length; ++i)
+	{
+		if (this.Fonts[i])
+		{
+			ids.push(i);
+		}
+	}
+	return ids;
+};
 
 // #############################################################################################
 /// Function:<summary>

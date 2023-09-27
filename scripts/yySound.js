@@ -680,7 +680,26 @@ yySoundManager.prototype.Get = function (_index) {
 	return this.Sounds[_index];
 };
 
-
+// #############################################################################################
+/// Function:<summary>
+///             Retrieves an array of all sound asset IDs.
+///          </summary>
+///
+/// Out:	 <returns>
+///				An array of all sound asset IDs.
+///			 </returns>
+// #############################################################################################
+yySoundManager.prototype.List = function () {
+	var ids = [];
+	for (var i = 0; i < this.Sounds.length; ++i)
+	{
+		if (this.Sounds[i])
+		{
+			ids.push(i);
+		}
+	}
+	return ids;
+};
 
 // #############################################################################################
 /// Function:<summary>
