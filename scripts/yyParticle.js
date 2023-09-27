@@ -359,6 +359,17 @@ CParticleSystem.Find = function (name)
 	return -1;
 };
 
+/// <returns>An array of all particle system asset IDs.</returns>
+CParticleSystem.List = function ()
+{
+	var ids = Array(CParticleSystem.GetCount());
+	for (var i = 0; i < ids.length; ++i)
+	{
+		ids[i] = i;
+	}
+	return ids;
+};
+
 /// <returns>The index of the particle system.</returns>
 CParticleSystem.prototype.GetIndex = function ()
 {

@@ -4364,6 +4364,25 @@ yyRoomManager.prototype.GetOrder = function (_Index) {
 
 // #############################################################################################
 /// Function:<summary>
+///             Retrieves an array of all room asset IDs.
+///          </summary>
+///
+/// Out:	 <returns>
+///				An array of all room asset IDs.
+///			 </returns>
+// #############################################################################################
+yyRoomManager.prototype.List = function () {
+	var ids = [];
+	for (var i = 0; i < this.pRooms.length; ++i) {
+		if (this.pRooms[i]) {
+			ids.push(i);
+		}
+	}
+	return ids;
+};
+
+// #############################################################################################
+/// Function:<summary>
 ///             Delete a room
 ///          </summary>
 ///

@@ -1760,6 +1760,61 @@ function asset_get_type(_name)
 */
 }
 
+// #############################################################################################
+/// Function:<summary>
+///          	Returns an array of all assets IDs of given type
+///          </summary>
+// #############################################################################################
+function asset_get_ids(_assetType)
+{
+    var ids;
+    var refs = false;
+
+    switch (_assetType)
+    {
+    case AT_None:           break;
+    case AT_Object:         ids = g_pObjectManager.List(); refs = true; break;
+    case AT_Sprite:         ids = g_pSpriteManager.List(); break;
+    case AT_Room:           ids = g_pRoomManager.List(); break;
+    case AT_Tiles:
+    case AT_Background:     ids = g_pBackgroundManager.List(); refs = true; break;
+    case AT_Path:           ids = g_pPathManager.List(); break;
+    case AT_Script: {
+        ids = [];
+        for (var i = 0; i < g_pGMFile.Scripts.length; ++i) {
+            if (g_pGMFile.Scripts[i]) {
+                ids.push(100000 + i);
+            }
+        }
+    } break;
+    case AT_Font:           ids = g_pFontManager.List(); break;
+    case AT_Timeline:       ids = g_pTimelineManager.List(); break;
+    case AT_Shader: {
+        ids = [];
+        for (var i = 0; i < g_shaderPrograms.length; ++i) {
+            if (g_shaderPrograms[i]) {
+                ids.push(i);
+            }
+        }
+    } break;
+    case AT_Sequence:       ids = g_pSequenceManager.List(); break;
+    case AT_AnimCurve:      ids = g_pAnimCurveManager.List(); break;
+    case AT_Sound:          ids = g_pSoundManager.List(); break;
+    case AT_ParticleSystem: ids = CParticleSystem.List(); refs = true; break;
+    default:                break;
+    }
+
+    if (refs)
+    {
+        for (var i = 0; i < ids.length; ++i)
+        {
+            ids[i] = MAKE_REF(_assetType | REFCAT_RESOURCE, ids[i]);
+        }
+    }
+
+    return ids;
+}
+
 function alarm_get(inst, index)
 {
     return inst.alarm[yyGetInt32(index)];

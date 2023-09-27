@@ -2422,6 +2422,26 @@ yySpriteManager.prototype.Sprite_Find = function(_name)
 	return -1;
 };
 
+// #############################################################################################
+/// Function:<summary>
+///             Retrieves an array of all sprite asset IDs.
+///          </summary>
+///
+/// Out:	 <returns>
+///				An array of all sprite asset IDs.
+///			 </returns>
+// #############################################################################################
+yySpriteManager.prototype.List = function () {
+	var ids = [];
+	for (var i = 0; i < this.Sprites.length; ++i)
+	{
+		if (this.Sprites[i])
+		{
+			ids.push(i);
+		}
+	}
+	return ids;
+};
 
 // #############################################################################################
 /// Function:<summary>

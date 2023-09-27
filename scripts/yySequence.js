@@ -3577,6 +3577,27 @@ yySequenceManager.prototype.FindSequence = function (_name) {
 
 // #############################################################################################
 /// Function:<summary>
+///             Retrieves an array of all sequence asset IDs.
+///          </summary>
+///
+/// Out:	 <returns>
+///				An array of all sequence asset IDs.
+///			 </returns>
+// #############################################################################################
+yySequenceManager.prototype.List = function () {
+	var ids = [];
+	for (var i = 0; i < this.Sequences.length; ++i)
+	{
+		if (this.Sequences[i])
+		{
+			ids.push(i);
+		}
+	}
+	return ids;
+};
+
+// #############################################################################################
+/// Function:<summary>
 ///             Create and return a new CSequenceInstance
 ///          </summary>
 ///
