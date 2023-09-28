@@ -1553,7 +1553,7 @@ function variable_instance_exists(_id, _var) {
                 }  
                 else {
                     if (pInst.__yyIsGMLObject) 
-                        ret = "gml"+_var in pInst;
+                        ret = _var in pInst || "gml"+_var in pInst;
                     else
                         ret = true;
                 } // end else
