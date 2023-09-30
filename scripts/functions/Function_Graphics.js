@@ -2470,9 +2470,17 @@ function draw_skeleton_time(_sprite, _animname, _skinname, _time, _x, _y, _xscal
 	}
 }
 
-function draw_skeleton_instance() {
-    ErrorFunction("draw_skeleton_instance()");
-};
+function draw_skeleton_instance(_instance, _animname, _skinname, _frame, _x, _y, _xscale, _yscale, _rot, _colour, _alpha)
+{
+	var pInst = g_pInstanceManager.Get(_instance);
+
+	var skeletonAnim = pInst.SkeletonAnimation();
+	if (skeletonAnim)
+	{
+		var pSpr = g_pSpriteManager.Get(pInst.sprite_index);
+		pSpr.m_skeletonSprite.DrawFrame(yyGetString(_animname), yyGetString(_skinname), yyGetInt32(_frame), yyGetReal(_x), yyGetReal(_y), yyGetReal(_xscale), yyGetReal(_yscale), yyGetReal(_rot), yyGetInt32(_colour), yyGetReal(_alpha));
+	}
+}
 
 // #############################################################################################
 /// Function:<summary>
