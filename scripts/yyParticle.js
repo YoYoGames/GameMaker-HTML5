@@ -217,7 +217,8 @@ function yyParticle()
 	this.xsize=0;				// the size of the particle
 	this.ysize=0;				// the size of the particle
 	this.spritestart=0;			// the starting sprite image
-	this.ran = 0; 					// random number for different purposes
+	this.subimg=0;				// the current sprite image
+	this.ran = 0; 				// random number for different purposes
 	this.id = -1;
 }
 
@@ -718,6 +719,7 @@ function CreateParticle(_system, _x, _y, _parttype)
 	{
 		Result.spritestart = pParType.spritestart;
 	}
+	Result.subimg = Result.spritestart;
 
 	if (_system.globalSpaceParticles)
 	{
@@ -2981,9 +2983,6 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 		}
 	}
 
-
-	var n ;
-
 	// If a default particle, then no animation for it, just draw it.
 	if( pTexture!=null ){
 		
@@ -2993,15 +2992,22 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 
 		if ( !pParType.spriteanim )
 		{
-			n = _pParticle.spritestart;
+			// _pParticle.subimg = _pParticle.spritestart;
 		}
 		else if ( pParType.spritestretch )
 		{
-			n = _pParticle.spritestart + (spr.numb * _pParticle.age/_pParticle.lifetime);
+			var duration = (spr.m_skeletonSprite)
+				? spr.m_skeletonSprite.m_skeletonData.animations[0].duration
+				: spr.numb;
+			_pParticle.subimg = _pParticle.spritestart + duration * _pParticle.age/_pParticle.lifetime;
 		}
 		else
 		{
-			n = _pParticle.spritestart + _pParticle.age;
+			var fps = (spr.m_skeletonSprite) ? g_GameTimer.GetFPS() : 1.0;
+			if (fps > 0.0)
+			{
+				_pParticle.subimg += 1.0 / fps;
+			}
 		}
 	}
 
@@ -3046,12 +3052,30 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 		}
 	}else{
 		// If a user supplied particle, call via sprite handler to draw it.
-		spr.Draw( n,	_pParticle.x+_xoff,_pParticle.y+_yoff, 
-						g_ParticleTypes[_pParticle.parttype].xscale*sx, g_ParticleTypes[_pParticle.parttype].yscale*sy,
-						aa,
-						mulColor,
-						mulAlpha
-				);		
+		if (spr.m_skeletonSprite)
+		{
+			spr.m_skeletonSprite.DrawTime(null, null,
+				_pParticle.subimg,
+				_pParticle.x+_xoff,
+				_pParticle.y+_yoff,
+				g_ParticleTypes[_pParticle.parttype].xscale*sx,
+				g_ParticleTypes[_pParticle.parttype].yscale*sy,
+				aa,
+				mulColor,
+				mulAlpha);
+		}
+		else
+		{
+			spr.Draw(
+				_pParticle.subimg,
+				_pParticle.x+_xoff,
+				_pParticle.y+_yoff,
+				g_ParticleTypes[_pParticle.parttype].xscale*sx,
+				g_ParticleTypes[_pParticle.parttype].yscale*sy,
+				aa,
+				mulColor,
+				mulAlpha);
+		}
 	}
 }
 
