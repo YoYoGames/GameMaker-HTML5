@@ -1148,7 +1148,6 @@ function string_trim_end(_str, _substrs) {
     }).filter(elm => elm).join("|");
 
     let _rg = new RegExp("(?:" +_substrs+ ")*$",'g');
-    console.log(_rg);
     return _str.replace(_rg, "");
 }
 
