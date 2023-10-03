@@ -2132,6 +2132,130 @@ function buffer_copy(src_buffer, src_offset, size, dest_buffer, dest_offset) {
 
 }
 
+function _WrapIndex(index, size)
+{
+	return (index % size + size) % size;
+}
+
+// #############################################################################################
+/// Function:<summary>
+///             Copies number of elements with given stride from the source buffer to the destination
+///             buffer. Stride between copied elements can be different in the destination buffer
+///             than in the source buffer.
+///          </summary>
+// #############################################################################################
+function buffer_copy_stride(_src_buffer, _src_offset, _src_size, _src_stride, _src_count, _dest_buffer, _dest_offset, _dest_stride)
+{
+    var srcIndex = yyGetInt32(_src_buffer);
+    var srcBuffer = g_BufferStorage.Get(srcIndex);
+    if (!srcBuffer)
+    {
+        yyError("Illegal Source Buffer Index " + srcIndex);
+        return;
+    }
+
+    _src_offset = yyGetInt32(_src_offset);
+    if (_src_offset < 0)
+    {
+        src_offset = _WrapIndex(_src_offset, srcBuffer.m_Size);
+    }
+
+    _src_size = yyGetInt32(_src_size);
+    if (_src_size < 0)
+    {
+        yyError("Size cannot be a negative number");
+        return;
+    }
+
+    _src_stride = yyGetInt32(_src_stride);
+
+    _src_count = yyGetInt32(_src_count);
+    if (_src_count < 0)
+    {
+        yyError("Count cannot be a negative number");
+        return;
+    }
+
+    var destIndex = yyGetInt32(_dest_buffer);
+    var destBuffer = g_BufferStorage.Get(destIndex);
+    if (!destBuffer)
+    {
+        yyError("Illegal Destination Buffer Index " + destIndex);
+        return;
+    }
+
+    if (srcBuffer == destBuffer)
+    {
+        yyError("Source and Destination buffers can't be the same");
+        return;
+    }
+
+    if (_src_size == 0 || _src_count == 0)
+    {
+        // Nothing to copy...
+        return;
+    }
+
+    _dest_offset = yyGetInt32(_dest_offset);
+    if (_dest_offset < 0)
+    {
+        _dest_offset = _WrapIndex(_dest_offset, destBuffer.m_Size);
+    }
+
+    _dest_stride = yyGetInt32(_dest_stride);
+
+    // Grow destination buffer if possible
+    if (destBuffer.m_Type == eBuffer_Format_Grow)
+	{
+		var destSizeMin = Math.max(
+			_dest_offset + _src_size, // First element
+			_dest_offset + (_dest_stride * (_src_count - 1)) + _src_size); // Last element
+		if (destBuffer.m_Size < destSizeMin)
+		{
+			destBuffer.yyb_resize(destSizeMin);
+		}
+	}
+
+    // Copy data
+    var srcBytes = new Uint8Array(srcBuffer.m_pRAWUnderlyingBuffer);
+    var destBytes = new Uint8Array(destBuffer.m_pRAWUnderlyingBuffer);
+    var srcBuffSize = srcBuffer.m_Size;
+    var destBuffSize = destBuffer.m_Size;
+
+    for (var i = 0; i < _src_count; ++i)
+	{
+		for (var j = 0; j < _src_size; ++j)
+		{
+			var indexFrom = _src_offset + j;
+			if ((indexFrom < 0) || (indexFrom >= srcBuffSize))
+			{
+				if (srcBuffer.m_Type != eBuffer_Format_Wrap)
+				{
+					// Cannot wrap index in the source buffer...
+					return;
+				}
+				indexFrom = _WrapIndex(indexFrom, srcBuffSize);
+			}
+
+			var indexTo = _dest_offset + j;
+			if ((indexTo < 0) || (indexTo >= destBuffSize))
+			{
+				if (destBuffer.m_Type != eBuffer_Format_Wrap)
+				{
+					// Cannot wrap index in the destination buffer...
+					return;
+				}
+				indexTo = _WrapIndex(indexTo, destBuffSize);
+			}
+
+			destBytes[indexTo] = srcBytes[indexFrom];
+		}
+
+		_src_offset += _src_stride;
+		_dest_offset += _dest_stride;
+	}
+}
+
 // #############################################################################################
 /// Function:<summary>
 ///          </summary>
