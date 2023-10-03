@@ -87,7 +87,7 @@ const YYHASH_object = (obj) => {
 };
 
 const YYHASH_value = (value) => {
-
+    //return value;
     const type = value == undefined ? undefined : typeof value;
     // Does a type check on the passed in value and calls the appropriate hash method
     return YYHASH_MAPPER[type] ? YYHASH_MAPPER[type](value) + YYHASH_hash(type) : 0;

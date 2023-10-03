@@ -1093,7 +1093,7 @@ function string_lettersdigits(_str)
     return s;  
 }
 
-const g_EscapeRegexRE = new RegExp("[/-\\\\^$*+?.()|[\\]{}]", "g");
+const g_EscapeRegexRE = new RegExp("[\\/\\-\\\\^$*+?.()|[\\]{}]", "g");
 function __escapeRegex(string) {
     return string.replace(g_EscapeRegexRE, '\\$&');
 }
@@ -1147,8 +1147,8 @@ function string_trim_end(_str, _substrs) {
     
     }).filter(elm => elm).join("|");
 
-    let _rg = new RegExp("(?:" +_substrs+ ")*$");
-
+    let _rg = new RegExp("(?:" +_substrs+ ")*$",'g');
+    console.log(_rg);
     return _str.replace(_rg, "");
 }
 
