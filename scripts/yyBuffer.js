@@ -2249,6 +2249,7 @@ function buffer_copy_stride(_src_buffer, _src_offset, _src_size, _src_stride, _s
 			}
 
 			destBytes[indexTo] = srcBytes[indexFrom];
+            destBuffer.m_UsedSize = Math.max(destBuffer.m_UsedSize, indexTo + 1);
 		}
 
 		_src_offset += _src_stride;
