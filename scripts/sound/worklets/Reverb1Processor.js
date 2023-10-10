@@ -178,10 +178,10 @@ class Reverb1Processor extends AudioWorkletProcessor
             const inputChannel = input[c];
             const outputChannel = output[c];
 
-            for (let s = 0; s < inputChannel.length; ++s) {
+            for (let i = 0; i < inputChannel.length; ++i) {
                 const s = (size[s] !== undefined) ? size[s] : size[0];
                 const d = (damp[s] !== undefined) ? damp[s] : damp[0];
-
+                
                 // Update model if needed
                 this.setSize(s);
                 this.setDamp(d);
