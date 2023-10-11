@@ -2679,28 +2679,34 @@ function HandleLife( _ps, _em )
 	{
 		var pParticle = pParticles[i];
 		var pParType = g_ParticleTypes[ pParticle.parttype ];
-
+		
 		// Update the age and create death particles
 		pParticle.age++;
 			
 		if ( pParticle.age >= pParticle.lifetime )			// change this to a check with 0... and count age down.
 		{
-			numb = pParType.deathnumber;
-			if ( numb<0 ){
-				if ( ~~YYRandom(-numb) == 0 ) numb = 1;
-			}
-			if  ( numb > 0 ){
-				EmitParticles(pPartSys, pEmitter, pParticle.x, pParticle.y, pParType.deathtype, numb);
+			if (pParType !== null)
+			{
+				numb = pParType.deathnumber;
+				if ( numb<0 ){
+					if ( ~~YYRandom(-numb) == 0 ) numb = 1;
+				}
+				if  ( numb > 0 ){
+					EmitParticles(pPartSys, pEmitter, pParticle.x, pParticle.y, pParType.deathtype, numb);
+				}
 			}
 			pParticles.splice(i,1);	// remove particle
-		}else{	
-			// Create step particles
-			numb = pParType.stepnumber;
-			if ( numb<0 ){
-				if ( ~~YYRandom(-numb) == 0 ) numb = 1;
-			}
-			if ( numb > 0 ){
-				EmitParticles(pPartSys, pEmitter, pParticle.x, pParticle.y, pParType.steptype, numb);
+		} else {
+			if (pParType !== null)
+			{
+				// Create step particles
+				numb = pParType.stepnumber;
+				if ( numb<0 ){
+					if ( ~~YYRandom(-numb) == 0 ) numb = 1;
+				}
+				if ( numb > 0 ){
+					EmitParticles(pPartSys, pEmitter, pParticle.x, pParticle.y, pParType.steptype, numb);
+				}
 			}
 		
 			i++;		// next particle. Dont do if we deleted one, because SPLICE moves them all down...
@@ -2741,7 +2747,10 @@ function HandleMotion( _ps, _em )
 	{
 		var pParticle = pParticles[i];
 		var pParType = g_ParticleTypes[ pParticle.parttype ];
-	
+		
+		// Fix for null particle HTML5 crash - happens when particle type is destroyed but emitter is still alive
+		if (pParType === null) continue;
+		
 		// adapt speed and direction and angle
 		pParticle.speed = pParticle.speed + pParType.spincr;
 		if ( pParticle.speed < 0 ) pParticle.speed = 0;
@@ -2809,6 +2818,8 @@ function  HandleShape(_ps, _em)
 		var pParticle = pParticles[i];
 		var pParType = g_ParticleTypes[ pParticle.parttype ];
 		
+		// Fix for null particle HTML5 crash - happens when particle type is destroyed but emitter is still alive
+		if (pParType === null) continue;
 		
 		// adapt the size
 		pParticle.xsize = pParticle.xsize + pParType.sizeIncrX;
@@ -2963,7 +2974,9 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 
 	if ( _pParticle.lifetime <= 0 ) return;
 	var pParType = g_ParticleTypes[ _pParticle.parttype ];
-
+	
+	// Fix for null particle HTML5 crash - happens when particle type is destroyed but emitter is still alive
+	if (pParType === null) return;
 
 	spr = g_pSpriteManager.Get( pParType.sprite );
 	if( spr == null )
