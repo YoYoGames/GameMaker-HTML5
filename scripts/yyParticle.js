@@ -2680,6 +2680,9 @@ function HandleLife( _ps, _em )
 		var pParticle = pParticles[i];
 		var pParType = g_ParticleTypes[ pParticle.parttype ];
 
+		// Fix for null particle HTML5 crash - happens when particle type is destroyed but emitter is still alive
+		if (pParType === null) return;
+		
 		// Update the age and create death particles
 		pParticle.age++;
 			
@@ -2741,7 +2744,10 @@ function HandleMotion( _ps, _em )
 	{
 		var pParticle = pParticles[i];
 		var pParType = g_ParticleTypes[ pParticle.parttype ];
-	
+		
+		// Fix for null particle HTML5 crash - happens when particle type is destroyed but emitter is still alive
+		if (pParType === null) continue;
+		
 		// adapt speed and direction and angle
 		pParticle.speed = pParticle.speed + pParType.spincr;
 		if ( pParticle.speed < 0 ) pParticle.speed = 0;
@@ -2809,6 +2815,8 @@ function  HandleShape(_ps, _em)
 		var pParticle = pParticles[i];
 		var pParType = g_ParticleTypes[ pParticle.parttype ];
 		
+		// Fix for null particle HTML5 crash - happens when particle type is destroyed but emitter is still alive
+		if (pParType === null) continue;
 		
 		// adapt the size
 		pParticle.xsize = pParticle.xsize + pParType.sizeIncrX;
@@ -2963,7 +2971,9 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 
 	if ( _pParticle.lifetime <= 0 ) return;
 	var pParType = g_ParticleTypes[ _pParticle.parttype ];
-
+	
+	// Fix for null particle HTML5 crash - happens when particle type is destroyed but emitter is still alive
+	if (pParType === null) return;
 
 	spr = g_pSpriteManager.Get( pParType.sprite );
 	if( spr == null )
