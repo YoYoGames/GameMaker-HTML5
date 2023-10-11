@@ -1889,8 +1889,7 @@ function audio_falloff_set_model(_model)
         return; //no change
 
     var tempnode = g_WebAudioContext.createPanner();
-    g_AudioFalloffModel = _model;
-
+    
     switch(_model)
     {
 		case DistanceModels.AUDIO_FALLOFF_NONE:
@@ -1938,8 +1937,10 @@ function audio_falloff_set_model(_model)
 			break;
 		default:
 			debug("Attempting to set audio falloff to unknown model\n");
-			break;
+			return;
     }
+
+    g_AudioFalloffModel = _model;
 
     audio_emitters.filter(_emitter => _emitter.isActive() === true)
                   .forEach(_emitter => {
