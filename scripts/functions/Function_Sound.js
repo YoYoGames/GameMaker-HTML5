@@ -1903,7 +1903,8 @@ function audio_falloff_set_model(_model)
 			if (falloff_model == undefined) falloff_model = "inverse";
 			break;
 		case DistanceModels.AUDIO_FALLOFF_INVERSE_DISTANCE_CLAMPED:
-            debug("audio_falloff_inverse_distance_clamped is not supported in html5\n");
+            console.warn("audio_falloff_inverse_distance_clamped is not supported in html5\n");
+            console.log("Note: Falloff will mimic audio_falloff_inverse_distance");
             falloff_model = tempnode.INVERSE_DISTANCE;
 		    if (falloff_model == undefined) falloff_model = "inverse";
 			break;
@@ -1912,7 +1913,8 @@ function audio_falloff_set_model(_model)
 			if (falloff_model == undefined) falloff_model = "linear";
 			break;
 		case DistanceModels.AUDIO_FALLOFF_LINEAR_DISTANCE_CLAMPED:
-			debug("audio_falloff_linear_distance_clamped is not supported in html5\n");
+			console.warn("audio_falloff_linear_distance_clamped is not supported in html5\n");
+            console.log("Note: Falloff will mimic audio_falloff_linear_distance");
 			falloff_model = tempnode.LINEAR_DISTANCE;
 			if (falloff_model == undefined) falloff_model = "linear";
 			break;
@@ -1921,22 +1923,25 @@ function audio_falloff_set_model(_model)
 			if (falloff_model == undefined) falloff_model = "exponential";
 			break;
 		case DistanceModels.AUDIO_FALLOFF_EXPONENT_DISTANCE_CLAMPED:
-			debug("audio_falloff_exponent_distance_clamped is not supported in html5\n");
+			console.warn("audio_falloff_exponent_distance_clamped is not supported in html5\n");
+            console.log("Note: Falloff will mimic audio_falloff_exponent_distance");
 			falloff_model = tempnode.EXPONENTIAL_DISTANCE;
 			if (falloff_model == undefined) falloff_model = "exponential";
 			break;
         case DistanceModels.AUDIO_FALLOFF_INVERSE_DISTANCE_SCALED:
-            debug("audio_falloff_inverse_distance_scaled is not supported in html5\n");
+            console.warn("audio_falloff_inverse_distance_scaled is not supported in html5\n");
+            console.log("Note: Falloff will mimic audio_falloff_inverse_distance");
             falloff_model = tempnode.INVERSE_DISTANCE;
 		    if (falloff_model == undefined) falloff_model = "inverse";
 			break;
         case DistanceModels.AUDIO_FALLOFF_EXPONENT_DISTANCE_SCALED:
-            debug("audio_falloff_exponent_distance_scaled is not supported in html5\n");
+            console.warn("audio_falloff_exponent_distance_scaled is not supported in html5\n");
+            console.log("Note: Falloff will mimic audio_falloff_exponent_distance");
             falloff_model = tempnode.EXPONENTIAL_DISTANCE;
 			if (falloff_model == undefined) falloff_model = "exponential";
 			break;
 		default:
-			debug("Attempting to set audio falloff to unknown model\n");
+			console.warn("Ignored attempt to set audio falloff to unknown model\n");
 			return;
     }
 
