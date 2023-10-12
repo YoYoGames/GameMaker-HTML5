@@ -356,7 +356,6 @@ function yyVBufferBuilder(_size) {
     // #############################################################################################
     /** @this {yyVBufferBuilder} */	
     this.Submit = function(_primType, _texture) {
-
         if (m_frozen) {
 
             // Directly submit the vertex buffer
@@ -369,6 +368,10 @@ function yyVBufferBuilder(_size) {
                 // Check whether the webgl texture has been initialised yet and do so if not
                 if (_texture && !_texture.WebGLTexture.webgl_textureid) {
                     WebGL_BindTexture(_texture.TPE);
+                    if (!WebGL_IsTextureValid(_texture.WebGLTexture.webgl_textureid, WebGL_gpu_get_tex_mip_enable())) {
+                        yyError("vertex_submit: trying to use a texture that does not exist");
+                        return;
+                    }
                 }
                 g_webGL.DispatchVBuffer(_primType, _texture.WebGLTexture.webgl_textureid, m_VBuffer, 0);
             }
@@ -381,6 +384,10 @@ function yyVBufferBuilder(_size) {
                 // Check whether the webgl texture has been initialised yet and do so if not
                 if (_texture && !_texture.WebGLTexture.webgl_textureid) {
                     WebGL_BindTexture(_texture.TPE);
+                    if (!WebGL_IsTextureValid(_texture.WebGLTexture.webgl_textureid, WebGL_gpu_get_tex_mip_enable())) {
+                        yyError("vertex_submit: trying to use a texture that does not exist");
+                        return;
+                    }
                 }
                 pBuff = g_webGL.AllocVerts(_primType, _texture.WebGLTexture.webgl_textureid, m_FVF, m_vertexCount);
             }
