@@ -355,7 +355,7 @@ function yyVBufferBuilder(_size) {
     ///          </summary>
     // #############################################################################################
     /** @this {yyVBufferBuilder} */	
-    this.Submit = function(_primType, _texture) {;
+    this.Submit = function(_primType, _texture) {
         if (m_frozen) {
 
             // Directly submit the vertex buffer
