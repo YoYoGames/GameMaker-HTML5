@@ -237,7 +237,7 @@ function CLayerSequenceElement() {
     this.m_id = 0;
     this.m_bRuntimeDataInitialised = false;
     this.m_layer = null;
-    this.m_dirtyflags = 0;
+    this.m_dirtyflags = new yyBitField64();
 };
 
 /** @constructor */
@@ -4568,7 +4568,7 @@ function layer_sequence_x(sequence_element_id, pos_x)
         if (seqInst != null)
 		{
             el.m_x = yyGetReal(pos_x);
-            el.m_dirtyflags |= (1<<eT_Position);
+            el.m_dirtyflags.SetBit(eT_Position);
 		}
     }
 
@@ -4583,7 +4583,7 @@ function layer_sequence_y(sequence_element_id, pos_y)
         if (seqInst != null)
 		{
             el.m_y = yyGetReal(pos_y);
-            el.m_dirtyflags |= (1 << eT_Position);
+            el.m_dirtyflags.SetBit(eT_Position);
 		}
     }
 
@@ -4599,7 +4599,7 @@ function layer_sequence_angle(sequence_element_id, angle)
         if (seqInst != null)
         {
             el.m_angle = yyGetReal(angle);
-            el.m_dirtyflags |= (1 << eT_Rotation);
+            el.m_dirtyflags.SetBit(eT_Rotation);
         }
     }
 
@@ -4615,7 +4615,7 @@ function layer_sequence_xscale(sequence_element_id, xscale)
         if (seqInst != null)
         {
             el.m_scaleX = yyGetReal(xscale);
-            el.m_dirtyflags |= (1 << eT_Scale);
+            el.m_dirtyflags.SetBit(eT_Scale);
         }
     }
 
@@ -4631,7 +4631,7 @@ function layer_sequence_yscale(sequence_element_id, yscale)
         if (seqInst != null)
         {
             el.m_scaleY = yyGetReal(yscale);
-            el.m_dirtyflags |= (1 << eT_Scale);
+            el.m_dirtyflags.SetBit(eT_Scale);
         }
     }
 
@@ -4661,7 +4661,7 @@ function layer_sequence_headpos(sequence_element_id, position)
                 seqInst.m_headPosition = headPos;
                 seqInst.lastHeadPosition = headPos; // don't want to treat this like a normal time step
 
-                el.m_dirtyflags |= (1 << eT_HeadPosChanged);
+                el.m_dirtyflags.SetBit(eT_HeadPosChanged);
                 //seqInst.m_finished = tmp.finished;
             }
 		}
