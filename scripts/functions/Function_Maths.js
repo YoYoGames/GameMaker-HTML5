@@ -1535,7 +1535,7 @@ function lerp(_val1, _val2, _amount) {
     _val1 = yyGetReal(_val1);
     _val2 = yyGetReal(_val2);
 
-    return _val1 + ((_val2 - _val1) * _amount);
+    return _val1 + ((_val2 - _val1) * yyGetReal(_amount));
 }
 
 
