@@ -1538,7 +1538,7 @@ function lerp(_val1, _val2, _amount) {
     _val1 = yyGetReal(_val1);
     _val2 = yyGetReal(_val2);
 
-    return _val1 + ((_val2 - _val1) * _amount);
+    return _val1 + ((_val2 - _val1) * yyGetReal(_amount));
 }
 
 
@@ -1617,6 +1617,21 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
     {
         // both values are undefined
         ret = 0;
+    }
+    else if (_val1 instanceof YYRef && _val2 instanceof YYRef)
+    {
+        var v = _val1.type - _val2.type;
+        ret = (v == 0) ? 0 : (v < 0) ? -1 : 1;
+    }
+    else if (_val1 instanceof YYRef && !(_val2 instanceof YYRef))
+    {
+        var v = _val1.value - yyGetReal(_val2);
+        ret = (v == 0) ? 0 : (v < 0) ? -1 : 1;
+    }
+    else if (!(_val1 instanceof YYRef) && _val2 instanceof YYRef)
+    {
+        var v = yyGetReal(_val1) - _val2.value;
+        ret = (v == 0) ? 0 : (v < 0) ? -1 : 1;
     }
     else if (_val1 instanceof ArrayBuffer && _val2 instanceof ArrayBuffer)
     {

@@ -1438,6 +1438,27 @@ yyObjectManager.prototype.Exists = function (_id) {
 };
 
 
+
+// #############################################################################################
+/// Function:<summary>
+///				Returieves an array of all object asset IDs.
+///          </summary>
+///
+/// Out:	 <returns>
+///				An array of all object asset IDs.
+///			 </returns>
+// #############################################################################################
+yyObjectManager.prototype.List = function () {
+	var ids = [];
+    for (var i = 0; i < this.objidlist.length; ++i) {
+        if (this.objidlist[i]) {
+            ids.push(i);
+        }
+    }
+    return ids;
+};
+
+
 // #############################################################################################
 /// Function:<summary>
 ///             Returns the name of the object

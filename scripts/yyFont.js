@@ -1705,6 +1705,78 @@ yyFontManager.prototype.Get = function( _id ) {
 	}
 	return null;
 };
+
+// #############################################################################################
+/// Function:<summary>
+///             Retrieves an array of all font asset IDs.
+///          </summary>
+///
+/// Out:	 <returns>
+///				An array of all font asset IDs.
+///			 </returns>
+// #############################################################################################
+yyFontManager.prototype.List = function () {
+	var ids = [];
+	for (var i = 0; i < this.Fonts.length; ++i)
+	{
+		if (this.Fonts[i])
+		{
+			ids.push(i);
+		}
+	}
+	return ids;
+};
+
+// #############################################################################################
+/// Function:<summary>
+///				replaces hash marks with newline characters
+///          </summary>
+///
+/// In:		 <param name="str">Start to parse</param>
+///          <param name="thefont">font to get sizes and mapping from</param>
+/// In:		 <param name="_override_zeus">override the GMS2 setting?</param>
+/// Out:	 <returns>
+///				converted string or the original one back again
+///			 </returns>
+// #############################################################################################
+function    String_Replace_Hash(str, thefont, _override_zeus)
+{
+    // don't convert anything in ZEUS - unless we come from string_hash_to_newline() function...
+    if (_override_zeus === undefined) _override_zeus = false;
+    if( _override_zeus==false && g_isZeus) return str;
+
+	if ( str == null) return 0;
+
+	var pS = str;
+	var pD = "";	
+	var i=0;
+	var si = 0;
+
+	while(si<pS.length )
+	{
+		var s = pS[si];
+		if ( s == "#" )
+		{		    
+			if ((i > 0) && (pS[si-1] == '\\'))
+			{							
+				pD = pD.substring(0,pD.length-1)+'#';       // the length doesn't change here, so we don't need curr++
+			}			
+			else
+			{
+			    pD += String.fromCharCode(0x0d);
+				pD += String.fromCharCode(0x0a);
+				i++;
+			} 
+		} 
+		else
+		{
+			pD += s;
+			i++;
+		} 		
+		si++;
+	} 
+	return pD;
+}
 // @endif fonts
 
 
@@ -2418,8 +2490,8 @@ yyFontManager.prototype.GR_StringList_Draw_IDEstyle = function (_sl, _x, _y, _ch
 		}
 
 		var hasDropShadow = false; 
-		//if (this.Should_Render_Drop_Shadow(thefont, _pFontParams)) 
-		if (this.Should_Render_Drop_Shadow(thefont)) 	// currently don't override font settings (change this back once the sequence stuff has been done)
+		if (this.Should_Render_Drop_Shadow(thefont, _pFontParams)) 
+		//if (this.Should_Render_Drop_Shadow(thefont)) 	// currently don't override font settings (change this back once the sequence stuff has been done)
 		{ 
 			hasDropShadow = true; 
 		} 
@@ -2429,16 +2501,24 @@ yyFontManager.prototype.GR_StringList_Draw_IDEstyle = function (_sl, _x, _y, _ch
 			var shadowPass = (j == 0); 
 			if (thefont.sdf) 
 			{ 
-				//this.Start_Rendering_SDF(thefont, shadowPass, _pFontParams); 
-				this.Start_Rendering_SDF(thefont, shadowPass); 		// currently don't override font settings (change this back once the sequence stuff has been done)
+				this.Start_Rendering_SDF(thefont, shadowPass, _pFontParams); 
+				//this.Start_Rendering_SDF(thefont, shadowPass); 		// currently don't override font settings (change this back once the sequence stuff has been done)
 			} 
 	
 			var passx = _x; 
 			var passy = basey; 
 			if (shadowPass) 
 			{ 
-				passx += thefont.effect_params.shadowOffsetX; 
-				passy += thefont.effect_params.shadowOffsetY; 
+				if ((_pFontParams != undefined) && (_pFontParams != null))
+				{
+					passx += _pFontParams.shadowOffsetX; 
+					passy += _pFontParams.shadowOffsetY; 
+				}
+				else
+				{
+					passx += thefont.effect_params.shadowOffsetX; 
+					passy += thefont.effect_params.shadowOffsetY; 
+				}
 			} 
 
 			for (i = 0; i <= sl.length - 1; i++)

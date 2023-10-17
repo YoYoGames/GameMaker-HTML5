@@ -1408,7 +1408,7 @@ function _json_reviver(_, value)
 			}
 			// It's an object prepare to set internal values
 			var obj = {};
-			obj.__type = "Object";
+			obj.__type = "___struct___";
 			obj.__yyIsGMLObject = true;
 			// Go through all the property names in parsed value
 			for (var oName in value) {

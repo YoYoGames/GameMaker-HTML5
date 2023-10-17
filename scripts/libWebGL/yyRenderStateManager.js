@@ -20,6 +20,20 @@ function yyBitField(_numbits)
 {     
     var m_val = []; 
     var m_arraysize; 
+    var m_remaindermask;
+    var m_numbits;
+
+    var _CalcRemainderMask = function()
+    {
+        var remainingbits = m_numbits - ((m_arraysize - 1) * 32);
+        m_remaindermask = 0xffffffff;        
+        for(var i = 0; i < remainingbits; i++)
+        {
+            m_remaindermask <<= 1;            
+        }
+
+        m_remaindermask = ~m_remaindermask;
+    };
  
     (function() { 
      
@@ -27,10 +41,10 @@ function yyBitField(_numbits)
         // on 32 bit values, so we'll store an array of 32 bit chunks 
         if (_numbits == undefined) 
             _numbits = 32; 
+
+        m_numbits = _numbits;
  
-        m_arraysize = ~~(_numbits / 32); 
-        if (m_arraysize == 0) 
-            m_arraysize = 1; 
+        m_arraysize = ~~((m_numbits + 31) / 32);
  
         m_val = new Array(m_arraysize); 
  
@@ -38,16 +52,23 @@ function yyBitField(_numbits)
         { 
             m_val[i] = 0x0; 
         } 
-    })(); 
+
+        _CalcRemainderMask();
+    })();     
  
     this.NumBits = function() 
     { 
-        return _numbits; 
+        return m_numbits; 
+    };
+
+    this.Val = function()
+    {
+        return m_val;
     };
  
     this.SetBit = function(_bit) 
     { 
-        if (_bit >= _numbits) 
+        if (_bit >= m_numbits) 
             return; 
  
         var entry = ~~(_bit / 32); 
@@ -57,7 +78,7 @@ function yyBitField(_numbits)
  
     this.ClearBit = function(_bit) 
     { 
-        if (_bit >= _numbits) 
+        if (_bit >= m_numbits) 
             return; 
  
         var entry = ~~(_bit / 32); 
@@ -67,7 +88,7 @@ function yyBitField(_numbits)
  
     this.GetBit = function(_bit) 
     { 
-        if (_bit >= _numbits) 
+        if (_bit >= m_numbits) 
             return 0; 
  
         var entry = ~~(_bit / 32); 
@@ -78,22 +99,13 @@ function yyBitField(_numbits)
  
     this.SetAllBits = function() 
     { 
-        // Set full DWORDS first 
         var i; 
-        for(i = 0; i < (m_arraysize-1); i++) 
+        for(i = 0; i < m_arraysize; i++) 
         { 
             m_val[i] = 0xffffffff; 
         } 
- 
-        var bitsleft = _numbits - (i * 32); 
-        var j; 
-        var bit = 1; 
-        for(j = 0; j < bitsleft; j++ ) 
-        { 
-            m_val[i] |= bit; 
-            bit<<=1; 
-        } 
-         
+
+        m_val[m_arraysize - 1] &= m_remaindermask;
     };
  
     this.ClearAllBits = function() 
@@ -118,40 +130,269 @@ function yyBitField(_numbits)
  
     this.Or = function(_other) 
     { 
-        // Not particularly efficient 
-        // TODO: do in 4 byte chunks 
-        var numBits = _other.NumBits() > this.NumBits() ? _other.NumBits() : this.NumBits(); 
-        var newBits = new yyBitField(numBits); 
- 
-        for(var i = 0; i < numBits; i++) 
-        { 
-            var bitVal = this.GetBit(i) | _other.GetBit(i); 
-            if (bitVal == 1)             
+        var newBits;
+        if (this.NumBits() < _other.NumBits())
+        {
+            newBits = new yyBitField(_other.NumBits());                        
+            
+            var i;
+            for(i = 0; i < m_arraysize; i++) 
             { 
-                newBits.SetBit(i); 
-            }  
-        }         
+                newBits.m_val[i] = m_val[i] | _other.Val()[i];                    
+            }
+
+            for(; i < _other.m_arraysize; i++) 
+            { 
+                newBits.m_val[i] = _other.Val()[i];                    
+            }
+        }
+        else
+        {           
+            newBits = new yyBitField(this.NumBits());
+                 
+            var i;
+            for(i = 0; i < _other.m_arraysize; i++) 
+            { 
+                newBits.m_val[i] = m_val[i] | _other.Val()[i];
+            }   
+
+            for(; i < m_arraysize; i++) 
+            { 
+                newBits.m_val[i] = m_val[i];
+            }   
+        }           
  
         return newBits; 
     };
  
     this.And = function(_other) 
     { 
-        // Not particularly efficient 
-        // TODO: do in 4 byte chunks 
-        var numBits = _other.NumBits() > this.NumBits() ? _other.NumBits() : this.NumBits(); 
-        var newBits = new yyBitField(numBits); 
- 
-        for(var i = 0; i < numBits; i++) 
-        { 
-            var bitVal = this.GetBit(i) & _other.GetBit(i); 
-            if (bitVal == 1)             
+        var newBits;
+        if (this.NumBits() < _other.NumBits())
+        {
+            newBits = new yyBitField(_other.NumBits());                        
+            
+            for(var i = 0; i < m_arraysize; i++) 
             { 
-                newBits.SetBit(i); 
+                newBits.m_val[i] = m_val[i] & _other.Val()[i];                    
+            }            
+        }
+        else
+        {           
+            newBits = new yyBitField(this.NumBits());
+                        
+            for(var i = 0; i < _other.m_arraysize; i++) 
+            { 
+                newBits.m_val[i] = m_val[i] & _other.Val()[i];
             }   
+        }           
+        return newBits; 
+    };
+
+    this.Not = function()
+    {
+        var newBits = new yyBitField(_numbits);
+        for(i = 0; i < m_arraysize; i++)
+        {
+            newBits.m_val[i] = ~(m_val[i]);
+        }
+        newBits.val[m_arraysize - 1] &= newBits.m_remaindermask;    // mask off unused bits
+
+        return newBits;
+    };
+
+    this.OrEquals = function(_other) 
+    { 
+        // This all assumes that bits outside of the _numbits range are zeroed
+        if (_other.NumBits() == this.NumBits())
+        {
+            for(var i = 0; i < m_arraysize; i++)
+            {
+                m_val[i] |= _other.Val()[i];
+            }
+        }
+        else
+        {            
+            if (this.NumBits() < _other.NumBits())
+            {
+                var newArraySize = _other.m_arraysize;
+                var newVal = new Array(newArraySize);                 
+    
+                var i;
+                for(i = 0; i < m_arraysize; i++) 
+                { 
+                    newVal[i] = m_val[i] | _other.Val()[i];                    
+                }
+
+                for(; i < newArraySize; i++)
+                {
+                    newVal[i] = _other.Val()[i];
+                }
+
+                m_arraysize = newArraySize;
+                m_val = newVal;       
+                
+                _CalcRemainderMask();
+            }
+            else
+            {           
+                var otherArraySize = _other.m_arraysize;
+                var i;
+                for(i = 0; i < otherArraySize; i++) 
+                { 
+                    m_val[i] |= _other.Val()[i];
+                }            
+            }            
         }         
+    };
+
+    this.AndEquals = function(_other) 
+    { 
+        // This all assumes that bits outside of the _numbits range are zeroed        
+        if (_other.NumBits() == this.NumBits())
+        {
+            for(var i = 0; i < m_arraysize; i++)
+            {
+                m_val[i] &= _other.Val()[i];
+            }
+        }
+        else
+        {            
+            if (this.NumBits() < _other.NumBits())
+            {
+                var newArraySize = _other.m_arraysize;
+                var newVal = new Array(newArraySize);                 
+    
+                var i;
+                for(i = 0; i < m_arraysize; i++) 
+                { 
+                    newVal[i] = m_val[i] & _other.Val()[i];                    
+                }
+
+                for(; i < newArraySize; i++)
+                {
+                    newVal[i] = 0;
+                }
+
+                m_arraysize = newArraySize;
+                m_val = newVal;    
+                
+                _CalcRemainderMask();
+            }
+            else
+            {           
+                var otherArraySize = _other.m_arraysize;
+                var i;
+                for(i = 0; i < otherArraySize; i++) 
+                { 
+                    m_val[i] &= _other.Val()[i];                    
+                }   
+                
+                for(; i < m_arraysize; i++)
+                {
+                    m_val[i] = 0;
+                }
+            }            
+        }         
+    };
+}
+
+// Specialised version of the above for more efficient 64bit bitfield handling
+function yyBitField64() 
+{ 
+    var m_hi = 0;
+    var m_lo = 0;        
+  
+    this.SetBit = function(_bit) 
+    { 
+        if (_bit > 31)
+        {
+            m_hi |= 1 << (_bit - 32);
+        }
+        else
+        {
+            m_lo |= 1 << _bit;
+        }
+    };
+ 
+    this.ClearBit = function(_bit) 
+    { 
+        if (_bit > 31)
+        {
+            m_hi &= ~(1 << (_bit - 32));
+        }
+        else
+        {
+            m_lo &= ~(1 << _bit);
+        }        
+    };
+ 
+    this.GetBit = function(_bit) 
+    { 
+        if (_bit > 31)
+        {
+            return (m_hi >> (_bit - 32)) & 0x1;
+        }
+        else
+        {
+            return (m_lo >> _bit) & 0x1;
+        }        
+    };
+ 
+    this.SetAllBits = function() 
+    { 
+        m_hi = 0xffffffff;
+        m_lo = 0xffffffff;
+    };
+ 
+    this.ClearAllBits = function() 
+    { 
+        m_hi = 0;
+        m_lo = 0;        
+    };
+ 
+    this.AnyBitSet = function() 
+    { 
+        return (m_hi | m_lo) ? 1 : 0;        
+    };
+ 
+    this.Or = function(_other) 
+    { 
+        var newBits = new yyBitField64();
+        newBits.m_hi = m_hi | _other.m_hi;
+        newBits.m_lo = m_lo | _other.m_lo;        
  
         return newBits; 
+    };
+ 
+    this.And = function(_other) 
+    { 
+        var newBits = new yyBitField64();
+        newBits.m_hi = m_hi & _other.m_hi;
+        newBits.m_lo = m_lo & _other.m_lo;        
+ 
+        return newBits;         
+    };
+
+    this.Not = function()
+    {
+        var newBits = new yyBitField64();
+        newBits.m_hi = ~m_hi;
+        newBits.m_lo = ~m_lo;        
+ 
+        return newBits;              
+    };
+
+    this.OrEquals = function(_other) 
+    { 
+        m_hi |= _other.m_hi;
+        m_lo |= _other.m_lo;        
+    };
+
+    this.AndEquals = function(_other) 
+    { 
+        m_hi &= _other.m_hi;
+        m_lo &= _other.m_lo;        
     };
 }
  

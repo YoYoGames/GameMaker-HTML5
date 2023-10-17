@@ -132,6 +132,10 @@ function real(_v) {
 	        return stringAsNumber;
 	    }
     }
+    else if (_v instanceof YYRef)
+    {
+        return _v.value;
+    }
     else if (_v instanceof Long)
     {
         return _v.toNumber();
@@ -1104,7 +1108,7 @@ function string_lettersdigits(_str)
     return s;  
 }
 
-const g_EscapeRegexRE = new RegExp("[/-\\\\^$*+?.()|[\\]{}]", "g");
+const g_EscapeRegexRE = new RegExp("[\\/\\-\\\\^$*+?.()|[\\]{}]", "g");
 function __escapeRegex(string) {
     return string.replace(g_EscapeRegexRE, '\\$&');
 }
@@ -1158,8 +1162,7 @@ function string_trim_end(_str, _substrs) {
     
     }).filter(elm => elm).join("|");
 
-    let _rg = new RegExp("(?:" +_substrs+ ")*$");
-
+    let _rg = new RegExp("(?:" +_substrs+ ")*$",'g');
     return _str.replace(_rg, "");
 }
 

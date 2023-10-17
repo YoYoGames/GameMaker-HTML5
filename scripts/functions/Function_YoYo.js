@@ -1066,6 +1066,7 @@ var method_call = script_execute_ext;
 // @endif
 function script_execute_ext( _self, _other, _index, _array, _offset, _length )
 {
+	_array = _array || [];
     _offset = _offset || 0;
     _offset = yyGetInt32(_offset);
     _length = _length || _array.length - _offset;

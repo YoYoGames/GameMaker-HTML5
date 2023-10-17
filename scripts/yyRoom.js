@@ -2862,26 +2862,26 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 
 	var frameWidth = -1;
 	var frameHeight = -1;
-	if (_node.value.paramset & (1 << eT_FrameSize))
+	if (_node.value.paramset.GetBit(eT_FrameSize))
 	{
 		frameWidth = _node.value.FrameSizeX;
 		frameHeight = _node.value.FrameSizeY;
 	}	
 
 	var charSpacing = 0.0;
-	if (_node.value.paramset & (1 << eT_CharacterSpacing))
+	if (_node.value.paramset.GetBit(eT_CharacterSpacing))
 	{
 		charSpacing = _node.value.CharacterSpacing;
 	}
 
 	var lineSpacing = 0.0;
-	if (_node.value.paramset & (1 << eT_LineSpacing))
+	if (_node.value.paramset.GetBit(eT_LineSpacing))
 	{
 		lineSpacing = _node.value.LineSpacing;
 	}
 
 	var paraSpacing = 0.0;
-	if (_node.value.paramset & (1 << eT_ParagraphSpacing))
+	if (_node.value.paramset.GetBit(eT_ParagraphSpacing))
 	{
 		paraSpacing = _node.value.ParagraphSpacing;
 	}
@@ -4175,6 +4175,25 @@ yyRoomManager.prototype.Get = function (_Index) {
 // #############################################################################################
 yyRoomManager.prototype.GetOrder = function (_Index) {
 	return this.pRooms[this.m_RoomOrder[_Index]];
+};
+
+// #############################################################################################
+/// Function:<summary>
+///             Retrieves an array of all room asset IDs.
+///          </summary>
+///
+/// Out:	 <returns>
+///				An array of all room asset IDs.
+///			 </returns>
+// #############################################################################################
+yyRoomManager.prototype.List = function () {
+	var ids = [];
+	for (var i = 0; i < this.pRooms.length; ++i) {
+		if (this.pRooms[i]) {
+			ids.push(i);
+		}
+	}
+	return ids;
 };
 
 // #############################################################################################

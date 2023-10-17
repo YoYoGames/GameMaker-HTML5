@@ -218,7 +218,8 @@ function yyParticle()
 	this.xsize=0;				// the size of the particle
 	this.ysize=0;				// the size of the particle
 	this.spritestart=0;			// the starting sprite image
-	this.ran = 0; 					// random number for different purposes
+	this.subimg=0;				// the current sprite image
+	this.ran = 0; 				// random number for different purposes
 	this.id = -1;
 }
 
@@ -358,6 +359,17 @@ CParticleSystem.Find = function (name)
 		}
 	}
 	return -1;
+};
+
+/// <returns>An array of all particle system asset IDs.</returns>
+CParticleSystem.List = function ()
+{
+	var ids = Array(CParticleSystem.GetCount());
+	for (var i = 0; i < ids.length; ++i)
+	{
+		ids[i] = i;
+	}
+	return ids;
 };
 
 /// <returns>The index of the particle system.</returns>
@@ -624,8 +636,7 @@ function Compute_Color(_pParticle)
 											 var h = ~~(MyRandom( pPartType.colpar[0], pPartType.colpar[1], PART_EDISTR_LINEAR));
 											 var s = ~~(MyRandom( pPartType.colpar[2], pPartType.colpar[3], PART_EDISTR_LINEAR));
 											 var v = ~~(MyRandom( pPartType.colpar[4], pPartType.colpar[5], PART_EDISTR_LINEAR));
-											 //THSV thsv = Color_HSV(h,s,v);
-											 _pParticle.color = 0xffffff; //Color_HSVToColor( thsv );
+											 _pParticle.color = make_color_hsv(h, s, v);
 										}
 										break;
 									case COLMODE_MIX: _pParticle.color = ConvertGMColour( Color_Merge(pPartType.colpar[0], pPartType.colpar[1], YYRandom(1)) );
@@ -710,6 +721,7 @@ function CreateParticle(_system, _x, _y, _parttype)
 	{
 		Result.spritestart = pParType.spritestart;
 	}
+	Result.subimg = Result.spritestart;
 
 	if (_system.globalSpaceParticles)
 	{
@@ -1156,12 +1168,12 @@ function ParticleType_Colour_RGB(_ind, _rmin, _rmax, _gmin, _gmax, _bmin, _bmax)
 	if( pPar == null || pPar==undefined ) return;
 
 	pPar.colmode = COLMODE_RGB;
-	pPar.colpar[0] = yyGetInt32(_rmin);
-	pPar.colpar[1] = yyGetInt32(_rmax);
+	pPar.colpar[0] = yyGetInt32(_bmin);
+	pPar.colpar[1] = yyGetInt32(_bmax);
 	pPar.colpar[2] = yyGetInt32(_gmin);
 	pPar.colpar[3] = yyGetInt32(_gmax);
-	pPar.colpar[4] = yyGetInt32(_bmin);
-	pPar.colpar[5] = yyGetInt32(_bmax);
+	pPar.colpar[4] = yyGetInt32(_rmin);
+	pPar.colpar[5] = yyGetInt32(_rmax);
 }
 
 
@@ -2001,7 +2013,7 @@ function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 
 	if (em == -1)
 	{
-		em = ParticleSystem_Emitter_Create(ps);
+		em = ParticleSystem_Emitter_Create(_ps);
 	}
 
 	EmitParticles(system, system.emitters[em], _x, _y, _parttype, _numb);
@@ -2047,7 +2059,7 @@ function	ParticleSystem_Particles_Create_Color( _ps, _x, _y, _parttype, _col, _n
 
 	if (em == -1)
 	{
-		em = ParticleSystem_Emitter_Create(ps);
+		em = ParticleSystem_Emitter_Create(_ps);
 	}
 
 	EmitParticles(system, system.emitters[em], _x, _y, _parttype, _numb, true, _col);
@@ -2669,28 +2681,34 @@ function HandleLife( _ps, _em )
 	{
 		var pParticle = pParticles[i];
 		var pParType = g_ParticleTypes[ pParticle.parttype ];
-
+		
 		// Update the age and create death particles
 		pParticle.age++;
 			
 		if ( pParticle.age >= pParticle.lifetime )			// change this to a check with 0... and count age down.
 		{
-			numb = pParType.deathnumber;
-			if ( numb<0 ){
-				if ( ~~YYRandom(-numb) == 0 ) numb = 1;
-			}
-			if  ( numb > 0 ){
-				EmitParticles(pPartSys, pEmitter, pParticle.x, pParticle.y, pParType.deathtype, numb);
+			if (pParType !== null)
+			{
+				numb = pParType.deathnumber;
+				if ( numb<0 ){
+					if ( ~~YYRandom(-numb) == 0 ) numb = 1;
+				}
+				if  ( numb > 0 ){
+					EmitParticles(pPartSys, pEmitter, pParticle.x, pParticle.y, pParType.deathtype, numb);
+				}
 			}
 			pParticles.splice(i,1);	// remove particle
-		}else{	
-			// Create step particles
-			numb = pParType.stepnumber;
-			if ( numb<0 ){
-				if ( ~~YYRandom(-numb) == 0 ) numb = 1;
-			}
-			if ( numb > 0 ){
-				EmitParticles(pPartSys, pEmitter, pParticle.x, pParticle.y, pParType.steptype, numb);
+		} else {
+			if (pParType !== null)
+			{
+				// Create step particles
+				numb = pParType.stepnumber;
+				if ( numb<0 ){
+					if ( ~~YYRandom(-numb) == 0 ) numb = 1;
+				}
+				if ( numb > 0 ){
+					EmitParticles(pPartSys, pEmitter, pParticle.x, pParticle.y, pParType.steptype, numb);
+				}
 			}
 		
 			i++;		// next particle. Dont do if we deleted one, because SPLICE moves them all down...
@@ -2731,7 +2749,10 @@ function HandleMotion( _ps, _em )
 	{
 		var pParticle = pParticles[i];
 		var pParType = g_ParticleTypes[ pParticle.parttype ];
-	
+		
+		// Fix for null particle HTML5 crash - happens when particle type is destroyed but emitter is still alive
+		if (pParType === null) continue;
+		
 		// adapt speed and direction and angle
 		pParticle.speed = pParticle.speed + pParType.spincr;
 		if ( pParticle.speed < 0 ) pParticle.speed = 0;
@@ -2799,6 +2820,8 @@ function  HandleShape(_ps, _em)
 		var pParticle = pParticles[i];
 		var pParType = g_ParticleTypes[ pParticle.parttype ];
 		
+		// Fix for null particle HTML5 crash - happens when particle type is destroyed but emitter is still alive
+		if (pParType === null) continue;
 		
 		// adapt the size
 		pParticle.xsize = pParticle.xsize + pParType.sizeIncrX;
@@ -2953,6 +2976,9 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 
 	if ( _pParticle.lifetime <= 0 ) return;
 	var pParType = g_ParticleTypes[ _pParticle.parttype ];
+	
+	// Fix for null particle HTML5 crash - happens when particle type is destroyed but emitter is still alive
+	if (pParType === null) return;
 
 	// @if feature("sprites")
 	spr = g_pSpriteManager.Get( pParType.sprite );
@@ -2974,9 +3000,6 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 		}
 	}
 
-
-	var n ;
-
 	// If a default particle, then no animation for it, just draw it.
 	if( pTexture!=null ){
 		
@@ -2986,15 +3009,22 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 
 		if ( !pParType.spriteanim )
 		{
-			n = _pParticle.spritestart;
+			// _pParticle.subimg = _pParticle.spritestart;
 		}
 		else if ( pParType.spritestretch )
 		{
-			n = _pParticle.spritestart + (spr.numb * _pParticle.age/_pParticle.lifetime);
+			var duration = (spr.m_skeletonSprite)
+				? spr.m_skeletonSprite.m_skeletonData.animations[0].duration
+				: spr.numb;
+			_pParticle.subimg = _pParticle.spritestart + duration * _pParticle.age/_pParticle.lifetime;
 		}
 		else
 		{
-			n = _pParticle.spritestart + _pParticle.age;
+			var fps = (spr.m_skeletonSprite) ? g_GameTimer.GetFPS() : 1.0;
+			if (fps > 0.0)
+			{
+				_pParticle.subimg += 1.0 / fps;
+			}
 		}
 	}
 
@@ -3039,12 +3069,30 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 		}
 	}else{
 		// If a user supplied particle, call via sprite handler to draw it.
-		spr.Draw( n,	_pParticle.x+_xoff,_pParticle.y+_yoff, 
-						g_ParticleTypes[_pParticle.parttype].xscale*sx, g_ParticleTypes[_pParticle.parttype].yscale*sy,
-						aa,
-						mulColor,
-						mulAlpha
-				);		
+		if (spr.m_skeletonSprite)
+		{
+			spr.m_skeletonSprite.DrawTime(null, null,
+				_pParticle.subimg,
+				_pParticle.x+_xoff,
+				_pParticle.y+_yoff,
+				g_ParticleTypes[_pParticle.parttype].xscale*sx,
+				g_ParticleTypes[_pParticle.parttype].yscale*sy,
+				aa,
+				mulColor,
+				mulAlpha);
+		}
+		else
+		{
+			spr.Draw(
+				_pParticle.subimg,
+				_pParticle.x+_xoff,
+				_pParticle.y+_yoff,
+				g_ParticleTypes[_pParticle.parttype].xscale*sx,
+				g_ParticleTypes[_pParticle.parttype].yscale*sy,
+				aa,
+				mulColor,
+				mulAlpha);
+		}
 	}
 }
 
