@@ -13,9 +13,11 @@
 // 15/02/2012		1.0         CPH     1st version
 // 
 // **********************************************************************************************************************
+// @if feature("physics")
 var g_physicsFixtures = new yyAllocate();
 var g_physicsObjects = new yyAllocate();
 var g_physicsJoints = new yyAllocate();
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -28,26 +30,11 @@ function physics_world_create(_pixelToMetreScale) {
     if (g_RunRoom.m_pPhysicsWorld) {
     
         g_RunRoom.m_pPhysicsWorld.SetPixelToMetreScale(_pixelToMetreScale);
-        if(g_isZeus)
-        {
-		    g_RunRoom.m_pPhysicsWorld.SetUpdateSpeed(g_GameTimer.GetFPS());
-		}
-		else
-		{
-		    g_RunRoom.m_pPhysicsWorld.SetUpdateSpeed(g_RunRoom.GetSpeed());
-		}
+        g_RunRoom.m_pPhysicsWorld.SetUpdateSpeed(g_GameTimer.GetFPS());
     }
     else {
-        if(g_isZeus)
-        {
-            var physicsWorld = new yyPhysicsWorld(_pixelToMetreScale, g_GameTimer.GetFPS());
-            g_RunRoom.m_pPhysicsWorld = physicsWorld;	
-        }
-        else
-        {
-            var physicsWorld = new yyPhysicsWorld(_pixelToMetreScale, g_RunRoom.GetSpeed());
-            g_RunRoom.m_pPhysicsWorld = physicsWorld;	
-        }
+        var physicsWorld = new yyPhysicsWorld(_pixelToMetreScale, g_GameTimer.GetFPS());
+        g_RunRoom.m_pPhysicsWorld = physicsWorld;	
     }
 }
 
@@ -1025,11 +1012,12 @@ function physics_particle_group_delete(ind) {
 ///          </summary>
 // #############################################################################################
 function physics_particle_draw(typemask, category, sprite, subimg) {
-    
+    // @if feature("sprites")
     var pSpr = g_pSpriteManager.Get(yyGetInt32(sprite));
     if (pSpr !== null) {
         g_RunRoom.m_pPhysicsWorld.DrawParticles(yyGetInt32(typemask), yyGetInt32(category), pSpr, yyGetInt32(subimg));
     }
+    // @endif sprites
 }
 
 // #############################################################################################
@@ -1037,11 +1025,12 @@ function physics_particle_draw(typemask, category, sprite, subimg) {
 ///          </summary>
 // #############################################################################################
 function physics_particle_draw_ext(typemask, category, sprite, subimg, xscale, yscale, angle, col, alpha) {
-    
+    // @if feature("sprites")
     var pSpr = g_pSpriteManager.Get(yyGetInt32(sprite));
     if (pSpr !== null) {
         g_RunRoom.m_pPhysicsWorld.DrawParticlesExt(yyGetInt32(typemask), yyGetInt32(category), pSpr, yyGetInt32(subimg), yyGetReal(xscale), yyGetReal(yscale), yyGetReal(angle), yyGetInt32(col), yyGetReal(alpha));
     }
+    // @endif sprites
 }
 
 // #############################################################################################

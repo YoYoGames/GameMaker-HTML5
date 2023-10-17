@@ -1,3 +1,4 @@
+// @if feature("audio_effects")
 function BitcrusherEffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.Bitcrusher);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
@@ -72,3 +73,4 @@ BitcrusherEffectStruct.paramDescriptors = () => ({
     resolution: { name: "resolution", integer: true,  defaultValue: 8,   minValue: 2,   maxValue: 16  },
     mix:        { name: "mix",        integer: false, defaultValue: 0.8, minValue: 0.0, maxValue: 1.0 }
 });
+// @endif

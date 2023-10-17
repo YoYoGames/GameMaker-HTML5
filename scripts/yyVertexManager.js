@@ -10,18 +10,40 @@
 //
 // **********************************************************************************************************************
 
-function vertex_format_begin()                              { ErrorFunction("vertex_format_begin"); }
-function vertex_format_end()                                { ErrorFunction("vertex_format_end"); }
-function vertex_format_delete(format_id)                    { ErrorFunction("vertex_format_delete"); }
-function vertex_format_add_position()                       { ErrorFunction("vertex_format_add_position"); }
-function vertex_format_add_position_3d()                    { ErrorFunction("vertex_format_add_position_3d"); }
-function vertex_format_add_colour()                         { ErrorFunction("vertex_format_add_colour"); }
-function vertex_format_add_color()                          { ErrorFunction("vertex_format_add_color"); }
-function vertex_format_add_normal()                         { ErrorFunction("vertex_format_add_normal"); }
-function vertex_format_add_texcoord()                       { ErrorFunction("vertex_format_add_texcoord"); }
-function vertex_format_add_textcoord()                      { ErrorFunction("vertex_format_add_textcoord"); }
-function vertex_format_add_custom(type, usage)              { ErrorFunction("vertex_format_add_custom"); }
-function vertex_format_get_info(format_id)                  { ErrorFunction("vertex_format_get_info"); }
+// @if function("vertex_*")
+
+var vertex_format_begin,
+    vertex_format_end,
+    vertex_format_delete,
+    vertex_format_add_position,
+    vertex_format_add_position_3d,
+    vertex_format_add_colour,
+    vertex_format_add_color,
+    vertex_format_add_normal,
+    vertex_format_add_texcoord,
+    vertex_format_add_textcoord,
+    vertex_format_add_custom,
+    vertex_format_get_info;
+
+// @if feature("2d")
+(() => {
+    let _stub = (_name, _val) => () => ErrorFunction(_name, _val);
+    vertex_format_begin = _stub("vertex_format_begin");
+    vertex_format_end = _stub("vertex_format_end", -1);
+    vertex_format_delete = _stub("vertex_format_delete");
+    vertex_format_add_position = _stub("vertex_format_add_position");
+    vertex_format_add_position_3d = _stub("vertex_format_add_position_3d");
+    vertex_format_add_colour = _stub("vertex_format_add_colour");
+    vertex_format_add_color = _stub("vertex_format_add_color");
+    vertex_format_add_normal = _stub("vertex_format_add_normal");
+    vertex_format_add_texcoord = _stub("vertex_format_add_texcoord");
+    vertex_format_add_textcoord = _stub("vertex_format_add_textcoord");
+    vertex_format_add_custom = _stub("vertex_format_add_custom");
+    vertex_format_get_info = _stub("vertex_format_get_info");
+})();
+// @endif 2d
+
+// @if feature("gl")
 
 // ---------------------------------------------------------------------------------------------
 // Tracks the format currently under construction
@@ -206,3 +228,6 @@ function WebGL_vertex_format_get_info_RELEASE(_format_id)
 
     return pVFI;
 }
+// @endif gl
+
+// @endif vertex_

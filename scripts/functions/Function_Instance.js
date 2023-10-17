@@ -1531,6 +1531,7 @@ function instance_copy(_inst, _performevent)
 ///			<param name="_perf">Perform destroy and create events?</param>
 ///				
 // #############################################################################################
+// @if function("position_change") || function("instance_change")
 function instance_change_RELEASE(_inst, _objindex, _perf) 
 {
     _perf = yyGetBool(_perf);
@@ -1544,7 +1545,9 @@ function instance_change_RELEASE(_inst, _objindex, _perf)
 	_inst.UpdateSpriteIndex(_inst.pObject.SpriteIndex);
 	
 	// Change over the physics body	if one exists/should exist
+	// @if feature("physics")
 	_inst.RebuildPhysicsBody(g_RunRoom);
+	// @endif
 
 	if( _perf ) {
 		_inst.PerformEvent(EVENT_PRE_CREATE, 0, _inst, _inst );
@@ -1562,7 +1565,8 @@ function instance_change_DEBUG(_inst, _objindex, _perf)
 	}
 	instance_change_RELEASE(_inst, _objindex, yyGetBool(_perf));
 }
-var instance_change = instance_change_DEBUG; 
+var instance_change = instance_change_DEBUG;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>

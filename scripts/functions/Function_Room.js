@@ -139,7 +139,9 @@ function room_set_background_color(_ind,_colour,_show)
     pRoom.m_pStorage.showColour = yyGetBool(_show);
 
 }
+// @if function("room_set_background_colour")
 var room_set_background_colour = room_set_background_color;
+// @endif
 
 
 

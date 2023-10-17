@@ -282,7 +282,6 @@ function point_direction(_x1,_y1, _x2,_y2)
 		}
 	}
 }
-function ComputeDir(_x1,_y1, _x2,_y2){ return point_direction(_x1,_y1, _x2,_y2); }
 
 
 // #############################################################################################
@@ -987,8 +986,8 @@ function radtodeg(_x) {
 // #############################################################################################
 function mean() 
 {
-	var args = mean.arguments;
-	var argc = mean.arguments.length;
+	var args = arguments;
+	var argc = arguments.length;
 
 	if (argc == 0) return 0;
     
@@ -1012,8 +1011,8 @@ function mean()
 // #############################################################################################
 function median()
 {
-    var args = median.arguments;
-    var argc = median.arguments.length;
+    var args = arguments;
+    var argc = arguments.length;
 
     if (argc == 0) return 0;
 
@@ -1120,7 +1119,9 @@ function dot_product_normalised(_x1,_y1,_x2,_y2)
     // return DOT product
     return (_x1 * _x2 + _y1 * _y2) / (mag1 * mag2);
 }
+// @if function("dot_product_normalized")
 var dot_product_normalized = dot_product_normalised;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -1154,7 +1155,9 @@ function dot_product_3d_normalised(_x1, _y1, _z1, _x2, _y2, _z2) {
     // return DOT product
 	return (_x1 * _x2 + _y1 * _y2 + _z1 * _z2) / (mag1 * mag2);
 }
+// @if function("dot_product_3d_normalized")
 var dot_product_3d_normalized = dot_product_3d_normalised;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>

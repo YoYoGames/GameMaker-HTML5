@@ -15,6 +15,7 @@
 //
 // **********************************************************************************************************************
 
+// @if feature("paths")
 var P_STRAIGHT = 0,
 	P_CURVED = 1;
 
@@ -869,3 +870,4 @@ yyPathManager.prototype.List = function () {
 	}
 	return ids;
 };
+// @endif

@@ -418,8 +418,6 @@ function move_bounce_all(_pInst, _adv)
 	Command_Bounce( _pInst, yyGetBool(_adv), true );
 }
 
-var move_bounce = move_bounce_solid;
-
 
 // #############################################################################################
 /// Function:<summary>

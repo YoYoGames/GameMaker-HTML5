@@ -10,44 +10,80 @@
 //
 // **********************************************************************************************************************
 
+// Global storage for vertex buffers
+var g_vertexBuffers = [];
+
+// @if function("vertex_*")
 // #############################################################################################
 //
 //     Function definitions for Canvas mode
 //
 // #############################################################################################
-var vertex_create_buffer =function()                            { ErrorFunction("vertex_create_buffer"); };
-var vertex_create_buffer_ext = function (size) { ErrorFunction("vertex_create_buffer_ext"); };
-var vertex_delete_buffer = function (buffer) { ErrorFunction("vertex_delete_buffer"); };
-var vertex_begin = function (buffer, format) { ErrorFunction("vertex_begin"); };
-var vertex_end = function (buffer) { ErrorFunction("vertex_end"); };
-var vertex_position = function (buffer, x, y) { ErrorFunction("vertex_position"); };
-var vertex_position_3d = function (buffer, x, y, z) { ErrorFunction("vertex_position_3d"); };
-var vertex_colour = function (buffer, col, alpha) { ErrorFunction("vertex_colour"); };
-var vertex_color = function (buffer, col, alpha) { ErrorFunction("vertex_color"); };
-var vertex_rgba = function (buffer, r, g, b, a) { ErrorFunction("vertex_rgba"); };
-var vertex_argb = function (buffer, r, g, b, a) { ErrorFunction("vertex_argb"); };
-var vertex_texcoord = function (buffer, u, v) { ErrorFunction("vertex_texcoord"); };
-var vertex_normal = function (buffer, x, y, z) { ErrorFunction("vertex_normal"); };
-var vertex_float1 = function (buffer, x) { ErrorFunction("vertex_float1"); };
-var vertex_float2 = function (buffer, x, y) { ErrorFunction("vertex_float2"); };
-var vertex_float3 = function (buffer, x, y, z) { ErrorFunction("vertex_float3"); };
-var vertex_float4 = function (buffer, x, y, z, w) { ErrorFunction("vertex_float4"); };
-var vertex_ubyte4 = function (buffer, x, y, z, w) { ErrorFunction("vertex_ubyte4"); };
-var vertex_freeze = function (buffer) { ErrorFunction("vertex_freeze"); };
-var vertex_submit = function (buffer) { ErrorFunction("vertex_submit"); };
-var vertex_get_number = function (buffer) { ErrorFunction("vertex_get_number"); };
-var vertex_get_buffer_size = function (buffer) { ErrorFunction("vertex_get_buffer_size"); };
-var vertex_create_buffer_from_buffer = function (buffer) { ErrorFunction("vertex_create_buffer_from_buffer"); };
-var vertex_create_buffer_from_buffer_ext = function (buffer) { ErrorFunction("vertex_create_buffer_from_buffer_ext"); };
-var vertex_update_buffer_from_buffer = function (dest_vbuff, dest_offset, src_buffer, src_offset, src_size) { ErrorFunction("vertex_update_buffer_from_buffer"); };
-var vertex_update_buffer_from_vertex = function (dest_vbuff, dest_vert, src_vbuff, src_vert, src_vert_num) { ErrorFunction("vertex_update_buffer_from_vertex"); };
-var draw_flush = function () { };
+var vertex_create_buffer,
+    vertex_create_buffer_ext,
+    vertex_delete_buffer,
+    vertex_begin,
+    vertex_end,
+    vertex_position,
+    vertex_position_3d,
+    vertex_colour,
+    vertex_color,
+    vertex_rgba,
+    vertex_argb,
+    vertex_texcoord,
+    vertex_normal,
+    vertex_float1,
+    vertex_float2,
+    vertex_float3,
+    vertex_float4,
+    vertex_ubyte4,
+    vertex_freeze,
+    vertex_submit,
+    vertex_get_number,
+    vertex_get_buffer_size,
+    vertex_create_buffer_from_buffer,
+    vertex_create_buffer_from_buffer_ext,
+    vertex_update_buffer_from_buffer,
+    vertex_update_buffer_from_vertex,
+    draw_flush;
+
+// @if feature("2d")
+(() => {
+    let _stub = (_name, _val) => () => ErrorFunction(_name, _val);
+    vertex_create_buffer = _stub("vertex_create_buffer", -1);
+    vertex_create_buffer_ext = _stub("vertex_create_buffer_ext", -1);
+    vertex_delete_buffer = _stub("vertex_delete_buffer");
+    vertex_begin = _stub("vertex_begin");
+    vertex_end = _stub("vertex_end");
+    vertex_position = _stub("vertex_position");
+    vertex_position_3d = _stub("vertex_position_3d");
+    vertex_colour = _stub("vertex_colour");
+    vertex_color = vertex_colour;
+    vertex_rgba = _stub("vertex_rgba");
+    vertex_argb = _stub("vertex_argb");
+    vertex_texcoord = _stub("vertex_texcoord");
+    vertex_normal = _stub("vertex_normal");
+    vertex_float1 = _stub("vertex_float1");
+    vertex_float2 = _stub("vertex_float2");
+    vertex_float3 = _stub("vertex_float3");
+    vertex_float4 = _stub("vertex_float4");
+    vertex_ubyte4 = _stub("vertex_ubyte4");
+    vertex_freeze = _stub("vertex_freeze");
+    vertex_submit = _stub("vertex_submit");
+    vertex_get_number = _stub("vertex_get_number");
+    vertex_get_buffer_size = _stub("vertex_get_buffer_size");
+    vertex_create_buffer_from_buffer = _stub("vertex_create_buffer_from_buffer", -1);
+    vertex_create_buffer_from_buffer_ext = _stub("vertex_create_buffer_from_buffer_ext", -1);
+    vertex_update_buffer_from_buffer = _stub("vertex_update_buffer_from_buffer", -1);
+    vertex_update_buffer_from_vertex = _stub("vertex_update_buffer_from_vertex", -1);
+    draw_flush = ()=>{};
+})();
+// @endif
+
+// @if feature("gl")
 
 // Constant for the default vertex buffer storage size
 var DEFAULT_VERTEX_BUFFER_SIZE = 8 * 1024;
-
-// Global storage for vertex buffers
-var g_vertexBuffers = [];
 
 // #############################################################################################
 /// Function:<summary>
@@ -711,3 +747,7 @@ function WebGL_vertex_get_buffer_size_RELEASE(_buffer)
 
     return 0;
 }
+
+// @endif gl
+
+// @endif vertex_

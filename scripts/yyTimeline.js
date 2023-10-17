@@ -15,7 +15,7 @@
 // 
 // **********************************************************************************************************************
 
-
+// @if feature("timelines")
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new TIMELINE object
@@ -271,3 +271,4 @@ yyTimelineManager.prototype.ClearEvent = function (_ind, _timeStamp) {
 		}
 	}
 };
+// @endif timelines

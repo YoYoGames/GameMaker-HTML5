@@ -1,3 +1,4 @@
+/// @if function("gif_*")
 /*
  * NeuQuant Neural-Net Quantization Algorithm
  * ------------------------------------------
@@ -527,3 +528,4 @@ NeuQuant = function() {
 	NeuQuant.apply(this, arguments);
 	return exports;
 };
+/// @endif

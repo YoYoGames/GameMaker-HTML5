@@ -1,3 +1,4 @@
+// @if feature("audio")
 function TimeRampedParamLinear(_initialVal) {
     this.__val = _initialVal;
     this.__origin = _initialVal;
@@ -46,3 +47,4 @@ TimeRampedParamLinear.prototype.update = function() {
 
     return this.__val;
 };
+// @endif

@@ -103,35 +103,25 @@ yyView.prototype.GetMouseCoord = function(_x,_y,_horizontal) {
     _x = (_x - pRect.left - this.scaledportx) / (pRect.scaleX || 1);
     _y = (_y - pRect.top - this.scaledporty) / (pRect.scaleY || 1);
 
-	if (g_isZeus) {
-		var cam = g_pCameraManager.GetCamera(this.cameraID);
-		if (cam == null) return 0;
-		//
-		var clipX = _x / this.scaledportw;
-		var clipY = _y / this.scaledporth;
-		clipX = clipX * 2.0 - 1.0;
-		clipY = clipY * 2.0 - 1.0;
-		
-		// Now backtransform into room space
-		var invViewProj = cam.GetInvViewProjMat();
+	var cam = g_pCameraManager.GetCamera(this.cameraID);
+	if (cam == null) return 0;
+	//
+	var clipX = _x / this.scaledportw;
+	var clipY = _y / this.scaledporth;
+	clipX = clipX * 2.0 - 1.0;
+	clipY = clipY * 2.0 - 1.0;
+	
+	// Now backtransform into room space
+	var invViewProj = cam.GetInvViewProjMat();
 
-	    // we're treating z as 0 and w as 1
-		var out;
-		if (_horizontal) {
-			out = ((clipX * invViewProj.m[_11]) + (clipY * invViewProj.m[_21]) + invViewProj.m[_41]);
-		} else {
-			out = ((clipX * invViewProj.m[_12]) + (clipY * invViewProj.m[_22]) + invViewProj.m[_42]);
-		}
-		return Math.floor(out);
+	// we're treating z as 0 and w as 1
+	var out;
+	if (_horizontal) {
+		out = ((clipX * invViewProj.m[_11]) + (clipY * invViewProj.m[_21]) + invViewProj.m[_41]);
 	} else {
-		if (_horizontal) {
-		    _x /= this.WorldViewScaleX;
-		    return _x + this.worldx;
-		} else {
-			_y /= this.WorldViewScaleY;
-			return _y + this.worldy;
-		}
+		out = ((clipX * invViewProj.m[_12]) + (clipY * invViewProj.m[_22]) + invViewProj.m[_42]);
 	}
+	return Math.floor(out);
 };
 
 // #############################################################################################
@@ -182,20 +172,17 @@ function  CreateViewFromStorage( _pViewStorage )
     if( _pViewStorage.vspeed!=undefined ) view.vspeed = _pViewStorage.vspeed;
     if( _pViewStorage.index!=undefined ) view.objid = _pViewStorage.index;
 
-    if (g_isZeus)
+	// if we have a camera stored in the "storage" view, then clone that
+	if ( _pViewStorage.cameraID !== undefined && _pViewStorage.cameraID>=0) {
+		// Already been setup, so clone it... don't mess around with the storage one
+		view.cameraID = g_pCameraManager.CloneCamera(_pViewStorage.cameraID);
+	}
+	else
 	{
-	    // if we have a camera stored in the "storage" view, then clone that
-        if ( _pViewStorage.cameraID !== undefined && _pViewStorage.cameraID>=0) {
-	        // Already been setup, so clone it... don't mess around with the storage one
-	        view.cameraID = g_pCameraManager.CloneCamera(_pViewStorage.cameraID);
-	    }
-	    else
-	    {
-			// Create camera and attach it to the view
-	        var pCam = g_pCameraManager.CreateCameraFromView(view);
-	        pCam.SetCloned(true);
-		    view.cameraID = pCam.GetID();
-		}
+		// Create camera and attach it to the view
+		var pCam = g_pCameraManager.CreateCameraFromView(view);
+		pCam.SetCloned(true);
+		view.cameraID = pCam.GetID();
 	}
 
     return view;

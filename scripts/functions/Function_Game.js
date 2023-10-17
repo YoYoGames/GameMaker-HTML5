@@ -67,20 +67,7 @@ function display_set_timing_method(_method){
 function display_get_timing_method() {
     return TimingMethod;
 }
-// #############################################################################################
-/// Function:<summary>
-///             get a list of instances for this object (recursive)
-///          </summary>
-///
-/// In:		 <param name="_obj">object ID to use</param>
-/// Out:	 <returns>
-///				list of active instances - recursive
-///			 </returns>
-// #############################################################################################
-//function    instance_number( _obj )
-//{   
-//    return g_pObjectManager.Get(_obj).Instances_Recursive.length;
-//}
+
 
 
 // #############################################################################################
@@ -94,7 +81,7 @@ function yy_HiScoreContainer(_value, _name) {
 	this.value = _value;
 }
 
-
+// @if function("draw_highscore") || function("highscore_*")
 
 // #############################################################################################
 /// Function:<summary>
@@ -138,8 +125,6 @@ function highscore_save() {
 	var file = JSON.stringify(HighScores);
 	SaveTextFile_Block("hiscores_data_", file);
 }
-
-
 // #############################################################################################
 /// Function:<summary>
 ///          	Draws the highscore table in the room in the indicated box, using the current font. 
@@ -155,6 +140,7 @@ function highscore_save() {
 // #############################################################################################
 function draw_highscore(_x1, _y1, _x2, _y2)
 {
+    // @if feature("fonts")
     _x1 = yyGetInt32(_x1);
     _y1 = yyGetInt32(_y1);
     _x2 = yyGetInt32(_x2);
@@ -173,10 +159,8 @@ function draw_highscore(_x1, _y1, _x2, _y2)
 		_y1 += dy;
 	}
 	g_pFontManager.halign = halign;
+    // @endif fonts
 }
-
-
-
 
 // #############################################################################################
 /// Function:<summary>
@@ -189,26 +173,11 @@ function draw_highscore(_x1, _y1, _x2, _y2)
 // #############################################################################################
 function highscore_clear() 
 {
-    g_HighScoreValues[0]=
-    g_HighScoreValues[1]=
-    g_HighScoreValues[2]=
-    g_HighScoreValues[3]=
-    g_HighScoreValues[4]=
-    g_HighScoreValues[5]=
-    g_HighScoreValues[6]=
-    g_HighScoreValues[7]=
-    g_HighScoreValues[8]=
-    g_HighScoreValues[9]=0;
-    g_HighScoreNames[0]=
-    g_HighScoreNames[1]=
-    g_HighScoreNames[2]=
-    g_HighScoreNames[3]=
-    g_HighScoreNames[4]=
-    g_HighScoreNames[5]=
-    g_HighScoreNames[6]=
-    g_HighScoreNames[7]=
-    g_HighScoreNames[8]=
-    g_HighScoreNames[9] = g_HighscoreNobody;
+    for (var i = 0; i < 10; i++)
+    {
+        g_HighScoreValues[i] = 0;
+        g_HighScoreNames[i] = g_HighscoreNobody;
+    }
 }
 
 // #############################################################################################
@@ -286,7 +255,7 @@ function highscore_name(_place)
 	if (_place < 1 || _place > MAX_HIGHSCORE) return "";
     return g_HighScoreNames[_place-1];
 }
-
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -426,6 +395,7 @@ function event_perform_async(_pInst, _pOther, _event, _ds_map)
 // #############################################################################################
 function event_perform_timeline(_pInst, _other, _timelineInd, _eventInd)
 {
+    // @if feature("timelines")
     var timeline = g_pTimelineManager.Get(_timelineInd);
     if ((timeline != null) && (timeline != undefined))
     {
@@ -436,6 +406,7 @@ function event_perform_timeline(_pInst, _other, _timelineInd, _eventInd)
             eventData.Event(_pInst, _pInst);
         }
     }
+    // @endif
 }
 
 // #############################################################################################
@@ -516,8 +487,10 @@ function event_user(_pInst, _pOther, _subevent) {
 	{
 		yyError("Error: illegal user event ID: " + _subevent);
 	}
-	_subevent += GML_ev_user0;
+	// @if event("UserEvent*")
+	_subevent += GML_EVENT_OTHER_USER0;
 	event_perform(_pInst, _pOther, GML_EVENT_OTHER, _subevent);
+	// @endif
 }
 
 
@@ -1073,6 +1046,7 @@ function sha1_file(_fname) { return "unsupported"; }
  * See http://pajhome.org.uk/crypt/md5 for more info.
  */
 
+// @if function("md5_*")
 /*
  * Configurable variables. You may need to tweak these to be compatible with
  * the server-side, but the defaults work in most cases.
@@ -1128,6 +1102,7 @@ function rstr_hmac_md5(key, data)
   var hash = binl_md5(ipad.concat(rstr2binl(data)), 512 + data.length * 8);
   return binl2rstr(binl_md5(opad.concat(hash), 512 + 128));
 }
+// @endif md5
 
 /*
  * Convert a raw string to a hex string
@@ -1304,6 +1279,7 @@ function binl2rstr(input)
   return output;
 }
 
+// @if function("md5_*")
 /*
  * Calculate the MD5 of an array of little-endian words, and a bit length.
  */
@@ -1424,6 +1400,7 @@ function md5_ii(a, b, c, d, x, s, t)
 {
   return md5_cmn(c ^ (b | (~d)), a, b, x, s, t);
 }
+// @endif md5
 
 /*
  * Add integers, wrapping at 2^32. This uses 16-bit operations internally
@@ -1444,7 +1421,7 @@ function bit_rol(num, cnt)
   return (num << cnt) | (num >>> (32 - cnt));
 }
 
-
+// @if function("sha1_string_*") || function("ds_map_secure_*") || function("buffer_sha1")
 //and the sha-1 version from same place
 
 function hex_sha1(s)    { return rstr2hex(rstr_sha1(str2rstr_utf8(s))); }
@@ -1606,6 +1583,7 @@ function sha1_kt(t)
   return (t < 20) ?  1518500249 : (t < 40) ?  1859775393 :
          (t < 60) ? -1894007588 : -899497514;
 }
+// @endif sha1
 
 // #############################################################################################
 /// Function:<summary>
@@ -1678,12 +1656,20 @@ function ResourceGetTypeIndex(_name )
 	if ((ret = Resource_Find(_name, g_pGMFile.Backgrounds)) >= 0)              { typeId.type= g_isZeus ? AT_Tiles : AT_Background,      typeId.id = ret; return typeId; }
 	if ((ret = Resource_Find(_name, g_pGMFile.Paths)) >= 0)                    { typeId.type=AT_Path;       typeId.id = ret; return typeId; }
 	if ((ret = Resource_Find(_name, g_pGMFile.Fonts)) >= 0)                    { typeId.type=AT_Font;       typeId.id = ret; return typeId; }
+    // @if feature("timelines")
 	if ((ret = Resource_Find(_name, g_pGMFile.Timelines)) >= 0)                { typeId.type=AT_Timeline;   typeId.id = ret; return typeId; }
+    // @endif
 	if ((ret = Resource_Find_Script(_name, g_pGMFile.ScriptNames)) >= 0)       { typeId.type=AT_Script;     typeId.id = ret; return typeId; }
 	if ((ret = Resource_Find_Shader(_name, g_pGMFile.Shaders)) >= 0)           { typeId.type=AT_Shader;     typeId.id = ret; return typeId; }
+    // @if feature("sequences")
     if ((ret = Resource_Find(_name, g_pGMFile.Sequences)) >= 0)                { typeId.type=AT_Sequence;   typeId.id = ret; return typeId; }
+    // @endif
+    // @if feature("animcurves")
     if ((ret = Resource_Find(_name, g_pGMFile.AnimCurves)) >= 0)               { typeId.type=AT_AnimCurve;  typeId.id = ret; return typeId; }
+    // @endif
+    // @if feature("particles")
     if ((ret = CParticleSystem.Find(_name)) >= 0)                              { typeId.type=AT_ParticleSystem;  typeId.id = ret; return typeId; }
+    // @endif
     
     return typeId;
 }
@@ -1701,10 +1687,16 @@ function ResourceGetName( _index, _assetType )
         case AT_Path:		    return ( path_exists(_index)) ? path_get_name(_index) : "";
         case AT_Script:	        return ( script_exists(_index)) ? script_get_name(_index) : "";
         case AT_Font:		    return ( font_exists(_index)) ? font_get_name(_index) : "";
+        // @if feature("timelines")
         case AT_Timeline:	    return ( timeline_exists(_index)) ? timeline_get_name(_index) : "";
+        // @endif
         case AT_Shader:	        return ( shader_exists(_index)) ? shader_get_name(_index) : "";
+        // @if feature("sequences")
         case AT_Sequence:	    return ( _sequence_exists(_index)) ? sequence_get_name(_index) : "";
+        // @endif
+        // @if feature("animcurves")
         case AT_AnimCurve:	    return ( _animcurve_exists(_index)) ? animcurve_get_name(_index) : "";
+        // @endif
         case AT_ParticleSystem:	{
             var ps = CParticleSystem.Get(_index);
             return (ps != null) ? ps.name : "";
@@ -1890,7 +1882,7 @@ CTimingSource.prototype.Reset= function()
     this.m_elapsed_micros = 0;
     if(this.m_fps >0.0)
     {
-        this.m_last_micros = YoYo_GetTimer();
+        this.m_last_micros = get_timer();
     }
     else
     {
@@ -1909,7 +1901,7 @@ CTimingSource.prototype.Update=function()
         current = this.m_last_micros + 1000000.0/this.m_fps;
     }
     else
-        current = YoYo_GetTimer();
+        current = get_timer();
         
    this.m_delta_micros = current - this.m_last_micros;
    

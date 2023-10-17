@@ -15,6 +15,7 @@
 // 
 // **********************************************************************************************************************
 
+// @if feature("animcurves")
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new AnimCurvePoint object
@@ -828,3 +829,4 @@ function animcurve_get_name( _index )
         return pCurve.pName;
     return "";
 }
+// @endif

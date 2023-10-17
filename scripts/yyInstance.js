@@ -304,6 +304,7 @@ yyInstance.prototype = {
 	    }
 	},
 
+	// @if feature("paths")
 	// path position property
 	get path_position() { return this.__path_position; },
 	set path_position(_val) {
@@ -357,7 +358,9 @@ yyInstance.prototype = {
 
 		this.__path_endaction = _val;
 	},
+	// @endif
 
+	// @if feature("timelines")
 	// timeline index property
 	get timeline_index() { return this.__timeline_index; },
 	set timeline_index(_val) {
@@ -384,6 +387,7 @@ yyInstance.prototype = {
 
 		this.__timeline_speed = _val;
 	},
+	// @endif timelines
 
 	// bbox_left property (NOTE: no setter)
 	get bbox_left() { 
@@ -427,7 +431,7 @@ yyInstance.prototype = {
 	set image_index(_frame) {
 
 	    _frame = yyGetReal(_frame);
-
+		// @if feature("sprites")
 		var sprite = g_pSpriteManager.Get(this.sprite_index);
 
 	    if (sprite != null)
@@ -464,6 +468,7 @@ yyInstance.prototype = {
 			}
 		}
 		else
+		// @endif sprites
 		{
 			this.__image_index = _frame;	// just use value as-is
 		}
@@ -490,46 +495,57 @@ yyInstance.prototype = {
 
 	// image_number property (no setter)
 	get image_number() { 
+		// @if feature("sprites")
 		var pSprite = g_pSpriteManager.Get(this.sprite_index);
-		if (!pSprite) return 0;
-		
-		var skeletonAnim = this.SkeletonAnimation();
-	    if (skeletonAnim) {
-	        return skeletonAnim.FrameCount(pSprite);
-	    }
-	    else if ((pSprite.SWFTimeline !== null) && (pSprite.SWFTimeline !== undefined)) {
-		    return pSprite.SWFTimeline.numFrames;
+		if (pSprite) {
+			// @if feature("spine")
+			var skeletonAnim = this.SkeletonAnimation();
+			if (skeletonAnim) return skeletonAnim.FrameCount(pSprite);
+			// @endif spine
+			// @if feature("swf")
+			if (pSprite.SWFTimeline != null) return pSprite.SWFTimeline.numFrames;
+			// @endif
+			return pSprite.ppTPE.length;
 		}
-		return pSprite.ppTPE.length;
+		// @endif sprites
+		return 0;
 	},
 
 
 	// sprite_width property
 	get sprite_width()  {
+		// @if feature("sprites")
 		var pSprite = g_pSpriteManager.Get(this.sprite_index);
-		if (!pSprite) return 0;
-		return pSprite.width * this.image_xscale;
+		if (pSprite) return pSprite.width * this.image_xscale;
+		// @endif sprites
+		return 0;
 	},
 
 	// sprite_height property
 	get sprite_height()  {
+		// @if feature("sprites")
 		var pSprite = g_pSpriteManager.Get(this.sprite_index);
-		if (!pSprite) return 0;
-		return pSprite.height * this.image_yscale;
+		if (pSprite) return pSprite.height * this.image_yscale;
+		// @endif sprites
+		return 0;
 	},
 
 	// sprite_xoffset property
 	get sprite_xoffset()  {
+		// @if feature("sprites")
 		var pSprite = g_pSpriteManager.Get(this.sprite_index);
-		if (!pSprite) return 0;
-		return pSprite.xOrigin * this.image_xscale;	
+		if (pSprite) return pSprite.xOrigin * this.image_xscale;
+		// @endif sprites
+		return 0;
 	},
 
 	// sprite_yoffset property
 	get sprite_yoffset() {
+		// @if feature("sprites")
 		var pSprite = g_pSpriteManager.Get(this.sprite_index);
-		if (!pSprite) return 0;
-		return pSprite.yOrigin * this.image_yscale;
+		if (pSprite) return pSprite.yOrigin * this.image_yscale;
+		// @endif sprites
+		return 0;
 	},
 
 	// image_xscale property
@@ -587,6 +603,7 @@ yyInstance.prototype = {
         this.m_pMaskSkeleton = null;
 	},
 
+	// @if feature("timelines")
 	// timeline_running property
 	get timeline_running() {
 	    if( this.timeline_paused ){
@@ -610,7 +627,9 @@ yyInstance.prototype = {
 	set timeline_loop( _loop ) { 
 		this.timeline_looped = yyGetBool(_loop);
 	},
-
+	// @endif timeline props
+	
+	// @if feature("physics")
 	// phy_rotation property
 	get phy_rotation() { return this.__phy_rotation; },
 	set phy_rotation(_rotation) {
@@ -749,6 +768,7 @@ yyInstance.prototype = {
 	        this.RefreshPhysicalProperties(this.m_physicsObject.m_physicsBody);
 	    }
 	},
+	// @endif physics properties
 
 	// layer property
 	get layer() { return this.m_nLayerID; },
@@ -859,10 +879,12 @@ yyInstance.prototype.Assign = function (_pInst, _LinkToObjectType) {
 	}
 	
 	// Any skeleton data needs to be not just a reference
+	// @if feature("spine")
 	var skeletonAnim = this.SkeletonAnimation();
 	if (skeletonAnim) {
 	    this.m_pSkeletonAnimation = skeletonAnim.Clone();
-	}	
+	}
+	// @endif
 	this.m_nLayerID = _pInst.layer;
 };
 
@@ -916,18 +938,6 @@ yyInstance.prototype.SetObjectIndex = function (_objindex, _LinkToObjectType, _S
 		// and copy the data over...
 		this.mask_index = this.pObject.SpriteMask;
 		
-		if(!g_isZeus)
-		{
-		//Zeus, no object has a depth defined
-		    if (_SetDepthNow)
-		    {
-		    	// RK :: set the underlying variable rather than going through the property
-			    this.__depth = this.pObject.Depth;
-		    } else
-		    {
-			    this.depth = this.pObject.Depth;
-		    }
-		}
 		this.solid = this.pObject.Solid;
 		this.visible = this.pObject.Visible;
 		this.persistent = this.pObject.Persistent;
@@ -944,7 +954,7 @@ yyInstance.prototype.SetObjectIndex = function (_objindex, _LinkToObjectType, _S
 ///          </summary>
 // #############################################################################################
 yyInstance.prototype.UpdateSpriteIndex = function (_index) {
-        
+    // @if feature("sprites")
     var pSprite = g_pSpriteManager.Get(_index);
     if (pSprite) {
         this.bbox.left = pSprite.bbox.left;
@@ -952,6 +962,7 @@ yyInstance.prototype.UpdateSpriteIndex = function (_index) {
         this.bbox.top = pSprite.bbox.top;
         this.bbox.bottom = pSprite.bbox.bottom;
     }
+	// @endif sprites
     this.sprite_index = _index;
     
     this.m_pSkeletonAnimation = null;
@@ -968,7 +979,7 @@ yyInstance.prototype.UpdateSpriteIndex = function (_index) {
 ///          </summary>
 // #############################################################################################
 yyInstance.prototype.RebuildPhysicsBody = function (_room) {
-
+	// @if feature("physics")
     // Null off pre-existing bodies to ensure that the data is entirely 
     // rebuilt either now or later in the logic (e.g. room start event)    
     if (_room && this.m_physicsObject) {
@@ -983,6 +994,7 @@ yyInstance.prototype.RebuildPhysicsBody = function (_room) {
         this.BuildPhysicsBody();
         this.bbox_dirty = true;
     }
+	// @endif
 };
 
 // #############################################################################################
@@ -991,7 +1003,7 @@ yyInstance.prototype.RebuildPhysicsBody = function (_room) {
 ///          </summary>
 // #############################################################################################
 yyInstance.prototype.BuildPhysicsBody = function () {
-
+	// @if feature("physics")
     if (!this.pObject.PhysicsData.physicsObject) {
 		return;
 	}
@@ -1000,7 +1012,6 @@ yyInstance.prototype.BuildPhysicsBody = function () {
 	if (!sprite_exists(this.sprite_index)) {
 		return;		
 	}
-	var spr = g_pSpriteManager.Get(this.sprite_index);
 	
 	// Without a physics world we won't get far
 	if (!g_RunRoom.m_pPhysicsWorld) {
@@ -1083,6 +1094,7 @@ yyInstance.prototype.BuildPhysicsBody = function () {
 
 	// And bind the fixture to get the physical object for this instance
 	physics_fixture_bind(this, fixtureID, this.id, xoffs, yoffs);	
+	// @endif BuildPhysicsBody
 };
 
 // #############################################################################################
@@ -1218,14 +1230,18 @@ yyInstance.prototype.AdaptSpeed = function () {
 ///			 </returns>
 // #############################################################################################
 yyInstance.prototype.GetImageNumber = function () {
-
-    var pSprite = g_pSpriteManager.Get(this.sprite_index);    
-
+    // @if feature("sprites")
+	// @if feature("spine")
     var skeletonAnim = this.SkeletonAnimation();
     if (skeletonAnim) {
+		var pSprite = g_pSpriteManager.Get(this.sprite_index);    
         return skeletonAnim.FrameCount(pSprite);
     }
+	// @endif spine
 	return g_pSpriteManager.GetImageCount(this.sprite_index);
+	// @else
+	return 0;
+	// @endif sprites
 };
 
 // #############################################################################################
@@ -1331,23 +1347,6 @@ yyInstance.prototype.PerformEventInherited = function (_event, _index, _pOther) 
 	}
 };
 
-// #############################################################################################
-/// Function:<summary>
-///             Perform an event on this instance.
-///          </summary>
-///
-/// In:		 <param name="_pInst">the event to perform</param>
-///          <param name="_pInst">the THIS to use in the event</param>
-///			 <param name="_pOther">the OTHER to use in the event</param>
-// #############################################################################################
-/*yyInstance.prototype.PerformEvent = function (_event, _index, _pInst, _pOther) {
-
-    //if( pObject.Name == "oAssessmentBack" & _event==EVENT_DRAW){
-	//    this.testcode = 1;
-	//}
-    return this.PerformEvent_Common(_event, _index, _pInst, _pOther, _pInst.pObject);
-};*/
-
 
 // #############################################################################################
 /// Function:<summary>
@@ -1431,6 +1430,7 @@ yyInstance.prototype.Compute_BoundingBox = function() {
     var maskCollisionSkel = this.MaskCollisionSkeleton();
     var collisionSkel = this.GetCollisionSkeleton();
 
+	// @if feature("spine")
     if(maskCollisionSkel !== null && g_pSpriteManager.Sprites[this.mask_index].bboxmode == 0 /* "Automatic" */) {
         if (!this.bbox) {
             this.bbox = new YYRECT(0, 0, 0, 0);
@@ -1452,7 +1452,7 @@ yyInstance.prototype.Compute_BoundingBox = function() {
         this.bbox_dirty = false;
         return;
     }
-    else if(collisionSkel !== null && g_pSpriteManager.Sprites[this.sprite_index].bboxmode == 0 /* "Automatic" */) {
+    if(collisionSkel !== null && g_pSpriteManager.Sprites[this.sprite_index].bboxmode == 0 /* "Automatic" */) {
         if (!this.bbox) {
             this.bbox = new YYRECT(0, 0, 0, 0);
         }
@@ -1473,10 +1473,13 @@ yyInstance.prototype.Compute_BoundingBox = function() {
         this.bbox_dirty = false;
         return;
     }
+	// @endif
 
     var spr, t;
     var ix = (this.mask_index >= 0) ? this.mask_index : this.sprite_index;
+	// @if feature("sprites")
     if (ix < 0 || ix > g_pSpriteManager.Sprites.length) {
+	// @endif sprites
             
         if (!this.bbox) {
             this.bbox = new YYRECT(0, 0, 0, 0);
@@ -1487,13 +1490,14 @@ yyInstance.prototype.Compute_BoundingBox = function() {
         this.bbox.bottom = this.y;
 
         this.colcheck = yySprite_CollisionType.AXIS_ALIGNED_RECT;
+	// @if feature("sprites")
     }
     else 
     {
         var bbox = this.bbox;
         spr = g_pSpriteManager.Sprites[ix];
         if (this.image_angle == 0) {
-        
+			// @if feature("nineslice")
 			if ((spr.nineslicedata != null) && (spr.nineslicedata.GetEnabled()))
 			{
 				bbox = spr.GetScaledBoundingBox(this.image_xscale, this.image_yscale);
@@ -1503,8 +1507,8 @@ yyInstance.prototype.Compute_BoundingBox = function() {
 
 				bbox.top += this.y;
 				bbox.bottom += this.y;
-			}
-			else
+			} else // ->
+			// @endif
 			{
 				var pRect = spr.bbox;            
 				var width = (pRect.right+1) - pRect.left;
@@ -1556,7 +1560,8 @@ yyInstance.prototype.Compute_BoundingBox = function() {
         else {
 			var xmin, xmax;
 			var ymin, ymax;
-
+			
+			// @if feature("nineslice")
 			if ((spr.nineslicedata != null) && (spr.nineslicedata.GetEnabled()))
 			{
 				bbox = spr.GetScaledBoundingBox(this.image_xscale, this.image_yscale);
@@ -1572,8 +1577,8 @@ yyInstance.prototype.Compute_BoundingBox = function() {
 				    xmax += 1;
 				}
 
-			}
-			else
+			} else
+			// @endif
 			{
 				var pRect = spr.bbox;            
 
@@ -1643,7 +1648,8 @@ yyInstance.prototype.Compute_BoundingBox = function() {
 			this.colcheck = spr.colcheck;
         }
         this.bbox = bbox;
-    }    
+    }
+	// @endif sprites
     this.bbox_dirty = false;
 };
 
@@ -1663,7 +1669,7 @@ yyInstance.prototype.Maybe_Compute_BoundingBox = function() {
 		this.Compute_BoundingBox();
 		return;
 	}
-
+	// @if feature("spine")
 	var collisionSkel = this.GetCollisionSkeleton();
 	if (collisionSkel !== null)
 	{
@@ -1679,6 +1685,7 @@ yyInstance.prototype.Maybe_Compute_BoundingBox = function() {
 			return;
 		}
 	}
+	// @endif spine
 };
 
 
@@ -1720,6 +1727,8 @@ yyInstance.prototype.Collision_Point = function (_x, _y, _prec) {
 			return false;
 		}
 	}
+    var Result = false;
+	// @if feature("sprites")
 
 	var pSpr;
 	if (this.mask_index < 0) {
@@ -1736,12 +1745,13 @@ yyInstance.prototype.Collision_Point = function (_x, _y, _prec) {
 
 
 	// handle precise collision tests
-    var Result = false;
+	// @if feature("spine")
 	var collisionSkel = this.GetCollisionSkeleton();
     if (collisionSkel !== null) {
         Result = collisionSkel.PointCollision(this.CollisionImageIndex(), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, _x, _y);
-    }
-    else {    
+    } else // ->
+	// @endif
+	{    
 	    Result = pSpr.PreciseCollisionPoint(Math.floor(this.image_index), bbox,
                                             Round(this.x), Round(this.y),
                                             this.image_xscale, this.image_yscale,
@@ -1749,6 +1759,7 @@ yyInstance.prototype.Collision_Point = function (_x, _y, _prec) {
                                             Round(_x), Round(_y)
                                         );
     }
+	// @endif sprites
 	return Result;
 };
 
@@ -1773,6 +1784,7 @@ yyInstance.prototype.Collision_Rectangle = function (_x1, _y1, _x2, _y2, _prec) 
 	this.Maybe_Compute_BoundingBox();
 
 	// easy cases first
+	var Result = false;
 	var bbox = this.bbox;
 
 	var col_delta = 0; //To avoid floating point inaccuracies
@@ -1809,6 +1821,7 @@ yyInstance.prototype.Collision_Rectangle = function (_x1, _y1, _x2, _y2, _prec) 
 	    return Result;
 	}
 
+	// @if feature("sprites")
 	var pSpr;
 	if (this.mask_index < 0) {
 	    pSpr = g_pSpriteManager.Get(this.sprite_index);
@@ -1843,14 +1856,15 @@ yyInstance.prototype.Collision_Rectangle = function (_x1, _y1, _x2, _y2, _prec) 
 	}
 
 	// handle precise collision tests
-    var Result = false;
+    // @if feature("spine")
 	var collisionSkel = this.GetCollisionSkeleton();
     if (collisionSkel !== null) {
         Result = collisionSkel.RectangleCollision(this.CollisionImageIndex(), this.x, this.y, 
                                                  this.image_xscale, this.image_yscale, this.image_angle, 
 			                                     _x1, _y1, _x2, _y2);
-    }
-    else {
+    } else // ->
+	// @endif
+	{
 	    //function Rect(ALeft, ATop, ARight, ABottom: Integer): TRect;
 	    g_rr.left = Round(yymin(_x1, _x2));
 	    g_rr.top = Round(yymin(_y1, _y2));
@@ -1860,6 +1874,7 @@ yyInstance.prototype.Collision_Rectangle = function (_x1, _y1, _x2, _y2, _prec) 
 	    Result = pSpr.PreciseCollisionRectangle(Math.floor(this.image_index), bbox, Round(this.x), Round(this.y),
 	    											this.image_xscale, this.image_yscale, this.image_angle, g_rr);
     }
+	// @endif sprites
 	return Result;
 };
 
@@ -1958,6 +1973,7 @@ yyInstance.prototype.Collision_Ellipse = function (_x1, _y1, _x2, _y2, _prec) {
 	        return false;
 	}
 
+	// @if feature("sprites")
 	var pSpr;
 	if (this.mask_index < 0) {
 	    pSpr = g_pSpriteManager.Get(this.sprite_index);
@@ -1980,13 +1996,17 @@ yyInstance.prototype.Collision_Ellipse = function (_x1, _y1, _x2, _y2, _prec) {
 	g_rr.bottom = max_y1y2;
 
 	// handle precise collision tests
+	// @if feature("spine")
 	var collisionSkel = this.GetCollisionSkeleton();
     if (collisionSkel !== null) {
         return collisionSkel.EllipseCollision(this.CollisionImageIndex(), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, g_rr);
-    }
-    else {	    
+    } else // ->
+	// @endif
+	{	    
 	    return pSpr.PreciseCollisionEllipse(Math.floor(this.image_index), bbox, Round(this.x), Round(this.y), this.image_xscale, this.image_yscale, this.image_angle, g_rr);
     }
+	// @endif sprites
+	return false;
 };
 
 
@@ -2048,6 +2068,7 @@ yyInstance.prototype.Collision_Line = function (_x1, _y1, _x2, _y2, _prec) {
 	if ((_y1 < i_bbox.top) && (_y2 < i_bbox.top)) { return false; }
 	if ((_y1 >= i_bbox.bottom + 1) && (_y2 >= i_bbox.bottom + 1)) { return false; }
 
+	// @if feature("sprites")
 		var pSpr;
 	    if (this.mask_index < 0) {
 	    	pSpr = g_pSpriteManager.Get(this.sprite_index);
@@ -2068,13 +2089,15 @@ yyInstance.prototype.Collision_Line = function (_x1, _y1, _x2, _y2, _prec) {
 	if (!_prec || this.colcheck === yySprite_CollisionType.AXIS_ALIGNED_RECT) { return true; }
 
 	// handle precise collision tests
+	// @if feature("spine")
 	var collisionSkel = this.GetCollisionSkeleton();
 	if (collisionSkel !== null) {
 	    return collisionSkel.LineCollision(this.CollisionImageIndex(), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, _x1, _y1, _x2, _y2);
 	}
-	else {
-	    return pSpr.PreciseCollisionLine(this.image_index | 0, i_bbox, Round(this.x), Round(this.y), this.image_xscale, this.image_yscale, this.image_angle, Round(_x1), Round(_y1), Round(_x2), Round(_y2));
-    }
+	// @endif
+	return pSpr.PreciseCollisionLine(this.image_index | 0, i_bbox, Round(this.x), Round(this.y), this.image_xscale, this.image_yscale, this.image_angle, Round(_x1), Round(_y1), Round(_x2), Round(_y2));
+	// @endif sprites
+	return false;
 };
 
 
@@ -2086,6 +2109,7 @@ yyInstance.prototype.Collision_Line = function (_x1, _y1, _x2, _y2, _prec) {
 // #############################################################################################
 yyInstance.prototype.Collision_Skeleton = function (inst, prec)
 {
+	// @if feature("spine")
 	// Go ahead and get the bounding box for our animation
 	this.Maybe_Compute_BoundingBox();
 	inst.Maybe_Compute_BoundingBox();
@@ -2098,7 +2122,7 @@ yyInstance.prototype.Collision_Skeleton = function (inst, prec)
 
 
 	// If the other instance doesn't actually have a sprite then we can't do precise collision testing with it
-	var spr1 = g_pSpriteManager.Get(this.sprite_index);
+	// @if feature("sprites")
 	var spr2 = (inst.mask_index < 0) 
 	    ? g_pSpriteManager.Get(inst.sprite_index)
 	    : g_pSpriteManager.Get(inst.mask_index);
@@ -2122,15 +2146,16 @@ yyInstance.prototype.Collision_Skeleton = function (inst, prec)
 		return skel1.SpriteCollision(this.CollisionImageIndex(), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle,
 			spr2, inst.bbox, inst.CollisionImageIndex(), inst.x, inst.y, inst.image_xscale, inst.image_yscale, inst.image_angle);	
 	}
-	else{
-		/* inst/spr2 is using bounding box collisions - no more to do. */
-		return true;
-	}
+	// @endif spine
+	/* inst/spr2 is using bounding box collisions - no more to do. */
+	return true;
+	// @endif sprites
+	return false;
 };
 
 
 yyInstance.prototype.Animate = function() {
-
+	// @if feature("sprites")
     if(g_isZeus)
     {
         var pImage = g_pSpriteManager.Get( this.sprite_index );
@@ -2152,6 +2177,7 @@ yyInstance.prototype.Animate = function() {
             return;
         }
     }
+	// @endif sprites
 
 	// BUGFIX: 30634 If we have no valid image set, increment image_index anyway just like in the Win32 runner
     this.image_index += this.image_speed;
@@ -2231,7 +2257,8 @@ function getPoints(i1)
     var spr = g_pSpriteManager.Sprites[ix];	
 	var xmin, xmax;
 	var ymin, ymax;
-
+	
+	// @if feature("nineslice")
 	if ((spr.nineslicedata != null) && (spr.nineslicedata.GetEnabled()))
 	{
 		var bbox = spr.GetScaledBoundingBox(i1.image_xscale, i1.image_yscale);
@@ -2241,8 +2268,8 @@ function getPoints(i1)
 
 		ymin = bbox.top;
 		ymax = bbox.bottom + 1;
-	}
-	else
+	} else // ->
+	// @endif
 	{
 		var pRect = spr.bbox;
 
@@ -2469,12 +2496,14 @@ yyInstance.prototype.Collision_Instance = function (_pInst, _prec) {
 	if (this != _pInst && !this.marked && !_pInst.marked)
 	{
 	    // Change code path if either instance is using a Spine animation
+		// @if feature("spine")
 	    if (this.UseSkeletonCollision()) {
 	    	return this.Collision_Skeleton(_pInst, _prec);
 	    }
 	    if (_pInst.UseSkeletonCollision()) {
 	    	return _pInst.Collision_Skeleton(this, _prec);
 	    }
+		// @endif
 	
 	
 	
@@ -2505,6 +2534,7 @@ yyInstance.prototype.Collision_Instance = function (_pInst, _prec) {
 		}
 
 	    // dealing with precise collision checking
+		// @if feature("sprites")
 		var pSpr1 = null;
 		var pSpr2 = null;
 		if (this.mask_index < 0) {
@@ -2550,6 +2580,7 @@ yyInstance.prototype.Collision_Instance = function (_pInst, _prec) {
 
 		if (g_Collision_Compatibility_Mode)
 		{
+			// @if feature("collision_compatibility")
 		    return pSpr1.OrigPreciseCollision(this.image_index | 0, this.bbox, Round(this.x), Round(this.y), 
                                           this.image_xscale, this.image_yscale,
                                           this.image_angle,
@@ -2557,9 +2588,11 @@ yyInstance.prototype.Collision_Instance = function (_pInst, _prec) {
                                           _pInst.image_index | 0, _pInst.bbox, Round(_pInst.x), Round(_pInst.y),
                                           _pInst.image_xscale, _pInst.image_yscale,
                                           _pInst.image_angle);
+            // @endif
 		}
 		else
 		{
+		    // @if !feature("collision_compatibility")
 		    return pSpr1.PreciseCollision(this.image_index | 0, this.bbox, Round(this.x), Round(this.y), 
                                           this.image_xscale, this.image_yscale,
                                           this.image_angle,
@@ -2567,14 +2600,16 @@ yyInstance.prototype.Collision_Instance = function (_pInst, _prec) {
                                           _pInst.image_index | 0, _pInst.bbox, Round(_pInst.x), Round(_pInst.y),
                                           _pInst.image_xscale, _pInst.image_yscale,
                                           _pInst.image_angle);
+            // @endif
 		}
+		// @endif sprites
 	}
 	return false;
 };
 
 
 
-
+// @if feature("paths")
 
 // #############################################################################################
 /// Function:<summary>
@@ -2634,7 +2669,7 @@ yyInstance.prototype.Assign_Path = function (_ind, _speed, _scale, _orient, _abs
 	this.path_xstart = this.x;
 	this.path_ystart = this.y;
 };
-
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -2646,6 +2681,7 @@ yyInstance.prototype.Assign_Path = function (_ind, _speed, _scale, _orient, _abs
 ///			 </returns>
 // #############################################################################################
 yyInstance.prototype.Adapt_Path = function () {
+	// @if feature("paths")
     var sp, xx, yy;
 
 
@@ -2769,9 +2805,8 @@ yyInstance.prototype.Adapt_Path = function () {
     this.SetPosition(newx, newy);
 
     return atPathEnd;
+	// @endif
 };
-
-
 
 // #############################################################################################
 /// Function:<summary>
@@ -2823,19 +2858,17 @@ yyInstance.prototype.get_bbox = function () {
 // #############################################################################################
 yyInstance.prototype.wrap = function(_hor, _vert)
 {
-    var w, h;
+    var w = 0, h = 0;
     
     // find the sprite size
-    if (!sprite_exists(this.sprite_index))
-    {
-        w = h =0;
-	}
-    else
+	// @if feature("sprites")
+    if (sprite_exists(this.sprite_index))
     {
         var pSpr = g_pSpriteManager.Get(this.sprite_index);
         w = pSpr.width * this.image_xscale;
         h = pSpr.height * this.image_yscale;
     }
+	// @endif sprites
     
     // do horizontal wrap
     if (_hor)
@@ -2888,11 +2921,10 @@ yyInstance.prototype.ApplyVisualOffset = function (_angle, _visualOffs) {
 ///             Transfer across physics data to properties the user can access
 ///          </summary>
 // #############################################################################################
+// @if feature("physics")
 yyInstance.prototype.RefreshPhysicalProperties = function (_physicsBody) {
     
-    var TargetSpeed =g_RunRoom.GetSpeed();
-    if(g_isZeus)
-        TargetSpeed = g_GameTimer.GetFPS();
+    var TargetSpeed = g_GameTimer.GetFPS();
         
     var metreToPixelScale = 1.0 / g_RunRoom.m_pPhysicsWorld.m_pixelToMetreScale;
     
@@ -2995,9 +3027,7 @@ yyInstance.prototype.set_physics_linear_velocity_y = function(_vel) {
 // #############################################################################################
 yyInstance.prototype.set_physics_speed_x = function(_speed) {
     
-    var TargetSpeed = g_RunRoom.GetSpeed();
-    if(g_isZeus)
-        TargetSpeed = g_GameTimer.GetFPS();
+    var TargetSpeed = g_GameTimer.GetFPS();
 
     this.m_physicsObject.SetLinearVelocityX(yyGetReal(_speed) * g_RunRoom.m_pPhysicsWorld.m_pixelToMetreScale * TargetSpeed);
     this.RefreshPhysicalProperties(this.m_physicsObject.m_physicsBody);
@@ -3011,9 +3041,7 @@ yyInstance.prototype.set_physics_speed_x = function(_speed) {
 yyInstance.prototype.set_physics_speed_y = function(_speed) {
 
    
-    var TargetSpeed = g_RunRoom.GetSpeed();
-    if(g_isZeus)
-        TargetSpeed = g_GameTimer.GetFPS();
+    var TargetSpeed = g_GameTimer.GetFPS();
     this.m_physicsObject.SetLinearVelocityY(yyGetReal(_speed) * g_RunRoom.m_pPhysicsWorld.m_pixelToMetreScale * TargetSpeed);
     this.RefreshPhysicalProperties(this.m_physicsObject.m_physicsBody);
 };
@@ -3072,7 +3100,7 @@ yyInstance.prototype.set_physics_active = function(_isActive) {
     this.m_physicsObject.SetActive(yyGetBool(_isActive));
     this.RefreshPhysicalProperties(this.m_physicsObject.m_physicsBody);
 };
-
+// @endif physics helpers
 
 
 // #############################################################################################
@@ -3082,7 +3110,7 @@ yyInstance.prototype.set_physics_active = function(_isActive) {
 ///          </summary>
 // #############################################################################################
 yyInstance.prototype.SkeletonAnimation = function () {
-
+	// @if feature("spine")
     if (sprite_exists(this.sprite_index)) {
     	
 		var spr = g_pSpriteManager.Get(this.sprite_index);
@@ -3094,11 +3122,13 @@ yyInstance.prototype.SkeletonAnimation = function () {
 			}
 		}
 	}
+	// @endif
 	return this.m_pSkeletonAnimation;
 };
 
 yyInstance.prototype.MaskCollisionSkeleton = function()
 {
+	// @if feature("spine")
 	var mask_sprite = null;
 	var use_mask_skeleton = false;
 
@@ -3123,6 +3153,7 @@ yyInstance.prototype.MaskCollisionSkeleton = function()
 		this.m_pMaskSkeleton = new yySkeletonInstance(mask_sprite.m_skeletonSprite);
 		this.bbox_dirty = true;
 	}
+	// @endif
 
 	return this.m_pMaskSkeleton;
 };
@@ -3130,7 +3161,7 @@ yyInstance.prototype.MaskCollisionSkeleton = function()
 yyInstance.prototype.GetCollisionSkeleton = function()
 {
 	var skel = null;
-
+	// @if feature("spine")
 	if (this.mask_index >= 0)
 	{
 		skel = this.MaskCollisionSkeleton();
@@ -3149,23 +3180,24 @@ yyInstance.prototype.GetCollisionSkeleton = function()
 			}
 		}
 	}
-
+	// @endif
 	return skel;
 };
 
 yyInstance.prototype.CollisionImageIndex = function()
 {
+	// @if feature("spine")
 	if (this.mask_index >= 0 && g_pSpriteManager.Sprites[this.mask_index].colcheck === yySprite_CollisionType.SPINE_MESH)
 	{
 		return 0.0;
 	}
-	else{
-		return this.image_index;
-	}
+	// @endif
+	return this.image_index;
 };
 
 yyInstance.prototype.UseSkeletonCollision = function()
 {
+	// @if feature("spine")
 	if (this.mask_index < 0)
 	{
 		return this.SkeletonAnimation()
@@ -3174,6 +3206,9 @@ yyInstance.prototype.UseSkeletonCollision = function()
 	else{
 		return g_pSpriteManager.Sprites[this.mask_index].colcheck === yySprite_CollisionType.SPINE_MESH
 	}
+	// @else
+	return false;
+	// @endif
 };
 
 yyInstance.prototype.GetLayerID=function()	{ return this.m_nLayerID; };
@@ -3496,86 +3531,79 @@ yyInstanceManager.prototype.UpdateImages = function () {
 		if (pInst.marked) continue;
         if (!pInst.active) continue;
 
+		// @if feature("sprites")
 		var sprite = g_pSpriteManager.Get(pInst.sprite_index);
-		
-		var usesSpriteSequences = false;
-
-	    if (sprite != null)
+	    if (sprite?.sequence != null)
 	    {
-	        if(sprite.sequence != null)
-	        {
-				/*
-	            var sequence_image_index = pInst.sequence_pos;
-	            if ((sprite.sequence.m_tracks != null) && (sprite.sequence.m_tracks[0].m_type == eSTT_SpriteFrames))
-                {
-	                var pTrack = sprite.sequence.m_tracks[0];
-                    var pKey = pTrack.m_keyframeStore.GetKeyframeAtFrame(pInst.sequence_pos, sprite.sequence.m_length);
-                    if (pKey == null)
-                    {
-                        pInst.SetImageIndex(-1);		// no key at this time
-                    }
-                    else if(pTrack.m_numTracks > 0)
-                    {
-                        sequence_image_index = pTrack.m_tracks[0].getValue(0, pInst.sequence_pos, sprite.sequence.m_length);
-                       
-                        if (Math.abs(pInst.image_index - sequence_image_index) > g_GMLMathEpsilon)
-                        {
-                            var newseqpos = ConvertImageIndexToSequencePos(pInst, sprite, pInst.image_index);
-                            SetNewSequencePosition(pInst, sprite, newseqpos, true);
-                        }
-                    }
-                }
-				*/
-				var sequence_image_index = pInst.sequence_pos;
-				if ((sprite.sequence.m_tracks != null) && (sprite.sequence.m_tracks[0].m_type == eSTT_SpriteFrames))
-			   	{
-				   var pTrack = sprite.sequence.m_tracks[0];
-				   if (pTrack != null)
-				   {
-					   sequence_image_index = pTrack.getValue(pInst.sequence_pos);
-	   
-					   if (Math.abs(pInst.image_index - sequence_image_index)>g_GMLMathEpsilon)
-					   {
-						   var numkeyframes = pTrack.m_keyframeStore.numKeyframes;
-						   if (numkeyframes > 0) { 
-							   var keyindex = ~~(pInst.image_index);
-							   var fracval = pInst.image_index - keyindex;
-
-							   var newseqpos = pInst.image_index;
-							   if (keyindex >= numkeyframes)
-							   {
-								   newseqpos = pTrack.m_keyframeStore.keyframes[numkeyframes - 1].m_key + (pInst.image_index - (numkeyframes - 1));
-							   }
-							   else if (keyindex < 0)
-							   {
-								   newseqpos = pInst.image_index;
-							   }
-							   else
-								   newseqpos = (pTrack.m_keyframeStore.keyframes[keyindex].m_key + (fracval * pTrack.m_keyframeStore.keyframes[keyindex].m_length));
-
-							   newseqpos = ConvertImageIndexToSequencePos(pInst, sprite, pInst.image_index);
-							   SetNewSequencePosition(pInst, sprite, newseqpos, true);
-						   } // end if
-					   }
-
-				   }
+			/*
+			var sequence_image_index = pInst.sequence_pos;
+			if ((sprite.sequence.m_tracks != null) && (sprite.sequence.m_tracks[0].m_type == eSTT_SpriteFrames))
+			{
+				var pTrack = sprite.sequence.m_tracks[0];
+				var pKey = pTrack.m_keyframeStore.GetKeyframeAtFrame(pInst.sequence_pos, sprite.sequence.m_length);
+				if (pKey == null)
+				{
+					pInst.SetImageIndex(-1);		// no key at this time
 				}
+				else if(pTrack.m_numTracks > 0)
+				{
+					sequence_image_index = pTrack.m_tracks[0].getValue(0, pInst.sequence_pos, sprite.sequence.m_length);
+					
+					if (Math.abs(pInst.image_index - sequence_image_index) > g_GMLMathEpsilon)
+					{
+						var newseqpos = ConvertImageIndexToSequencePos(pInst, sprite, pInst.image_index);
+						SetNewSequencePosition(pInst, sprite, newseqpos, true);
+					}
+				}
+			}
+			*/
+			var sequence_image_index = pInst.sequence_pos;
+			if ((sprite.sequence.m_tracks != null) && (sprite.sequence.m_tracks[0].m_type == eSTT_SpriteFrames))
+			{
+				var pTrack = sprite.sequence.m_tracks[0];
+				if (pTrack != null)
+				{
+					sequence_image_index = pTrack.getValue(pInst.sequence_pos);
+	
+					if (Math.abs(pInst.image_index - sequence_image_index)>g_GMLMathEpsilon)
+					{
+						var numkeyframes = pTrack.m_keyframeStore.numKeyframes;
+						if (numkeyframes > 0) { 
+							var keyindex = ~~(pInst.image_index);
+							var fracval = pInst.image_index - keyindex;
 
-				usesSpriteSequences = true;
+							var newseqpos = pInst.image_index;
+							if (keyindex >= numkeyframes)
+							{
+								newseqpos = pTrack.m_keyframeStore.keyframes[numkeyframes - 1].m_key + (pInst.image_index - (numkeyframes - 1));
+							}
+							else if (keyindex < 0)
+							{
+								newseqpos = pInst.image_index;
+							}
+							else
+								newseqpos = (pTrack.m_keyframeStore.keyframes[keyindex].m_key + (fracval * pTrack.m_keyframeStore.keyframes[keyindex].m_length));
 
-	            var fps = g_GameTimer.GetFPS();
+							newseqpos = ConvertImageIndexToSequencePos(pInst, sprite, pInst.image_index);
+							SetNewSequencePosition(pInst, sprite, newseqpos, true);
+						} // end if
+					}
 
-	            // Get sequence length
-	            var length = sprite.sequence.m_length;
-				
-	            var seqSpeed = sprite.sequence.m_playbackSpeed;
-	            if (sprite.sequence.m_playbackSpeedType == ePlaybackSpeedType_FramesPerSecond) seqSpeed /= fps;
+				}
+			}
 
-	            SetNewSequencePosition(pInst, sprite, (pInst.sequence_pos + (pInst.sequence_dir * pInst.image_speed * seqSpeed)), false);
-	        }
+			var fps = g_GameTimer.GetFPS();
+
+			// Get sequence length
+			var length = sprite.sequence.m_length;
+			
+			var seqSpeed = sprite.sequence.m_playbackSpeed;
+			if (sprite.sequence.m_playbackSpeedType == ePlaybackSpeedType_FramesPerSecond) seqSpeed /= fps;
+
+			SetNewSequencePosition(pInst, sprite, (pInst.sequence_pos + (pInst.sequence_dir * pInst.image_speed * seqSpeed)), false);
 		}
-		
-		if(!usesSpriteSequences)
+		else
+		// @endif sprites
 	    {
 	        var num = pInst.GetImageNumber();
 	        if (pInst.image_index >= num) {

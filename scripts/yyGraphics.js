@@ -180,7 +180,7 @@ function    Graphics_Init( _canvas )
 	g_transform[5] = 0;
 
     if( !g_webGL ){
-
+		// @if feature("2d")
 
 	    // Fill in RELEASE function pointers.
         if (CACHE_SINGLE_IMAGE)
@@ -202,7 +202,9 @@ function    Graphics_Init( _canvas )
         Graphics_DrawPart = Graphics_DrawPart_RELEASE;
         Graphics_Save = Graphics_Save_RELEASE;
         Graphics_Restore = Graphics_Restore_RELEASE;
+		// @if feature("fonts")
         Graphics_DrawText = Graphics_DrawText_RELEASE;
+		// @endif fonts
         Graphics_StartFrame = Graphics_StartFrame_RELEASE;
         Graphics_EndFrame = Graphics_EndFrame_RELEASE;
         Graphics_DrawComment = Graphics_DrawComment_RELEASE;
@@ -225,9 +227,12 @@ function    Graphics_Init( _canvas )
     	    }
     	    Graphics_TextureDrawTiled = Graphics_TextureDrawTiled_RELEASE;
     	    Graphics_TextureDraw = Graphics_TextureDraw_DEBUG;
-        } 
+        }
+		// @endif
     }else{
+		// @if feature("gl")
         InitWebGLFunctions();
+		// @endif gl
     }
 
 
@@ -1225,7 +1230,9 @@ function    Graphics_ColouriseImage( _texture, _x, _y, _w, _h, _col )
 ///				
 ///			 </returns>
 // #############################################################################################
-function Graphics_TextureDrawPos(_pTPE, _x1, _y1, _x2, _y2, _x3, _y3, _x4, _y4, _alpha) {
+function Graphics_TextureDrawPos(){}
+// @if feature("2d") && function("draw_sprite_pos")
+Graphics_TextureDrawPos = function(_pTPE, _x1, _y1, _x2, _y2, _x3, _y3, _x4, _y4, _alpha) {
 
 	var pTexture = _pTPE.texture;
 
@@ -1235,7 +1242,7 @@ function Graphics_TextureDrawPos(_pTPE, _x1, _y1, _x2, _y2, _x3, _y3, _x4, _y4, 
 	graphics.globalAlpha = _alpha;
 	drawTexturedTriangle(pTexture, _x1, _y1, _x2, _y2, _x3, _y3, _pTPE.x, _pTPE.y, _pTPE.x + _pTPE.w, _pTPE.y, _pTPE.x + _pTPE.w, _pTPE.y + _pTPE.h);
 	drawTexturedTriangle(pTexture, _x3, _y3, _x4, _y4, _x1, _y1, _pTPE.x + _pTPE.w, _pTPE.y + _pTPE.h, _pTPE.x, _pTPE.y + _pTPE.h, _pTPE.x, _pTPE.y);
-}
+};
 
 
 // #############################################################################################
@@ -1336,6 +1343,7 @@ function drawTexturedTriangle(im, x0, y0, x1, y1, x2, y2, sx0, sy0, sx1, sy1, sx
 	graphics._drawImage(im, 0, 0);
 	Graphics_Restore();
 }
+// @endif
 
 
 
@@ -1562,7 +1570,8 @@ function Graphics_DrawGeneral(_pTPE, _left,_top,_width,_height,    _x,_y,_xscale
 ///				true for okay, false for error
 ///			</returns>
 // #############################################################################################
-var CopyImageToAlpha = CopyImageToAlpha_RELEASE;
+function CopyImageToAlpha(){}
+// @if feature("2d")
 function CopyImageToAlpha_RELEASE(_pDestTPE, _pSrcTPE) 
 {
 	if ( g_webGL )
@@ -1608,6 +1617,10 @@ function CopyImageToAlpha_RELEASE(_pDestTPE, _pSrcTPE)
 	pDestImg.putImageData(DestDataLock, 0, 0);
 	return true;
 }
+// @if function("sprite_set_alpha_from_sprite")
+CopyImageToAlpha = CopyImageToAlpha_RELEASE;
+// @endif
+// @endif
 
 
 

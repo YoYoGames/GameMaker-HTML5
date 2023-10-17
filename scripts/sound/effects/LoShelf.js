@@ -1,3 +1,4 @@
+// @if feature("audio_effects")
 function LoShelfEffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.LoShelf);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
@@ -63,3 +64,4 @@ LoShelfEffectStruct.paramDescriptors = () => ({
         return this.__freq;
     } 
 });
+// @endif

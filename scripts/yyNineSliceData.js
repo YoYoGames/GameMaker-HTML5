@@ -14,6 +14,7 @@
 // 
 // **********************************************************************************************************************
 
+// @if feature("nineslice")
 var NINESLICE_TILE_STRETCH = 0,
     NINESLICE_TILE_REPEAT = 1,
     NINESLICE_TILE_MIRROR = 2,
@@ -1941,6 +1942,7 @@ yyNineSliceData.prototype.Draw = function (_x, _y, _width, _height, _rot, _colou
 
         if (g_webGL)
         {
+            // @if feature("gl")
             for (i = 0; i < 4; i++)
             {
                 // Rescale texture coordinates into texture space
@@ -2117,9 +2119,11 @@ yyNineSliceData.prototype.Draw = function (_x, _y, _width, _height, _rot, _colou
                     bindex += stride;
                 }
             }
+            // @endif
         }
         else
         {
+            // @if feature("2d")
             graphics.globalAlpha = _alpha;
 
             if (_colour != g_CacheWhite)
@@ -2165,6 +2169,8 @@ yyNineSliceData.prototype.Draw = function (_x, _y, _width, _height, _rot, _colou
                     Graphics_SetTransform();
                 }
             }
+            // @endif
         }
     }
 };
+// @endif

@@ -34,6 +34,7 @@ function CHashMapCalculateHash(snap)
 ///             dirtiness and signals when instances need to be updated due to changes.
 ///          </summary>
 // #############################################################################################
+// @if feature("sequences_min")
 /** @constructor */
 function CSequenceBaseClass()
 {
@@ -65,8 +66,6 @@ function CSequenceBaseClass()
 		this.changeIndex = GetNextSeqObjChangeIndex();
 	};
 }
-
-
 
 eTT_Link = 0;
 eTT_Invisible = 1;
@@ -105,6 +104,8 @@ eSTT_Moment = 16;
 eSTT_Text = 17;
 eSTT_Particle = 18;
 eSTT_Max = 19;
+
+// @if feature("sequences")
 
 function TrackIsParameter(type) { return (type == eSTT_Real || type == eSTT_Color || type == eSTT_Bool || type == eSTT_String); }
 
@@ -178,15 +179,14 @@ SEQ_KEY_LENGTH_EPSILON = -0.0001;
 
 g_CurrSequenceID = 0;
 g_CurrAnimCurveID = 0;
-g_CurrTrackID = 0;
+// @endif sequences
 
 // used to track which sequences have been changed and need to be recomputed
-g_CurrSeqObjChangeIndex = 1;
-
 g_CurrSequenceObjectID = 0;
 
 g_SeqStack = [];
 
+g_CurrTrackID = 0;
 // #############################################################################################
 /// Function:<summary>
 ///             Returns a new Track ID
@@ -196,6 +196,8 @@ function GetTrackID()
 {
     return g_CurrTrackID++;
 }
+
+g_CurrSeqObjChangeIndex = 1;
 
 // #############################################################################################
 /// Function:<summary>
@@ -216,6 +218,8 @@ function GetNextSeqObjChangeIndex()
 {
 	return g_CurrSeqObjChangeIndex++;
 }
+
+// @if feature("sequences")
 
 // #############################################################################################
 /// Function:<summary>
@@ -273,6 +277,8 @@ function GetTrackKeyRanges(_headPos, _lastHeadPos, _headDir, _speedscale, _pTrac
     return _pTrack.m_keyframeStore.GetKeyframeIndexRanges(_pSeq.m_playback, playbackspeed, _pSeq.m_length, _lastHeadPos, _headPos, headDir, _startKeys, _endKeys, false);
 }
 
+// @endif
+
 // #############################################################################################
 /// Function:<summary>
 ///             Parses the give storage data and return a new Track object
@@ -285,12 +291,13 @@ function SequenceBaseTrack_Load(_pStorage) {
 
         var newTrack;
         switch (modelName) {
+            case "GMSpriteFramesTrack": newTrack = new yySequenceSpriteFramesTrack(_pStorage); break;
+            // @if feature("sequences")
             case "GMRealTrack": newTrack = new yySequenceRealTrack(_pStorage); break;
             case "GMGraphicTrack": newTrack = new yySequenceGraphicTrack(_pStorage); break;
             case "GMInstanceTrack": newTrack = new yySequenceInstanceTrack(_pStorage); break;
             case "GMParticleTrack": newTrack = new yySequenceParticleTrack(_pStorage); break;
             case "GMColourTrack": newTrack = new yySequenceColourTrack(_pStorage); break;
-            case "GMSpriteFramesTrack": newTrack = new yySequenceSpriteFramesTrack(_pStorage); break;
             case "GMSequenceTrack": newTrack = new yySequenceSequenceTrack(_pStorage); break;
             case "GMAudioTrack": newTrack = new yySequenceAudioTrack(_pStorage); break;
             case "GMTextTrack": newTrack = new yySequenceTextTrack(_pStorage); break;
@@ -300,6 +307,7 @@ function SequenceBaseTrack_Load(_pStorage) {
             case "GMClipMask_Subject": newTrack = new yySequenceClipMask_SubjectTrack(_pStorage); break;
             case "GMStringTrack": newTrack = new yySequenceStringTrack(_pStorage); break;
             case "GMBoolTrack": newTrack = new yySequenceBoolTrack(_pStorage); break;
+            // @endif
         }
 
         newTrack.m_keyframeStore = new yyKeyframeStore(newTrack.m_type, _pStorage.keyframeStore);
@@ -307,6 +315,8 @@ function SequenceBaseTrack_Load(_pStorage) {
         return newTrack;
     }
 }
+
+// @if feature("sequences")
 
 // #############################################################################################
 /// Function:<summary>
@@ -1017,6 +1027,8 @@ function yySequenceColourTrack(_pStorage) {
     };
 }
 
+// @endif
+
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new Sprite Frames Track object
@@ -1082,6 +1094,8 @@ function yySequenceSpriteFramesTrack(_pStorage) {
         return retval;
     };
 }
+
+// @if feature("sequences")
 
 // #############################################################################################
 /// Function:<summary>
@@ -1266,6 +1280,8 @@ function yySequenceBoolTrack(_pStorage) {
     this.m_type = eSTT_Bool;
 }
 
+// @endif
+
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new Track object
@@ -1327,6 +1343,7 @@ function yySequenceBaseTrack(_pStorage) {
         }
     }
 
+    // @if feature("sequences")
     Object.defineProperties(this, {
         gmlname: {
             enumerable: true,
@@ -1413,6 +1430,7 @@ function yySequenceBaseTrack(_pStorage) {
             }
         }
     });
+    // @endif
 
     // #############################################################################################
     /// Function:<summary>
@@ -1429,8 +1447,10 @@ function yySequenceBaseTrack(_pStorage) {
             if(tagLink.track == null)
             {
                 // Find the track if it exists
+                // @if feature("sequences")
                 var track = g_pSequenceManager.GetSequenceFromID(tagLink.trackIndex);
                 if(track != null) tagLink.track = track;
+                // @endif
             }
             return tagLink.track;
         }
@@ -1445,6 +1465,7 @@ function yySequenceBaseTrack(_pStorage) {
     ///             being pointed to along the track.
     ///          </summary>
     // #############################################################################################
+    // @if feature("sequences")
     this.EvaluateTrack = function (_head, _length, _result, _creationmask)
     {
 
@@ -1774,7 +1795,7 @@ function yySequenceBaseTrack(_pStorage) {
         tempcreationvalue.AndEquals(_creationmask);
         _result.hascreationvalue = tempcreationvalue;
     };
-
+    
     this.AssignBuiltinTrackName = function() {
         if (this.pName == null) {
             this.builtinName = eT_UserDefined;
@@ -1816,7 +1837,10 @@ function yySequenceBaseTrack(_pStorage) {
         else if (this.pName == "textEffect_shadowColour") this.builtinName = eT_TextEffect_ShadowColour;
         else this.builtinName = eT_UserDefined;
     };
+    // @endif
 }
+
+
 
 // #############################################################################################
 /// Function:<summary>
@@ -1877,6 +1901,8 @@ function yyMessageEventTrackKey(_pStorage)
         },        
     });
 }
+
+// @if feature("sequences")
 
 // #############################################################################################
 /// Function:<summary>
@@ -2502,6 +2528,8 @@ function yySequenceTrackKey(_pStorage)
     this.__type = "[SequenceTrackKey]";
 }
 
+// @endif sequence - tracks
+
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new SpriteFrames Track Key object
@@ -2561,6 +2589,10 @@ function yyKeyframe(_type, _pStorage) {
 
             switch(_type)
             {
+                case eSTT_SpriteFrames:
+                    newKeyframe = new yySpriteFramesTrackKey(data);
+                    break;
+                // @if feature("sequences")
                 case eSTT_Graphic:
                     newKeyframe = new yyGraphicTrackKey(data);
                     break;
@@ -2588,12 +2620,10 @@ function yyKeyframe(_type, _pStorage) {
                 case eSTT_Sequence:
                     newKeyframe = new yySequenceTrackKey(data);
                     break;
-                case eSTT_SpriteFrames:
-                    newKeyframe = new yySpriteFramesTrackKey(data);
-                    break;
                 case eSTT_Particle:
                     newKeyframe = new yyParticleTrackKey(data);
                     break;
+                // @endif
             }
 
             if(newKeyframe != null)
@@ -2610,7 +2640,7 @@ function yyKeyframe(_type, _pStorage) {
     }
 
     this.SignalChange();
-
+    // @if feature("sequences")
     Object.defineProperties(this, {
         gmlframe: {
             enumerable: true,
@@ -2664,8 +2694,8 @@ function yyKeyframe(_type, _pStorage) {
             }
         }
     });
+    // @endif
 }
-
 
 // #############################################################################################
 /// Function:<summary>
@@ -3314,7 +3344,7 @@ function yySequence(_pStorage) {
         this.fromWAD = true;
     }
 
-
+    // @if feature("sequences")
     Object.defineProperties(this, {
         gmlname: {
             enumerable: true,
@@ -3476,6 +3506,7 @@ function yySequence(_pStorage) {
             set: function (_val) { this["event_broadcast_message"] = _val; }
         },
     });
+    // @endif
 }
 
 // #############################################################################################
@@ -3497,7 +3528,7 @@ yySequence.prototype.GetObjectIDs = function() {
 ///
 // #############################################################################################
 yySequence.prototype.GetObjectIDsFromTrack = function(_tracks, _ids) {
-
+    // @if feature("sequences")
     for (var trackIndex = 0; trackIndex < _tracks.length; ++trackIndex)
     {
         var track = _tracks[trackIndex];
@@ -3567,9 +3598,10 @@ yySequence.prototype.GetObjectIDsFromTrack = function(_tracks, _ids) {
 		// Check subtracks
 		this.GetObjectIDsFromTrack(track.m_tracks, _ids);
 	}
+    // @endif
 };
 
-
+// @if feature("sequences")
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new Sequences management object
@@ -3792,7 +3824,6 @@ yySequenceManager.prototype.GetNewInstance = function ()
 
 var g_pMessageEvents = [];
 var g_pMomentEvents = [];
-var g_pSpriteMessageEvents = [];
 
 function AddMessageEvent(_pKey, _seqElementID)
 {    
@@ -3810,6 +3841,8 @@ function AddMomentEvent(_pKey, _pSeqInst)
     g_pMomentEvents[g_pMomentEvents.length] = newEvt;
 }
 
+// @endif
+
 function AddSpriteMessageEvent(_pKey, _elementID)
 {    
     var newEvt = new Object();
@@ -3825,10 +3858,13 @@ function AddSpriteMessageEvent(_pKey, _elementID)
 ///
 // #############################################################################################
 
+var g_pSpriteMessageEvents = [];
 function ResetSpriteMessageEvents()
 {
     g_pSpriteMessageEvents = [];
 }
+
+// @if feature("sequences")
 
 yySequenceManager.prototype.EvaluateLayerSequenceElement = function(_pSeqEl, _preDrawUpdate)
 {
@@ -4192,6 +4228,7 @@ yySequenceManager.prototype.HandleMomentEvents = function (_pSeqInst, _pSeq, _se
         } while (true);
     }
 };
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -4255,6 +4292,7 @@ function HandleSpriteMessageEvents(_pSeq, _elementID, _fps, _speedScale, _headDi
     }
 };
 
+// @if feature("sequences")
 // #############################################################################################
 /// Function:<summary>
 ///             Handles the throwing of events which are triggered
@@ -4311,6 +4349,7 @@ yySequenceManager.prototype.ProcessMomentEvents = function ()
         }
     }
 };
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -4335,8 +4374,9 @@ function ProcessSpriteMessageEvents()
             ds_map_add(map, "event_type", "sprite event");
             ds_map_add(map, "element_id", g_pSpriteMessageEvents[i].elementID);
             ds_map_add(map, "message", eventlist.m_events[j]);
-
+            // @if feature("sequences")
             g_pSequenceManager.PerformInstanceEvents(g_RunRoom, EVENT_OTHER_BROADCAST_MESSAGE);
+            // @endif
 
             //g_pObjectManager.ThrowEvent(EVENT_OTHER_SYSTEM_EVENT, 0);            
             g_pObjectManager.ThrowEvent(EVENT_OTHER_BROADCAST_MESSAGE, 0);
@@ -4425,6 +4465,7 @@ function HandleSequenceWrapping(_sequence, _retVals)
     return hasWrapped;
 }
 
+// @if feature("sequences")
 // #############################################################################################
 /// Function:<summary>
 ///             Updates the tracks within the given sequence
@@ -4655,7 +4696,7 @@ yySequenceManager.prototype.HandleUpdateTracks = function (_el, _sequence, _inst
 ///
 // #############################################################################################
 yySequenceManager.prototype.HandleSpriteTrackUpdate = function(_node, _srcVars, _instance, _track, _fps, _headDir, _lastHeadPos, _headPosition, _seqlength) {
-
+    // @if feature("sprites")
     _srcVars.spriteIndex = -1;
 
     var keyframeStore = _track.m_keyframeStore;
@@ -4674,7 +4715,9 @@ yySequenceManager.prototype.HandleSpriteTrackUpdate = function(_node, _srcVars, 
     if (!_srcVars.Overrides(eT_OriginY)) _srcVars.yOrigin += sprite.yOrigin;
 
     HandleSpriteSequenceMessageEvents(_node, _track, _instance, _fps, _headPosition, _lastHeadPos, _headDir, sprite.sequence, sprite, graphicKeyframe, keyframeStore);
+    // @endif sprites
 };
+// @endif
 
 function HandleSpriteSequenceMessageEvents(_node, _track, _inst, _fps, _headPosition, _lastHeadPosition, _headDirection, _sequence, _sprite, _spriteKey, _keyframes) 
 {
@@ -4756,6 +4799,7 @@ function HandleSpriteSequenceMessageEvents(_node, _track, _inst, _fps, _headPosi
 }
 
 
+// @if feature("sequences")
 // #############################################################################################
 /// Function:<summary>
 ///             Updates the given sequence track
@@ -5147,6 +5191,7 @@ yySequenceManager.prototype.HandleInstanceTrackUpdate = function (_pEl, _pSeq, _
                                 pInst.image_speed = _srcVars.imageSpeed;
 
                                 //calculate image index from image speed track
+                                // @if feature("sprites")
                                 var sprite = g_pSpriteManager.Get(pInst.sprite_index);
                         	    if (sprite != null) 
                                 {
@@ -5190,6 +5235,7 @@ yySequenceManager.prototype.HandleInstanceTrackUpdate = function (_pEl, _pSeq, _
                                         }
                                     }
                                 }
+                                // @endif sprites
                             }
 
                             if (_srcVars.paramset.GetBit(eT_ImageIndex))
@@ -5285,7 +5331,9 @@ yySequenceManager.prototype.HandleTextTrackUpdate = function(_srcVars, _track, _
 		_srcVars.pFontEffectParams.dropShadowEnabled = textkey.m_channels[0].enableShadow;
 	}
 };
+// @endif sequences - manager
 
+// @if feature("sequences")
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new CSequenceInstance object
@@ -5941,7 +5989,9 @@ CSequenceInstance.prototype.SetInstanceInSequenceStatus = function (_inSequence)
 
 	}
 };
+// @endif sequences - instance
 
+// @if feature("sequences")
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new CSeqTrackAudioInfo object
@@ -7477,3 +7527,5 @@ function CSeqTrackInstanceInfo()
 	this.ownedBySequence = false;
 	//bool beenCreated;
 };
+// @endif sequences - tracks
+// @endif sequences_min

@@ -60,6 +60,7 @@ function canPlayAudioMP3(callback)
 	}
 }
 
+// @if feature("audio")
 // #############################################################################################
 /// Function:<summary>
 ///             Initialise a Sound from storage
@@ -747,3 +748,4 @@ yySoundManager.prototype.Create = function () {
 	this.Sounds[this.Sounds.length] = pSnd;
 	return this.Sounds.length - 1;
 };
+// @endif audio

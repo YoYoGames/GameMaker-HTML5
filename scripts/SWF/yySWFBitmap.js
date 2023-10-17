@@ -9,7 +9,7 @@
 // Description:
 //
 // **********************************************************************************************************************
-
+// @if feature("swf")
 var eBitmapType_JPEGNoHeader = 0,
 	eBitmapType_JPEG = 1,
 	eBitmapType_JPEGWithAlpha = 2,
@@ -315,3 +315,4 @@ function ReplaceTextureAlpha(_pTPE, _alpha) {
     
     return _pTPE.texture;
 }
+// @endif

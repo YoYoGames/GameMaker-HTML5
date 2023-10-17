@@ -10,6 +10,7 @@
 //
 // **********************************************************************************************************************
 
+// @if feature("spine")
 // #############################################################################################
 /// Function:<summary>
 ///             Initialise storage for the instance specific portion of a Skeleton animation
@@ -153,6 +154,8 @@ yySkeletonInstance.prototype.FrameCount = function (_sprite, _track) {
 	return ~~((updatesCount * this.m_animationState.tracks[_track].animation.duration) + 0.5);
 };
 
+// @endif
+
 function fwrap(_val, _div)
 {
     // _div needs to be positive
@@ -165,6 +168,8 @@ function fwrap(_val, _div)
     
     return scaledfrac;
 }
+
+// @if feature("spine")
 
 // #############################################################################################
 /// Function:<summary>
@@ -1562,3 +1567,4 @@ yySkeletonInstance.prototype.GetSlotData = function (_list)
         ds_list_add(_list, map);
     }
 };
+// @endif spine

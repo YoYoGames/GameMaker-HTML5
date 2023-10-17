@@ -245,7 +245,9 @@ function background_create_color(_w,_h,_colour)
 
 	return g_pBackgroundManager.AddBackgroundImage(pNew);
 }
+// @if function("background_create_colour")
 var background_create_colour = background_create_color;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>

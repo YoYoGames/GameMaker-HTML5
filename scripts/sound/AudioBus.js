@@ -1,3 +1,4 @@
+// @if feature("audio")
 function AudioBus() {
 	// GML object props
 	this.__type = "[AudioBus]";
@@ -217,3 +218,4 @@ DummyAudioBus.prototype.handleValue = function(_value)
 
 	throw new Error("Value must be Struct.AudioEffect or undefined");
 };
+// @endif audio

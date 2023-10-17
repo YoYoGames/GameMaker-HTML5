@@ -80,7 +80,6 @@ function draw_text(_x, _y, _text) {
 ///				
 ///			</returns>
 // #############################################################################################
-var draw_text_colour = draw_text_color;
 function draw_text_color(_x, _y, _text, _c1, _c2, _c3, _c4, _alpha)
 {
     if (!g_webGL) WarningFunction("draw_text_color() only uses the 1st colour");
@@ -106,6 +105,9 @@ function draw_text_color(_x, _y, _text, _c1, _c2, _c3, _c4, _alpha)
 	g_GlobalAlpha = oldalpha;
 	draw_set_color(oldcol);		
 }
+// @if function("draw_text_colour")
+var draw_text_colour = draw_text_color;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -126,7 +128,6 @@ function draw_text_color(_x, _y, _text, _c1, _c2, _c3, _c4, _alpha)
 ///				
 ///			</returns>
 // #############################################################################################
-var draw_text_ext_colour = draw_text_ext_color;
 function draw_text_ext_color(_x, _y, _text, _sep, _w, _c1, _c2, _c3, _c4, _alpha)
 {
     if (!g_webGL) WarningFunction("draw_text_ext_color() only uses the 1st colour");
@@ -151,7 +152,9 @@ function draw_text_ext_color(_x, _y, _text, _sep, _w, _c1, _c2, _c3, _c4, _alpha
     g_GlobalAlpha = oldalpha;
 	draw_set_color(oldcol);	
 }
-
+// @if function("draw_text_ext_colour")
+var draw_text_ext_colour = draw_text_ext_color;
+// @endif
 
 
 
@@ -245,7 +248,6 @@ function draw_text_ext_transformed(_x, _y, _text, _sep, _w, _xscale, _yscale, _a
 ///				
 ///			</returns>
 // #############################################################################################
-var draw_text_ext_transformed_colour = draw_text_ext_transformed_color;
 function draw_text_ext_transformed_color(_x, _y, _text, _sep, _w, _xscale, _yscale, _angle, _c1, _c2, _c3, _c4, _alpha) {
     if (!g_webGL) WarningFunction("draw_text_ext_transformed_color() only uses the 1st colour");
     
@@ -262,6 +264,9 @@ function draw_text_ext_transformed_color(_x, _y, _text, _sep, _w, _xscale, _ysca
     g_GlobalAlpha = oldalpha;
     draw_set_color(oldcol);	
 }
+// @if function("draw_text_ext_transformed_colour")
+var draw_text_ext_transformed_colour = draw_text_ext_transformed_color;
+// @endif
 
 
 // #############################################################################################
@@ -284,7 +289,6 @@ function draw_text_ext_transformed_color(_x, _y, _text, _sep, _w, _xscale, _ysca
 ///				
 ///			</returns>
 // #############################################################################################
-var draw_text_transformed_colour = draw_text_transformed_color;
 function draw_text_transformed_color(_x, _y, _text, _xscale, _yscale, _angle, _c1, _c2, _c3, _c4, _alpha) {
     if (!g_webGL) WarningFunction("draw_text_transformed_color() only uses the 1st colour");
     
@@ -301,7 +305,9 @@ function draw_text_transformed_color(_x, _y, _text, _xscale, _yscale, _angle, _c
 	g_GlobalAlpha = oldalpha;
 	draw_set_color(oldcol);	
 }
-
+// @if function("draw_text_transformed_colour")
+var draw_text_transformed_colour = draw_text_transformed_color;
+// @endif
 
 
 // #############################################################################################
@@ -452,7 +458,6 @@ function font_get_name(_id) {
     if (!pFont) return "";
     return pFont.pName;
 }
-var font_name = font_get_name;
 
 // #############################################################################################
 /// Function:<summary>

@@ -1,3 +1,4 @@
+// @if feature("audio_effects")
 function DelayEffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.Delay);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
@@ -57,3 +58,4 @@ DelayEffectStruct.paramDescriptors = () => ({
     feedback: { name: "feedback", integer: false, defaultValue: 0.5,  minValue: 0.0, maxValue: 1.0 },
     mix:      { name: "mix",      integer: false, defaultValue: 0.35, minValue: 0.0, maxValue: 1.0 }
 });
+// @endif

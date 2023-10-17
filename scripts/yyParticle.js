@@ -65,6 +65,7 @@ var persistentsystemlayernames = [];
 ///				like. We will discuss the settings below. 
 ///          </summary>
 // #############################################################################################
+// @if feature("particles")
 /**@constructor*/
 function yyParticleType()
 {
@@ -448,6 +449,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 
 	return ps;
 };
+// @endif particles
 
 // #############################################################################################
 /// Function:<summary>
@@ -2978,7 +2980,9 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 	// Fix for null particle HTML5 crash - happens when particle type is destroyed but emitter is still alive
 	if (pParType === null) return;
 
+	// @if feature("sprites")
 	spr = g_pSpriteManager.Get( pParType.sprite );
+	// @endif sprites
 	if( spr == null )
 	{
 		var shape = pParType.shape;

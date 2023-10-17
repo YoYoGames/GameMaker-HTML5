@@ -949,7 +949,22 @@ function string_count(_substr,_str)
 // #############################################################################################
 function string_hash_to_newline( _str )
 {
-    return String_Replace_Hash(yyGetString(_str), g_pFontManager.Font_Get(g_pFontManager.fontid), true);
+    let _result = "",
+        _start = 0,
+        i = 0, c, lc;
+    for (; i < _str.length; i++) {
+        c = _str[i];
+        if (c == "#") {
+            if (lc != "\\") {
+                _result += _str.substring(_start, i) + "\r\n";
+            } else {
+                _result += _str.substring(_start, i - 1) + "#";
+            }
+            _start = i + 1;
+        }
+        lc = c;
+    }
+    return _result + _str.substring(_start, i);
 }
 
 // #############################################################################################

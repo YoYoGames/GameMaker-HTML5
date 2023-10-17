@@ -223,6 +223,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
     return pPSI;
 }
 
+// @if feature("particles")
 // #############################################################################################
 /// Function:<summary>
 ///          </summary>
@@ -1429,6 +1430,8 @@ function part_emitter_relative(_ps, _ind, _enable)
     _ind = GetParticleEmitterIndex(_ps, _ind);
     return ParticleSystem_Emitter_Relative(_ps, _ind, _enable);
 }
+
+// @endif particles
 
 // #############################################################################################
 /// Function:<summary>

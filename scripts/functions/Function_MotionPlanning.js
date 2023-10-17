@@ -20,32 +20,6 @@ var MPPot_Maxrot = 30,
     MPPot_Ahead = 3,
     MPPot_OnSpot = true;
 
-// #############################################################################################
-/// Function:<summary>
-///          	Computes the difference between the directions (positive <= 180)
-///          </summary>
-///
-/// In:		<param name="_dir1"></param>
-///			<param name="_dir2"></param>
-/// Out:	<returns>
-///				
-///			</returns>
-// #############################################################################################
-function DiffDir( _dir1 , _dir2)
-{
-	var Result = 0.0;
-
-	while ( _dir1 <= 0.0 ) { _dir1 = _dir1 + 360; }
-	while ( _dir1 >= 360.0 ) { _dir1 = _dir1 - 360; }
-	while ( _dir2 < 0.0 ) { _dir2 = _dir2 + 360; }
-	while ( _dir2 >= 360. ) { _dir2 = _dir2 - 360; }
-	Result = _dir2 - _dir1;
-	if ( Result < 0 ) { Result = -Result; }
-	if ( Result > 180 ) { Result = 360-Result; }
-
-	return Result;
-}
-
 
 // #############################################################################################
 /// Function:<summary>
@@ -191,44 +165,6 @@ function mp_linear_step_object( _pInst, _x,_y,_stepsize,_obj)
     return  mp_linear_step_common( _pInst, _x,_y,_stepsize, _obj, true); 
 }
 
-
-// #############################################################################################
-/// Function:<summary>
-///             Take a step towards the indicated position with the given speed
-///             avoiding obstacles using some potential field approach
-///             returns whether the goal was reached
-///          </summary>
-// #############################################################################################
-function TryDir(_dir, _pInst, _speed, _objind, _checkall)
-{
-	var Result = false;
-
-	var xnew = 0.0;
-	var ynew = 0.0;	
-
-	// see whether angle is acceptable
-	if (DiffDir(_dir, _pInst.direction) > MPPot_Maxrot) { 
-	    return Result; 
-	}
-	// check position a bit ahead
-	xnew = _pInst.x + _speed * MPPot_Ahead * cos( Pi * _dir / 180 );
-	ynew = _pInst.y - _speed * MPPot_Ahead * sin( Pi * _dir / 180 );
-	if (true != TestFree(_pInst, xnew, ynew, _objind, _checkall)) { 
-	    return Result; 
-	}
-	//check next position
-	xnew = _pInst.x + _speed * cos(Pi * _dir / 180);
-	ynew = _pInst.y - _speed * sin(Pi * _dir / 180);
-	if (true != TestFree(_pInst, xnew, ynew, _objind, _checkall)) { 
-	    return Result; 
-	}
-	// OK, so set the position
-	_pInst.direction = _dir;
-	_pInst.SetPosition(xnew, ynew);
-	Result = true;
-	return Result;
-}
-
 // #############################################################################################
 /// Function:<summary>
 ///          	Common functionality for mp_potential_step* calls
@@ -269,7 +205,7 @@ function mp_potential_step_common(_pInst, _x,_y, _stepsize, _objindex, _checkall
 	{
 		if (TestFree(_pInst, _x, _y, _objindex, _checkall))
 		{
-			_pInst.direction = ComputeDir(_pInst.x, _pInst.y, _x, _y);
+			_pInst.direction = point_direction(_pInst.x, _pInst.y, _x, _y);
 			_pInst.SetPosition(_x, _y);
 		}
 		Result = true;
@@ -277,7 +213,7 @@ function mp_potential_step_common(_pInst, _x,_y, _stepsize, _objindex, _checkall
 	}
 
 	// Try directions as much as possible towards the goal
-	goaldir = ComputeDir(_pInst.x, _pInst.y, _x, _y);
+	goaldir = point_direction(_pInst.x, _pInst.y, _x, _y);
 	curdir = 0;
 	Result = false;
 	while ( curdir < 180 )
@@ -416,7 +352,7 @@ function  Motion_Linear_Step(_inst, _x, _y, _speed, _objind, _checkall)
     { 
         return Result; 
     }
-    _inst.direction = ComputeDir(_inst.x, _inst.y, newx, newy);
+    _inst.direction = point_direction(_inst.x, _inst.y, newx, newy);
     _inst.SetPosition( newx, newy );
 
     return Result;
@@ -599,14 +535,14 @@ function Motion_Potential_Step(_inst, _x, _y, _speed,_objind, _checkall)
 	{
 	    if (true == TestFree(_inst, _x, _y, _objind, _checkall))
 		{
-		    _inst.direction = ComputeDir(_inst.x,_inst.y,_x,_y);
+		    _inst.direction = point_direction(_inst.x,_inst.y,_x,_y);
 			_inst.SetPosition(_x,_y);
 		}
 		return true;
 	}
 
 	// Try directions as much as possible towards the goal
-	goaldir = ComputeDir(_inst.x, _inst.y,_x,_y);
+	goaldir = point_direction(_inst.x, _inst.y,_x,_y);
 	curdir = 0;
 	Result = false;
 	while ( curdir < 180 )
@@ -764,7 +700,7 @@ function mp_potential_path_object(_pInst, _path,_xg,_yg,_stepsize,_factor,_obj)
 
 
 
-
+// @if function("mp_grid_*")
 
 // ##########################################################################################################################################################################################
 // ##########################################################################################################################################################################################
@@ -1362,6 +1298,7 @@ function mp_grid_path(_pInst, _id, _path, _xstart, _ystart, _xgoal, _ygoal, _all
 
 function mp_grid_to_ds_grid(_src, _dest)
 {
+	// @if function("ds_grid_*")
     _src = yyGetInt32(_src);
     _dest = yyGetInt32(_dest);
 
@@ -1403,6 +1340,7 @@ function mp_grid_to_ds_grid(_src, _dest)
 		    pGrid.m_pGrid[x + (y * pGrid.m_Width)] = pMPGrid.m_cells[(x * pMPGrid.m_vcells) + y];
         }
     }
+	// @endif
 }
 
-
+// @endif mp_grid
