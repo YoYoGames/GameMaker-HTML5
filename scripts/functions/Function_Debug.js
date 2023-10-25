@@ -333,6 +333,8 @@ function dbg_colour() { ErrorFunction( "dbg_colour()" ); }
 function dbg_color() { ErrorFunction( "dbg_color()" ); }
 function dbg_text() { ErrorFunction( "dbg_text()" ); }
 function dbg_sprite() { ErrorFunction( "dbg_sprite()" ); }
+function dbg_slider_int() { ErrorFunction( "dbg_slider_int()" ); }
+function dbg_add_font_glyphs() { ErrorFunction( "dbg_add_font_glyphs()" ); }
 function ref_create() { ErrorFunction( "ref_create()" ); return 0; }
 function is_debug_overlay_open() { return false; }
 function show_debug_log() { ErrorFunction( "show_debug_log()" ); ; }
