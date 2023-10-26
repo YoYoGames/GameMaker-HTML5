@@ -7460,6 +7460,22 @@ function TrackEvalNode(_parent)
 
 // #############################################################################################
 /// Function:<summary>
+///             Create a new CSeqTrackInstanceInfo object
+///          </summary>
+// #############################################################################################
+/** @constructor */
+function CSeqTrackInstanceInfo()
+{
+	this.pKeydata = null;
+    //CInstance* pInstance;
+    this.objectID = -1;
+	this.instanceID = -1;
+	this.ownedBySequence = false;
+	//bool beenCreated;
+};
+
+// #############################################################################################
+/// Function:<summary>
 ///             Returns the current node or creates one if no node exists
 ///          </summary>
 // #############################################################################################
@@ -7512,20 +7528,6 @@ function GetOrEmplaceTrackEvalNode(_nodeContainer, _current, _prev) {
 };
 
 
-// #############################################################################################
-/// Function:<summary>
-///             Create a new CSeqTrackInstanceInfo object
-///          </summary>
-// #############################################################################################
-/** @constructor */
-function CSeqTrackInstanceInfo()
-{
-	this.pKeydata = null;
-    //CInstance* pInstance;
-    this.objectID = -1;
-	this.instanceID = -1;
-	this.ownedBySequence = false;
-	//bool beenCreated;
-};
+
 // @endif sequences - tracks
 // @endif sequences_min
