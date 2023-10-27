@@ -62,7 +62,7 @@ function room_name(_ind){ return room_get_name(_ind); }
 function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tilemap_data)
 {
     var pRoom = g_pRoomManager.Get(yyGetInt32(_ind));
-    var ret = {}
+    var ret = {};
     ret.__yyIsGMLObject = true;
     if ((pRoom !== null) && (pRoom.m_pStorage !== undefined) && (pRoom.m_pStorage !== null)) {
 
