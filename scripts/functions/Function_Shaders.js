@@ -27,7 +27,7 @@ function fn_shader_set_uniform_f_array(){}
 function fn_shader_set_uniform_f_buffer(){}
 function fn_shader_set_uniform_matrix_array(){}
 function fn_shader_get_name(){}
-// @if feature("2d") && (function("shader_*") || function("texture_get_texel_*") || function("texture_set_stage"))
+// @if feature("2d") && (feature("shaders") || function("texture_get_texel_*") || function("texture_set_stage"))
 (() => {
     let _stub = (_name, _val) => () => ErrorFunction(_name, _val);
     compile_if_used(texture_get_texel_width, fn_texture_get_texel_width = _stub("fn_texture_get_texel_width", 0));
