@@ -2436,20 +2436,12 @@ function yyTextTrackKey(_pStorage)
     this.wrap = false;
     this.alignment = 0;
     this.fontIndex = -1;
-    this.enableEffects = false;
-    this.enableGlow = false;
-    this.enableOutline = false;
-    this.enableShadow = false;
 
     if ((_pStorage != null) && (_pStorage != undefined)) {
         this.text = _pStorage.text;
         this.wrap = _pStorage.wrap;
         this.alignment = _pStorage.alignment;
         this.fontIndex = _pStorage.fontIndex;
-        this.enableEffects = _pStorage.enableEffects;
-        this.enableGlow = _pStorage.enableGlow;
-        this.enableOutline = _pStorage.enableOutline;
-        this.enableShadow = _pStorage.enableShadow;
     }
 
     Object.defineProperties(this, {
@@ -2477,26 +2469,6 @@ function yyTextTrackKey(_pStorage)
             enumerable: true,
             get: function () { return this.fontIndex; },
             set: function (_val) { this.fontIndex = yyGetInt32(_val); }
-        },
-        gmlenableEffects: {
-            enumerable: true,
-            get: function () { return this.enableEffects; },
-            set: function (_val) { this.enableEffects = yyGetBool(_val); }
-        },
-        gmlenableGlow: {
-            enumerable: true,
-            get: function () { return this.enableGlow; },
-            set: function (_val) { this.enableGlow = yyGetBool(_val); }
-        },
-        gmlenableOutline: {
-            enumerable: true,
-            get: function () { return this.enableOutline; },
-            set: function (_val) { this.enableOutline = yyGetBool(_val); }
-        },
-        gmlenableShadow: {
-            enumerable: true,
-            get: function () { return this.enableShadow; },
-            set: function (_val) { this.enableShadow = yyGetBool(_val); }
         },
     });
 }
@@ -3611,6 +3583,18 @@ yySequence.prototype.GetObjectIDsFromTrack = function(_tracks, _ids) {
 function yySequenceManager() {
     this.Sequences = [];
     this.Instances = [];
+
+    this.TEXTEFFECT_TRACK_MASK = new yyBitField64();
+    this.TEXTEFFECT_TRACK_MASK.SetBit(eT_TextEffect_Thickness);
+    this.TEXTEFFECT_TRACK_MASK.SetBit(eT_TextEffect_CoreColour);
+    this.TEXTEFFECT_TRACK_MASK.SetBit(eT_TextEffect_GlowStart);
+    this.TEXTEFFECT_TRACK_MASK.SetBit(eT_TextEffect_GlowEnd);
+    this.TEXTEFFECT_TRACK_MASK.SetBit(eT_TextEffect_GlowColour);
+    this.TEXTEFFECT_TRACK_MASK.SetBit(eT_TextEffect_OutlineDistance);
+    this.TEXTEFFECT_TRACK_MASK.SetBit(eT_TextEffect_OutlineColour);
+    this.TEXTEFFECT_TRACK_MASK.SetBit(eT_TextEffect_ShadowSoftness);
+    this.TEXTEFFECT_TRACK_MASK.SetBit(eT_TextEffect_ShadowOffset);
+    this.TEXTEFFECT_TRACK_MASK.SetBit(eT_TextEffect_ShadowColour);
 }
 
 // #############################################################################################
@@ -5321,15 +5305,72 @@ yySequenceManager.prototype.HandleTextTrackUpdate = function(_srcVars, _track, _
     var textkey = keyframeStore.GetKeyframeAtFrame(_headPos, _seqLength);
     if (textkey == null) return;
 
+    // Check to see if we should enable particular effects 
+	// Need to check both whether the track exists and the actual track values 
+	// The reason we need to check both is that the default values in the IDE don't match the default values in the runtime 
+	// so unset parameters don't have the same values 
+	if (_srcVars.paramset.And(this.TEXTEFFECT_TRACK_MASK).AnyBitSet())
+	{ 
+		var paramset = _srcVars.paramset; 		
+ 
+		_srcVars.pFontEffectParams.enabled = false; 
+		if ((paramset.GetBit(eT_TextEffect_Thickness)) && (_srcVars.pFontEffectParams.thicknessMod != 0.0)) 
+		{ 
+			_srcVars.pFontEffectParams.enabled = true; 
+		} 
+ 
+		if ((paramset.GetBit(eT_TextEffect_CoreColour)) && (((_srcVars.pFontEffectParams.coreCol & 0xffffff) != 0xffffff) || (_srcVars.pFontEffectParams.coreAlpha != 1.0))) 
+		{ 
+			_srcVars.pFontEffectParams.enabled = true; 
+		} 
+ 
+		// We're just ignoring colours here as they don't have any effect unless the other parameters are used		 
+		if (((paramset.GetBit(eT_TextEffect_GlowStart)) && (_srcVars.pFontEffectParams.glowStart != 0.0)) || 
+			((paramset.GetBit(eT_TextEffect_GlowEnd)) && (_srcVars.pFontEffectParams.glowEnd != 0.0))) 
+		{ 
+			_srcVars.pFontEffectParams.glowEnabled = true; 
+			_srcVars.pFontEffectParams.enabled = true; 
+		}		 
+		else 
+		{ 
+			_srcVars.pFontEffectParams.glowEnabled = false; 
+		} 
+ 
+		if ((paramset.GetBit(eT_TextEffect_OutlineDistance)) && (_srcVars.pFontEffectParams.outlineDist != 0.0)) 
+		{ 
+			_srcVars.pFontEffectParams.outlineEnabled = true; 
+			_srcVars.pFontEffectParams.enabled = true; 
+		} 
+		else 
+		{ 
+			_srcVars.pFontEffectParams.outlineEnabled = false; 
+		} 
+ 
+		if (((paramset.GetBit(eT_TextEffect_ShadowSoftness)) && (_srcVars.pFontEffectParams.shadowWidth != 0.0)) || 
+			((paramset.GetBit(eT_TextEffect_ShadowOffset)) && ((_srcVars.pFontEffectParams.shadowOffsetX != 0.0) || (_srcVars.pFontEffectParams.shadowOffsetY != 0.0)))) 
+		{ 
+			_srcVars.pFontEffectParams.dropShadowEnabled = true; 
+			_srcVars.pFontEffectParams.enabled = true; 
+		} 
+		else 
+		{ 
+			_srcVars.pFontEffectParams.dropShadowEnabled = false; 
+		}		 
+	} 
+	else 
+	{ 
+		_srcVars.pFontEffectParams.enabled = false; 
+	} 
+
     // This works a bit differently to some of the other text track key parameters but this is to allow
 	// these values to be changed by the user as the sequence is evaluated
-	if (_srcVars.pFontEffectParams != null)
+	/*if (_srcVars.pFontEffectParams != null)
 	{
 		_srcVars.pFontEffectParams.enabled = textkey.m_channels[0].enableEffects;
 		_srcVars.pFontEffectParams.glowEnabled = textkey.m_channels[0].enableGlow;
 		_srcVars.pFontEffectParams.outlineEnabled = textkey.m_channels[0].enableOutline;
 		_srcVars.pFontEffectParams.dropShadowEnabled = textkey.m_channels[0].enableShadow;
-	}
+	}*/
 };
 // @endif sequences - manager
 
