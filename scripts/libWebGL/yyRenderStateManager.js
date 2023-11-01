@@ -300,101 +300,101 @@ function yyBitField(_numbits)
 // Specialised version of the above for more efficient 64bit bitfield handling
 function yyBitField64() 
 { 
-    var m_hi = 0;
-    var m_lo = 0;        
-  
-    this.SetBit = function(_bit) 
-    { 
-        if (_bit > 31)
-        {
-            m_hi |= 1 << (_bit - 32);
-        }
-        else
-        {
-            m_lo |= 1 << _bit;
-        }
-    };
- 
-    this.ClearBit = function(_bit) 
-    { 
-        if (_bit > 31)
-        {
-            m_hi &= ~(1 << (_bit - 32));
-        }
-        else
-        {
-            m_lo &= ~(1 << _bit);
-        }        
-    };
- 
-    this.GetBit = function(_bit) 
-    { 
-        if (_bit > 31)
-        {
-            return (m_hi >> (_bit - 32)) & 0x1;
-        }
-        else
-        {
-            return (m_lo >> _bit) & 0x1;
-        }        
-    };
- 
-    this.SetAllBits = function() 
-    { 
-        m_hi = 0xffffffff;
-        m_lo = 0xffffffff;
-    };
- 
-    this.ClearAllBits = function() 
-    { 
-        m_hi = 0;
-        m_lo = 0;        
-    };
- 
-    this.AnyBitSet = function() 
-    { 
-        return (m_hi | m_lo) ? 1 : 0;        
-    };
- 
-    this.Or = function(_other) 
-    { 
-        var newBits = new yyBitField64();
-        newBits.m_hi = m_hi | _other.m_hi;
-        newBits.m_lo = m_lo | _other.m_lo;        
- 
-        return newBits; 
-    };
- 
-    this.And = function(_other) 
-    { 
-        var newBits = new yyBitField64();
-        newBits.m_hi = m_hi & _other.m_hi;
-        newBits.m_lo = m_lo & _other.m_lo;        
- 
-        return newBits;         
-    };
-
-    this.Not = function()
-    {
-        var newBits = new yyBitField64();
-        newBits.m_hi = ~m_hi;
-        newBits.m_lo = ~m_lo;        
- 
-        return newBits;              
-    };
-
-    this.OrEquals = function(_other) 
-    { 
-        m_hi |= _other.m_hi;
-        m_lo |= _other.m_lo;        
-    };
-
-    this.AndEquals = function(_other) 
-    { 
-        m_hi &= _other.m_hi;
-        m_lo &= _other.m_lo;        
-    };
+    this.m_hi = 0;
+    this.m_lo = 0;        
 }
+
+yyBitField64.prototype.SetBit = function(_bit) 
+{ 
+    if (_bit > 31)
+    {
+        this.m_hi |= 1 << (_bit - 32);
+    }
+    else
+    {
+        this.m_lo |= 1 << _bit;
+    }
+};
+ 
+yyBitField64.prototype.ClearBit = function(_bit) 
+{ 
+    if (_bit > 31)
+    {
+        this.m_hi &= ~(1 << (_bit - 32));
+    }
+    else
+    {
+        this.m_lo &= ~(1 << _bit);
+    }        
+};
+ 
+yyBitField64.prototype.GetBit = function(_bit) 
+{ 
+    if (_bit > 31)
+    {
+        return (this.m_hi >> (_bit - 32)) & 0x1;
+    }
+    else
+    {
+        return (this.m_lo >> _bit) & 0x1;
+    }        
+};
+ 
+yyBitField64.prototype.SetAllBits = function() 
+{ 
+    this.m_hi = 0xffffffff;
+    this.m_lo = 0xffffffff;
+};
+ 
+yyBitField64.prototype.ClearAllBits = function() 
+{ 
+    this.m_hi = 0;
+    this.m_lo = 0;        
+};
+ 
+yyBitField64.prototype.AnyBitSet = function() 
+{ 
+    return (this.m_hi | this.m_lo) ? 1 : 0;        
+};
+ 
+yyBitField64.prototype.Or = function(_other) 
+{ 
+    var newBits = new yyBitField64();
+    newBits.m_hi = this.m_hi | _other.m_hi;
+    newBits.m_lo = this.m_lo | _other.m_lo;        
+
+    return newBits; 
+};
+ 
+yyBitField64.prototype.And = function(_other) 
+{ 
+    var newBits = new yyBitField64();
+    newBits.m_hi = this.m_hi & _other.m_hi;
+    newBits.m_lo = this.m_lo & _other.m_lo;        
+
+    return newBits;         
+};
+
+yyBitField64.prototype.Not = function()
+{
+    var newBits = new yyBitField64();
+    newBits.m_hi = ~this.m_hi;
+    newBits.m_lo = ~this.m_lo;        
+
+    return newBits;              
+};
+
+yyBitField64.prototype.OrEquals = function(_other) 
+{ 
+    this.m_hi |= _other.m_hi;
+    this.m_lo |= _other.m_lo;        
+};
+
+yyBitField64.prototype.AndEquals = function(_other) 
+{ 
+    this.m_hi &= _other.m_hi;
+    this.m_lo &= _other.m_lo;        
+};
  
 function yyRenderStateCollection(_numrenderstates, _numsamplers, _numsamplerstates) 
 { 
