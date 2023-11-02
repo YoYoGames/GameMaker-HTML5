@@ -1625,7 +1625,7 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
         if (t == 0) {
             // Type match we need to compare the value
             var v = _val1.value - _val2.value;
-            ret = (v < 0) ? -1 : 1;
+            ret = (v == 0) ? 0 : (v < 0) ? -1 : 1;
         } else {
             // Type mismatch don't even know how to compare this we should probably error
             ret = (t < 0) ? -1 : 1;
