@@ -1613,10 +1613,10 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
         // both values are strings
         ret = (_val1 === _val2) ? 0 : ((_val1 > _val2) ? 1 : -1);
     }
-    else if (_val1 === undefined && _val2 === undefined)
+    else if (_val1 === undefined || _val2 === undefined)
     {
-        // both values are undefined
-        ret = 0;
+        // either value is undefined
+        ret = (_val1 == _val2) ? 0 : -2;
     }
     else if (_val1 instanceof YYRef && _val2 instanceof YYRef)
     {
@@ -1694,9 +1694,6 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
             if (_showError)
                 yyError( "illegal array use")
         } // end if
-        else if (_val1  === undefined) {
-            ret = -2;
-        } // end if
 
         // convert val2 into number (if possible)
         if (typeof _val2 == "boolean")
@@ -1723,9 +1720,6 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
         {
             if (_showError)
                 yyError( "illegal array use")
-        } // end if
-        else if (_val2  === undefined) {
-            ret = -2;
         } // end if
 
         if (ret === undefined) {
