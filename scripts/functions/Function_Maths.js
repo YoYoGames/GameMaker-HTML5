@@ -1601,6 +1601,11 @@ var g_NumberRE = new RegExp(
 function yyCompareVal(_val1, _val2, _prec, _showError) {
     var ret = undefined;
     _showError = (_showError == undefined) ?  true : _showError;
+
+    // A YYRef should be converted into a valid number and compared that way
+    if (_val1 instanceof YYRef) _val1 = (_val1.type << 24) + _val1.value;
+    if (_val2 instanceof YYRef) _val2 = (_val2.type << 24) + _val2.value;
+
     if ((typeof _val1 == "number") && (typeof _val2 == "number")) {
         var f = _val1 - _val2;
         if (Number.isNaN(f)) {
@@ -1613,25 +1618,10 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
         // both values are strings
         ret = (_val1 === _val2) ? 0 : ((_val1 > _val2) ? 1 : -1);
     }
-    else if (_val1 === undefined || _val2 === undefined)
+    else if (_val1 === undefined && _val2 === undefined)
     {
-        // either value is undefined
-        ret = (_val1 === _val2) ? 0 : -2;
-    }
-    else if (_val1 instanceof YYRef && _val2 instanceof YYRef)
-    {
-        var v = _val1.type - _val2.type;
-        ret = (v == 0) ? 0 : (v < 0) ? -1 : 1;
-    }
-    else if (_val1 instanceof YYRef && !(_val2 instanceof YYRef))
-    {
-        var v = _val1.value - yyGetReal(_val2);
-        ret = (v == 0) ? 0 : (v < 0) ? -1 : 1;
-    }
-    else if (!(_val1 instanceof YYRef) && _val2 instanceof YYRef)
-    {
-        var v = yyGetReal(_val1) - _val2.value;
-        ret = (v == 0) ? 0 : (v < 0) ? -1 : 1;
+        // both values are undefined
+        ret = 0;
     }
     else if (_val1 instanceof ArrayBuffer && _val2 instanceof ArrayBuffer)
     {
@@ -1694,6 +1684,9 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
             if (_showError)
                 yyError( "illegal array use")
         } // end if
+        else if (_val1  === undefined) {
+            ret = -2;
+        } // end if
 
         // convert val2 into number (if possible)
         if (typeof _val2 == "boolean")
@@ -1720,6 +1713,9 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
         {
             if (_showError)
                 yyError( "illegal array use")
+        } // end if
+        else if (_val2  === undefined) {
+            ret = -2;
         } // end if
 
         if (ret === undefined) {
