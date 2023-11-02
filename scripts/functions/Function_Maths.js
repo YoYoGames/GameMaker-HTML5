@@ -1621,14 +1621,10 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
 
     // Both are YYRefs
     if (compareRefs) {
-        var t1 = _val1.type;
-        var t2 = _val2.type;
-        var t = t1 - t2;
+        var t = _val1.type - _val2.type;
         if (t == 0) {
             // Type match we need to compare the value
-            var v1 = _val1.value;
-            var v2 = _val2.value;
-            var v = v1 - v2;
+            var v = _val1.value; - _val2.value;
             ret = (v < 0) ? -1 : 1;
         } else {
             // Type mismatch don't even know how to compare this we should probably error
