@@ -1612,11 +1612,8 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
         else compareRefs = true;
     }
     else if (_val2 instanceof YYRef) {
-        if (!(_val1 instanceof YYRef)) {
-            _val2 = _val2.value; // Cast the YYRef to it's index
-        }
-        // Both are YYRefs
-        else compareRefs = true;        
+        // At this point we know _val1 is not a YYRef
+        _val2 = _val2.value; // Cast the YYRef to it's index
     }
 
     // Both are YYRefs
