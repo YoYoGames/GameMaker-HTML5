@@ -1602,11 +1602,40 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
     var ret = undefined;
     _showError = (_showError == undefined) ?  true : _showError;
 
-    // A YYRef should be converted into a valid number and compared that way
-    if (_val1 instanceof YYRef) _val1 = (_val1.type << 24) + _val1.value;
-    if (_val2 instanceof YYRef) _val2 = (_val2.type << 24) + _val2.value;
+    // Check if we are comparing YYRefs
+    var compareRefs = false;
+    if (_val1 instanceof YYRef) {
+        if (!(_val2 instanceof YYRef)) {
+            _val1 = _val1.value; // Cast the YYRef to it's index
+        }
+        // Both are YYRefs
+        else compareRefs = true;
+    }
+    else if (_val2 instanceof YYRef) {
+        if (!(_val1 instanceof YYRef)) {
+            _val2 = _val2.value; // Cast the YYRef to it's index
+        }
+        // Both are YYRefs
+        else compareRefs = true;        
+    }
 
-    if ((typeof _val1 == "number") && (typeof _val2 == "number")) {
+    // Both are YYRefs
+    if (compareRefs) {
+        var t1 = _val1.type;
+        var t2 = _val2.type;
+        var t = t1 - t2;
+        if (t == 0) {
+            // Type match we need to compare the value
+            var v1 = _val1.value;
+            var v2 = _val2.value;
+            var v = v1 - v2;
+            ret = (v < 0) ? -1 : 1;
+        } else {
+            // Type mismatch don't even know how to compare this we should probably error
+            ret = (t < 0) ? -1 : 1;
+        }
+    } // end if
+    else if ((typeof _val1 == "number") && (typeof _val2 == "number")) {
         var f = _val1 - _val2;
         if (Number.isNaN(f)) {
             f = (_val1 == _val2) ? 0 : f;
