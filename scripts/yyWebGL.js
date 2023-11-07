@@ -4543,7 +4543,7 @@ function WebGL_shader_get_uniform_RELEASE(_shaderIndex, _constName) {
     _shaderIndex = yyGetInt32(_shaderIndex);
     var shaderProgram = (_shaderIndex == -1) ? WebGL_GetDefaultShader() : g_shaderPrograms[_shaderIndex].program;
     if (shaderProgram) {    
-        return g_webGL.GetUniformIndex(g_shaderPrograms[_shaderIndex].program, yyGetString(_constName));        
+        return g_webGL.GetUniformIndex(shaderProgram, yyGetString(_constName));
     }
     return undefined;
 }
