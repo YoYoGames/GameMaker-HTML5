@@ -185,7 +185,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                         variable_struct_set(param, "type", sourceLayer.effectProperties[effectPropIdx].type);
                         variable_struct_set(param, "name", sourceLayer.effectProperties[effectPropIdx].name);
                         variable_struct_set(param, "value", sourceLayer.effectProperties[effectPropIdx].value);
-                        newLayer.effectParams[effectPropIdx] = param;
+                        effectParams[effectPropIdx] = param;
                     }
                     variable_struct_set(newLayer, "effectParams", effectParams);
                     // @endif
@@ -237,7 +237,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                 variable_struct_set( element, "height", sourceLayer.tMapHeight ? sourceLayer.tMapHeight : 0 );
                                 variable_struct_set( element, "background_index", sourceLayer.tIndex ? sourceLayer.tIndex : 0 );
                                 if (_tilemap_data)
-                                    variable_struct_set( element, "tiles", sourceLayer.ttiles ? sourceLayer.ttiles.slice( 0 ) : [] );
+                                    variable_struct_set( element, "tiles", sourceLayer.ttiles ? expandTiles(sourceLayer.ttiles) : [] );
                                 break;
 
                             case YYLayerType_Asset:
