@@ -157,8 +157,8 @@ function expandTiles( stiles )
 	var r = [];
 	for( var i=0; i<stiles.length;) {
 		var c = stiles[i++];
-		if (c & 0x80) {
-			var b = c & 0x7f;
+		if (c & 0x80000000) {
+			var b = c & 0x7fffffff;
 			++b;
 			var v = stiles[i++];
 			for( var cc=0; cc<b; ++cc) {
@@ -166,7 +166,7 @@ function expandTiles( stiles )
 			} // end for
 		} // end if 
 		else {
-			var b = c & 0x7f;
+			var b = c & 0x7fffffff;
 			for( var cc=0; cc<b; ++cc) {
 				r.push( stiles[i++] );
 			} // end for
