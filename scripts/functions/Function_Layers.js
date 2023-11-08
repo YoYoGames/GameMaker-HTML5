@@ -2000,15 +2000,15 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                     TileLayer.m_backgroundIndex = pLayer.tIndex;
                     TileLayer.m_mapWidth = pLayer.tMapWidth;
                     TileLayer.m_mapHeight = pLayer.tMapHeight;
-                    TileLayer.m_pTiles=[];
+                    TileLayer.m_pTiles=expandTiles(pLayer.ttiles);
 
                     var numtiles =0;
                     if(pLayer.tcount!=undefined) numtiles =pLayer.tcount; 
                     
-                    for(var i=0;i<numtiles;i++)
-                    {
-                    TileLayer.m_pTiles[i]= pLayer.ttiles[i];
-                    }
+                    //for(var i=0;i<numtiles;i++)
+                    //{
+                    //TileLayer.m_pTiles[i]= pLayer.ttiles[i];
+                    //}
                     if(pLayer.pName!=undefined) TileLayer.m_name = pLayer.pName;
             
                     this.AddNewElement(_room,NewLayer,TileLayer,false);
