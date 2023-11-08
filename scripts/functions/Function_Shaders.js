@@ -179,7 +179,9 @@ function shader_current() {
 ///          </summary>
 // #############################################################################################
 function shader_get_uniform(_shaderIndex, _constName) {
-
+    if (_shaderIndex < 0 || _shaderIndex >= g_pGMFile.Shaders.length) {
+        yyError("shader_get_uniform :: Illegal shader handle");
+    }
     return fn_shader_get_uniform(yyGetInt32(_shaderIndex), yyGetString(_constName));
 }
 
