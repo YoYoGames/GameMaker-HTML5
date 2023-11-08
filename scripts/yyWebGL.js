@@ -217,34 +217,38 @@ function InitWebGLFunctions() {
     compile_if_used(sprite_set_alpha_from_sprite, CopyImageToAlpha = WEBGL_CopyImageToAlpha_RELEASE);
 	
     // Shaders		
-    compile_if_used(texture_get_texel_width, fn_texture_get_texel_width = WebGL_texture_get_texel_width_RELEASE);
-    compile_if_used(texture_get_texel_height, fn_texture_get_texel_height = WebGL_texture_get_texel_height_RELEASE);
-    compile_if_used(texture_set_stage, fn_texture_set_stage = WebGL_texture_set_stage_RELEASE);
-    compile_if_used(shader_is_compiled, fn_shader_is_compiled = WebGL_shader_is_compiled_RELEASE);
     fn_shader_set = WebGL_shader_set_RELEASE;
-    compile_if_used(shader_get_uniform, fn_shader_get_uniform = WebGL_shader_get_uniform_RELEASE);
-    compile_if_used(shader_set_uniform_i, fn_shader_set_uniform_i = WebGL_shader_set_uniform_i_RELEASE);
-    compile_if_used(shader_set_uniform_f, fn_shader_set_uniform_f = WebGL_shader_set_uniform_f_RELEASE);
-    compile_if_used(shader_set_uniform_matrix, fn_shader_set_uniform_matrix = WebGL_shader_set_uniform_matrix_RELEASE);
-    compile_if_used(shader_get_sampler_index, fn_shader_get_sampler_index = WebGL_shader_get_sampler_index_RELEASE);
-    compile_if_used(shader_enable_corner_id, fn_shader_enable_corner_id = WebGL_shader_enable_corner_id_RELEASE);
-    compile_if_used(shader_set_uniform_i_array, fn_shader_set_uniform_i_array = WebGL_shader_set_uniform_i_array_RELEASE);
-    compile_if_used(shader_set_uniform_f_array, fn_shader_set_uniform_f_array = WebGL_shader_set_uniform_f_array_RELEASE);
-    compile_if_used(shader_set_uniform_f_buffer, fn_shader_set_uniform_f_buffer = WebGL_shader_set_uniform_f_buffer_RELEASE);
-    compile_if_used(shader_set_uniform_matrix_array, fn_shader_set_uniform_matrix_array = WebGL_shader_set_uniform_matrix_array_RELEASE);
-    compile_if_used(shaders_are_supported = WebGL_shaders_are_supported_RELEASE);
-    compile_if_used(shader_get_name, fn_shader_get_name = WebGL_shader_get_name_RELEASE);
+    // @if feature("shaders")
+    fn_texture_get_texel_width = WebGL_texture_get_texel_width_RELEASE;
+    fn_texture_get_texel_height = WebGL_texture_get_texel_height_RELEASE;
+    fn_texture_set_stage = WebGL_texture_set_stage_RELEASE;
+    fn_shader_is_compiled = WebGL_shader_is_compiled_RELEASE;
+    fn_shader_get_uniform = WebGL_shader_get_uniform_RELEASE;
+    fn_shader_set_uniform_i = WebGL_shader_set_uniform_i_RELEASE;
+    fn_shader_set_uniform_f = WebGL_shader_set_uniform_f_RELEASE;
+    fn_shader_set_uniform_matrix = WebGL_shader_set_uniform_matrix_RELEASE;
+    fn_shader_get_sampler_index = WebGL_shader_get_sampler_index_RELEASE;
+    fn_shader_enable_corner_id = WebGL_shader_enable_corner_id_RELEASE;
+    fn_shader_set_uniform_i_array = WebGL_shader_set_uniform_i_array_RELEASE;
+    fn_shader_set_uniform_f_array = WebGL_shader_set_uniform_f_array_RELEASE;
+    fn_shader_set_uniform_f_buffer = WebGL_shader_set_uniform_f_buffer_RELEASE;
+    fn_shader_set_uniform_matrix_array = WebGL_shader_set_uniform_matrix_array_RELEASE;
+    WebGL_shaders_are_supported_RELEASE;
+    fn_shader_get_name = WebGL_shader_get_name_RELEASE;
+    // @endif
     
     // textures
-    compile_if_used(texture_set_blending = WebGL_texture_set_blending_RELEASE);
-    compile_if_used(texture_set_repeat = WebGL_texture_set_repeat_RELEASE);
-    compile_if_used(texture_set_repeat_ext = WebGL_texture_set_repeat_ext_RELEASE);
-    compile_if_used(texture_set_interpolation = WebGL_texture_set_interpolation_RELEASE);
-    compile_if_used(texture_set_interpolation_ext = WebGL_texture_set_interpolation_ext_RELEASE);
-    compile_if_used(texture_get_repeat = WebGL_texture_get_repeat_RELEASE);
-    compile_if_used(texture_get_width = WebGL_texture_get_width_RELEASE);
-    compile_if_used(texture_get_height = WebGL_texture_get_height_RELEASE);
-    compile_if_used(texture_get_uvs = WebGL_texture_get_uvs_RELEASE);
+    // @if feature("shaders") || function("texture_*")
+    texture_set_blending = WebGL_texture_set_blending_RELEASE;
+    texture_set_repeat = WebGL_texture_set_repeat_RELEASE;
+    texture_set_repeat_ext = WebGL_texture_set_repeat_ext_RELEASE;
+    texture_set_interpolation = WebGL_texture_set_interpolation_RELEASE;
+    texture_set_interpolation_ext = WebGL_texture_set_interpolation_ext_RELEASE;
+    texture_get_repeat = WebGL_texture_get_repeat_RELEASE;
+    texture_get_width = WebGL_texture_get_width_RELEASE;
+    texture_get_height = WebGL_texture_get_height_RELEASE;
+    texture_get_uvs = WebGL_texture_get_uvs_RELEASE;
+    // @endif
 
     // alpha test    
     compile_if_used(draw_set_alpha_test = WebGL_draw_set_alpha_test_RELEASE);
@@ -4539,7 +4543,7 @@ function WebGL_shader_get_uniform_RELEASE(_shaderIndex, _constName) {
     _shaderIndex = yyGetInt32(_shaderIndex);
     var shaderProgram = (_shaderIndex == -1) ? WebGL_GetDefaultShader() : g_shaderPrograms[_shaderIndex].program;
     if (shaderProgram) {    
-        return g_webGL.GetUniformIndex(g_shaderPrograms[_shaderIndex].program, yyGetString(_constName));        
+        return g_webGL.GetUniformIndex(shaderProgram, yyGetString(_constName));
     }
     return undefined;
 }

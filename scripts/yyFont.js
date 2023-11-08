@@ -1473,13 +1473,13 @@ yyFontManager.prototype.Start_Rendering_SDF = function(_pFont, _shadowPass, _pEf
 		}
 
 		var SDFshader = this.SDF_State.SDFShaders[shadertype];
-		if ((this.SDF_State.SDFShader == -1) || (!WebGL_shader_is_compiled_RELEASE(this.SDF_State.SDFShader)))
+		if ((SDFshader == -1) || (!WebGL_shader_is_compiled_RELEASE(SDFshader)))
 			return;							// our SDF shader either doesn't exist or hasn't been compiled
 
 		if (this.SDF_State.usingSDFShader != FONTSDFSHADER_DISABLED)
 			return;							// already enabled (these calls can't be nested) 
 
-		WebGL_shader_set_RELEASE(this.SDF_State.SDFShader);
+		WebGL_shader_set_RELEASE(SDFshader);
 
 		if (shadertype == FONTSDFSHADER_EFFECT)
 		{

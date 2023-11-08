@@ -1601,7 +1601,34 @@ var g_NumberRE = new RegExp(
 function yyCompareVal(_val1, _val2, _prec, _showError) {
     var ret = undefined;
     _showError = (_showError == undefined) ?  true : _showError;
-    if ((typeof _val1 == "number") && (typeof _val2 == "number")) {
+
+    // Check if we are comparing YYRefs
+    var compareRefs = false;
+    if (_val1 instanceof YYRef) {
+        if (!(_val2 instanceof YYRef)) {
+            _val1 = _val1.value; // Cast the YYRef to it's index
+        }
+        // Both are YYRefs
+        else compareRefs = true;
+    }
+    else if (_val2 instanceof YYRef) {
+        // At this point we know _val1 is not a YYRef
+        _val2 = _val2.value; // Cast the YYRef to it's index
+    }
+
+    // Both are YYRefs
+    if (compareRefs) {
+        var t = _val1.type - _val2.type;
+        if (t == 0) {
+            // Type match we need to compare the value
+            var v = _val1.value - _val2.value;
+            ret = (v == 0) ? 0 : (v < 0) ? -1 : 1;
+        } else {
+            // Type mismatch don't even know how to compare this we should probably error
+            ret = (t < 0) ? -1 : 1;
+        }
+    } // end if
+    else if ((typeof _val1 == "number") && (typeof _val2 == "number")) {
         var f = _val1 - _val2;
         if (Number.isNaN(f)) {
             f = (_val1 == _val2) ? 0 : f;
@@ -1617,21 +1644,6 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
     {
         // both values are undefined
         ret = 0;
-    }
-    else if (_val1 instanceof YYRef && _val2 instanceof YYRef)
-    {
-        var v = _val1.type - _val2.type;
-        ret = (v == 0) ? 0 : (v < 0) ? -1 : 1;
-    }
-    else if (_val1 instanceof YYRef && !(_val2 instanceof YYRef))
-    {
-        var v = _val1.value - yyGetReal(_val2);
-        ret = (v == 0) ? 0 : (v < 0) ? -1 : 1;
-    }
-    else if (!(_val1 instanceof YYRef) && _val2 instanceof YYRef)
-    {
-        var v = yyGetReal(_val1) - _val2.value;
-        ret = (v == 0) ? 0 : (v < 0) ? -1 : 1;
     }
     else if (_val1 instanceof ArrayBuffer && _val2 instanceof ArrayBuffer)
     {
