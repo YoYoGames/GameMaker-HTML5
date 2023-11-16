@@ -251,8 +251,8 @@ function InitWebGLFunctions() {
     // @endif
 
     // alpha test    
-    compile_if_used(draw_set_alpha_test = WebGL_draw_set_alpha_test_RELEASE);
-    compile_if_used(draw_set_alpha_test_ref_value = WebGL_draw_set_alpha_test_ref_value_RELEASE);
+    draw_set_alpha_test = WebGL_draw_set_alpha_test_RELEASE;
+    draw_set_alpha_test_ref_value = WebGL_draw_set_alpha_test_ref_value_RELEASE;
     compile_if_used(draw_get_alpha_test = WebGL_draw_get_alpha_test_RELEASE);
     compile_if_used(draw_get_alpha_test_ref_value = WebGL_draw_get_alpha_test_ref_value_RELEASE);
 
