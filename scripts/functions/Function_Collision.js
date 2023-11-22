@@ -73,7 +73,7 @@ function collision_point(_pInst, _x,_y,_obj,_prec,_notme)
 			{
 				return _obj;
 			}
-			return -1;
+			return OBJECT_NOONE;
 		}
 		else
 		{
@@ -100,7 +100,7 @@ function collision_point(_pInst, _x,_y,_obj,_prec,_notme)
 					return id;
 			}
 		}
-		return -1;
+		return OBJECT_NOONE;
 	}
 	else
 	{
@@ -268,7 +268,7 @@ function collision_rectangle(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 			{
 				return _obj;
 			}
-			return -1;
+			return OBJECT_NOONE;
 		}
 		else
 		{
@@ -297,7 +297,7 @@ function collision_rectangle(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 					return id;
 			}
 		}
-		return -1;
+		return OBJECT_NOONE;
 	}
 	else
 	{
@@ -499,7 +499,7 @@ function collision_ellipse(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 			{
 				return _obj;
 			}
-			return -1;
+			return OBJECT_NOONE;
 		}
 		else
 		{
@@ -528,7 +528,7 @@ function collision_ellipse(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 					return id;
 			}
 		}
-		return -1;
+		return OBJECT_NOONE;
 	}
 	else
 	{
@@ -654,7 +654,7 @@ function collision_line(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 			{
 				return _obj;
 			}
-			return -1;
+			return OBJECT_NOONE;
 		}
 		else
 		{
@@ -683,7 +683,7 @@ function collision_line(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 					return id;
 			}
 		}
-		return -1;
+		return OBJECT_NOONE;
 	}
 	else
 	{
