@@ -3741,6 +3741,7 @@ yyRoom.prototype.PostDraw = function (r) {
     {
 	    Graphics_SetViewPort(0, 0, r.right, r.bottom);
 	    Graphics_SetViewArea(0, 0, r.right, r.bottom, 0);
+		UpdateDefaultCamera(0, 0, r.right, r.bottom, 0);
 	    this.ExecuteDrawEvent(r, EVENT_DRAW_POST);
 	}
 	Graphics_Restore();
