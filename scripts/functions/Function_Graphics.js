@@ -1786,6 +1786,7 @@ function skeleton_animation_set(_inst, _name, _loop = true) {
 	{		
 		skeletonAnim.SelectAnimation(yyGetString(_name), _loop);
 		_inst.image_index = 0;
+		_inst.frame_overflow = 0;
 		skeletonAnim.SetImageIndex(0, 0);
     }    
 }
@@ -1819,6 +1820,7 @@ function skeleton_animation_set_ext(_inst, _anim, _track, _loop = true) {
         if (_track == 0)
         {
             _inst.image_index = 0;
+            _inst.frame_overflow = 0;
             skeletonAnim.SetImageIndex(0, 0);
         }
 	}

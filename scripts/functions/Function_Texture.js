@@ -36,7 +36,10 @@ function draw_self( _inst )
     	var spr = g_pSpriteManager.Get(index);
     	if( spr != null ){
     	    //spr.Draw( Math.floor(_inst.image_index ),
-    	    spr.Draw(_inst.image_index,
+    	    var image_index = _inst.image_index + _inst.frame_overflow;
+    	    _inst.frame_overflow = 0;
+
+    	    spr.Draw(image_index,
 				_inst.x,_inst.y,_inst.image_xscale, _inst.image_yscale,
 				_inst.image_angle, _inst.image_blend, _inst.image_alpha);
     	}
