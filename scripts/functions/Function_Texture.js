@@ -36,7 +36,10 @@ function draw_self( _inst )
     	var spr = g_pSpriteManager.Get(index);
     	if( spr != null ){
     	    //spr.Draw( Math.floor(_inst.image_index ),
-    	    spr.Draw(_inst.image_index,
+    	    var image_index = _inst.image_index + _inst.frame_overflow;
+    	    _inst.frame_overflow = 0;
+
+    	    spr.Draw(image_index,
 				_inst.x,_inst.y,_inst.image_xscale, _inst.image_yscale,
 				_inst.image_angle, _inst.image_blend, _inst.image_alpha);
     	}
@@ -120,11 +123,12 @@ function draw_sprite_stretched(_pInst, _sprite, _sub_index, _x, _y, _w,_h)
 	    _sub_index = (~ ~_sub_index) % pSpr.numb;
 	    if (_sub_index < 0) _sub_index = _sub_index + pSpr.numb;	
 		
-	    if ((pSpr.nineslicedata != null) && (pSpr.nineslicedata.enabled == true))
+	    // @if feature("nineslice")
+		if ((pSpr.nineslicedata != null) && (pSpr.nineslicedata.enabled == true))
 	    {
 	        pSpr.nineslicedata.Draw(yyGetReal(_x), yyGetReal(_y), yyGetReal(_w), yyGetReal(_h), 0, 0xffffff, g_GlobalAlpha, _sub_index, pSpr, true);
-	    }
-	    else
+	    } else // ->
+		// @endif
 	    {
 	        Graphics_DrawStretchedExt(pSpr.ppTPE[_sub_index], yyGetReal(_x), yyGetReal(_y), yyGetReal(_w), yyGetReal(_h), 0xffffff, g_GlobalAlpha);
 	    }
@@ -160,11 +164,12 @@ function    draw_sprite_stretched_ext( _pInst, _sprite, _sub_index, _x,_y, _w, _
 	    _sub_index = (~ ~_sub_index) % pSpr.numb;
 	    if (_sub_index < 0) _sub_index = _sub_index + pSpr.numb;	
 		
-	    if ((pSpr.nineslicedata != null) && (pSpr.nineslicedata.enabled == true))
+	    // @if feature("nineslice")
+		if ((pSpr.nineslicedata != null) && (pSpr.nineslicedata.enabled == true))
 	    {
 	        pSpr.nineslicedata.Draw(yyGetReal(_x), yyGetReal(_y), yyGetReal(_w), yyGetReal(_h), 0, ConvertGMColour(yyGetInt32(_colour)), yyGetReal(_alpha), _sub_index, pSpr, true);
-	    }
-	    else
+	    } else // ->
+		// @endif
 	    {
 	        Graphics_DrawStretchedExt(pSpr.ppTPE[_sub_index], yyGetReal(_x), yyGetReal(_y), yyGetReal(_w), yyGetReal(_h), ConvertGMColour(yyGetInt32(_colour)), yyGetReal(_alpha));
 	    }

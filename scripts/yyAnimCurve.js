@@ -15,6 +15,7 @@
 // 
 // **********************************************************************************************************************
 
+// @if feature("animcurves")
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new AnimCurvePoint object
@@ -790,6 +791,27 @@ yyAnimCurveManager.prototype.Find = function (_name) {
     return -1;
 };
 
+// #############################################################################################
+/// Function:<summary>
+///             Retrieves an array of all animation curve asset IDs.
+///          </summary>
+///
+/// Out:	 <returns>
+///				An array of all animation curve asset IDs.
+///			 </returns>
+// #############################################################################################
+yyAnimCurveManager.prototype.List = function () {
+	var ids = [];
+	for (var i = 0; i < this.AnimCurves.length; ++i)
+	{
+		if (this.AnimCurves[i])
+		{
+			ids.push(i);
+		}
+	}
+	return ids;
+};
+
 //returns: true if animcurve with give id exists
 function _animcurve_exists(_index)
 {
@@ -807,3 +829,4 @@ function animcurve_get_name( _index )
         return pCurve.pName;
     return "";
 }
+// @endif

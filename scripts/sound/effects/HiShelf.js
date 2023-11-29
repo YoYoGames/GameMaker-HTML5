@@ -1,3 +1,4 @@
+// @if feature("audio_effects")
 function HiShelfEffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.HiShelf);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
@@ -63,3 +64,4 @@ HiShelfEffectStruct.paramDescriptors = () => ({
         return this.__freq;
     } 
 });
+// @endif

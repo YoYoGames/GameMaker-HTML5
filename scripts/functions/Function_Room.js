@@ -59,6 +59,301 @@ function room_get_name(_ind)
 function room_name(_ind){ return room_get_name(_ind); }
 
 
+function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tilemap_data)
+{
+    var pRoom = g_pRoomManager.Get(yyGetInt32(_ind));
+    var ret = {};
+    ret.__yyIsGMLObject = true;
+    if ((pRoom !== null) && (pRoom.m_pStorage !== undefined) && (pRoom.m_pStorage !== null)) {
+
+        _views = _views ?? true;
+        _instances = _instances ?? true;
+        _layers = _layers ?? true;
+        _layer_elements = _layer_elements ?? true;
+        _tilemap_data = _tilemap_data ?? true;
+
+        var pStorage = pRoom.m_pStorage;
+        variable_struct_set(ret, "width", pStorage.width ? pStorage.width : 1024);
+        variable_struct_set(ret, "height", pStorage.height ? pStorage.height : 768);
+        variable_struct_set(ret, "persistent", pStorage.persistent ? pStorage.persistent : false);
+        variable_struct_set(ret, "colour", pStorage.colour ? pStorage.colour : 0xc0c0c0);
+        variable_struct_set(ret, "creationCode", pStorage.pCode ? pStorage.pCode : -1);
+        // Physics world
+        // @if feature("physics")
+        variable_struct_set(ret, "physicsWorld", pStorage.physicsWorld ? pStorage.physicsWorld : false);
+        if (pStorage.physicsWorld) {
+            variable_struct_set(ret, "physicsGravityX", pStorage.physicsGravityX ? pStorage.physicsGravityX : 0);
+            variable_struct_set(ret, "physicsGravityY", pStorage.physicsGravityY ? pStorage.physicsGravityY : 0);
+            variable_struct_set(ret, "physicsPixToMeters", pStorage.physicsPixToMeters ? pStorage.physicsPixToMeters : 0);
+        } // end if
+        // @endif physics world storage clone        
+        variable_struct_set(ret, "enableViews", pStorage.enableViews ? pStorage.enableViews : false);
+        variable_struct_set(ret, "clearDisplayBuffer", pStorage.clearDisplayBuffer ? pStorage.clearDisplayBuffer : true);
+        variable_struct_set(ret, "clearViewportBackground", pStorage.clearViewportBackground ? pStorage.clearViewportBackground : true);
+        if (_views) {
+            var views = new Array(pStorage.views.length);
+            for (var i = 0; i < pStorage.views.length; i++) 
+            {        
+                var sourceView = pStorage.views[i];
+                if (sourceView) 
+                {
+                    var v = {};
+                    v.__yyIsGMLObject = true;
+                    variable_struct_set(v, "visible", sourceView.visible ? sourceView.visible : false);
+                    variable_struct_set(v, "xview", sourceView.xview ? sourceView.xview : 0);
+                    variable_struct_set(v, "yview", sourceView.yview ? sourceView.yview : 0);
+                    variable_struct_set(v, "wview", sourceView.wview ? sourceView.wview : 640);
+                    variable_struct_set(v, "hview", sourceView.hview ? sourceView.hview : 480);
+                    variable_struct_set(v, "xport", sourceView.xport ? sourceView.xport : 0);
+                    variable_struct_set(v, "yport", sourceView.yport ? sourceView.yport : 0);
+                    variable_struct_set(v, "wport", sourceView.wport ? sourceView.wport : 640);
+                    variable_struct_set(v, "hport", sourceView.hport ? sourceView.hport : 480);
+                    variable_struct_set(v, "hborder", sourceView.hborder ? sourceView.hborder : 32);
+                    variable_struct_set(v, "vborder", sourceView.vborder ? sourceView.vborder : 32);
+                    variable_struct_set(v, "hspeed", sourceView.hspeed ? sourceView.hspeed : -1);
+                    variable_struct_set(v, "vspeed", sourceView.vspeed ? sourceView.vspeed : -1);
+                    variable_struct_set(v, "object", sourceView.index ? sourceView.index : -1);
+                    variable_struct_set(v, "cameraID", sourceView.cameraID ? sourceView.cameraID : -1);
+                    views[i] = v;
+                } // end if            
+            } // end for        
+            variable_struct_set(ret, "views", views);
+        } // end if       
+
+        if (_instances) {
+            // Instances
+            var instances = new Array(pStorage.pInstances.length);
+            for (var i = 0; i < pStorage.pInstances.length; i++) 
+            {
+                var sourceInstance = pStorage.pInstances[i];
+                if (sourceInstance) 
+                {
+                    var pObj = g_pObjectManager.Get(yyGetInt32(_ind));
+                    var inst = {};
+                    inst.__yyIsGMLObject = true;
+                    variable_struct_set(inst, "x", sourceInstance.x ? sourceInstance.x : 0);
+                    variable_struct_set(inst, "y", sourceInstance.y ? sourceInstance.y : 0);
+                    variable_struct_set(inst, "object_index", pObj.Name);
+                    variable_struct_set(inst, "id", sourceInstance.id);
+                    variable_struct_set(inst, "angle", sourceInstance.angle ? sourceInstance.angle : 0);
+                    variable_struct_set(inst, "scaleX", sourceInstance.scaleX ? sourceInstance.scaleX : 1);
+                    variable_struct_set(inst, "scaleY", sourceInstance.scaleY ? sourceInstance.scaleY : 1);
+                    variable_struct_set(inst, "image_speed", sourceInstance.imageSpeed ? sourceInstance.imageSpeed : 1);
+                    variable_struct_set(inst, "image_index", sourceInstance.imageIndex ? sourceInstance.imageIndex : 0);
+                    variable_struct_set(inst, "colour", sourceInstance.image_blend ? sourceInstance.image_blend : 0x00ffffff);
+                    variable_struct_set(inst, "creation_code", sourceInstance.pCode ? sourceInstance.pCode : -1);
+                    variable_struct_set(inst, "pre_creation_code", sourceInstance.pPreCreateCode ? sourceInstance.pPreCreateCode : -1);
+                    instances[i] = inst;
+                } // end if
+            } // end for     
+            variable_struct_set(ret, "instances", instances);
+
+        } // end if   
+
+        if (_layers) {
+            // Layers
+            var layers = new Array( pStorage.layers.length );
+            for ( var i = 0; i < pStorage.layers.length; i++ )
+            {
+                var sourceLayer = pStorage.layers[i];
+                if ( sourceLayer != null )
+                {
+                    // Shared properties
+                    var newLayer = {};
+                    newLayer.__yyIsGMLObject = true;
+                    variable_struct_set(newLayer, "name", sourceLayer.pName ? sourceLayer.pName : "");
+                    variable_struct_set(newLayer, "id", sourceLayer.id ? sourceLayer.id : 0);
+                    variable_struct_set(newLayer, "type", sourceLayer.type ? sourceLayer.type : 0);
+                    variable_struct_set(newLayer, "depth", sourceLayer.depth ? sourceLayer.depth : 0);
+                    variable_struct_set(newLayer, "xoffset", sourceLayer.x ? sourceLayer.x : 0);
+                    variable_struct_set(newLayer, "yoffset", sourceLayer.y ? sourceLayer.y : 0);
+                    variable_struct_set(newLayer, "hspeed", sourceLayer.hspeed ? sourceLayer.hspeed : 0);
+                    variable_struct_set(newLayer, "vspeed", sourceLayer.vspeed ? sourceLayer.vspeed : 0);
+                    variable_struct_set(newLayer, "visible", sourceLayer.visible ? sourceLayer.visible : true);
+                    variable_struct_set(newLayer, "effectEnabled", sourceLayer.effectEnabled ? sourceLayer.effectEnabled : true);
+                    variable_struct_set(newLayer, "effectType", sourceLayer.effectType ? sourceLayer.effectType : -1);
+
+                    // Copy effect properties
+                    // @if feature("layerEffects")
+                    effectParams = new Array( sourceLayer.effectProperties.length );
+
+                    var effectPropIdx;
+                    for (effectPropIdx = 0; effectPropIdx < sourceLayer.effectProperties.length; effectPropIdx++) 
+                    {
+                        var param = {};
+                        param.__yyIsGMLObject = true;
+                        variable_struct_set(param, "type", sourceLayer.effectProperties[effectPropIdx].type);
+                        variable_struct_set(param, "name", sourceLayer.effectProperties[effectPropIdx].name);
+                        variable_struct_set(param, "value", sourceLayer.effectProperties[effectPropIdx].value);
+                        effectParams[effectPropIdx] = param;
+                    }
+                    variable_struct_set(newLayer, "effectParams", effectParams);
+                    // @endif
+                    // Store cloned layer
+                    layers[i] = newLayer;
+
+                    if (_layer_elements) {
+                        var elements = [];
+                        // Type-specific properties
+                        switch(sourceLayer.type)
+                        {
+                            case YYLayerType_Background:
+                                var element = {};
+                                element.__yyIsGMLObject = true;
+                                variable_struct_set( element, "type", sourceLayer.type );
+                                elements[0] = element;
+                                variable_struct_set( element, "visible", sourceLayer.bvisible ? sourceLayer.bvisible : true );
+                                variable_struct_set( element, "foreground", sourceLayer.bforeground ?  sourceLayer.bforeground : false);
+                                variable_struct_set( element, "sprite_index", sourceLayer.bindex ? sourceLayer.bindex : 0 );
+                                variable_struct_set( element, "htiled", sourceLayer.bhtiled ? sourceLayer.bhtiled : false );
+                                variable_struct_set( element, "vtiled", sourceLayer.bvtiled ? sourceLayer.bvtiled : false );
+                                variable_struct_set( element, "stretch", sourceLayer.bstretch ?  sourceLayer.bstretch : false);
+                                variable_struct_set( element, "blendColour", sourceLayer.bblend ? sourceLayer.bblend & 0xffffff : 0x00ffffff);
+                                variable_struct_set( element, "blendAlpha", sourceLayer.bblend ? (((sourceLayer.bblend & 0xff000000)>>24)&0xff)/255 : 1);
+                                variable_struct_set( element, "image_speed", sourceLayer.bimage_speed ?  sourceLayer.bimage_speed : 1);
+                                variable_struct_set( element, "image_index", sourceLayer.bimage_index ? sourceLayer.bimage_index : 0 );
+                                variable_struct_set( element, "speed_type", sourceLayer.playbackspeedtype ? sourceLayer.playbackspeedtype : 0 );
+                                break;
+
+                            case YYLayerType_Instance:
+                                elements = new Array( sourceLayer.iinstIDs.length );
+                                for( var ii=0; ii < sourceLayer.iinstIDs.length; ++ii) {
+                                    var element = {};
+                                    element.__yyIsGMLObject = true;
+                                    variable_struct_set( element, "type", sourceLayer.type );
+                                    variable_struct_set( element, "inst_id", sourceLayer.iinstIDs[ii] );
+                                    elements[ii] = element;
+                                } // end for
+                                break;
+
+                            case YYLayerType_Tile:
+                                var element = {};
+                                element.__yyIsGMLObject = true;
+                                variable_struct_set( element, "type", sourceLayer.type );
+                                elements[0] = element;
+                                variable_struct_set( element, "x", 0 );
+                                variable_struct_set( element, "y", 0 );
+                                variable_struct_set( element, "width", sourceLayer.tMapWidth ? sourceLayer.tMapWidth : 0 );
+                                variable_struct_set( element, "height", sourceLayer.tMapHeight ? sourceLayer.tMapHeight : 0 );
+                                variable_struct_set( element, "background_index", sourceLayer.tIndex ? sourceLayer.tIndex : 0 );
+                                if (_tilemap_data)
+                                    variable_struct_set( element, "tiles", sourceLayer.ttiles ? expandTiles(sourceLayer.ttiles) : [] );
+                                break;
+
+                            case YYLayerType_Asset:
+                                var assetIdx;
+
+                                // Assets/tiles
+                                for (assetIdx = 0; assetIdx < sourceLayer.assets.length; assetIdx++) 
+                                {
+                                    var element = {};
+                                    element.__yyIsGMLObject = true;
+                                    variable_struct_set( element, "type", 7 );
+                                    variable_struct_set( element, "x", sourceLayer.assets[assetIdx].ax);
+                                    variable_struct_set( element, "y", sourceLayer.assets[assetIdx].ay);
+                                    variable_struct_set( element, "sprite_index", sourceLayer.assets[assetIdx].aindex);
+                                    variable_struct_set( element, "xo", sourceLayer.assets[assetIdx].aXO);
+                                    variable_struct_set( element, "yo", sourceLayer.assets[assetIdx].aYO);
+                                    variable_struct_set( element, "width", sourceLayer.assets[assetIdx].aW);
+                                    variable_struct_set( element, "height", sourceLayer.assets[assetIdx].aH);
+                                    variable_struct_set( element, "id", sourceLayer.assets[assetIdx].aId);
+                                    variable_struct_set( element, "image_xscale", sourceLayer.assets[assetIdx].aXScale);
+                                    variable_struct_set( element, "image_yscale", sourceLayer.assets[assetIdx].aYScale);
+                                    variable_struct_set( element, "image_blend", sourceLayer.assets[assetIdx].aBlend & 0x00ffffff );
+                                    variable_struct_set( element, "image_alpha", (((sourceLayer.assets[assetIdx].aBlend & 0xff000000) >> 24)&0xff)/255);
+                                    variable_struct_set( element, "visible", true );
+                                    elements.push(element);
+                                } // end for
+
+                                // Sprites
+                                for ( assetIdx = 0; assetIdx < sourceLayer.sprites.length; assetIdx++ )
+                                {
+                                    var element = {};
+                                    element.__yyIsGMLObject = true;
+                                    variable_struct_set( element, "type", 4 );
+                                    variable_struct_set( element, "id", sourceLayer.sprites[assetIdx].sName);
+                                    variable_struct_set( element, "sprite_index", sourceLayer.sprites[assetIdx].sIndex);
+                                    variable_struct_set( element, "x", sourceLayer.sprites[assetIdx].sX);
+                                    variable_struct_set( element, "y", sourceLayer.sprites[assetIdx].sY);
+                                    variable_struct_set( element, "image_xscale", sourceLayer.sprites[assetIdx].sXScale);
+                                    variable_struct_set( element, "image_yscale", sourceLayer.sprites[assetIdx].sYScale);
+                                    variable_struct_set( element, "image_blend", sourceLayer.sprites[assetIdx].sBlend & 0x00ffffff );
+                                    variable_struct_set( element, "image_alpha", (((sourceLayer.sprites[assetIdx].sBlend & 0xff000000) >>24)&0xff)/255);
+                                    variable_struct_set( element, "speed_type", sourceLayer.sprites[assetIdx].sPlaybackSpeedType);
+                                    variable_struct_set( element, "image_speed", sourceLayer.sprites[assetIdx].sImageSpeed);
+                                    variable_struct_set( element, "image_index", sourceLayer.sprites[assetIdx].sImageIndex);
+                                    variable_struct_set( element, "image_angle", sourceLayer.sprites[assetIdx].sRotation);
+                                    elements.push(element);
+                                } // end for
+
+                                // Sequences
+                                for (assetIdx = 0; assetIdx < sourceLayer.sequences.length; assetIdx++)
+                                {
+                                    var element = {};
+                                    element.__yyIsGMLObject = true;
+                                    variable_struct_set( element, "type", 8 );
+                                    variable_struct_set( element, "id", sourceLayer.sequences[assetIdx].sName);
+                                    variable_struct_set( element, "seq_id", sourceLayer.sequences[assetIdx].sIndex);
+                                    variable_struct_set( element, "x", sourceLayer.sequences[assetIdx].sX);
+                                    variable_struct_set( element, "y", sourceLayer.sequences[assetIdx].sY);
+                                    variable_struct_set( element, "image_xscale", sourceLayer.sequences[assetIdx].sXScale);
+                                    variable_struct_set( element, "image_yscale", sourceLayer.sequences[assetIdx].sYScale);
+                                    variable_struct_set( element, "image_blend", sourceLayer.sequences[assetIdx].sBlend & 0x00ffffff );
+                                    variable_struct_set( element, "image_alpha", (((sourceLayer.sequences[assetIdx].sBlend & 0xff000000)>>24)&0xff)/255);
+                                    variable_struct_set( element, "speed_type", sourceLayer.sequences[assetIdx].sPlaybackSpeedType);
+                                    variable_struct_set( element, "image_speed", sourceLayer.sequences[assetIdx].sImageSpeed);
+                                    variable_struct_set( element, "head_position", sourceLayer.sequences[assetIdx].sHeadPosition);
+                                    variable_struct_set( element, "angle", sourceLayer.sequences[assetIdx].sRotation);
+                                    elements.push(element);
+                                } // end for
+
+                                for (assetIdx = 0; i < sourceLayer.particles.length; assetIdx++)
+                                {
+                                    var srcParticle = sourceLayer.particles[assetIdx];
+                                    var element = {};
+                                    element.__yyIsGMLObject = true;
+                                    variable_struct_set( element, "type", 6 );
+                                    variable_struct_set( element, "id", srcParticle.sName );
+                                    variable_struct_set( element, "ps", srcParticle.sIndex );
+                                    variable_struct_set( element, "x", srcParticle.sX);
+                                    variable_struct_set( element, "y", srcParticle.sY);
+                                    variable_struct_set( element, "xscale", srcParticle.sXScale);
+                                    variable_struct_set( element, "yscale", srcParticle.sYScale);
+                                    variable_struct_set( element, "blend", srcParticle.sBlend & 0x00ffffff);
+                                    variable_struct_set( element, "alpha", (((srcParticle.sBlend & 0xff000000)>>24)&0xff)/255);
+                                    variable_struct_set( element, "angle", srcParticle.sRotation);
+                                    elements.push(element);
+                                } // end for
+                                break;
+                            case YYLayerType_Effect:
+                                //newLayer.effectInfo = sourceLayer.m_pInitialEffectInfo;
+                                //variable_struct_set(newLayer, "effectType", sourceLayer.effectType ? sourceLayer.effectType : -1);
+                                //var effectInfo = {}
+                                //effectInfo.__yyIsGMLObject = true;
+                                //variable_struct_set( effectInfo, "name", sourceLayer.m_pInitialEffectInfo.pName);
+                                //variable_struct_set( effectInfo, "singleLayerOnly", sourceLayer.m_pInitialEffectInfo.bAffectsSingleLayerOnly);
+                                //var effectParams = new Array( sourceLayer.m_pInitialEffectInfo.pParams.length );
+                                //for( var pp=0; pp<sourceLayer.m_pInitialEffectInfo.pParams.length; ++pp) {
+                                //    var p = sourceLayer.m_pInitialEffectInfo.pParams[pp];
+                                //    var param = {};
+                                //    param.__yyIsGMLObject = true;
+                                //    variable_struct_set( param, "singleLayerOnly", sourceLayer.m_pInitialEffectInfo.bAffectsSingleLayerOnly);
+                                //    effectParams[pp] = param;
+                                //} // end for
+                                //variable_struct_set( newLayer, "effectInfo", effectInfo);
+                                break;
+                        } // end switch
+                        variable_struct_set(newLayer, "elements", elements);
+                    } // end if
+                } // end if
+            } // end for
+            variable_struct_set(ret, "layers", layers);
+        } // end if
+    } // end if
+    return ret;
+}
+
+
 // #############################################################################################
 /// Function:<summary>
 ///             Sets the width for the room with the indicated index.
@@ -139,7 +434,9 @@ function room_set_background_color(_ind,_colour,_show)
     pRoom.m_pStorage.showColour = yyGetBool(_show);
 
 }
+// @if function("room_set_background_colour")
 var room_set_background_colour = room_set_background_color;
+// @endif
 
 
 

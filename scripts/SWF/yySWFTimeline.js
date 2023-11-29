@@ -10,6 +10,7 @@
 //
 // **********************************************************************************************************************
 
+// @if feature("swf")
 // convert from twips to pixels (each twip is 20 pixels)
 var g_SWF_twipscale = 1.0 / 20.0;
 
@@ -166,3 +167,4 @@ yySWFTimeline.prototype.BuildTimelineData = function (_dataView, _byteOffset, _l
 	}
 	return _byteOffset;
 };
+// @endif

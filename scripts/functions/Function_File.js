@@ -1023,6 +1023,7 @@ const _regexp_int64_parse = new RegExp("@i64@([0-9a-f]+?)\\$i64\\$", "i");
 
 // ########### JSON_ENCODE & JSON_DECODE ###########
 
+// @if feature("extension_api") || function("json_decode")
 function _json_decode_value(value) {
   
     switch (typeof (value)) {
@@ -1135,7 +1136,9 @@ function json_decode(_string) {
     } 
     return _json_decode_object(pObj);
 } // end json_decode
+// @endif json_decode
 
+// @if feature("extension_api") || function("json_encode")
 var g_ENCODE_VISITED_LIST = new Map(); 
 
 function _json_encode_value(value) {
@@ -1256,6 +1259,7 @@ function json_encode(_map, _prettify) {
 
     return JSON.stringify(obj, null, _prettify ? 2 : 0);
 } // end json_encode
+// @endif json_encode
 
 // ########### JSON_STRINGIFY & JSON_PARSE ###########
 
@@ -1404,7 +1408,7 @@ function _json_reviver(_, value)
 			}
 			// It's an object prepare to set internal values
 			var obj = {};
-			obj.__type = "Object";
+			obj.__type = "___struct___";
 			obj.__yyIsGMLObject = true;
 			// Go through all the property names in parsed value
 			for (var oName in value) {

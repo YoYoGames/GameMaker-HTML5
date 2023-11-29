@@ -93,6 +93,7 @@ function HandleOSEvents() {
 // #############################################################################################
 function    HandleOther()
 {
+	// @if event("OutsideEvent") || event("BoundaryEvent") || event("OutsideView*") || event("BoundaryView*")
     var bbox, i, viewIndex;
     var pViews = null;
 	if (g_RunRoom.m_enableviews)
@@ -111,6 +112,7 @@ function    HandleOther()
         if (!inst.marked && (inst.createCounter <= count))
         {
             // Outside events
+			// @if event("OutsideEvent")
             if (pObject.REvent[EVENT_OTHER_OUTSIDE])
             {
                 var outside = false;
@@ -131,8 +133,10 @@ function    HandleOther()
                 }
                 inst.fOutsideRoom = outside;
             }
+			// @endif OutsideEvent
                     
             // Boundary events
+			// @if event("BoundaryEvent")
             if (pObject.REvent[EVENT_OTHER_BOUNDARY])
             {
                 if (sprite_exists(inst.sprite_index) || sprite_exists(inst.mask_index))
@@ -151,10 +155,12 @@ function    HandleOther()
                     }
                 }
             }
+			// @endif
                         
 
             // Handle view related "other" events
             //for (i in pViews)
+			// @if event("OutsideView*") || event("BoundaryView*")
             if (pViews) {
                 for (viewIndex = 0; viewIndex < pViews.length; viewIndex++) {
                     //if (!pViews.hasOwnProperty(i)) continue;
@@ -179,6 +185,7 @@ function    HandleOther()
                         }
 
                         // Outside view events
+						// @if event("OutsideView*")
                         if (pObject.REvent[EVENT_OTHER_OUTSIDE_VIEW0 + viewIndex]) {
 
                             // Make a distinction whether the instance has a mask (or sprite) || not
@@ -200,8 +207,10 @@ function    HandleOther()
                                 }
                             }
                         }
+						// @endif OutsideView
 
                         // Boundary view events
+						// @if event("BoundaryView*")
                         if (pObject.REvent[EVENT_OTHER_BOUNDARY_VIEW0 + viewIndex]) {							
                             if (sprite_exists(inst.sprite_index) || sprite_exists(inst.mask_index)) {
 
@@ -238,12 +247,14 @@ function    HandleOther()
                                 }*/
                             }
                         }
+						// @endif BoundaryView
                     }
                 }
             }
+			// @endif OutsideView || BoundaryView
         }
     }
-    
+    // @endif Outside || Boundary || OutsideView || BoundaryView
 }
 
 
@@ -369,45 +380,6 @@ function    HandleCollision()
 }*/
 
 
-// #############################################################################################
-/// Function:<summary>
-///             Given a point, do a collision test with each instance that has the desired
-///             event. (mouse click etc).
-///          </summary>
-///
-/// In:		 <param name="_event">Primary event</param>
-///    		 <param name="_sub_event">Secondary event</param>
-///			 <param name="x">X Point to test with</param>
-///			 <param name="y">Y Point to test with</param>
-///				
-// #############################################################################################
-function    DoPointToInstance( _event, _sub_event, _x,_y )
-{
-    // First scale the coordinate into the current screen scale.
-    //_x = _x * scale;
-
-    // Might be better to loop through objects, rather than active instances... less getSprite stuff...
-    for(var i=g_RunRoom.m_Active.length-1;i>=0;i-- )
-    {
-        var pInst = g_RunRoom.m_Active.Get(i);
-      //  with( pInst )
-        {
-            if (pInst.bbox_dirty) pInst.Compute_BoundingBox();
-            if (!pInst.marked && pInst.pObject.REvent[_event | _sub_event])
-            {
-                var pSprite = g_pSpriteManager.Get( pInst.sprite_index );
-                var ox = pSprite.xOrigin;
-                var oy = pSprite.yOrigin;
-                if ((_x >= pInst.bbox.left) && (_x < pInst.bbox.right) && (_y >= pInst.bbox.top) && (_y < pInst.bbox.bottom))
-                {
-                	pInst.PerformEvent(_event, _sub_event, pInst, pInst);        // timer enum starts at 1..
-                }
-            }
-        }
-    }
-}
-
-
 
 // #############################################################################################
 /// Function:<summary>
@@ -416,6 +388,7 @@ function    DoPointToInstance( _event, _sub_event, _x,_y )
 // #############################################################################################
 function HandleMouse() 
 {
+	// @if eventType("Mouse")
     if (g_RunRoom)
     {
         var ind;
@@ -554,7 +527,8 @@ function HandleMouse()
         {
             g_pInstanceManager.PerformEvent(EVENT_MOUSE_WHEEL_DOWN,0);
         }                   
-    }   
+    }
+	// @endif mouse events
 }
 
 
@@ -565,6 +539,7 @@ function HandleMouse()
 // #############################################################################################
 function    HandleTimeLine()
 {
+	// @if feature("timelines")
     var ind1,ind2,j;
 	var pool = g_RunRoom.m_Active.pool;
     var count = g_currentCreateCounter++;
@@ -616,6 +591,7 @@ function    HandleTimeLine()
 			}
 		}
 	}
+	// @endif
 }
 
 // #############################################################################################
@@ -800,6 +776,7 @@ function    event_lookup(_event, _subevent)
         			case GML_EVENT_OTHER_ENDOFPATH: return EVENT_OTHER_ENDOFPATH;
         			case GML_EVENT_OTHER_NOHEALTH: return EVENT_OTHER_NOHEALTH;
         			case GML_EVENT_OTHER_CLOSEBUTTON: return EVENT_OTHER_CLOSEBUTTON;
+					// @if event("OutsideView*")
         			case GML_EVENT_OTHER_OUTSIDE_VIEW0: return EVENT_OTHER_OUTSIDE_VIEW0;
         			case GML_EVENT_OTHER_OUTSIDE_VIEW1: return EVENT_OTHER_OUTSIDE_VIEW1;
         			case GML_EVENT_OTHER_OUTSIDE_VIEW2: return EVENT_OTHER_OUTSIDE_VIEW2;
@@ -808,6 +785,8 @@ function    event_lookup(_event, _subevent)
         			case GML_EVENT_OTHER_OUTSIDE_VIEW5: return EVENT_OTHER_OUTSIDE_VIEW5;
         			case GML_EVENT_OTHER_OUTSIDE_VIEW6: return EVENT_OTHER_OUTSIDE_VIEW6;
         			case GML_EVENT_OTHER_OUTSIDE_VIEW7: return EVENT_OTHER_OUTSIDE_VIEW7;
+					// @endif
+					// @if event("BoundaryView*")
         			case GML_EVENT_OTHER_BOUNDARY_VIEW0: return EVENT_OTHER_BOUNDARY_VIEW0;
         			case GML_EVENT_OTHER_BOUNDARY_VIEW1: return EVENT_OTHER_BOUNDARY_VIEW1;
         			case GML_EVENT_OTHER_BOUNDARY_VIEW2: return EVENT_OTHER_BOUNDARY_VIEW2;
@@ -816,22 +795,25 @@ function    event_lookup(_event, _subevent)
         			case GML_EVENT_OTHER_BOUNDARY_VIEW5: return EVENT_OTHER_BOUNDARY_VIEW5;
         			case GML_EVENT_OTHER_BOUNDARY_VIEW6: return EVENT_OTHER_BOUNDARY_VIEW6;
         			case GML_EVENT_OTHER_BOUNDARY_VIEW7: return EVENT_OTHER_BOUNDARY_VIEW7;
-        			case GML_ev_user0: return EVENT_OTHER_USER0;
-        			case GML_ev_user1: return EVENT_OTHER_USER1;
-        			case GML_ev_user2: return EVENT_OTHER_USER2;
-        			case GML_ev_user3: return EVENT_OTHER_USER3;
-        			case GML_ev_user4: return EVENT_OTHER_USER4;
-        			case GML_ev_user5: return EVENT_OTHER_USER5;
-        			case GML_ev_user6: return EVENT_OTHER_USER6;
-        			case GML_ev_user7: return EVENT_OTHER_USER7;
-        			case GML_ev_user8: return EVENT_OTHER_USER8;
-        			case GML_ev_user9: return EVENT_OTHER_USER9;
-        			case GML_ev_user10: return EVENT_OTHER_USER10;
-        			case GML_ev_user11: return EVENT_OTHER_USER11;
-        			case GML_ev_user12: return EVENT_OTHER_USER12;
-        			case GML_ev_user13: return EVENT_OTHER_USER13;
-        			case GML_ev_user14: return EVENT_OTHER_USER14;
-        			case GML_ev_user15: return EVENT_OTHER_USER15;
+					// @endif
+					// @if event("UserEvent*")
+        			case GML_EVENT_OTHER_USER0: return EVENT_OTHER_USER0;
+        			case GML_EVENT_OTHER_USER1: return EVENT_OTHER_USER1;
+        			case GML_EVENT_OTHER_USER2: return EVENT_OTHER_USER2;
+        			case GML_EVENT_OTHER_USER3: return EVENT_OTHER_USER3;
+        			case GML_EVENT_OTHER_USER4: return EVENT_OTHER_USER4;
+        			case GML_EVENT_OTHER_USER5: return EVENT_OTHER_USER5;
+        			case GML_EVENT_OTHER_USER6: return EVENT_OTHER_USER6;
+        			case GML_EVENT_OTHER_USER7: return EVENT_OTHER_USER7;
+        			case GML_EVENT_OTHER_USER8: return EVENT_OTHER_USER8;
+        			case GML_EVENT_OTHER_USER9: return EVENT_OTHER_USER9;
+        			case GML_EVENT_OTHER_USER10: return EVENT_OTHER_USER10;
+        			case GML_EVENT_OTHER_USER11: return EVENT_OTHER_USER11;
+        			case GML_EVENT_OTHER_USER12: return EVENT_OTHER_USER12;
+        			case GML_EVENT_OTHER_USER13: return EVENT_OTHER_USER13;
+        			case GML_EVENT_OTHER_USER14: return EVENT_OTHER_USER14;
+        			case GML_EVENT_OTHER_USER15: return EVENT_OTHER_USER15;
+					// @endif
         		    case GML_EVENT_OTHER_ANIMATIONUPDATE: return EVENT_OTHER_ANIMATIONUPDATE;
         		    case GML_EVENT_OTHER_ANIMATIONEVENT: return EVENT_OTHER_ANIMATIONEVENT;
         		    case GML_EVENT_OTHER_WEB_IMAGE_LOAD: return EVENT_OTHER_WEB_IMAGE_LOAD;

@@ -76,6 +76,7 @@ YYRECT.prototype.Copy = function (_bbox) {
 };
 
 
+// @if feature("sprites")
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new SPRITE object
@@ -147,6 +148,7 @@ var __floatToInt = function (x) { return ~~x; };
  */
 yySprite.prototype.GetSkeletonSpriteSize = function (_skeleton)
 {
+	// @if feature("spine")
 	var bounds = new YYRECT();
 
 	_skeleton.updateWorldTransform();
@@ -171,7 +173,7 @@ yySprite.prototype.GetSkeletonSpriteSize = function (_skeleton)
 			return [width, height];
 		}
 	}
-
+	// @endif
 	return null;
 };
 
@@ -184,7 +186,7 @@ yySprite.prototype.GetSkeletonSpriteSize = function (_skeleton)
 yySprite.prototype.GetSkeletonBounds = function (_skeleton, _bounds)
 {
 	var retval = false;
-
+	// @if feature("spine")
 	_bounds.left   = Number.MAX_SAFE_INTEGER;
 	_bounds.top    = Number.MAX_SAFE_INTEGER;
 	_bounds.right  = Number.MIN_SAFE_INTEGER;
@@ -240,7 +242,7 @@ yySprite.prototype.GetSkeletonBounds = function (_skeleton, _bounds)
 			}
 		}
 	}
-
+	// @endif spine
 	return retval;
 };
 
@@ -258,7 +260,8 @@ yySprite.prototype.GetScaledBoundingBox = function(_xscale, _yscale)
 	tempBB.right = this.bbox.right + 1;	
 	tempBB.top = this.bbox.top;
 	tempBB.bottom = this.bbox.bottom + 1;
-
+	
+	// @if feature("nineslice")
 	if ((this.nineslicedata != null) && (this.nineslicedata.GetEnabled()))
 	{		
 		// If bounding box covers entire sprite then we don't need to do anything clever
@@ -374,8 +377,8 @@ yySprite.prototype.GetScaledBoundingBox = function(_xscale, _yscale)
 
 		scaledBB.top -= this.yOrigin * abs_yscale;
 		scaledBB.bottom -= this.yOrigin * abs_yscale;		
-	}
-	else
+	} else // ->
+	// @endif nineslice
 	{
 		scaledBB.left = (tempBB.left - this.xOrigin) * abs_xscale;
 		scaledBB.right = (tempBB.right - this.xOrigin) * abs_xscale;		
@@ -445,7 +448,7 @@ yySprite.prototype.CalcCullRadius = function () {
 ///           </summary>
 // #############################################################################################
 yySprite.prototype.BuildSWFData = function (_swfIndex, _xo, _yo) {
-
+	// @if feature("swf")
     try {
         if (g_pSpriteManager.swfSpriteData !== undefined) {
         
@@ -546,6 +549,7 @@ yySprite.prototype.BuildSWFData = function (_swfIndex, _xo, _yo) {
     catch (e) {
         debug("Cannot build SWF data " + e.message);
     }
+	// @endif
 };
 
 
@@ -555,7 +559,7 @@ yySprite.prototype.BuildSWFData = function (_swfIndex, _xo, _yo) {
 ///          </summary>
 // #############################################################################################
 yySprite.prototype.SetupSWFCollisionMasks = function (_dataView, _byteOffset, _littleEndian) {
-
+	// @if feature("swf")
     if (this.colcheck !== yySprite_CollisionType.PRECISE) {
         return;
     }
@@ -602,6 +606,7 @@ yySprite.prototype.SetupSWFCollisionMasks = function (_dataView, _byteOffset, _l
 	    _byteOffset = offsetStore + ((colMaskSize + 3) & ~3);
 	}
 	this.maskcreated = true;	
+	// @endif swf
 	return _byteOffset;
 };
 
@@ -611,7 +616,7 @@ yySprite.prototype.SetupSWFCollisionMasks = function (_dataView, _byteOffset, _l
 ///          </summary>
 // #############################################################################################
 yySprite.prototype.SetSWFDrawRoutines = function () {
-
+	// @if feature("swf")
     this.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _colour, _alpha) {    
 	    Graphics_SWFDraw(
 	        this.SWFDictionaryItems, this.SWFTimeline, _ind, this.xOrigin, this.yOrigin, _x, _y, _xscale, _yscale, _angle, _colour, _alpha, this.ppTPE);
@@ -621,6 +626,7 @@ yySprite.prototype.SetSWFDrawRoutines = function () {
         Graphics_SWFDraw(
             this.SWFDictionaryItems, this.SWFTimeline, _ind, this.xOrigin, this.yOrigin, _x, _y, 1.0, 1.0, 0.0, 0xffffffff, _alpha, this.ppTPE);
     };
+	// @endif swf
 };
 
 
@@ -631,6 +637,7 @@ yySprite.prototype.SetSWFDrawRoutines = function () {
 ///           </summary>
 // #############################################################################################
 yySprite.prototype.BuildSkeletonData = function (_skeletonData) {
+	// @if feature("spine")
 	if (_skeletonData) {
 		this.m_skeletonSprite = new yySkeletonSprite();
 		//this.m_skeletonSprite.Load(skeletonData.json, skeletonData.atlas, skeletonData.width, skeletonData.height);
@@ -651,6 +658,7 @@ yySprite.prototype.BuildSkeletonData = function (_skeletonData) {
 	};
 
 	this.numb = SKELETON_FRAMECOUNT;
+	// @endif spine
 };
 
 // #############################################################################################
@@ -659,6 +667,7 @@ yySprite.prototype.BuildSkeletonData = function (_skeletonData) {
 ///           </summary>
 // #############################################################################################
 yySprite.prototype.LoadFromSpineAsync = function (_filename, _callback) {
+	// @if feature("spine")
 	var loadFileContents = function (_filename, _callback) {
 		var errorMessage = 'Could not load file contents!';
 		var request = new XMLHttpRequest();
@@ -791,6 +800,7 @@ yySprite.prototype.LoadFromSpineAsync = function (_filename, _callback) {
 		}
 		tryCallback(_err);
 	});
+	// @endif spine
 };
 
 // #############################################################################################
@@ -813,7 +823,9 @@ yySprite.prototype.BuildSequenceData = function (_sequenceData) {
 // #############################################################################################
 yySprite.prototype.BuildNineSliceData = function (_ninesliceData)
 {
+	// @if feature("nineslice")
     this.nineslicedata = new yyNineSliceData(_ninesliceData);    
+	// @endif
 };
 
 // #############################################################################################
@@ -915,19 +927,22 @@ function    CreateSpriteFromStorage( _pStore )
 	
 		
 	pSprite.Masks = null;
-	
+	// @if feature("swf")
 	if (_pStore.swf !== undefined) {
 		pSprite.m_LoadedFromChunk = true;
 	    pSprite.BuildSWFData(_pStore.swf, pSprite.xOrigin, pSprite.yOrigin);
 	}
+	// @endif
 
 	if (_pStore.sequence !== undefined) {
 	    pSprite.BuildSequenceData(_pStore.sequence);
 	}
 
+	// @if feature("nineslice")
 	if (_pStore.nineslice !== undefined) {
 	    pSprite.BuildNineSliceData(_pStore.nineslice);
 	}
+	// @endif
 		
 	if(_pStore.Masks !== undefined) pSprite.Masks = _pStore.Masks;
 	    	
@@ -952,12 +967,14 @@ function    CreateSpriteFromStorage( _pStore )
 	}	
 
 	// Do this after we've set up our TPEs
+	// @if feature("spine")
 	if (_pStore.skel !== undefined) {
 		var skeletonData = g_pSpriteManager.SkeletonData
 			? g_pSpriteManager.SkeletonData[_pStore.skel]
 			: undefined;
 	    pSprite.BuildSkeletonData(skeletonData);
 	}
+	// @endif
 
 	pSprite.CalcCullRadius();    	
 
@@ -1037,13 +1054,14 @@ yySprite.prototype.DrawSimple = function (_sub_image, _x, _y, _alpha) {
         // Make sure we're not dealing with a texture that's been downsized to fit the tpage
         var pTPE = this.ppTPE[_sub_image];
         if (!pTPE) return; // no loaded? texture group etc?
-
+		
+		// @if feature("nineslice")
         if ((this.nineslicedata != null) && (this.nineslicedata.enabled == true))
         {
             var col = 0xffffffff;
             this.nineslicedata.Draw(_x, _y, this.width, this.height, 0, col, 1, _sub_image, this);
-        }
-        else
+        } else // ->
+		// @endif nineslice
         {
             if ((pTPE.w == pTPE.CropWidth) && (pTPE.h == pTPE.CropHeight))
             {
@@ -1112,12 +1130,13 @@ yySprite.prototype.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _col
 		if (_ind < 0) _ind += this.numb;
 
 		_angle = fmod(_angle, 360.0);
-
+		
+		// @if feature("nineslice")
 		if ((this.nineslicedata != null) && (this.nineslicedata.enabled == true))
 		{		    
 		    this.nineslicedata.Draw(_x, _y, this.width * _xscale, this.height * _yscale, _angle, _colour, _alpha, _ind, this);
-		}
-		else
+		} else // ->
+		// @endif
 		{
 		    // undefined forces colour+alpha into ALL verts
 		    Graphics_TextureDraw(this.ppTPE[_ind], this.xOrigin, this.yOrigin, _x, _y, _xscale, _yscale, _angle * Math.PI / 180.0, _colour, undefined, undefined, undefined, _alpha);
@@ -1128,9 +1147,9 @@ yySprite.prototype.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _col
 
 yySprite.prototype.GetSkeletonSlotsAtPoint = function(_inst, _x, _y, _list)
 {
+	// @if feature("spine")
     if ((this.m_skeletonSprite === undefined) || (this.m_skeletonSprite === null))
         return;     // not a Spine sprite
-
     var xscale = _inst.image_xscale;
     var yscale = _inst.image_yscale;
 
@@ -1147,7 +1166,7 @@ yySprite.prototype.GetSkeletonSlotsAtPoint = function(_inst, _x, _y, _list)
     var angle = _inst.image_angle;
 
     this.m_skeletonSprite.GetSlotsAtWorldPos(_inst, undefined, undefined, ind, x, y, xscale, yscale, angle, _x, _y, _list);
-
+	// @endif spine
 };
 
 
@@ -1162,6 +1181,7 @@ yySprite.prototype.GetSkeletonSlotsAtPoint = function(_inst, _x, _y, _list)
 ///				The sprite data or null
 ///			 </returns>
 // #############################################################################################
+// @if function("draw_sprite_pos")
 yySprite.prototype.Sprite_DrawSimplePos = function (_sub_image, _x1, _y1, _x2, _y2, _x3, _y3, _x4, _y4, _alpha) {
 	if (this.numb <= 0) return;
 
@@ -1171,6 +1191,7 @@ yySprite.prototype.Sprite_DrawSimplePos = function (_sub_image, _x1, _y1, _x2, _
 	if (!this.ppTPE) return;
 	Graphics_TextureDrawPos(this.ppTPE[_sub_image], _x1, _y1, _x2, _y2, _x3, _y3, _x4, _y4, _alpha);
 };
+// @endif
 
 function _ColMaskSet(u, v, pMaskBase,width)
 {
@@ -2386,9 +2407,11 @@ yySpriteManager.prototype.AddSprite = function (_pSprite) {
 yySpriteManager.prototype.GetImageCount = function (_spr_number) {
 	var sprite = this.Sprites[_spr_number];
 	if (!sprite) return null;
+	// @if feature("swf")
 	if ((sprite.SWFTimeline !== null) && (sprite.SWFTimeline !== undefined)) {
 	    return sprite.SWFTimeline.numFrames;
-	}		
+	}
+	// @endif
 	return sprite.ppTPE.length;
 };
 
@@ -2422,6 +2445,26 @@ yySpriteManager.prototype.Sprite_Find = function(_name)
 	return -1;
 };
 
+// #############################################################################################
+/// Function:<summary>
+///             Retrieves an array of all sprite asset IDs.
+///          </summary>
+///
+/// Out:	 <returns>
+///				An array of all sprite asset IDs.
+///			 </returns>
+// #############################################################################################
+yySpriteManager.prototype.List = function () {
+	var ids = [];
+	for (var i = 0; i < this.Sprites.length; ++i)
+	{
+		if (this.Sprites[i])
+		{
+			ids.push(i);
+		}
+	}
+	return ids;
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -2463,7 +2506,7 @@ yySpriteManager.prototype.Delete = function(_id) {
 ///          </summary>
 // #############################################################################################
 yySpriteManager.prototype.SWFLoad = function (_data) {
-
+	// @if feature("swf")
     try {
         // header consists of:
         // "rswf";
@@ -2519,6 +2562,7 @@ yySpriteManager.prototype.SWFLoad = function (_data) {
     catch (e) {
         debug("Cannot parse SWF data " + e.message);        
     }
+	// @endif swf
 };
 
 
@@ -2528,7 +2572,7 @@ yySpriteManager.prototype.SWFLoad = function (_data) {
 ///          </summary>
 // #############################################################################################
 yySpriteManager.prototype.SkeletonLoad = function (_spineText) {
-
+	// @if feature("spine")
     function multiply_uint32(a, b) {
         var ah = (a >> 16) & 0xffff, al = a & 0xffff;
         var bh = (b >> 16) & 0xffff, bl = b & 0xffff;
@@ -2632,4 +2676,6 @@ yySpriteManager.prototype.SkeletonLoad = function (_spineText) {
     catch (e) {
         debug("Cannot parse Spine data " + e.message);        
     }
+	// @endif spine
 };
+// @endif sprites

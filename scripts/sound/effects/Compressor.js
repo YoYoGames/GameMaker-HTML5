@@ -1,3 +1,4 @@
+// @if feature("audio_effects")
 function CompressorEffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.Compressor);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
@@ -101,3 +102,4 @@ CompressorEffectStruct.paramDescriptors = () => ({
     release:   { name: "release",   integer: false, defaultValue: 0.25,  minValue: 1e-2, maxValue: 1 },
     outgain:   { name: "outgain",   integer: false, defaultValue: 1,     minValue: 1e-6, maxValue: Number.MAX_VALUE }
 });
+// @endif

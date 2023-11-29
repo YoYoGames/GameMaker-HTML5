@@ -15,9 +15,11 @@
 //
 // **********************************************************************************************************************
 
+// @if feature("physics")
 var OBJECT_PHYSICS_SHAPE_CIRCLE = 0,
     OBJECT_PHYSICS_SHAPE_BOX = 1,
     OBJECT_PHYSICS_SHAPE_POLY = 2;
+// @endif physics constants
 
 // #############################################################################################
 /// Function:<summary>
@@ -169,6 +171,7 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if (_pObjectStorage.DrawResize) { pObj.DrawResize = _pObjectStorage.DrawResize; pObj.Event[EVENT_DRAW_RESIZE] = true; }
         
 
+        // @if eventType("Mouse")
         if( _pObjectStorage.NoButtonPressed) {pObj.NoButtonPressed = _pObjectStorage.NoButtonPressed;       pObj.Event[EVENT_MOUSE_NOBUTTON] = true; }
         if( _pObjectStorage.LeftButtonDown) {pObj.LeftButtonDown = _pObjectStorage.LeftButtonDown;          pObj.Event[EVENT_MOUSE_LBUTTON_DOWN] = true; }
         if( _pObjectStorage.RightButtonDown)  {pObj.RightButtonDown = _pObjectStorage.RightButtonDown;      pObj.Event[EVENT_MOUSE_RBUTTON_DOWN] = true; }
@@ -194,7 +197,9 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
 
         if( _pObjectStorage.MouseEnter) {pObj.MouseEnter = _pObjectStorage.MouseEnter;       pObj.Event[EVENT_MOUSE_ENTER] = true; }
         if (_pObjectStorage.MouseLeave) { pObj.MouseLeave = _pObjectStorage.MouseLeave; pObj.Event[EVENT_MOUSE_LEAVE] = true; }
+        // @endif
 
+        // @if eventType("Gesture")
         if (_pObjectStorage.GestureTapEvent) { pObj.GestureTapEvent = _pObjectStorage.GestureTapEvent; pObj.Event[EVENT_GESTURE_TAP] = true; }
         if (_pObjectStorage.GestureDoubleTapEvent) { pObj.GestureDoubleTapEvent = _pObjectStorage.GestureDoubleTapEvent; pObj.Event[EVENT_GESTURE_DOUBLE_TAP] = true; }
         if (_pObjectStorage.GestureDragStartEvent) { pObj.GestureDragStartEvent = _pObjectStorage.GestureDragStartEvent; pObj.Event[EVENT_GESTURE_DRAG_START] = true; }
@@ -208,9 +213,14 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if (_pObjectStorage.GestureGlobalDragMoveEvent) { pObj.GestureGlobalDragMoveEvent = _pObjectStorage.GestureGlobalDragMoveEvent; pObj.Event[EVENT_GESTURE_GLOBAL_DRAG_MOVE] = true; }
         if (_pObjectStorage.GestureGlobalDragEndEvent) { pObj.GestureGlobalDragEndEvent = _pObjectStorage.GestureGlobalDragEndEvent; pObj.Event[EVENT_GESTURE_GLOBAL_DRAG_END] = true; }
         if (_pObjectStorage.GestureGlobalFlickEvent) { pObj.GestureGlobalFlickEvent = _pObjectStorage.GestureGlobalFlickEvent; pObj.Event[EVENT_GESTURE_GLOBAL_FLICK] = true; }
+        // @endif
 
+        // @if event("OutsideEvent")
         if( _pObjectStorage.OutsideEvent)       {pObj.OutsideEvent =  _pObjectStorage.OutsideEvent;            pObj.Event[EVENT_OTHER_OUTSIDE] = true; }
+        // @endif
+        // @if event("BoundaryEvent")
         if( _pObjectStorage.BoundaryEvent)      {pObj.BoundaryEvent = _pObjectStorage.BoundaryEvent;           pObj.Event[EVENT_OTHER_BOUNDARY] = true; }
+        // @endif
         if( _pObjectStorage.StartGameEvent)     {pObj.StartGameEvent = _pObjectStorage.StartGameEvent;         pObj.Event[EVENT_OTHER_STARTGAME] = true; }
         if( _pObjectStorage.EndGameEvent)       {pObj.EndGameEvent = _pObjectStorage.EndGameEvent;             pObj.Event[EVENT_OTHER_ENDGAME] = true; } 
         if( _pObjectStorage.StartRoomEvent)     {pObj.StartRoomEvent = _pObjectStorage.StartRoomEvent;         pObj.Event[EVENT_OTHER_STARTROOM] = true; }
@@ -220,6 +230,7 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if( _pObjectStorage.EndOfPathEvent)     {pObj.EndOfPathEvent = _pObjectStorage.EndOfPathEvent;         pObj.Event[EVENT_OTHER_ENDOFPATH] = true; }
         if( _pObjectStorage.NoHealthEvent)      {pObj.NoHealthEvent = _pObjectStorage.NoHealthEvent;           pObj.Event[EVENT_OTHER_NOHEALTH] = true; }
         if( _pObjectStorage.CloseButtonEvent)   {pObj.CloseButtonEvent = _pObjectStorage.CloseButtonEvent;     pObj.Event[EVENT_OTHER_CLOSEBUTTON] = true; }
+        // @if event("OutsideView*")
         if( _pObjectStorage.OutsideView0Event)  {pObj.OutsideView0Event = _pObjectStorage.OutsideView0Event;   pObj.Event[EVENT_OTHER_OUTSIDE_VIEW0] = true; }
         if( _pObjectStorage.OutsideView1Event)  {pObj.OutsideView1Event = _pObjectStorage.OutsideView1Event;   pObj.Event[EVENT_OTHER_OUTSIDE_VIEW1] = true; }
         if( _pObjectStorage.OutsideView2Event)  {pObj.OutsideView2Event = _pObjectStorage.OutsideView2Event;   pObj.Event[EVENT_OTHER_OUTSIDE_VIEW2] = true; }
@@ -228,6 +239,8 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if( _pObjectStorage.OutsideView5Event)  {pObj.OutsideView5Event = _pObjectStorage.OutsideView5Event;   pObj.Event[EVENT_OTHER_OUTSIDE_VIEW5] = true; }
         if( _pObjectStorage.OutsideView6Event)  {pObj.OutsideView6Event = _pObjectStorage.OutsideView6Event;   pObj.Event[EVENT_OTHER_OUTSIDE_VIEW6] = true; }
         if( _pObjectStorage.OutsideView7Event)  {pObj.OutsideView7Event = _pObjectStorage.OutsideView7Event;   pObj.Event[EVENT_OTHER_OUTSIDE_VIEW7] = true; }        
+        // @endif
+        // @if event("BoundaryView*")
         if( _pObjectStorage.BoundaryView0Event) {pObj.BoundaryView0Event = _pObjectStorage.BoundaryView0Event; pObj.Event[EVENT_OTHER_BOUNDARY_VIEW0] = true; }
         if( _pObjectStorage.BoundaryView1Event) {pObj.BoundaryView1Event = _pObjectStorage.BoundaryView1Event; pObj.Event[EVENT_OTHER_BOUNDARY_VIEW1] = true; }
         if( _pObjectStorage.BoundaryView2Event) {pObj.BoundaryView2Event = _pObjectStorage.BoundaryView2Event; pObj.Event[EVENT_OTHER_BOUNDARY_VIEW2] = true; }
@@ -236,10 +249,12 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if( _pObjectStorage.BoundaryView5Event) {pObj.BoundaryView5Event = _pObjectStorage.BoundaryView5Event; pObj.Event[EVENT_OTHER_BOUNDARY_VIEW5] = true; }
         if( _pObjectStorage.BoundaryView6Event) {pObj.BoundaryView6Event = _pObjectStorage.BoundaryView6Event; pObj.Event[EVENT_OTHER_BOUNDARY_VIEW6] = true; }
         if( _pObjectStorage.BoundaryView7Event) {pObj.BoundaryView7Event = _pObjectStorage.BoundaryView7Event; pObj.Event[EVENT_OTHER_BOUNDARY_VIEW7] = true; }
+        // @endif
         
         if( _pObjectStorage.AnimationUpdateEvent)  {pObj.AnimationUpdateEvent = _pObjectStorage.AnimationUpdateEvent;   pObj.Event[EVENT_OTHER_ANIMATIONUPDATE] = true; }        
 
 
+        // @if event("UserEvent*")
         if( _pObjectStorage.UserEvent0) {pObj.UserEvent0 = _pObjectStorage.UserEvent0; pObj.Event[EVENT_OTHER_USER0] = true; }
         if( _pObjectStorage.UserEvent1) {pObj.UserEvent1 = _pObjectStorage.UserEvent1; pObj.Event[EVENT_OTHER_USER1] = true; }
         if( _pObjectStorage.UserEvent2) {pObj.UserEvent2 = _pObjectStorage.UserEvent2; pObj.Event[EVENT_OTHER_USER2] = true; }
@@ -256,6 +271,7 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if( _pObjectStorage.UserEvent13) {pObj.UserEvent13 = _pObjectStorage.UserEvent13; pObj.Event[EVENT_OTHER_USER13] = true; }
         if( _pObjectStorage.UserEvent14) {pObj.UserEvent14 = _pObjectStorage.UserEvent14; pObj.Event[EVENT_OTHER_USER14] = true; }
         if( _pObjectStorage.UserEvent15) {pObj.UserEvent15 = _pObjectStorage.UserEvent15; pObj.Event[EVENT_OTHER_USER15] = true; }
+        // @endif
 
         if (_pObjectStorage.WebImageLoadedEvent) { pObj.WebImageLoadedEvent = _pObjectStorage.WebImageLoadedEvent; pObj.Event[EVENT_OTHER_WEB_IMAGE_LOAD] = true; }
         if (_pObjectStorage.WebSoundLoadedEvent) { pObj.WebSoundLoadedEvent = _pObjectStorage.WebSoundLoadedEvent; pObj.Event[EVENT_OTHER_WEB_SOUND_LOAD] = true; }
@@ -264,15 +280,20 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if (_pObjectStorage.WebIAPEvent) { pObj.WebIAPEvent = _pObjectStorage.WebIAPEvent; pObj.Event[EVENT_OTHER_WEB_IAP] = true; }
         if (_pObjectStorage.SocialEvent) { pObj.SocialEvent = _pObjectStorage.SocialEvent; pObj.Event[EVENT_OTHER_SOCIAL] = true; }
         if (_pObjectStorage.PushNotificationEvent) { pObj.PushNotificationEvent = _pObjectStorage.PushNotificationEvent; pObj.Event[EVENT_OTHER_PUSH_NOTIFICATION] = true; }
-        if (_pObjectStorage.AsyncSaveLoadEvent) { pObj.AsyncSaveLoadEvent = _pObjectStorage.AsyncSaveLoadEvent; pObj.Event[EVENT_OTHER_ASYNC_SAVE_LOAD] = true; }        
-        if (_pObjectStorage.NetworkingEvent) { pObj.NetworkingEvent = _pObjectStorage.NetworkingEvent; pObj.Event[EVENT_OTHER_NETWORKING] = true; }        
+        if (_pObjectStorage.AsyncSaveLoadEvent) { pObj.AsyncSaveLoadEvent = _pObjectStorage.AsyncSaveLoadEvent; pObj.Event[EVENT_OTHER_ASYNC_SAVE_LOAD] = true; }
+        // @if event("NetworkingEvent")
+        if (_pObjectStorage.NetworkingEvent) { pObj.NetworkingEvent = _pObjectStorage.NetworkingEvent; pObj.Event[EVENT_OTHER_NETWORKING] = true; }
+        // @endif
+        // @if feature("audio")
         if (_pObjectStorage.AudioPlaybackEvent) { pObj.AudioPlaybackEvent = _pObjectStorage.AudioPlaybackEvent; pObj.Event[EVENT_OTHER_AUDIO_PLAYBACK] = true; }        
         if (_pObjectStorage.AudioPlaybackEndedEvent) { pObj.AudioPlaybackEndedEvent = _pObjectStorage.AudioPlaybackEndedEvent; pObj.Event[EVENT_OTHER_AUDIO_PLAYBACK_ENDED] = true; }    
         if (_pObjectStorage.AudioRecordingEvent) { pObj.AudioRecordingEvent = _pObjectStorage.AudioRecordingEvent; pObj.Event[EVENT_OTHER_AUDIO_RECORDING] = true; }        
+        // @endif audio
         if (_pObjectStorage.AnimationEventEvent) { pObj.AnimationEventEvent = _pObjectStorage.AnimationEventEvent; pObj.Event[EVENT_OTHER_ANIMATIONEVENT] = true; }
         if (_pObjectStorage.SystemEvent) { pObj.SystemEvent = _pObjectStorage.SystemEvent; pObj.Event[EVENT_OTHER_SYSTEM_EVENT] = true; }
         if (_pObjectStorage.BroadcastMessageEvent) { pObj.BroadcastMessageEvent = _pObjectStorage.BroadcastMessageEvent; pObj.Event[EVENT_OTHER_BROADCAST_MESSAGE] = true; }
  
+        // @if eventType("Alarm")
         if( _pObjectStorage.ObjAlarm0) {pObj.ObjAlarm[0] = _pObjectStorage.ObjAlarm0;  pObj.Event[EVENT_ALARM_0] = true; }
         if( _pObjectStorage.ObjAlarm1) {pObj.ObjAlarm[1] = _pObjectStorage.ObjAlarm1;  pObj.Event[EVENT_ALARM_1] = true; }
         if( _pObjectStorage.ObjAlarm2) {pObj.ObjAlarm[2] = _pObjectStorage.ObjAlarm2;  pObj.Event[EVENT_ALARM_2] = true; }
@@ -285,9 +306,11 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if( _pObjectStorage.ObjAlarm9) {pObj.ObjAlarm[9] = _pObjectStorage.ObjAlarm9;  pObj.Event[EVENT_ALARM_9] = true; }
         if( _pObjectStorage.ObjAlarm10) {pObj.ObjAlarm[10] = _pObjectStorage.ObjAlarm10; pObj.Event[EVENT_ALARM_10] = true; }
         if( _pObjectStorage.ObjAlarm11) {pObj.ObjAlarm[11] = _pObjectStorage.ObjAlarm11; pObj.Event[EVENT_ALARM_11] = true; }
+        // @endif
         
         
         // Keyboard Pressed events (horrible but here we go....)
+        // @if eventType("KeyPress")
         //if( _pObjectStorage.KeyPressed_)   { pObj.ObjKeyPressed[GML_EVENT_KEYPRESS_] = _pObjectStorage.KeyPressed_; pObj.Event[GML_EVENT_KEYPRESS_] = true; }
         if( _pObjectStorage.KeyPressed_NOKEY)  { pObj.ObjKeyPressed[GML_EVENT_KEYPRESS_NOKEY] = _pObjectStorage.KeyPressed_NOKEY; pObj.Event[GML_EVENT_KEYPRESS_NOKEY] = true; }
         if( _pObjectStorage.KeyPressed_ANYKEY)      { pObj.ObjKeyPressed[GML_EVENT_KEYPRESS_ANYKEY] = _pObjectStorage.KeyPressed_ANYKEY; pObj.Event[GML_EVENT_KEYPRESS_ANYKEY] = true; }
@@ -379,9 +402,11 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if( _pObjectStorage.KeyPressed_NUM_MINUS)   { pObj.ObjKeyPressed[GML_EVENT_KEYPRESS_NUM_MINUS] = (_pObjectStorage.KeyPressed_NUM_MINUS); pObj.Event[GML_EVENT_KEYPRESS_NUM_MINUS] = true; }
         if( _pObjectStorage.KeyPressed_NUM_DOT  )   { pObj.ObjKeyPressed[GML_EVENT_KEYPRESS_NUM_DOT  ] = (_pObjectStorage.KeyPressed_NUM_DOT  ); pObj.Event[GML_EVENT_KEYPRESS_NUM_DOT  ] = true; }
         if( _pObjectStorage.KeyPressed_NUM_DIV  )   { pObj.ObjKeyPressed[GML_EVENT_KEYPRESS_NUM_DIV  ] = (_pObjectStorage.KeyPressed_NUM_DIV  ); pObj.Event[GML_EVENT_KEYPRESS_NUM_DIV  ] = true; }
+        // @endif
 
 
         // Keyboard (key down) events
+        // @if eventType("Keyboard")
         if( _pObjectStorage.Key_NOKEY) { pObj.ObjKeyDown[GML_EVENT_KEYBOARD_NOKEY] = (_pObjectStorage.Key_NOKEY); pObj.Event[GML_EVENT_KEYBOARD_NOKEY] = true; }
         if( _pObjectStorage.Key_ANYKEY) { pObj.ObjKeyDown[GML_EVENT_KEYBOARD_ANYKEY] = (_pObjectStorage.Key_ANYKEY); pObj.Event[GML_EVENT_KEYBOARD_ANYKEY] = true; }
         if( _pObjectStorage.Key_BACKSPACE) { pObj.ObjKeyDown[GML_EVENT_KEYBOARD_BACKSPACE] = (_pObjectStorage.Key_BACKSPACE); pObj.Event[GML_EVENT_KEYBOARD_BACKSPACE] = true; }
@@ -472,10 +497,12 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if( _pObjectStorage.Key_NUM_MINUS)   { pObj.ObjKeyDown[GML_EVENT_KEYBOARD_NUM_MINUS] = (_pObjectStorage.Key_NUM_MINUS); pObj.Event[GML_EVENT_KEYBOARD_NUM_MINUS] = true; }
         if( _pObjectStorage.Key_NUM_DOT  )   { pObj.ObjKeyDown[GML_EVENT_KEYBOARD_NUM_DOT  ] = (_pObjectStorage.Key_NUM_DOT  ); pObj.Event[GML_EVENT_KEYBOARD_NUM_DOT  ] = true; }
         if( _pObjectStorage.Key_NUM_DIV  )   { pObj.ObjKeyDown[GML_EVENT_KEYBOARD_NUM_DIV  ] = (_pObjectStorage.Key_NUM_DIV  ); pObj.Event[GML_EVENT_KEYBOARD_NUM_DIV  ] = true; }
+        // @endif
 
 
 
         // Key Released events
+        // @if eventType("KeyRelease")
         if( _pObjectStorage.KeyReleased_NOKEY) { pObj.ObjKeyReleased[GML_EVENT_KEYRELEASE_NOKEY] = (_pObjectStorage.KeyReleased_NOKEY); pObj.Event[GML_EVENT_KEYRELEASE_NOKEY] = true; }
         if( _pObjectStorage.KeyReleased_ANYKEY) { pObj.ObjKeyReleased[GML_EVENT_KEYRELEASE_ANYKEY] = (_pObjectStorage.KeyReleased_ANYKEY); pObj.Event[GML_EVENT_KEYRELEASE_ANYKEY] = true; }
         if( _pObjectStorage.KeyReleased_BACKSPACE) { pObj.ObjKeyReleased[GML_EVENT_KEYRELEASE_BACKSPACE] = (_pObjectStorage.KeyReleased_BACKSPACE); pObj.Event[GML_EVENT_KEYRELEASE_BACKSPACE] = true; }
@@ -567,13 +594,15 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
         if( _pObjectStorage.KeyReleased_NUM_MINUS)   { pObj.ObjKeyReleased[GML_EVENT_KEYRELEASE_NUM_MINUS] = (_pObjectStorage.KeyReleased_NUM_MINUS); pObj.Event[GML_EVENT_KEYRELEASE_NUM_MINUS] = true; }
         if( _pObjectStorage.KeyReleased_NUM_DOT  )   { pObj.ObjKeyReleased[GML_EVENT_KEYRELEASE_NUM_DOT  ] = (_pObjectStorage.KeyReleased_NUM_DOT  ); pObj.Event[GML_EVENT_KEYRELEASE_NUM_DOT  ] = true; }
         if( _pObjectStorage.KeyReleased_NUM_DIV  )   { pObj.ObjKeyReleased[GML_EVENT_KEYRELEASE_NUM_DIV  ] = (_pObjectStorage.KeyReleased_NUM_DIV  ); pObj.Event[GML_EVENT_KEYRELEASE_NUM_DIV  ] = true; }
+        // @endif
 
         
         
         // Triggers...
-        var i = 0;
+        // @if eventType("Trigger")
         if( _pObjectStorage.TriggerEvents != undefined )
         {
+            var i = 0;
         	while (i < _pObjectStorage.TriggerEvents.length)
         	{
         		var key = parseInt(_pObjectStorage.TriggerEvents[i]) + 1;  // get the object ID (no trigger 0 here)
@@ -592,13 +621,15 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
 				i += 2;
         	}
         }
+        // @endif
         
 
 
         // Collisions...
-        i = 0;
+        // @if eventType("Collision")
         if( _pObjectStorage.CollisionEvents != undefined )
         {
+            var i = 0;
         	while (i < _pObjectStorage.CollisionEvents.length)
         	{
         		pObj.Event[EVENT_COLLISION] = true;
@@ -614,8 +645,10 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
 				i += 2;
         	}
         }
+        // @endif
         
         // Physics data
+        // @if feature("physics")
         if (_pObjectStorage.physicsObject != undefined) {
             
             pObj.PhysicsData.physicsObject = _pObjectStorage.physicsObject;
@@ -631,6 +664,7 @@ function    CreateObjectFromStorage( _ID, _pObjectStorage ) {
             pObj.PhysicsData.physicsKinematic = _pObjectStorage.physicsKinematic;
             pObj.PhysicsData.physicsShapeVertices = _pObjectStorage.physicsShapeVertices;
         }
+        // @endif physics
     }
     return pObj;
 }
@@ -701,12 +735,19 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 		case EVENT_ALARM: done = false; break;  // Shouldn't get called directly
 		case EVENT_STEP: done = false; break;
 		case EVENT_COLLISION: if (this.Collisions[index]) this.Collisions[index].m_pFunction(_pInst, _pOther); break;
+        // @if eventType("Keyboard")
 		case EVENT_KEYBOARD: if (this.ObjKeyDown[_event | index]) this.ObjKeyDown[_event | index](_pInst, _pOther); else done = false; break;
-		case EVENT_MOUSE: done = false; break;  // Shouldn't get called directly
+		// @endif
+        case EVENT_MOUSE: done = false; break;  // Shouldn't get called directly
 		case EVENT_OTHER: done = false; break;  // Shouldn't get called directly
 		case EVENT_DRAW: if (this.DrawEvent) this.DrawEvent(_pInst, _pOther); else done = false; break;
+        // @if eventType("KeyPress")
 		case EVENT_KEYPRESS: if (this.ObjKeyPressed[_event | index]) this.ObjKeyPressed[_event | index](_pInst, _pOther); else done = false; break;
-		case EVENT_KEYRELEASE: if (this.ObjKeyReleased[_event | index]) this.ObjKeyReleased[_event | index](_pInst, _pOther); else done = false; break;
+        // @endif
+		// @if eventType("KeyRelease")
+        case EVENT_KEYRELEASE: if (this.ObjKeyReleased[_event | index]) this.ObjKeyReleased[_event | index](_pInst, _pOther); else done = false; break;
+        // @endif
+        // @if eventType("Trigger")
 		case EVENT_TRIGGER: if (this.Triggers[_event | index])
 			{
 				var pTriggerEvent = this.Triggers[_event | index]; 						// 1st get the trigger event block
@@ -718,6 +759,7 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 				}
 			}
 			break;
+        // @endif trigger
 
 		case EVENT_DRAW_GUI: if (this.DrawGUI) this.DrawGUI(_pInst, _pOther); else done = false; break;
 		case EVENT_DRAW_BEGIN: if (this.DrawEventBegin) this.DrawEventBegin(_pInst, _pOther); else done = false; break;
@@ -732,8 +774,12 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 		case EVENT_STEP_NORMAL: if (this.StepNormalEvent) this.StepNormalEvent(_pInst, _pOther); else done = false; break;
 		case EVENT_STEP_END: if (this.StepEndEvent) this.StepEndEvent(_pInst, _pOther); else done = false; break;
 
-		case EVENT_OTHER_OUTSIDE: if (this.OutsideEvent) this.OutsideEvent(_pInst, _pOther); else done = false; break;
+		// @if event("OutsideEvent")
+        case EVENT_OTHER_OUTSIDE: if (this.OutsideEvent) this.OutsideEvent(_pInst, _pOther); else done = false; break;
+        // @endif
+        // @if event("BoundaryEvent")
 		case EVENT_OTHER_BOUNDARY: if (this.BoundaryEvent) this.BoundaryEvent(_pInst, _pOther); else done = false; break;
+        // @endif
 		case EVENT_OTHER_STARTGAME: if (this.StartGameEvent) this.StartGameEvent(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_ENDGAME: if (this.EndGameEvent) this.EndGameEvent(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_STARTROOM: if (this.StartRoomEvent) this.StartRoomEvent(_pInst, _pOther); else done = false; break;
@@ -743,6 +789,7 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 		case EVENT_OTHER_ENDOFPATH: if (this.EndOfPathEvent) this.EndOfPathEvent(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_NOHEALTH: if (this.NoHealthEvent) this.NoHealthEvent(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_CLOSEBUTTON: if (this.CloseButtonEvent) this.CloseButtonEvent(_pInst, _pOther); else done = false; break;
+        // @if event("OutsideView*")
 		case EVENT_OTHER_OUTSIDE_VIEW0: if (this.OutsideView0Event) this.OutsideView0Event(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_OUTSIDE_VIEW1: if (this.OutsideView1Event) this.OutsideView1Event(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_OUTSIDE_VIEW2: if (this.OutsideView2Event) this.OutsideView2Event(_pInst, _pOther); else done = false; break;
@@ -751,6 +798,8 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 		case EVENT_OTHER_OUTSIDE_VIEW5: if (this.OutsideView5Event) this.OutsideView5Event(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_OUTSIDE_VIEW6: if (this.OutsideView6Event) this.OutsideView6Event(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_OUTSIDE_VIEW7: if (this.OutsideView7Event) this.OutsideView7Event(_pInst, _pOther); else done = false; break;
+        // @endif
+        // @if event("BoundaryView*")
 		case EVENT_OTHER_BOUNDARY_VIEW0: if (this.BoundaryView0Event) this.BoundaryView0Event(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_BOUNDARY_VIEW1: if (this.BoundaryView1Event) this.BoundaryView1Event(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_BOUNDARY_VIEW2: if (this.BoundaryView2Event) this.BoundaryView2Event(_pInst, _pOther); else done = false; break;
@@ -759,6 +808,7 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 		case EVENT_OTHER_BOUNDARY_VIEW5: if (this.BoundaryView5Event) this.BoundaryView5Event(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_BOUNDARY_VIEW6: if (this.BoundaryView6Event) this.BoundaryView6Event(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_BOUNDARY_VIEW7: if (this.BoundaryView7Event) this.BoundaryView7Event(_pInst, _pOther); else done = false; break;
+        // @endif
 		
 		case EVENT_OTHER_ANIMATIONUPDATE: if (this.AnimationUpdateEvent) this.AnimationUpdateEvent(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_ANIMATIONEVENT: if (this.AnimationEventEvent) this.AnimationEventEvent(_pInst, _pOther); else done = false; break;
@@ -772,14 +822,17 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
         case EVENT_OTHER_PUSH_NOTIFICATION: if( this.PushNotificationEvent) this.PushNotificationEvent( _pInst, _pOther); else done =false; break;
         case EVENT_OTHER_ASYNC_SAVE_LOAD: if( this.AsyncSaveLoadEvent) this.AsyncSaveLoadEvent( _pInst, _pOther); else done =false; break;
         case EVENT_OTHER_NETWORKING: if( this.NetworkingEvent) this.NetworkingEvent( _pInst, _pOther); else done =false; break;
+        // @if feature("audio")
         case EVENT_OTHER_AUDIO_PLAYBACK: if (this.AudioPlaybackEvent) this.AudioPlaybackEvent( _pInst, _pOther); else done = false; break;
         case EVENT_OTHER_AUDIO_PLAYBACK_ENDED: if (this.AudioPlaybackEndedEvent) this.AudioPlaybackEndedEvent( _pInst, _pOther); else done = false; break;
         case EVENT_OTHER_AUDIO_RECORDING: if (this.AudioRecordingEvent) this.AudioRecordingEvent( _pInst, _pOther); else done = false; break;
+        // @endif audio
         case EVENT_OTHER_SYSTEM_EVENT: if (this.SystemEvent) this.SystemEvent(_pInst, _pOther); else done = false; break;
 
 	    case EVENT_OTHER_BROADCAST_MESSAGE: if (this.BroadcastMessageEvent) this.BroadcastMessageEvent(_pInst, _pOther); else done = false; break;
 
-		case EVENT_OTHER_USER0: if (this.UserEvent0) this.UserEvent0(_pInst, _pOther); else done = false; break;
+		// @if event("UserEvent*")
+        case EVENT_OTHER_USER0: if (this.UserEvent0) this.UserEvent0(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_USER1: if (this.UserEvent1) this.UserEvent1(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_USER2: if (this.UserEvent2) this.UserEvent2(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_USER3: if (this.UserEvent3) this.UserEvent3(_pInst, _pOther); else done = false; break;
@@ -795,9 +848,11 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 		case EVENT_OTHER_USER13: if (this.UserEvent13) this.UserEvent13(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_USER14: if (this.UserEvent14) this.UserEvent14(_pInst, _pOther); else done = false; break;
 		case EVENT_OTHER_USER15: if (this.UserEvent15) this.UserEvent15(_pInst, _pOther); else done = false; break;
+        // @endif
 
 
-		case EVENT_MOUSE_NOBUTTON: if (this.NoButtonPressed) this.NoButtonPressed(_pInst, _pOther); else done = false; break;
+		// @if eventType("Mouse")
+        case EVENT_MOUSE_NOBUTTON: if (this.NoButtonPressed) this.NoButtonPressed(_pInst, _pOther); else done = false; break;
 		case EVENT_MOUSE_LBUTTON_DOWN: if (this.LeftButtonDown) this.LeftButtonDown(_pInst, _pOther); else done = false; break;
 		case EVENT_MOUSE_RBUTTON_DOWN: if (this.RightButtonDown) this.RightButtonDown(_pInst, _pOther); else done = false; break;
 		case EVENT_MOUSE_MBUTTON_DOWN: if (this.MiddleButtonDown) this.MiddleButtonDown(_pInst, _pOther); else done = false; break;
@@ -822,8 +877,10 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 
 		case EVENT_MOUSE_ENTER: if (this.MouseEnter) this.MouseEnter(_pInst, _pOther); else done = false; break;
 	    case EVENT_MOUSE_LEAVE: if (this.MouseLeave) this.MouseLeave(_pInst, _pOther); else done = false; break;
+        // @endif
 
-	    case EVENT_GESTURE_TAP: if (this.GestureTapEvent) this.GestureTapEvent(_pInst, _pOther); else done = false; break;
+	    // @if eventType("Gesture")
+        case EVENT_GESTURE_TAP: if (this.GestureTapEvent) this.GestureTapEvent(_pInst, _pOther); else done = false; break;
 	    case EVENT_GESTURE_DOUBLE_TAP: if (this.GestureDoubleTapEvent) this.GestureDoubleTapEvent(_pInst, _pOther); else done = false; break;
 	    case EVENT_GESTURE_DRAG_START: if (this.GestureDragStartEvent) this.GestureDragStartEvent(_pInst, _pOther); else done = false; break;
 	    case EVENT_GESTURE_DRAG_MOVE: if (this.GestureDragMoveEvent) this.GestureDragMoveEvent(_pInst, _pOther); else done = false; break;
@@ -836,8 +893,10 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 	    case EVENT_GESTURE_GLOBAL_DRAG_MOVE: if (this.GestureGlobalDragMoveEvent) this.GestureGlobalDragMoveEvent(_pInst, _pOther); else done = false; break;
 	    case EVENT_GESTURE_GLOBAL_DRAG_END: if (this.GestureGlobalDragEndEvent) this.GestureGlobalDragEndEvent(_pInst, _pOther); else done = false; break;
 	    case EVENT_GESTURE_GLOBAL_FLICK: if (this.GestureGlobalFlickEvent) this.GestureGlobalFlickEvent(_pInst, _pOther); else done = false; break;
+        // @endif
 
-		case EVENT_ALARM_0: if (this.ObjAlarm[0] != null) this.ObjAlarm[0](_pInst, _pOther); else done = false; break;
+		// @if eventType("Alarm")
+        case EVENT_ALARM_0: if (this.ObjAlarm[0] != null) this.ObjAlarm[0](_pInst, _pOther); else done = false; break;
 		case EVENT_ALARM_1: if (this.ObjAlarm[1] != null) this.ObjAlarm[1](_pInst, _pOther); else done = false; break;
 		case EVENT_ALARM_2: if (this.ObjAlarm[2] != null) this.ObjAlarm[2](_pInst, _pOther); else done = false; break;
 		case EVENT_ALARM_3: if (this.ObjAlarm[3] != null) this.ObjAlarm[3](_pInst, _pOther); else done = false; break;
@@ -849,6 +908,7 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 		case EVENT_ALARM_9: if (this.ObjAlarm[9] != null) this.ObjAlarm[9](_pInst, _pOther); else done = false; break;
 		case EVENT_ALARM_10: if (this.ObjAlarm[10] != null) this.ObjAlarm[10](_pInst, _pOther); else done = false; break;
 		case EVENT_ALARM_11: if (this.ObjAlarm[11] != null) this.ObjAlarm[11](_pInst, _pOther); else done = false; break;
+        // @endif
 
 		default:
 			done = false;
@@ -914,6 +974,7 @@ function ConvertEvent(_event)
         case EVENT_OTHER_ENDOFPATH:         return GML_EVENT_OTHER;
         case EVENT_OTHER_NOHEALTH:          return GML_EVENT_OTHER;
         case EVENT_OTHER_CLOSEBUTTON:       return GML_EVENT_OTHER;
+        // @if event("OutsideView*")
         case EVENT_OTHER_OUTSIDE_VIEW0:     return GML_EVENT_OTHER;
         case EVENT_OTHER_OUTSIDE_VIEW1:     return GML_EVENT_OTHER;
         case EVENT_OTHER_OUTSIDE_VIEW2:     return GML_EVENT_OTHER;
@@ -922,6 +983,8 @@ function ConvertEvent(_event)
         case EVENT_OTHER_OUTSIDE_VIEW5:     return GML_EVENT_OTHER;
         case EVENT_OTHER_OUTSIDE_VIEW6:     return GML_EVENT_OTHER;
         case EVENT_OTHER_OUTSIDE_VIEW7:     return GML_EVENT_OTHER;
+        // @endif
+        // @if event("BoundaryView*")
         case EVENT_OTHER_BOUNDARY_VIEW0:    return GML_EVENT_OTHER;
         case EVENT_OTHER_BOUNDARY_VIEW1:    return GML_EVENT_OTHER;
         case EVENT_OTHER_BOUNDARY_VIEW2:    return GML_EVENT_OTHER;
@@ -930,6 +993,7 @@ function ConvertEvent(_event)
         case EVENT_OTHER_BOUNDARY_VIEW5:    return GML_EVENT_OTHER;
         case EVENT_OTHER_BOUNDARY_VIEW6:    return GML_EVENT_OTHER;
         case EVENT_OTHER_BOUNDARY_VIEW7:    return GML_EVENT_OTHER;
+        // @endif
 
         case EVENT_OTHER_ANIMATIONUPDATE: return GML_EVENT_OTHER;
         case EVENT_OTHER_ANIMATIONEVENT: return GML_EVENT_OTHER;
@@ -943,11 +1007,14 @@ function ConvertEvent(_event)
         case EVENT_OTHER_PUSH_NOTIFICATION:     return GML_EVENT_OTHER;
         case EVENT_OTHER_ASYNC_SAVE_LOAD:       return GML_EVENT_OTHER;
         case EVENT_OTHER_NETWORKING:            return GML_EVENT_OTHER;
+        // @if feature("audio")
         case EVENT_OTHER_AUDIO_PLAYBACK:        return GML_EVENT_OTHER;
         case EVENT_OTHER_AUDIO_PLAYBACK_ENDED:  return GML_EVENT_OTHER;
         case EVENT_OTHER_AUDIO_RECORDING:       return GML_EVENT_OTHER;
+        // @endif audio
         case EVENT_OTHER_SYSTEM_EVENT:          return GML_EVENT_OTHER;
 
+        // @if event("UserEvent*")
         case EVENT_OTHER_USER0: return GML_EVENT_OTHER;
         case EVENT_OTHER_USER1: return GML_EVENT_OTHER;
         case EVENT_OTHER_USER2: return GML_EVENT_OTHER;
@@ -964,8 +1031,10 @@ function ConvertEvent(_event)
         case EVENT_OTHER_USER13: return GML_EVENT_OTHER;
         case EVENT_OTHER_USER14: return GML_EVENT_OTHER;
         case EVENT_OTHER_USER15: return GML_EVENT_OTHER;
+        // @endif
 
 
+        // @if eventType("Mouse")
         case EVENT_MOUSE_NOBUTTON:          return GML_EVENT_MOUSE;
         case EVENT_MOUSE_LBUTTON_DOWN:      return GML_EVENT_MOUSE;
         case EVENT_MOUSE_RBUTTON_DOWN:      return GML_EVENT_MOUSE;
@@ -991,7 +1060,9 @@ function ConvertEvent(_event)
 
         case EVENT_MOUSE_ENTER: return GML_EVENT_MOUSE;
         case EVENT_MOUSE_LEAVE: return GML_EVENT_MOUSE;
+        // @endif
 
+        // @if eventType("Gesture")
         case EVENT_GESTURE_TAP:         return GML_EVENT_GESTURE;
         case EVENT_GESTURE_DOUBLE_TAP:  return GML_EVENT_GESTURE;
         case EVENT_GESTURE_DRAG_START:  return GML_EVENT_GESTURE;
@@ -1005,7 +1076,9 @@ function ConvertEvent(_event)
         case EVENT_GESTURE_GLOBAL_DRAG_MOVE: return GML_EVENT_GESTURE;
         case EVENT_GESTURE_GLOBAL_DRAG_END: return GML_EVENT_GESTURE;
         case EVENT_GESTURE_GLOBAL_FLICK: return GML_EVENT_GESTURE;
+        // @endif
 
+        // @if eventType("Alarm")
         case EVENT_ALARM_0: return GML_EVENT_ALARM;
         case EVENT_ALARM_1: return GML_EVENT_ALARM;
         case EVENT_ALARM_2: return GML_EVENT_ALARM;
@@ -1018,6 +1091,7 @@ function ConvertEvent(_event)
         case EVENT_ALARM_9: return GML_EVENT_ALARM;
         case EVENT_ALARM_10: return GML_EVENT_ALARM;
         case EVENT_ALARM_11: return GML_EVENT_ALARM;
+        // @endif
 
         default:
             return -1;      // who knows
@@ -1088,6 +1162,7 @@ function ConvertSubEvent(_event, _subevent)
         case EVENT_OTHER_ENDOFPATH: return GML_EVENT_OTHER_ENDOFPATH;
         case EVENT_OTHER_NOHEALTH: return GML_EVENT_OTHER_NOHEALTH;
         case EVENT_OTHER_CLOSEBUTTON: return GML_EVENT_OTHER_CLOSEBUTTON;
+        // @if event("OutsideView*")
         case EVENT_OTHER_OUTSIDE_VIEW0: return GML_EVENT_OTHER_OUTSIDE_VIEW0;
         case EVENT_OTHER_OUTSIDE_VIEW1: return GML_EVENT_OTHER_OUTSIDE_VIEW1;
         case EVENT_OTHER_OUTSIDE_VIEW2: return GML_EVENT_OTHER_OUTSIDE_VIEW2;
@@ -1096,6 +1171,8 @@ function ConvertSubEvent(_event, _subevent)
         case EVENT_OTHER_OUTSIDE_VIEW5: return GML_EVENT_OTHER_OUTSIDE_VIEW5;
         case EVENT_OTHER_OUTSIDE_VIEW6: return GML_EVENT_OTHER_OUTSIDE_VIEW6;
         case EVENT_OTHER_OUTSIDE_VIEW7: return GML_EVENT_OTHER_OUTSIDE_VIEW7;
+        // @endif
+        // @if event("BoundaryView*")
         case EVENT_OTHER_BOUNDARY_VIEW0: return GML_EVENT_OTHER_BOUNDARY_VIEW0;
         case EVENT_OTHER_BOUNDARY_VIEW1: return GML_EVENT_OTHER_BOUNDARY_VIEW1;
         case EVENT_OTHER_BOUNDARY_VIEW2: return GML_EVENT_OTHER_BOUNDARY_VIEW2;
@@ -1104,6 +1181,7 @@ function ConvertSubEvent(_event, _subevent)
         case EVENT_OTHER_BOUNDARY_VIEW5: return GML_EVENT_OTHER_BOUNDARY_VIEW5;
         case EVENT_OTHER_BOUNDARY_VIEW6: return GML_EVENT_OTHER_BOUNDARY_VIEW6;
         case EVENT_OTHER_BOUNDARY_VIEW7: return GML_EVENT_OTHER_BOUNDARY_VIEW7;
+        // @endif
 
         case EVENT_OTHER_ANIMATIONUPDATE: return GML_EVENT_OTHER_ANIMATIONUPDATE;
         case EVENT_OTHER_ANIMATIONEVENT: return GML_EVENT_OTHER_ANIMATIONEVENT;
@@ -1117,13 +1195,16 @@ function ConvertSubEvent(_event, _subevent)
         case EVENT_OTHER_PUSH_NOTIFICATION: return GML_EVENT_OTHER_PUSH_NOTIFICATION;
         case EVENT_OTHER_ASYNC_SAVE_LOAD: return GML_EVENT_OTHER_ASYNC_SAVE_LOAD;
         case EVENT_OTHER_NETWORKING: return GML_EVENT_OTHER_NETWORKING;
+        // @if feature("audio")
         case EVENT_OTHER_AUDIO_PLAYBACK: return GML_EVENT_OTHER_AUDIO_PLAYBACK;
         case EVENT_OTHER_AUDIO_PLAYBACK_ENDED: return GML_EVENT_OTHER_AUDIO_PLAYBACK_ENDED;
         case EVENT_OTHER_AUDIO_RECORDING: return EVENT_OTHER_AUDIO_RECORDING;
+        // @endif audio
         case EVENT_OTHER_SYSTEM_EVENT: return GML_EVENT_OTHER_SYSTEM_EVENT;
 
         case EVENT_OTHER_BROADCAST_MESSAGE: return GML_EVENT_OTHER_BROADCAST_MESSAGE;
 
+        // @if event("UserEvent*")
         case EVENT_OTHER_USER0: return GML_EVENT_OTHER_USER0;
         case EVENT_OTHER_USER1: return GML_EVENT_OTHER_USER1;
         case EVENT_OTHER_USER2: return GML_EVENT_OTHER_USER2;
@@ -1140,8 +1221,10 @@ function ConvertSubEvent(_event, _subevent)
         case EVENT_OTHER_USER13: return GML_EVENT_OTHER_USER13;
         case EVENT_OTHER_USER14: return GML_EVENT_OTHER_USER14;
         case EVENT_OTHER_USER15: return GML_EVENT_OTHER_USER15;
+        // @endif
 
 
+        // @if eventType("Mouse")
         case EVENT_MOUSE_NOBUTTON: return GML_MOUSE_NoButton;
         case EVENT_MOUSE_LBUTTON_DOWN: return GML_MOUSE_LeftButton;
         case EVENT_MOUSE_RBUTTON_DOWN: return GML_MOUSE_RightButton;
@@ -1167,7 +1250,9 @@ function ConvertSubEvent(_event, _subevent)
 
         case EVENT_MOUSE_ENTER: return GML_MOUSE_MOUSEEnter;
         case EVENT_MOUSE_LEAVE: return GML_MOUSE_MOUSELeave;
+        // @endif
 
+        // @if eventType("Gesture")
         case EVENT_GESTURE_TAP: return GML_EVENT_GESTURE_TAP;
         case EVENT_GESTURE_DOUBLE_TAP: return GML_EVENT_GESTURE_DOUBLE_TAP;
         case EVENT_GESTURE_DRAG_START: return GML_EVENT_GESTURE_DRAG_START;
@@ -1181,7 +1266,9 @@ function ConvertSubEvent(_event, _subevent)
         case EVENT_GESTURE_GLOBAL_DRAG_MOVE: return GML_EVENT_GESTURE_GLOBAL_DRAG_MOVE;
         case EVENT_GESTURE_GLOBAL_DRAG_END: return GML_EVENT_GESTURE_GLOBAL_DRAG_END;
         case EVENT_GESTURE_GLOBAL_FLICK: return GML_EVENT_GESTURE_GLOBAL_FLICK;
+        // @endif
 
+        // @if eventType("Alarm")
         case EVENT_ALARM_0: return 0;
         case EVENT_ALARM_1: return 1;
         case EVENT_ALARM_2: return 2;
@@ -1194,6 +1281,7 @@ function ConvertSubEvent(_event, _subevent)
         case EVENT_ALARM_9: return 9;
         case EVENT_ALARM_10: return 10;
         case EVENT_ALARM_11: return 11;
+        // @endif
 
         default:
             return 0;      // who knows
@@ -1347,6 +1435,27 @@ yyObjectManager.prototype.Get = function (_ID) {
 // #############################################################################################
 yyObjectManager.prototype.Exists = function (_id) {
 	if(!this.objidlist[_id]) return false; else return true;
+};
+
+
+
+// #############################################################################################
+/// Function:<summary>
+///				Returieves an array of all object asset IDs.
+///          </summary>
+///
+/// Out:	 <returns>
+///				An array of all object asset IDs.
+///			 </returns>
+// #############################################################################################
+yyObjectManager.prototype.List = function () {
+	var ids = [];
+    for (var i = 0; i < this.objidlist.length; ++i) {
+        if (this.objidlist[i]) {
+            ids.push(i);
+        }
+    }
+    return ids;
 };
 
 

@@ -237,7 +237,7 @@ function CLayerSequenceElement() {
     this.m_id = 0;
     this.m_bRuntimeDataInitialised = false;
     this.m_layer = null;
-    this.m_dirtyflags = 0;
+    this.m_dirtyflags = new yyBitField64();
 };
 
 /** @constructor */
@@ -452,9 +452,11 @@ LayerManager.prototype.RemoveElementFromLayer= function(_room,_el,_layer,_remove
         case eLayerElementType_OldTilemap:
             this.RemoveOldTilemapElement(layer,element);
             break;
+        // @if feature("sprites")
         case eLayerElementType_Sprite:
             this.RemoveSpriteElement(layer,element);
             break;
+        // @endif sprites
         case eLayerElementType_Tilemap:
             this.RemoveTilemapElement(layer,element);
             break;       
@@ -464,9 +466,11 @@ LayerManager.prototype.RemoveElementFromLayer= function(_room,_el,_layer,_remove
         case eLayerElementType_Tile:
             this.RemoveTileElement(layer,element);
             break;
+        // @if feature("sequences")
         case eLayerElementType_Sequence:
             this.RemoveSequenceElement(layer,element);
-            break;    
+            break;
+        // @endif 
     };
 
     // This doesn't exist just now - need to implement
@@ -628,11 +632,12 @@ LayerManager.prototype.BuildTilemapElementRuntimeData = function( _room ,_layer,
 
 LayerManager.prototype.BuildParticleElementRuntimeData = function( _room ,_layer,_element)
 {
+    // @if feature("particles")
     if (_element.m_ps != -1 && _element.m_systemID == -1)
     {
         CParticleSystem.Get(_element.m_ps).MakeInstance(_layer.m_id, false, _element);
     }
-
+    // @endif
     _element.m_bRuntimeDataInitialised=true;
 };
 
@@ -643,6 +648,7 @@ LayerManager.prototype.BuildTileElementRuntimeData = function( _room ,_layer,_el
 
 LayerManager.prototype.BuildSequenceElementRuntimeData = function (_room, _layer, _element)
 {
+    // @if feature("sequences")
     var sequenceInstance = g_pSequenceManager.GetNewInstance();
 
     sequenceInstance.m_sequenceIndex = _element.m_sequenceIndex;
@@ -658,6 +664,7 @@ LayerManager.prototype.BuildSequenceElementRuntimeData = function (_room, _layer
     g_pSequenceManager.HandleInstanceEvent(sequenceInstance, EVENT_CREATE);
 
     _element.m_bRuntimeDataInitialised = true;
+    // @endif
 };
 
 LayerManager.prototype.BuildElementRuntimeData = function( _room ,_layer,_element)
@@ -684,7 +691,9 @@ LayerManager.prototype.BuildElementRuntimeData = function( _room ,_layer,_elemen
 		case eLayerElementType_Tilemap: this.BuildTilemapElementRuntimeData(_room, _layer, _element); break;
         case eLayerElementType_ParticleSystem: this.BuildParticleElementRuntimeData(_room, _layer, _element); break;
         case eLayerElementType_Tile: this.BuildTileElementRuntimeData(_room, _layer, _element); break;
+        // @if feature("sequences")
         case eLayerElementType_Sequence: this.BuildSequenceElementRuntimeData(_room, _layer, _element); break;
+        // @endif
     }    
 };  
 
@@ -701,7 +710,7 @@ LayerManager.prototype.BuildRoomLayerRuntimeData = function(_room)
     for(var i=0;i<_room.m_Layers.length;i++)
     {
         var player = _room.m_Layers.Get(i);
-        player.m_timer = YoYo_GetTimer();
+        player.m_timer = get_timer();
         
         for(var j=0;j<player.m_elements.length;j++)
         {
@@ -871,10 +880,12 @@ LayerManager.prototype.CleanElementRuntimeData = function(_element)
             {
                 this.CleanTileElementRuntimeData(_element);
             } break;
+        // @if feature("sequences")
         case eLayerElementType_Sequence:
             {
                 this.CleanSequenceElementRuntimeData(_element);
             } break;
+        // @endif
     }
 
     _element.m_bRuntimeDataInitialised = false;
@@ -1387,6 +1398,24 @@ LayerManager.prototype.GetElementFromIDWithLayer=function(_layer,_elID)
 
 };
 
+LayerManager.prototype.GetFirstElementOfType=function(_layer,_eltype)
+{
+
+    if(_layer==null)
+        return null;
+        
+    for(var i=_layer.m_elements.length-1;i>=0;i--)
+    {
+        var el = _layer.m_elements.Get(i);
+        if (el == null || el===undefined)continue;
+        if (el.m_type==_eltype) 
+            return el;
+    }
+
+    return null;
+
+};
+
 LayerManager.prototype.GetElementFromName=function(_layer,_elname)
 {
 
@@ -1470,7 +1499,7 @@ LayerManager.prototype.UpdateLayers = function()
         
     var numlayers = g_RunRoom.m_Layers.length;
     
-    var time = YoYo_GetTimer();
+    var time = get_timer();
     
     for(var i=0;i<numlayers;i++)
     {
@@ -1509,8 +1538,10 @@ LayerManager.prototype.UpdateLayers = function()
                     //el.m_pBackground.image_index += el.m_pBackground.image_speed;
                 }
             }
+            // @if feature("sprites")
             else if (type == eLayerElementType_Sprite)
             {
+                
                 var sprite = g_pSpriteManager.Get(el.m_spriteIndex);
 
                 if (sprite.sequence != null)
@@ -1542,10 +1573,12 @@ LayerManager.prototype.UpdateLayers = function()
                         HandleSpriteMessageEvents(sprite.sequence, el.m_id, fps, sprite.playbackspeed, el.m_sequenceDir, lastSequenceHead, el.m_sequencePos);
                     }
                 }
+                // @if feature("spine")
                 else if(sprite.m_skeletonSprite !== undefined)
                 {
                     el.m_imageIndex += el.m_imageSpeed;
                 }
+                // @endif
                 else
                 {
                     var fps = g_GameTimer.GetFPS();
@@ -1557,6 +1590,7 @@ LayerManager.prototype.UpdateLayers = function()
                     }                    
                 }
             }
+            // @endif sprites
             else if( type == eLayerElementType_Tilemap)
             {
                 var back = g_pBackgroundManager.GetImage(el.m_backgroundIndex);
@@ -1569,7 +1603,7 @@ LayerManager.prototype.UpdateLayers = function()
                 }
             }
         }
-        layer.m_timer = YoYo_GetTimer(); 
+        layer.m_timer = get_timer(); 
     }
 };
 
@@ -1645,8 +1679,9 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
             if( pLayer.hspeed!=undefined ) NewLayer.m_hspeed = pLayer.hspeed;
             if( pLayer.vspeed!=undefined ) NewLayer.m_vspeed = pLayer.vspeed;
             if( pLayer.visible!=undefined ) NewLayer.m_visible = pLayer.visible;
+            
+            // @if feature("layerEffects")
             if( pLayer.effectEnabled!=undefined) NewLayer.m_effectEnabled = NewLayer.m_effectToBeEnabled = pLayer.effectEnabled;
-
             if (( pLayer.effectType != undefined) && (pLayer.effectType != ""))
             {
                 var pEffectInfo = new CLayerEffectInfo();					
@@ -1751,6 +1786,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                 pEffectInfo.bAffectsSingleLayerOnly = true;
                 NewLayer.m_pInitialEffectInfo = pEffectInfo;
             }
+            // @endif
             
             if(pLayer.type === YYLayerType_Background)
             {
@@ -1864,6 +1900,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                     this.AddNewElement(_room,NewLayer,NewTileLayer,false);*/
                 }
                 
+                // @if feature("sprites")
                 var numsprites = 0;
                 if(pLayer.scount!=undefined) numsprites = pLayer.scount;
                 if(numsprites>0)
@@ -1895,8 +1932,10 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                     
                     }
                 }
+                // @endif sprites
 
                 // Sequences
+                // @if feature("sequences")
                 var numsequences = 0;
                 if (pLayer.ecount != undefined) numsequences = pLayer.ecount;
                 if (numsequences > 0) {
@@ -1922,8 +1961,10 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                         this.AddNewElement(_room, NewLayer, NewSequence, false);
                     }
                 }
+                // @endif
 
                 // Particles
+                // @if feature("particles")
                 var numparticles = 0;
                 if (pLayer.pcount != undefined) numparticles = pLayer.pcount;
 
@@ -1947,6 +1988,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                         this.AddNewElement(_room, NewLayer, NewParticle, false);
                     }
                 }
+                // @endif
             }
             else if(pLayer.type === YYLayerType_Tile)
             {
@@ -1958,15 +2000,15 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                     TileLayer.m_backgroundIndex = pLayer.tIndex;
                     TileLayer.m_mapWidth = pLayer.tMapWidth;
                     TileLayer.m_mapHeight = pLayer.tMapHeight;
-                    TileLayer.m_pTiles=[];
+                    TileLayer.m_pTiles=expandTiles(pLayer.ttiles);
 
                     var numtiles =0;
                     if(pLayer.tcount!=undefined) numtiles =pLayer.tcount; 
                     
-                    for(var i=0;i<numtiles;i++)
-                    {
-                    TileLayer.m_pTiles[i]= pLayer.ttiles[i];
-                    }
+                    //for(var i=0;i<numtiles;i++)
+                    //{
+                    //TileLayer.m_pTiles[i]= pLayer.ttiles[i];
+                    //}
                     if(pLayer.pName!=undefined) TileLayer.m_name = pLayer.pName;
             
                     this.AddNewElement(_room,NewLayer,TileLayer,false);
@@ -2792,6 +2834,7 @@ function layer_sprite_index( arg1,arg2)
         el.m_imageIndex = yyGetInt32(arg2);
 
         var frame = yyGetInt32(arg2);
+        // @if feature("sprites")
         var sprite = g_pSpriteManager.Get(el.m_spriteIndex);
 
         if (sprite != null)
@@ -2827,6 +2870,7 @@ function layer_sprite_index( arg1,arg2)
             }
         }
         else
+        // @endif sprites
         {
             el.m_imageIndex = frame;	// just use value as-is
         }
@@ -3013,7 +3057,7 @@ function layer_tilemap_get_id( arg1)
     var layer = layerGetObj(room, arg1); 
     if(layer!=null)
     {
-        var element = g_pLayerManager.GetElementFromName(layer,layer.m_pName);
+        var element = g_pLayerManager.GetFirstElementOfType(layer,eLayerElementType_Tilemap);
         if(element!=null && element.m_type == eLayerElementType_Tilemap)
         {
             return MAKE_REF(REFID_BACKGROUND,element.m_id);
@@ -3045,7 +3089,7 @@ function layer_tilemap_exists( arg1,arg2)
 function layer_tilemap_create( arg1,arg2,arg3,arg4,arg5,arg6) 
 {
     var room = g_pLayerManager.GetTargetRoomObj();
-    if (room === null) return -1;
+    if (room === null) return MAKE_REF(REFID_BACKGROUND,-1);;
 
     var layer = layerGetObj(room, arg1);
    
@@ -3071,10 +3115,10 @@ function layer_tilemap_create( arg1,arg2,arg3,arg4,arg5,arg6)
    
         g_pLayerManager.AddNewElement(room,layer,TileLayer,true);
 
-        return TileLayer.m_id;
+        return MAKE_REF(REFID_BACKGROUND,TileLayer.m_id);
+       
     }
-
-    return -1;
+    return MAKE_REF(REFID_BACKGROUND,-1);
 };
 function layer_tilemap_destroy( arg1) 
 {
@@ -4550,7 +4594,7 @@ function layer_sequence_x(sequence_element_id, pos_x)
         if (seqInst != null)
 		{
             el.m_x = yyGetReal(pos_x);
-            el.m_dirtyflags |= (1<<eT_Position);
+            el.m_dirtyflags.SetBit(eT_Position);
 		}
     }
 
@@ -4565,7 +4609,7 @@ function layer_sequence_y(sequence_element_id, pos_y)
         if (seqInst != null)
 		{
             el.m_y = yyGetReal(pos_y);
-            el.m_dirtyflags |= (1 << eT_Position);
+            el.m_dirtyflags.SetBit(eT_Position);
 		}
     }
 
@@ -4581,7 +4625,7 @@ function layer_sequence_angle(sequence_element_id, angle)
         if (seqInst != null)
         {
             el.m_angle = yyGetReal(angle);
-            el.m_dirtyflags |= (1 << eT_Rotation);
+            el.m_dirtyflags.SetBit(eT_Rotation);
         }
     }
 
@@ -4597,7 +4641,7 @@ function layer_sequence_xscale(sequence_element_id, xscale)
         if (seqInst != null)
         {
             el.m_scaleX = yyGetReal(xscale);
-            el.m_dirtyflags |= (1 << eT_Scale);
+            el.m_dirtyflags.SetBit(eT_Scale);
         }
     }
 
@@ -4613,7 +4657,7 @@ function layer_sequence_yscale(sequence_element_id, yscale)
         if (seqInst != null)
         {
             el.m_scaleY = yyGetReal(yscale);
-            el.m_dirtyflags |= (1 << eT_Scale);
+            el.m_dirtyflags.SetBit(eT_Scale);
         }
     }
 
@@ -4643,7 +4687,7 @@ function layer_sequence_headpos(sequence_element_id, position)
                 seqInst.m_headPosition = headPos;
                 seqInst.lastHeadPosition = headPos; // don't want to treat this like a normal time step
 
-                el.m_dirtyflags |= (1 << eT_HeadPosChanged);
+                el.m_dirtyflags.SetBit(eT_HeadPosChanged);
                 //seqInst.m_finished = tmp.finished;
             }
 		}

@@ -15,7 +15,7 @@
 // 
 // **********************************************************************************************************************
 
-
+// @if feature("timelines")
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new TIMELINE object
@@ -167,6 +167,27 @@ yyTimelineManager.prototype.Find = function(_name)
 
 // #############################################################################################
 /// Function:<summary>
+///             Retrieves an array of all time line asset IDs.
+///          </summary>
+///
+/// Out:	 <returns>
+///				An array of all time line asset IDs.
+///			 </returns>
+// #############################################################################################
+yyTimelineManager.prototype.List = function () {
+	var ids = [];
+	for (var i = 0; i < this.Timelines.length; ++i)
+	{
+		if (this.Timelines[i])
+		{
+			ids.push(i);
+		}
+	}
+	return ids;
+};
+
+// #############################################################################################
+/// Function:<summary>
 ///             Clears the events of the timeline at the given index
 ///          </summary>
 ///
@@ -250,3 +271,4 @@ yyTimelineManager.prototype.ClearEvent = function (_ind, _timeStamp) {
 		}
 	}
 };
+// @endif timelines

@@ -1,3 +1,4 @@
+// @if feature("audio_effects")
 function HPF2EffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.HPF2);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
@@ -48,3 +49,4 @@ HPF2EffectStruct.paramDescriptors = () => ({
         return this.freq;
     } 
 });
+// @endif
