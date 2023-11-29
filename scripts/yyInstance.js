@@ -69,6 +69,7 @@ function    yyInstance( _xx, _yy, _id, _objectind, _AddObjectLink, _create_dummy
 	this.bbox = new YYRECT(0,0,0,0);
 	this.__sprite_index = 0;
 	this.__image_index = 0;
+	this.frame_overflow = 0; /* Accumulated change to image_index when wrapping the per-tick update. */
 
     this.image_number = 0;    
     this.sprite_width = 0;    
@@ -805,6 +806,15 @@ yyInstance.prototype.SetImageIndex = function(_frame)
 	this.__image_index = _frame;
 };
 
+/* Writes to image_index from GML will go via this function, allowing us to
+ * clear frame_overflow whenever image_index is directly updated by game code.
+*/
+yyInstance.prototype.SetImageIndexGML = function(_frame)
+{
+	this.image_index = _frame;
+	this.frame_overflow = 0;
+};
+
 yyInstance.prototype.SetDirtyBBox = function (flag) { this.bbox_dirty = flag; };
 yyInstance.prototype.GetDirty = function () { return this.bbox_dirty; };
 
@@ -1436,7 +1446,7 @@ yyInstance.prototype.Compute_BoundingBox = function() {
             this.bbox = new YYRECT(0, 0, 0, 0);
         }
 
-        if(maskCollisionSkel.ComputeBoundingBox(this.bbox, this.CollisionImageIndex(), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle))
+        if(maskCollisionSkel.ComputeBoundingBox(this.bbox, this.CollisionImageIndex(false), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle))
         {
             this.colcheck = yySprite_CollisionType.SPINE_MESH;
         }
@@ -1457,7 +1467,7 @@ yyInstance.prototype.Compute_BoundingBox = function() {
             this.bbox = new YYRECT(0, 0, 0, 0);
         }
 
-        if(collisionSkel.ComputeBoundingBox(this.bbox, this.CollisionImageIndex(), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle))
+        if(collisionSkel.ComputeBoundingBox(this.bbox, this.CollisionImageIndex(true), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle))
         {
             this.colcheck = yySprite_CollisionType.SPINE_MESH;
         }
@@ -1675,7 +1685,7 @@ yyInstance.prototype.Maybe_Compute_BoundingBox = function() {
 	{
 		var sprite = _spr = g_pSpriteManager.Get(this.sprite_index);
 
-		if(collisionSkel.SetAnimationTransform(this.CollisionImageIndex(), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, undefined, sprite))
+		if(collisionSkel.SetAnimationTransform(this.CollisionImageIndex(collisionSkel === this.m_pSkeletonAnimation), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, undefined, sprite))
 		{
 			 /* Bounding box isn't flagged as dirty, but the Skeleton sprite/animation
 			  * state has changed, so force an update anyway.
@@ -1748,7 +1758,7 @@ yyInstance.prototype.Collision_Point = function (_x, _y, _prec) {
 	// @if feature("spine")
 	var collisionSkel = this.GetCollisionSkeleton();
     if (collisionSkel !== null) {
-        Result = collisionSkel.PointCollision(this.CollisionImageIndex(), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, _x, _y);
+        Result = collisionSkel.PointCollision(this.CollisionImageIndex(true), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, _x, _y);
     } else // ->
 	// @endif
 	{    
@@ -1859,7 +1869,7 @@ yyInstance.prototype.Collision_Rectangle = function (_x1, _y1, _x2, _y2, _prec) 
     // @if feature("spine")
 	var collisionSkel = this.GetCollisionSkeleton();
     if (collisionSkel !== null) {
-        Result = collisionSkel.RectangleCollision(this.CollisionImageIndex(), this.x, this.y, 
+        Result = collisionSkel.RectangleCollision(this.CollisionImageIndex(true), this.x, this.y, 
                                                  this.image_xscale, this.image_yscale, this.image_angle, 
 			                                     _x1, _y1, _x2, _y2);
     } else // ->
@@ -1999,7 +2009,7 @@ yyInstance.prototype.Collision_Ellipse = function (_x1, _y1, _x2, _y2, _prec) {
 	// @if feature("spine")
 	var collisionSkel = this.GetCollisionSkeleton();
     if (collisionSkel !== null) {
-        return collisionSkel.EllipseCollision(this.CollisionImageIndex(), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, g_rr);
+        return collisionSkel.EllipseCollision(this.CollisionImageIndex(true), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, g_rr);
     } else // ->
 	// @endif
 	{	    
@@ -2092,7 +2102,7 @@ yyInstance.prototype.Collision_Line = function (_x1, _y1, _x2, _y2, _prec) {
 	// @if feature("spine")
 	var collisionSkel = this.GetCollisionSkeleton();
 	if (collisionSkel !== null) {
-	    return collisionSkel.LineCollision(this.CollisionImageIndex(), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, _x1, _y1, _x2, _y2);
+	    return collisionSkel.LineCollision(this.CollisionImageIndex(true), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle, _x1, _y1, _x2, _y2);
 	}
 	// @endif
 	return pSpr.PreciseCollisionLine(this.image_index | 0, i_bbox, Round(this.x), Round(this.y), this.image_xscale, this.image_yscale, this.image_angle, Round(_x1), Round(_y1), Round(_x2), Round(_y2));
@@ -2138,13 +2148,13 @@ yyInstance.prototype.Collision_Skeleton = function (inst, prec)
 	// At this stage, decide how to test for a collision between the two "sprites"
 	if (skel2 !== null) {
 		/* inst/spr2 is using spine collisions */
-		return skel1.SkeletonCollision(this.CollisionImageIndex(), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle,
-			skel2, inst.CollisionImageIndex(), inst.x, inst.y, inst.image_xscale, inst.image_yscale, inst.image_angle);				
+		return skel1.SkeletonCollision(this.CollisionImageIndex(true), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle,
+			skel2, inst.CollisionImageIndex(true), inst.x, inst.y, inst.image_xscale, inst.image_yscale, inst.image_angle);
 	}
 	else if (spr2.colcheck == yySprite_CollisionType.PRECISE) {
 		/* inst/spr2 is using precise collisions */
-		return skel1.SpriteCollision(this.CollisionImageIndex(), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle,
-			spr2, inst.bbox, inst.CollisionImageIndex(), inst.x, inst.y, inst.image_xscale, inst.image_yscale, inst.image_angle);	
+		return skel1.SpriteCollision(this.CollisionImageIndex(true), this.x, this.y, this.image_xscale, this.image_yscale, this.image_angle,
+			spr2, inst.bbox, inst.CollisionImageIndex(false), inst.x, inst.y, inst.image_xscale, inst.image_yscale, inst.image_angle);	
 	}
 	// @endif spine
 	/* inst/spr2 is using bounding box collisions - no more to do. */
@@ -3184,7 +3194,7 @@ yyInstance.prototype.GetCollisionSkeleton = function()
 	return skel;
 };
 
-yyInstance.prototype.CollisionImageIndex = function()
+yyInstance.prototype.CollisionImageIndex = function(_consumeFrameOverflow)
 {
 	// @if feature("spine")
 	if (this.mask_index >= 0 && g_pSpriteManager.Sprites[this.mask_index].colcheck === yySprite_CollisionType.SPINE_MESH)
@@ -3192,7 +3202,15 @@ yyInstance.prototype.CollisionImageIndex = function()
 		return 0.0;
 	}
 	// @endif
-	return this.image_index;
+
+	var index = this.image_index;
+	if(_consumeFrameOverflow)
+	{
+		index += this.frame_overflow;
+		this.frame_overflow = 0;
+	}
+
+	return index;
 };
 
 yyInstance.prototype.UseSkeletonCollision = function()
@@ -3607,6 +3625,7 @@ yyInstanceManager.prototype.UpdateImages = function () {
 	    {
 	        var num = pInst.GetImageNumber();
 	        if (pInst.image_index >= num) {
+	            pInst.frame_overflow += num;
 	            pInst.image_index -= num;
 
 	            // if this instance acts on this event, then process it....
@@ -3616,6 +3635,7 @@ yyInstanceManager.prototype.UpdateImages = function () {
 	            }
 	        }
 	        else if (pInst.image_index < 0) {
+	            pInst.frame_overflow -= num;
 	            pInst.image_index += num;
 
 	            // if this instance acts on this event, then process it....

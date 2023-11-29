@@ -728,8 +728,8 @@ yySkeletonInstance.prototype.SetAnimationTransform = function (_ind, _x, _y, _sc
 	    var frameCount = this.FrameCount(_spr, 0);
 	    if (frameCount > 0)
 	    {
-	        var frameCurr = _ind % frameCount,
-			    frameLast = this.m_lastFrame % frameCount,
+	        var frameCurr = _ind,
+			    frameLast = this.m_lastFrame,
 			    duration = this.m_animation.duration,
 			    timelineCount = this.m_animation.timelines.length;
 			    
@@ -747,6 +747,10 @@ yySkeletonInstance.prototype.SetAnimationTransform = function (_ind, _x, _y, _sc
 	        if ((this.m_lastFrameDir > 0) && (frameCurr < frameLast))
 	        {
 	            // Assume we're moving in the same direction as last frame when handling wrapping behaviour
+	            // NOTE: This should only be hit when people are setting image_index manually - when it is
+	            // being advanced automatically we should receive an over/under-flowed _ind for one frame
+	            // so we can handle wrapping without having to use this heuristic which can fail depending on
+	            // animation speed/length...
 	            frameCurr += frameCount;
 	        }
 	        /*else if ((m_lastFrameDir < 0) && (frameCurr > frameLast))
@@ -767,7 +771,7 @@ yySkeletonInstance.prototype.SetAnimationTransform = function (_ind, _x, _y, _sc
 
 	    this.m_animationState.apply(this.m_skeleton);
 
-	    this.m_lastFrame = _ind;		    
+	    this.m_lastFrame = _ind % frameCount;
 
 	    skeleton.x = _x;
 	    skeleton.y = _y;
