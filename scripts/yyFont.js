@@ -1880,7 +1880,7 @@ yyFontManager.prototype.Split_TextBlock = function (_pStr, linewidth, thefont) {
 					if ((pNew[end] != whitespace) || (pNew[end] != whitespace && pNew[end + 1] != whitespace))
 					{
 						var e = end;
-						while (end > start)
+						while (e > start)
 						{
 							if (pNew[--e] == whitespace) break; 				// FOUND start of word
 						}
