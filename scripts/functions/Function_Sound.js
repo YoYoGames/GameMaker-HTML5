@@ -1992,7 +1992,7 @@ function audio_stop_all()
 function audio_group_stop_sounds(_groupId) 
 {
     audio_sounds.filter(_voice => audio_sampledata[_voice.soundid].groupId === _groupId)
-                .forEach(_voice => voice.stop()); 
+                .forEach(_voice => _voice.stop()); 
 }
 
 function audio_pause_all( )
