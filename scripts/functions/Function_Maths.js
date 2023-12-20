@@ -1401,6 +1401,28 @@ function ptr(_x) {
     return ret;
 }
 
+function handle( _s )
+{
+    var ret = undefined;
+    if ((typeof _s == "string" ) && _s.startsWith("ref ")) {
+
+        // get the type of the handle
+        var indexOfSpace = _s.indexOf( " ", 4 );
+        var handleTypeString = _s.substring( 4, indexOfSpace );
+
+        // get the index of the handle
+        var numberString = _s.substring(indexOfSpace+1);
+        var handleIndex = Number(numberString);
+
+        // convert the handleTypeString to the Reference type
+        var type = Name2Ref( handleTypeString );
+
+        // get the reference type
+        ret = MAKE_REF( type, handleIndex );
+    } // end if
+    return ret;
+} // end handle
+
 // #############################################################################################
 /// Function:<summary>
 ///          	Returns whether x is a string (as opposed to a real value).

@@ -1023,6 +1023,29 @@ const _regexp_int64_parse = new RegExp("@i64@([0-9a-f]+?)\\$i64\\$", "i");
 
 // ########### JSON_ENCODE & JSON_DECODE ###########
 
+function parseRef( _s )
+{
+    var ret = undefined;
+    if ((typeof _s == "string" ) && _s.startsWith("@ref ")) {
+
+        // get the type of the handle
+        var indexOfLBrack = _s.indexOf( "(", 5 );
+        var handleTypeString = _s.substring( 5, indexOfLBrack );
+
+        // get the index of the handle
+        var indexOfRBrack = _s.indexOf( ")", indexOfLBrack );
+        var numberString = _s.substring(indexOfLBrack+1, indexOfRBrack);
+        var handleIndex = Number(numberString);
+
+        // convert the handleTypeString to the Reference type
+        var type = Name2Ref( handleTypeString );
+
+        // get the reference type
+        ret = MAKE_REF( type, handleIndex );
+    } // end if
+    return ret;
+} // end parseRef
+
 // @if feature("extension_api") || function("json_decode")
 function _json_decode_value(value) {
   
@@ -1054,6 +1077,11 @@ function _json_decode_value(value) {
 			if (match) {
 				return parseInt(match[1], 16);
 			}
+
+			if (value.startsWith("@ref ")) {
+				return parseRef(value);
+			}
+
 			return value;
         default:
             return value.toString();
@@ -1154,6 +1182,10 @@ function _json_encode_value(value) {
 			// It's an long value return it's number format
 			if (value instanceof Long) {
 				return "@i64@" + value.toString(16) + "$i64$";
+			}
+
+			if (value instanceof YYRef) {
+				return "@ref " + RefName(value.type) + "(" + value.value + ")";
 			}
 
 			// The value is a pointer_null
@@ -1286,6 +1318,10 @@ function _json_replacer(value)
 				return "@i64@" + value.toString(16) + "$i64$";
 			}
 
+			if (value instanceof YYRef) {
+				return "@ref " + RefName(value.type) + "(" + value.value + ")";
+			}
+
 			// The value is a pointer_null
 			if (value == g_pBuiltIn.pointer_null) return null;
 
@@ -1390,6 +1426,11 @@ function _json_reviver(_, value)
 			var match = value.match(_regexp_int64_parse);
 			if (match) {
 				return parseInt(match[1], 16);
+			}
+
+			// check to see if this is an @ref
+			if (value.startsWith("@ref ")) {
+				return parseRef(value);
 			}
 			
 			return value;
