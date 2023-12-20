@@ -33,6 +33,7 @@ var AT_None = -1,
 var REFCAT_RESOURCE			= 0x01000000;
 var REFCAT_DATA_STRUCTURE	= 0x02000000;
 var REFCAT_INSTANCE			= 0x04000000;
+var REFCAT_GENERAL          = 0x08000000;
 
 // Runtime instances of resources
 var REFID_INSTANCE			= (0x00000001 | REFCAT_INSTANCE);
@@ -64,6 +65,14 @@ var REFID_DS_QUEUE		= (0x00000008 | REFCAT_DATA_STRUCTURE);
 var REFID_DS_STACK		= (0x00000010 | REFCAT_DATA_STRUCTURE);
 var REFID_DS_PRIORITY	= (0x00000020 | REFCAT_DATA_STRUCTURE);
 
+
+var REFID_BUFFER           = (0x00000001 | REFCAT_GENERAL)
+var REFID_VERTEX_BUFFER    = (0x00000002 | REFCAT_GENERAL)
+var REFID_VERTEX_FORMAT    = (0x00000003 | REFCAT_GENERAL)
+var REFID_SURFACE          = (0x00000004 | REFCAT_GENERAL)
+var REFID_TIME_SOURCE      = (0x00000005 | REFCAT_GENERAL)
+
+
 function YYRef(_type, _value)
 {
     this.type = _type;
@@ -92,41 +101,63 @@ function YYASSET_REF(a)
     }
 }
 
+var  g_name2ref = [
+    {   "name" : "instance", "type" : REFID_INSTANCE },
+    {   "name" : "ds_list",  "type" : REFID_DS_LIST },
+    {   "name" : "ds_map", "type" : REFID_DS_MAP},
+    {   "name" : "ds_grid", "type" : REFID_DS_GRID},
+    {   "name" : "ds_queue", "type" : REFID_DS_QUEUE},
+    {   "name" : "ds_stack", "type" : REFID_DS_STACK},
+    {   "name" : "ds_priority", "type" : REFID_DS_PRIORITY},
+    {   "name" : "object", "type" : REFID_OBJECT},
+    {   "name" : "sprite", "type" : REFID_SPRITE},
+    {   "name" : "sound", "type" : REFID_SOUND},
+    {   "name" : "room", "type" : REFID_ROOM},
+    {   "name" : "background", "type" : REFID_BACKGROUND},
+    {   "name" : "path", "type" : REFID_PATH},
+    {   "name" : "script", "type" : REFID_SCRIPT},
+    {   "name" : "font", "type" : REFID_FONT},
+    {   "name" : "timeline", "type" : REFID_TIMELINE},
+    {   "name" : "tiles", "type" : REFID_TILES},
+    {   "name" : "shader", "type" : REFID_SHADER},
+    {   "name" : "sequence", "type" : REFID_SEQUENCE},
+    {   "name" : "animcurve", "type" : REFID_ANIMCURVE},
+    {   "name" : "particle system resource", "type" : REFID_PARTICLESYSTEM},
+    {   "name" : "dbgref", "type" : REFID_DBG},
+    {   "name" : "particle system instance", "type" : REFID_PART_SYSTEM},
+    {   "name" : "particle emitter","type" : REFID_PART_EMITTER},
+    {   "name" : "particle type", "type" : REFID_PART_TYPE},
+    {   "name" : "buffer", "type" : REFID_BUFFER},
+    {   "name" : "vertex buffer", "type" : REFID_VERTEX_BUFFER},
+    {   "name" : "vertex format", "type" : REFID_VERTEX_FORMAT},
+    {   "name" : "surface", "type" : REFID_SURFACE},
+    {   "name" : "time source", "type" : REFID_TIME_SOURCE},
+];
+
+
 function RefName(_ref)
 {
     var pRet = "unknown";
-    switch (_ref)
-    {
-    case REFID_INSTANCE:	pRet = "instance";  break;
-    case REFID_DS_LIST:		pRet = "ds_list"; break;
-    case REFID_DS_MAP:		pRet = "ds_map"; break;
-    case REFID_DS_GRID:		pRet = "ds_grid"; break;
-    case REFID_DS_QUEUE:	pRet = "ds_queue"; break;
-    case REFID_DS_STACK:	pRet = "ds_stack"; break;
-    case REFID_DS_PRIORITY:	pRet = "ds_priority"; break;
-    case REFID_OBJECT:		pRet = "object"; break;
-    case REFID_SPRITE:		pRet = "sprite"; break;
-    case REFID_SOUND:		pRet = "sound"; break;
-    case REFID_ROOM:		pRet = "room"; break;
-    case REFID_BACKGROUND:	pRet = "background"; break;
-    case REFID_PATH:		pRet = "path"; break;
-    case REFID_SCRIPT:		pRet = "script"; break;
-    case REFID_FONT:		pRet = "font"; break;
-    case REFID_TIMELINE:	pRet = "timeline"; break;
-    case REFID_TILES:		pRet = "tiles"; break;
-    case REFID_SHADER:		pRet = "shader"; break;
-    case REFID_SEQUENCE:	pRet = "sequence"; break;
-    case REFID_ANIMCURVE:	pRet = "animcurve"; break;
-    case REFID_PARTICLESYSTEM:		pRet = "particle system resource"; break;
-    case REFID_DBG:			pRet = "dbgref"; break;
-    case REFID_PART_SYSTEM:	pRet = "particle system instance"; break;
-    case REFID_PART_EMITTER:pRet = "particle emitter"; break;
-    case REFID_PART_TYPE:	pRet = "particle type"; break;
-    default:
-        break;
-    } // end switch
+    for( var n=0; n<g_name2ref.length; ++n) {
+        if (g_name2ref[n].type == _ref) {
+            pRet = g_name2ref[n].name;
+            break;
+        } // end if
+    } // end for
     return pRet;
 } // end RefName
+
+function Name2Ref( _name )
+{
+    var pRet = -1;
+    for( var n=0; n<g_name2ref.length; ++n) {
+        if (g_name2ref[n].name == _name) {
+            pRet = g_name2ref[n].type;
+            break;
+        } // end if
+    } // end for
+    return pRet;    
+}
 
 // #############################################################################################
 /// Function:<summary>
