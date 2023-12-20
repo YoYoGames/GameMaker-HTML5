@@ -575,11 +575,12 @@ audioSound.prototype.isPlaying = function() {
         return true;
     }
     else {
+        // If the voice is active, but we have no buffer,
+        // then we are decoding and considered to be playing.
         if (this.pbuffersource === null)
-            return false;
+            return true;
 
         //NB- "playbackState" is only defined for webkitAudioContext - undefined for AudioContext
-        // ... we should get rid of it then
         if (this.pbuffersource.playbackState == undefined 
         || this.pbuffersource.playbackState != this.pbuffersource.FINISHED_STATE
         || this.paused) {
