@@ -558,6 +558,12 @@ audioSound.prototype.resume = function() {
     }
     else {
         this.startoffset = this.playbackCheckpoint.bufferTime;
+
+        // If we are still decoding then there's nothing to do with the buffer source
+        if (this.pbuffersource == null) {
+            return;
+        }
+        
         this.start(this.pbuffersource.buffer);
     }
 };
