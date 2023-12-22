@@ -13,9 +13,6 @@
 // @if function("video_")
 var g_VideoUserEnded = false; //For some reason I can't figure this from the video player...
 var g_AnimationFrameRequestID = null;
-
-const cancelAnimationFrame =
-  window.cancelAnimationFrame || window.mozCancelAnimationFrame;
   
 const requestAnimationFrame =
   window.requestAnimationFrame ||
@@ -124,11 +121,6 @@ function video_open(path)
                         gameCanvas.videoContext.drawImage(gameCanvas.yyvideoplayer, 0, 0);
                         requestAnimationFrame(updateVideoFrame);
                     }
-                }
-            } else {
-                if (g_AnimationFrameRequestID !== null) {
-                    cancelAnimationFrame(g_AnimationFrameRequestID);
-                    g_AnimationFrameRequestID = null;
                 }
             }
         }
