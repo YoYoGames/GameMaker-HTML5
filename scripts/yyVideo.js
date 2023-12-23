@@ -13,6 +13,9 @@
 // @if function("video_")
 var g_VideoUserEnded = false; //For some reason I can't figure this from the video player...
 var g_AnimationFrameRequestID = null;
+var g_AnimationFrameRequestID = null;
+
+var g_AnimationFrameRequestID = null;  
 
 const requestAnimationFrame =
   window.requestAnimationFrame ||
@@ -104,21 +107,6 @@ function video_open(path)
         let fpsInterval = 1000 / 30;
         let then = Date.now();
 
-        myVideo.addEventListener('playing', function () {
-            playing = true;
-            console.log("Video playing event called");
-            checkReady();
-
-            var map = ds_map_create();
-
-            ds_map_add(map, "type", "video_start");
-
-            g_pBuiltIn.async_load = map;
-            g_pObjectManager.ThrowEvent(EVENT_OTHER_SOCIAL, 0);
-            ds_map_destroy(map);
-
-        }, true);
-
         function updateVideoFrame() {
             if (!g_VideoUserEnded) {
                 g_AnimationFrameRequestID = requestAnimationFrame(updateVideoFrame);
@@ -134,7 +122,6 @@ function video_open(path)
 
                     if ((gameCanvas.yyvideoplayer != null) && (gameCanvas.videoContext != null)) {
                         gameCanvas.videoContext.drawImage(gameCanvas.yyvideoplayer, 0, 0);
-                        requestAnimationFrame(updateVideoFrame);
                     }
                 }
             }
@@ -152,6 +139,13 @@ function video_open(path)
         console.log("Video playing event called");
         checkReady();
         requestAnimationFrame(updateVideoFrame);
+        var map = ds_map_create();
+
+        ds_map_add(map, "type", "video_start");
+
+        g_pBuiltIn.async_load = map;
+        g_pObjectManager.ThrowEvent(EVENT_OTHER_SOCIAL, 0);
+        ds_map_destroy(map);
     }, true);
 		
 
