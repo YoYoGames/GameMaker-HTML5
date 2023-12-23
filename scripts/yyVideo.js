@@ -14,12 +14,6 @@
 var g_VideoUserEnded = false; //For some reason I can't figure this from the video player...
 var g_AnimationFrameRequestID = null;
 
-const requestAnimationFrame =
-  window.requestAnimationFrame ||
-  window.mozRequestAnimationFrame ||
-  window.webkitRequestAnimationFrame ||
-  window.msRequestAnimationFrame;
-
 function video_get_format() {
     var video_format_rgba = 0;
     var video_format_yuv = 1;
@@ -101,12 +95,13 @@ function video_open(path)
     
     if (myVideo.requestVideoFrameCallback === undefined) { //urgh can't use nice fast playback
         console.log("requestVideoFrameCallback not supported by browser, falling back to requestAnimationFrame");
-        let fpsInterval = 1000 / 30;
+        let fpsInterval = 1000 / 29.97;
         let then = Date.now();
-
+		
         function updateVideoFrame() {
             if (!g_VideoUserEnded) {
-                g_AnimationFrameRequestID = requestAnimationFrame(updateVideoFrame);
+				g_AnimationFrameRequestID = requestAnimationFrame(updateVideoFrame);
+				console.log(g_AnimationFrameRequestID);
                 let now = Date.now();
                 let elapsed = now - then;
 
@@ -121,7 +116,12 @@ function video_open(path)
                         gameCanvas.videoContext.drawImage(gameCanvas.yyvideoplayer, 0, 0);
                     }
                 }
-            }
+            }else{
+			if(g_AnimationFrameRequestID){
+			cancelAnimationFrame(g_AnimationFrameRequestID);
+			g_AnimationFrameRequestID = null;
+			}
+			}
         }
 		
         myVideo.addEventListener('timeupdate', function () {

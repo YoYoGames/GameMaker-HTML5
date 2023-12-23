@@ -97,6 +97,21 @@ window.yyRequestAnimationFrame =
     window.mozRequestAnimationFrame    || 
     window.oRequestAnimationFrame      || 
     window.msRequestAnimationFrame;
+	
+window.yyCancelAnimationFrame = 
+    window.cancelAnimationFrame       ||
+    window.webkitCancelAnimationFrame ||
+    window.mozCancelAnimationFrame    ||
+    window.oCancelAnimationFrame      ||
+    window.msCancelAnimationFrame;
+
+if (!window.yyCancelAnimationFrame) {
+    window.cancelAnimFrame = function(id) {
+        clearTimeout(id);
+    };
+} else {
+    window.cancelAnimFrame = window.yyCancelAnimationFrame;
+}
 
 if (!window.yyRequestAnimationFrame) {
     // if RAF is somehow amiss but we need short timeouts, register a message handler
