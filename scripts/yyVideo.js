@@ -13,9 +13,6 @@
 // @if function("video_")
 var g_VideoUserEnded = false; //For some reason I can't figure this from the video player...
 var g_AnimationFrameRequestID = null;
-var g_AnimationFrameRequestID = null;
-
-var g_AnimationFrameRequestID = null;  
 
 const requestAnimationFrame =
   window.requestAnimationFrame ||
