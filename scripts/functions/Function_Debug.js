@@ -337,6 +337,8 @@ function dbg_slider_int() { ErrorFunction( "dbg_slider_int()" ); }
 function dbg_add_font_glyphs() { ErrorFunction( "dbg_add_font_glyphs()" ); }
 function ref_create() { ErrorFunction( "ref_create()" ); return 0; }
 function is_debug_overlay_open() { return false; }
+function is_mouse_over_debug_overlay() { return false; }
+function is_keyboard_used_debug_overlay() { return false; }
 function show_debug_log() { ErrorFunction( "show_debug_log()" ); ; }
 
 
