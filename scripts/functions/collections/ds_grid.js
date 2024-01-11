@@ -34,7 +34,7 @@ function ds_set_precision(_prec)
     g_Precsision = yyGetReal(_prec);
 }
 
-
+/// @if function("ds_grid_*")
 
 // #############################################################################################
 /// Function:<summary>
@@ -2049,3 +2049,5 @@ function ds_grid_to_mp_grid(_src, _dest, _predicate) {
 		}
 	}
 }
+
+/// @endif

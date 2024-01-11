@@ -59,9 +59,7 @@ var GR_MarkVertCorners = false,
 // Store the set of shader programs created from the user's project
 var g_shaderPrograms = [];
 
-var g_Matrix = null,
-	g_MatrixStack = null,
-	g_MatrixSP = 0;
+var g_Matrix = null;
 
 // Constants for matrix stack
 var MATRIX_VIEW = 0,
@@ -107,11 +105,16 @@ var g_AppendDerivativesExtToShader = false;
 ///          </summary>
 // #############################################################################################
 function InitWebGLFunctions() {
-
+    // VD: a lot of conditionals here, but oh well
+    
     InitD3DFunctions();
+    // @if function("vertex_*")
     InitFVFFunctions();
     InitBufferVertexFunctions();
+    // @endif
+    // @if function("draw_primitive_*") || function("draw_vertex*")
     InitPrimBuilderFunctions();
+    // @endif
     
     DrawCirclePrecision(g_circleSteps);
     
@@ -128,7 +131,9 @@ function InitWebGLFunctions() {
     Graphics_PushMatrix = WebGL_PushMatrix_RELEASE;
     Graphics_Save = WebGL_Save_RELEASE;
     Graphics_Restore = WebGL_Restore_RELEASE;
+    // @if feature("fonts")
     Graphics_DrawText = WebGL_DrawText_RELEASE;
+    // @endif fonts
     Graphics_StartFrame = WebGL_StartFrame_RELEASE;
     Graphics_EndFrame = WebGL_EndFrame_RELEASE;
     Graphics_DrawComment = WEBGL_DrawComment_RELEASE;    
@@ -138,101 +143,124 @@ function InitWebGLFunctions() {
     Graphics_TextureDrawSimple = WebGL_TextureDrawSimple_RELEASE;
     Graphics_TextureDrawTiled = WebGL_TextureDrawTiled_RELEASE;
     Graphics_TextureDraw = WebGL_TextureDraw_RELEASE;
+    // @if function("draw_sprite_pos")
     Graphics_TextureDrawPos = WebGL_TextureDrawPos_RELEASE;
+    // @endif
+    // @if feature("swf")
     Graphics_SWFDraw = WebGL_DrawSWF_RELEASE;
     Graphics_SWFDrawObject = WebGL_DrawSWFObject_RELEASE;
+    // @endif swf
     Graphics_DrawPart = WebGL_DrawPart_RELEASE;                
     draw_rectangle = WebGL_draw_rectangle_RELEASE;
     draw_roundrect_color_ext = WebGL_draw_roundrect_color_EXT_RELEASE;
-    draw_rectangle_color = WebGL_draw_rectangle_color_RELEASE;
-    draw_roundrect_colour_ext = WebGL_draw_roundrect_color_EXT_RELEASE;
-    draw_rectangle_colour = WebGL_draw_rectangle_color_RELEASE;
-    draw_rectangle_gradient = WebGL_draw_rectangle_gradient_RELEASE;
-    draw_point = WebGL_draw_point_RELEASE;
-    draw_getpixel = WebGL_draw_getpixel_RELEASE;
-    draw_getpixel_ext = WebGL_draw_getpixel_ext_RELEASE;
+    draw_rectangle_color = WebGL_draw_rectangle_color_RELEASE; // NB! used to clear screen
+    compile_if_used(draw_roundrect_colour_ext = WebGL_draw_roundrect_color_EXT_RELEASE);
+    compile_if_used(draw_rectangle_colour = WebGL_draw_rectangle_color_RELEASE);
+    compile_if_used(draw_point = WebGL_draw_point_RELEASE);
+    compile_if_used(draw_getpixel = WebGL_draw_getpixel_RELEASE);
+    compile_if_used(draw_getpixel_ext = WebGL_draw_getpixel_ext_RELEASE);
+    // @if function("draw_triangle") || function("draw_arrow") || function("physics_world_draw_debug")
     draw_triangle = WebGL_draw_triangle_RELEASE;
-    draw_triangle_color = WebGL_draw_triangle_color_RELEASE;
+    // @endif
+    
+    compile_if_used(draw_triangle_color = WebGL_draw_triangle_color_RELEASE);
+    // @if function("draw_ellipse") || function("draw_ellipse_color")
     draw_ellipse_color = WebGL_draw_ellipse_color_RELEASE;
+    // @endif
+    // @if function("draw_circle") || function("draw_circle_color")
     draw_circle_color = WebGL_draw_circle_color_RELEASE;
-    draw_point_color = WebGL_draw_point_color_RELEASE;
+    // @endif
+    compile_if_used(draw_point_color = WebGL_draw_point_color_RELEASE);
+    
     draw_triangle_colour = WebGL_draw_triangle_color_RELEASE;
-    draw_ellipse_colour = WebGL_draw_ellipse_color_RELEASE;
-    draw_circle_colour = WebGL_draw_circle_color_RELEASE;
-    draw_point_colour = WebGL_draw_point_color_RELEASE;
+    compile_if_used(draw_ellipse_colour = WebGL_draw_ellipse_color_RELEASE);
+    compile_if_used(draw_circle_colour = WebGL_draw_circle_color_RELEASE);
+    compile_if_used(draw_point_colour = WebGL_draw_point_color_RELEASE);
+    
+    // line functions are used a lot, don't trim these
     draw_line = WebGL_draw_line_RELEASE;
     draw_line_width =  WebGL_draw_line_width_RELEASE;
     draw_line_width_color = WebGL_draw_line_width_color_RELEASE;
-    draw_line_width_colour = WebGL_draw_line_width_color_RELEASE;
-    draw_clear_alpha = WebGL_draw_clear_alpha_RELEASE;
+    compile_if_used(draw_line_width_colour = WebGL_draw_line_width_color_RELEASE);
+    draw_clear_alpha = WebGL_draw_clear_alpha_RELEASE; // used by yyEffects
     draw_set_color = WebGL_draw_set_color_RELEASE;
-    draw_set_colour = WebGL_draw_set_color_RELEASE;
-    draw_set_alpha = WebGL_draw_set_alpha_RELEASE;
+    compile_if_used(draw_set_colour = WebGL_draw_set_color_RELEASE);
+    draw_set_alpha = WebGL_draw_set_alpha_RELEASE; // used for vkeys
     draw_set_blend_mode_ext = WEBGL_draw_set_blend_mode_ext_RELEASE;
     draw_enable_alphablend = WEBGL_draw_enable_alpha_blend_RELEASE;
-    draw_surface = WebGL_draw_surface_RELEASE;    
+    compile_if_used(draw_surface = WebGL_draw_surface_RELEASE);
+    // @if feature("paths")
     draw_path = WEBGL_draw_path;
+    // @endif
+    // @if function("mp_grid_*")
     mp_grid_draw = WEBGL_mp_grid_draw;
+    // @endif
     g_webGL._drawImage = WebGL_drawImage_Replacement_RELEASE;
 
     // Surfaces
     surface_create = WebGL_surface_create_RELEASE;
     surface_free = WebGL_surface_free_RELEASE;
-    surface_getpixel = WebGL_surface_getpixel_RELEASE;
-    surface_getpixel_ext = WebGL_surface_getpixel_ext_RELEASE;    
-    surface_copy = WebGL_surface_copy_RELEASE;
-    surface_copy_part = WebGL_surface_copy_part_RELEASE;
+    compile_if_used(surface_getpixel = WebGL_surface_getpixel_RELEASE);
+    compile_if_used(surface_getpixel_ext = WebGL_surface_getpixel_ext_RELEASE);
+    compile_if_used(surface_copy = WebGL_surface_copy_RELEASE);
+    compile_if_used(surface_copy_part = WebGL_surface_copy_part_RELEASE);
 	
-    // Backgrounds		
-    background_create_from_screen = WebGL_background_create_from_screen_RELEASE;
-    background_create_from_surface = WebGL_background_create_from_surface_RELEASE;
+    // Backgrounds (no longer needed..?)		
+    //background_create_from_screen = WebGL_background_create_from_screen_RELEASE;
+    //background_create_from_surface = WebGL_background_create_from_surface_RELEASE;
 
     // Sprites
-    sprite_add_from_screen = WebGL_sprite_add_from_screen_RELEASE;
-    sprite_create_from_surface = WebGL_sprite_create_from_surface_RELEASE;
-    sprite_add_from_surface = WebGL_sprite_add_from_surface_RELEASE;
+    compile_if_used(sprite_add_from_screen = WebGL_sprite_add_from_screen_RELEASE);
+    compile_if_used(sprite_create_from_surface = WebGL_sprite_create_from_surface_RELEASE);
+    compile_if_used(sprite_add_from_surface = WebGL_sprite_add_from_surface_RELEASE);
 
-    CopyImageToAlpha = WEBGL_CopyImageToAlpha_RELEASE;
+    compile_if_used(sprite_set_alpha_from_sprite, CopyImageToAlpha = WEBGL_CopyImageToAlpha_RELEASE);
 	
     // Shaders		
+    fn_shader_set = WebGL_shader_set_RELEASE;
+    // @if feature("shaders")
     fn_texture_get_texel_width = WebGL_texture_get_texel_width_RELEASE;
-    fn_texture_get_texel_height = WebGL_texture_get_texel_height_RELEASE;    
+    fn_texture_get_texel_height = WebGL_texture_get_texel_height_RELEASE;
     fn_texture_set_stage = WebGL_texture_set_stage_RELEASE;
     fn_shader_is_compiled = WebGL_shader_is_compiled_RELEASE;
-    fn_shader_set = WebGL_shader_set_RELEASE;
     fn_shader_get_uniform = WebGL_shader_get_uniform_RELEASE;
     fn_shader_set_uniform_i = WebGL_shader_set_uniform_i_RELEASE;
-    fn_shader_set_uniform_f = WebGL_shader_set_uniform_f_RELEASE;    
-    fn_shader_set_uniform_matrix = WebGL_shader_set_uniform_matrix_RELEASE;    
-    fn_shader_get_sampler_index = WebGL_shader_get_sampler_index_RELEASE; 
-    fn_shader_enable_corner_id = WebGL_shader_enable_corner_id_RELEASE;	
+    fn_shader_set_uniform_f = WebGL_shader_set_uniform_f_RELEASE;
+    fn_shader_set_uniform_matrix = WebGL_shader_set_uniform_matrix_RELEASE;
+    fn_shader_get_sampler_index = WebGL_shader_get_sampler_index_RELEASE;
+    fn_shader_enable_corner_id = WebGL_shader_enable_corner_id_RELEASE;
     fn_shader_set_uniform_i_array = WebGL_shader_set_uniform_i_array_RELEASE;
     fn_shader_set_uniform_f_array = WebGL_shader_set_uniform_f_array_RELEASE;
     fn_shader_set_uniform_f_buffer = WebGL_shader_set_uniform_f_buffer_RELEASE;
-    fn_shader_set_uniform_matrix_array = WebGL_shader_set_uniform_matrix_array_RELEASE;    
-    shaders_are_supported = WebGL_shaders_are_supported_RELEASE;
+    fn_shader_set_uniform_matrix_array = WebGL_shader_set_uniform_matrix_array_RELEASE;
+    WebGL_shaders_are_supported_RELEASE;
     fn_shader_get_name = WebGL_shader_get_name_RELEASE;
+    // @endif
     
     // textures
+    // @if feature("shaders") || function("texture_*")
     texture_set_blending = WebGL_texture_set_blending_RELEASE;
     texture_set_repeat = WebGL_texture_set_repeat_RELEASE;
     texture_set_repeat_ext = WebGL_texture_set_repeat_ext_RELEASE;
     texture_set_interpolation = WebGL_texture_set_interpolation_RELEASE;
     texture_set_interpolation_ext = WebGL_texture_set_interpolation_ext_RELEASE;
-    texture_get_repeat = WebGL_texture_get_repeat_RELEASE;    
+    texture_get_repeat = WebGL_texture_get_repeat_RELEASE;
     texture_get_width = WebGL_texture_get_width_RELEASE;
     texture_get_height = WebGL_texture_get_height_RELEASE;
     texture_get_uvs = WebGL_texture_get_uvs_RELEASE;
+    // @endif
 
     // alpha test    
     draw_set_alpha_test = WebGL_draw_set_alpha_test_RELEASE;
     draw_set_alpha_test_ref_value = WebGL_draw_set_alpha_test_ref_value_RELEASE;
-    draw_get_alpha_test = WebGL_draw_get_alpha_test_RELEASE;
-    draw_get_alpha_test_ref_value = WebGL_draw_get_alpha_test_ref_value_RELEASE;
+    compile_if_used(draw_get_alpha_test = WebGL_draw_get_alpha_test_RELEASE);
+    compile_if_used(draw_get_alpha_test_ref_value = WebGL_draw_get_alpha_test_ref_value_RELEASE);
 
     // Buffer surface stuff
-    buffer_get_surface = WEBGL_buffer_get_surface;
+    compile_if_used(buffer_get_surface = WEBGL_buffer_get_surface);
+    // @if function("buffer_set_surface") || function("video_*")
     buffer_set_surface = WEBGL_buffer_set_surface;
+    // @endif
     // 
     PostInitWebGLFunctions();	    	
 }
@@ -242,7 +270,7 @@ function InitWebGLFunctions() {
 ///          </summary>
 // #############################################################################################
 function InitWebGL(_canvas) {
-
+    // @if feature("gl")
     var options = {
         Stencil: ((g_pGMFile.Swfs !== undefined) ? true : false),
         PreserveDrawingBuffer: (g_pGMFile.Options.WebGLPreserveDrawingBuffer ? true : false),
@@ -258,12 +286,6 @@ function InitWebGL(_canvas) {
     if (!InitShaders()) return false;
     if (!InitTextures()) return false;	
     if (!InitLightingEnv()) return false;
-   
-    g_MatrixStack = [];
-    for (var i = 0; i < MATRIX_STACK_MAX; i++) {
-        g_MatrixStack[i] = new Matrix();
-    }
-    g_MatrixSP = -1;
     
     g_RenderTargetActive = 1;
     g_pProjection = new Matrix();
@@ -274,6 +296,7 @@ function InitWebGL(_canvas) {
         GR_TextureRepeat[i] = false;
     }
     return true;
+    // @endif gl
 }
 
 // #############################################################################################
@@ -447,7 +470,7 @@ function InitWebGLTextureGetFunctions() {
         return texture;
     };    
 
-    // And again for background textures    
+    /*// And again for background textures    
     var fn_background_get_texture = background_get_texture;
     background_get_texture = function(_ind) {
     
@@ -457,7 +480,7 @@ function InitWebGLTextureGetFunctions() {
             WebGL_BindTexture(texture.TPE);
         }
         return texture;
-    };
+    };*/
     WebGL_StartFrame_RELEASE();// Call this to setup defaults..
 }
 
@@ -516,12 +539,9 @@ function WebGL_Save_RELEASE(_storeSettings) {
             g_savedWebGLState.GR_LightingEnabled = GR_LightingEnabled;
             g_savedWebGLState.GR_FogParameters = new Float32Array(GR_FogParameters);
             
-            if(g_isZeus)
-            {
-                g_savedWebGLState.GR_Cull=gpu_get_cullmode();
-                g_savedWebGLState.GR_ZEnable=gpu_get_ztestenable();
-                g_savedWebGLState.GR_ZWriteEnable=gpu_get_zwriteenable();
-            }
+            g_savedWebGLState.GR_Cull=gpu_get_cullmode();
+            g_savedWebGLState.GR_ZEnable=gpu_get_ztestenable();
+            g_savedWebGLState.GR_ZWriteEnable=gpu_get_zwriteenable();
             
             // Set to defaults
             GR_3DMode = false;
@@ -560,22 +580,10 @@ function WebGL_Restore_RELEASE(_restoreSettings) {
             g_webGL.SetFogData(GR_FogParameters);
 
             // Setting either of these will flush the vertex buffer
-            if (GR_3DMode || g_isZeus) {
-              
-                
-                if(g_isZeus)
-                {
-                    g_webGL.SetCull(g_savedWebGLState.GR_Cull);
-                    g_webGL.SetZEnable(g_savedWebGLState.GR_ZEnable);
-                    g_webGL.SetZWriteEnable(g_savedWebGLState.GR_ZWriteEnable);
-                }
-                else
-                {
-                    g_webGL.SetZEnable(GR_ZEnable);
-                    g_webGL.SetZWriteEnable(GR_ZWriteEnable);
-                    g_webGL.SetCull(GR_Cull);    
-                }
-            }
+            g_webGL.SetCull(g_savedWebGLState.GR_Cull);
+            g_webGL.SetZEnable(g_savedWebGLState.GR_ZEnable);
+            g_webGL.SetZWriteEnable(g_savedWebGLState.GR_ZWriteEnable);
+            
             g_webGL.SetShader(WebGL_GetDefaultShader());               
         }
         if (_restoreSettings.RestoreState) {
@@ -866,103 +874,6 @@ function WebGL_DrawText_RELEASE(_font, _str, _x, _y, _xscale, _yscale, _angle, _
     
     // draw this texture to the screen
     //WebGL_TextureDrawWH_RELEASE( g_webGL_textureFont, 0, 0, width, height, _x, _y, _xscale, _yscale, _angle, _col, _col, _col, _col, _alpha );
-}
-
-// #############################################################################################
-/// Function:<summary>
-///          	Push a matrix onto our stack
-///          </summary>
-///
-/// In:		<param name="_matrix">Matrix to push onto the stack</param>
-// #############################################################################################
-function PushMatrix(_matrix) {
-
-    if (g_MatrixSP >= MATRIX_STACK_MAX) {
-        return false;
-    }
-
-    g_MatrixSP++;
-    if (g_MatrixSP == 0) {	    
-        g_MatrixStack[g_MatrixSP] = new Matrix(_matrix);
-    }
-    else {
-        g_MatrixStack[g_MatrixSP].Multiply(g_MatrixStack[g_MatrixSP - 1], _matrix);
-    }
-    return true;
-}
-
-// #############################################################################################
-/// Function:<summary>
-///          	Pop the top matrix off the stack
-///          </summary>
-///
-/// In:		<param name="_matrix"></param>
-/// Out:	<returns>
-///				
-///			</returns>
-// #############################################################################################
-function PopMatrix(_matrix) {
-
-    if (g_MatrixSP < 0) {
-        return false;
-    }
-	
-    // Set Matrix to that currently on top
-    WebGL_SetMatrix(MATRIX_WORLD, g_MatrixStack[g_MatrixSP]);	
-    g_MatrixSP--;
-    return true;
-}
-
-// #############################################################################################
-/// Function:<summary>
-///          	Clear off the matrix stack altogether
-///          </summary>
-// #############################################################################################
-function MatrixStackClear() {
-    g_MatrixSP = -1;
-}
-
-// #############################################################################################
-/// Function:<summary>
-///             Checks to see if the matrix stack is empty
-///          </summary>
-// #############################################################################################
-function MatrixStackEmpty() {
-
-    if (g_MatrixSP < 0) {
-        return true;
-    }
-    return false;
-}
-
-// #############################################################################################
-/// Function:<summary>
-///             Set the top matrix as the current one but don't remove it
-///          </summary>
-// #############################################################################################
-function SetTopMatrix() {
-
-    if (g_MatrixSP < 0) {
-        return false;
-    }	
-    // Set Matrix to that currently on top
-    WebGL_SetMatrix(MATRIX_WORLD, g_MatrixStack[g_MatrixSP]);	
-    return true;
-}
-
-
-// #############################################################################################
-/// Function:<summary>
-///             Discard the top matrix
-///          </summary>
-// #############################################################################################
-function DiscardTopMatrix() {
-
-    if (g_MatrixSP < 0) {
-        return false;
-    }
-    g_MatrixSP--;
-    return true;
 }
 
 // #############################################################################################
@@ -1307,7 +1218,8 @@ function	WebGL_TextureDrawTiled_RELEASE( _pTPE, _x, _y, _xsc, _ysc, vtiled, htil
 ///          </summary>
 // #############################################################################################
 function WebGL_DrawSWF_RELEASE(SWFDictionary, SWFTimeline, ind, xorig, yorig, x, y, xscale, yscale, angle, color, alpha, TPEs) 
-{            
+{
+    // @if feature("swf")
     var oldColourWriteEnable = GR_ColourWriteEnable;
     var oldZWriteEnable = GR_3DMode;
 
@@ -1458,7 +1370,8 @@ function WebGL_DrawSWF_RELEASE(SWFDictionary, SWFTimeline, ind, xorig, yorig, x,
     // Restore render states    
     g_webGL.SetStencilEnable(false);
     g_webGL.SetColorWriteEnable(oldColourWriteEnable.red, oldColourWriteEnable.green, oldColourWriteEnable.blue, oldColourWriteEnable.alpha);
-    g_webGL.SetZWriteEnable(oldZWriteEnable);    
+    g_webGL.SetZWriteEnable(oldZWriteEnable);
+    // @endif
 }
 
 // #############################################################################################
@@ -1468,6 +1381,8 @@ function WebGL_DrawSWF_RELEASE(SWFDictionary, SWFTimeline, ind, xorig, yorig, x,
 // #############################################################################################
 function WebGL_DrawSWFObject_RELEASE(SWFDictionaryItems, _pObject, _pPostMat, _pGradTransMat, _mulcolour, _colvals, _aa, TPEs)
 {
+    var numtris = 0;
+    // @if feature("swf")
     // Work out alpha colour for AA        
     var transcolvals = [];
 	transcolvals[0] = _colvals[0],
@@ -1493,7 +1408,6 @@ function WebGL_DrawSWFObject_RELEASE(SWFDictionaryItems, _pObject, _pPostMat, _p
 	    transcoladd[i] = _pObject.colTransAddZeroAlpha[i];
     }
 
-    var numtris = 0;
     // Could potentially optimise this a bit by collapsing all the style groups into a single contiguous list, storing an explicit colour for each triangle vertex and chaining untextured geometry together
     // We'd still have to maintain rendering order so we couldn't chain *all* untextured geometry - just contiguous sections
     // If we also precalculate how long each run is we could reduce the amount of conditionals and calls to AllocVerts
@@ -1692,6 +1606,7 @@ function WebGL_DrawSWFObject_RELEASE(SWFDictionaryItems, _pObject, _pPostMat, _p
 		    }
 	    }
     }
+    // @endif
     return numtris;
 }
 
@@ -1704,6 +1619,8 @@ function WebGL_DrawSWFObject_RELEASE(SWFDictionaryItems, _pObject, _pPostMat, _p
 function WebGL_Draw_BitmapGradientSWFShape(
     SWFDictionaryItems, _pObject, _filltype, _pFillStyleData, _pSubShape, _pGradTransMat, _combinedMat, _colvals, _transcolvals, _mulcolour, _colmul, _coladd, _transcoladd, _aa, TPEs) 
 {
+    var numtris = 0;
+    // @if feature("swf")
     var pCoords,
         pColours,
         pUVs,
@@ -1806,7 +1723,6 @@ function WebGL_Draw_BitmapGradientSWFShape(
         }
     }
 
-    var numtris = 0;
     if (pTPE !== null)
     {
         if (!pTPE.texture.webgl_textureid) {
@@ -1983,6 +1899,7 @@ function WebGL_Draw_BitmapGradientSWFShape(
     	    currVert += stride;
         }
     }
+    // @endif
     return numtris;
 }
 
@@ -1992,7 +1909,8 @@ function WebGL_Draw_BitmapGradientSWFShape(
 ///          </summary>
 // #############################################################################################
 function WebGL_Draw_SolidSWFShape(_pObject, _pFillStyleData, _pSubShape, _combinedMat, _colvals, _transcolvals, _colmul, _coladd, _transcoladd, _aa) {
-
+    var numtris = 0;
+    // @if feature("swf")
     var aascale = 1.0;
     if (_aa) {
         aascale = WebGL_BuildAAScale(_pObject, _combinedMat) * GR_SWFAAScale;
@@ -2007,7 +1925,6 @@ function WebGL_Draw_SolidSWFShape(_pObject, _pFillStyleData, _pSubShape, _combin
     // Get simpler access
     var pFillData = _pFillStyleData,
 	    col = pFillData.col,
-	    numtris = 0,
 	    t = 0;
 
 	// Multiply our material colour and mul colour together using good old fashioned fixed point maths
@@ -2175,6 +2092,7 @@ function WebGL_Draw_SolidSWFShape(_pObject, _pFillStyleData, _pSubShape, _combin
 		
 	    currVert += stride;									
 	}
+    // @endif
 	return numtris;
 }
 
@@ -2184,7 +2102,7 @@ function WebGL_Draw_SolidSWFShape(_pObject, _pFillStyleData, _pSubShape, _combin
 ///          </summary>
 // #############################################################################################
 function WebGL_BuildAAScale(_pObject, _combinedMat) {
-
+    // @if feature("swf")
     // Work out the AA scaling required
     if (GR_SWFAAEnabled) {
     
@@ -2270,6 +2188,7 @@ function WebGL_BuildAAScale(_pObject, _combinedMat) {
 		_pObject.aascale = aascale;
 		return aascale;
 	}
+    // @endif swf
 	return 1.0;
 }
 
@@ -3130,31 +3049,6 @@ function WebGL_draw_triangle_RELEASE(_x1, _y1, _x2, _y2, _x3, _y3, _outline) {
 
 // #############################################################################################
 /// Function:<summary>
-///             Draw a rectangle with a gradient
-///          </summary>
-///
-/// In:		 <param name="_x1">Top X coordinate</param>
-///			 <param name="_y1">Top Y coordinate</param>
-///			 <param name="_x2">Bottom X coordinate</param>
-///			 <param name="_y2">Bottom X coordinate</param>
-///			 <param name="_col1">Start colour of the rect as a number</param>
-///			 <param name="_col2">End colour of the rect as a number</param>
-///			 <param name="_vert">Whether or not the gradient should be vertical (or horizontal)</param>
-///			 <param name="_outline">Whether or not to draw the rect as an outline</param>
-///				
-// #############################################################################################
-function WebGL_draw_rectangle_gradient_RELEASE(_x1, _y1, _x2, _y2, _col1, _col2, _vert, _outline) {
-
-    if (_vert) {
-        WebGL_draw_rectangle_color_RELEASE(_x1, _y1, _x2, _y2, _col1, _col1, _col2, _col2, _outline);
-    }
-    else {
-        WebGL_draw_rectangle_color_RELEASE(_x1, _y1, _x2, _y2, _col1, _col2, _col2, _col1, _outline);
-    }
-}
-
-// #############################################################################################
-/// Function:<summary>
 ///          	Plot a single point
 ///          </summary>
 ///
@@ -3813,7 +3707,7 @@ function DrawIt_Color(tex,
 
 
 	var z =(GR_Depth);
-	var prim = WebGL_translate_primitive_builder_type(PrimType_TRISTRIP);
+	var prim = yyGL.PRIM_TRISTRIP;
 	
 	var vvv = g_webGL.AllocVerts(prim, tex, g_webGL.VERTEX_FORMAT_2D, 6);
 	
@@ -4613,12 +4507,7 @@ function WebGL_texture_set_stage_RELEASE(_stage, _texture) {
 ///          </summary>
 // #############################################################################################
 function WebGL_shader_is_compiled_RELEASE(_shaderIndex) {
-
-    _shaderIndex = yyGetInt32(_shaderIndex);
-    if (g_shaderPrograms[_shaderIndex] && g_shaderPrograms[_shaderIndex].program) {
-        return 1;
-    }
-    return 0;
+    return g_shaderPrograms[yyGetInt32(_shaderIndex)]?.program ? 1 : 0;
 }
 
 
@@ -4654,7 +4543,7 @@ function WebGL_shader_get_uniform_RELEASE(_shaderIndex, _constName) {
     _shaderIndex = yyGetInt32(_shaderIndex);
     var shaderProgram = (_shaderIndex == -1) ? WebGL_GetDefaultShader() : g_shaderPrograms[_shaderIndex].program;
     if (shaderProgram) {    
-        return g_webGL.GetUniformIndex(g_shaderPrograms[_shaderIndex].program, yyGetString(_constName));        
+        return g_webGL.GetUniformIndex(shaderProgram, yyGetString(_constName));
     }
     return undefined;
 }
@@ -4704,17 +4593,12 @@ function WebGL_shader_set_uniform_matrix_RELEASE(_handle, _shaderData) {
 ///          </summary>
 // #############################################################################################
 function WebGL_shader_get_sampler_index_RELEASE(_shaderIndex, _texture) {
-
-    _shaderIndex = yyGetInt32(_shaderIndex);
-    if (g_shaderPrograms[_shaderIndex]) {
-    
-        var shaderProgram = g_shaderPrograms[_shaderIndex];        
-        if (shaderProgram) {            
-            for (var i = 0; i < shaderProgram.texture_stages.length; i++) {
-            
-                if (shaderProgram.texture_stages[i] == _texture) {
-                    return Number(i);
-                }
+    var shaderProgram = g_shaderPrograms[yyGetInt32(_shaderIndex)];
+    if (shaderProgram) {            
+        for (var i = 0; i < shaderProgram.texture_stages.length; i++) {
+        
+            if (shaderProgram.texture_stages[i] == _texture) {
+                return Number(i);
             }
         }
     }
@@ -5006,6 +4890,7 @@ function WebGL_SetMatrix(_type, _matrix) {
 
     g_ViewFrustumDirty |= (_type == MATRIX_VIEW || _type == MATRIX_PROJECTION);
 
+    // @if feature("gl")
     if(g_webGL==null)
         return;
     switch (_type) {
@@ -5022,7 +4907,8 @@ function WebGL_SetMatrix(_type, _matrix) {
             g_webGL.SetWorldMatrix(g_Matrix[_type]);
             break;
     }
-    g_webGL.Flush(); 
+    g_webGL.Flush();
+    // @endif gl
 }
 
 // #############################################################################################

@@ -127,7 +127,7 @@ function instance_position(_x,_y,_obj)
 		{
 			if (Tilemap_PointPlace( _x, _y, _obj, null,true))
 			{
-				return true;
+				return _obj;
 			}
 
 		}
@@ -136,7 +136,7 @@ function instance_position(_x,_y,_obj)
 			var id = Command_InstancePosition(_x,_y,_obj,null);
 		
 			if(id!=OBJECT_NOONE)
-				return true;
+				return id;
 		}
 	}
 	else if (_obj instanceof Array)
@@ -148,7 +148,7 @@ function instance_position(_x,_y,_obj)
 			{
 				if (Tilemap_PointPlace( _x, _y, obj2, null,true))
 				{
-					return true;
+					return obj2;
 				}
 				
 			}
@@ -156,18 +156,17 @@ function instance_position(_x,_y,_obj)
 			{
 				var id = Command_InstancePosition(_x,_y,obj2,null);
 				if(id!=OBJECT_NOONE)
-					return true;
+					return id;
 			}
 		}
-		return false;
 	}
 	else
 	{
 		var id = Command_InstancePosition(_x,_y,_obj,null);
 		if(id!=OBJECT_NOONE)
-			return true;
+			return id;
 	}
-	return false;
+	return OBJECT_NOONE;
 }
 function instance_position_list(_x, _y, _obj, _list, _ordered)
 {
@@ -1125,7 +1124,7 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 		r -= tilemaptopleftX;
 
 		l *= rcpTileWidth;
-		r *= rcpTileHeight;
+		r *= rcpTileWidth;
 
 		t -= tilemaptopleftY;
 		b -= tilemaptopleftY;
@@ -1532,6 +1531,7 @@ function instance_copy(_inst, _performevent)
 ///			<param name="_perf">Perform destroy and create events?</param>
 ///				
 // #############################################################################################
+// @if function("position_change") || function("instance_change")
 function instance_change_RELEASE(_inst, _objindex, _perf) 
 {
     _perf = yyGetBool(_perf);
@@ -1545,7 +1545,9 @@ function instance_change_RELEASE(_inst, _objindex, _perf)
 	_inst.UpdateSpriteIndex(_inst.pObject.SpriteIndex);
 	
 	// Change over the physics body	if one exists/should exist
+	// @if feature("physics")
 	_inst.RebuildPhysicsBody(g_RunRoom);
+	// @endif
 
 	if( _perf ) {
 		_inst.PerformEvent(EVENT_PRE_CREATE, 0, _inst, _inst );
@@ -1563,7 +1565,8 @@ function instance_change_DEBUG(_inst, _objindex, _perf)
 	}
 	instance_change_RELEASE(_inst, _objindex, yyGetBool(_perf));
 }
-var instance_change = instance_change_DEBUG; 
+var instance_change = instance_change_DEBUG;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>

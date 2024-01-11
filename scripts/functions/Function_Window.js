@@ -385,7 +385,9 @@ function window_set_color(_colour)
 {
     g_WindowColour = ConvertGMColour(yyGetInt32(_colour));
 }
+// @if function("window_set_colour")
 var window_set_colour = window_set_color;
+// @endif
 
 
 
@@ -402,7 +404,9 @@ function window_get_color()
 {
     return ConvertGMColour( g_WindowColour );
 }
+// @if function("window_get_colour")
 var window_get_colour = window_get_color;
+// @endif
 
 
 // #############################################################################################

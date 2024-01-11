@@ -1,3 +1,4 @@
+// @if feature("spine")
 var spine = (() => {
   var __defProp = Object.defineProperty;
   var __markAsModule = (target) => __defProp(target, "__esModule", { value: true });
@@ -8653,3 +8654,4 @@ var spine = (() => {
   SwirlEffect.interpolation = new PowOut(2);
   return src_exports;
 })();
+// @endif

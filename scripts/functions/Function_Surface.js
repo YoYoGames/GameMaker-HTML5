@@ -30,8 +30,7 @@ var g_createsurfacedepthbuffers = true;
 ///				
 ///			</returns>
 // #############################################################################################
-var surface_resize = surface_resize_RELEASE;
-function surface_resize_RELEASE(_id, _w, _h) 
+function surface_resize(_id, _w, _h) 
 {
     _id = yyGetInt32(_id);
     _w = yyGetInt32(_w);
@@ -526,12 +525,7 @@ function surface_set_target_RELEASE(_id)
 
     Graphics_SetViewPort(0, 0, pSurf.m_Width, pSurf.m_Height);
 
-    if (g_isZeus) {
-        UpdateDefaultCamera(0, 0, pSurf.m_Width, pSurf.m_Height, 0);
-    }
-    else {
-        Graphics_SetViewArea(0, 0, pSurf.m_Width, pSurf.m_Height, 0);
-    }
+    UpdateDefaultCamera(0, 0, pSurf.m_Width, pSurf.m_Height, 0);
 
     if (g_webGL) g_webGL.Flush();
     DirtyRoomExtents();
@@ -607,22 +601,17 @@ function surface_reset_target_RELEASE()
             Calc_GUI_Scale();
         } else {
             Graphics_SetViewPort(g_clipx, g_clipy, g_clipw, g_cliph);
-            if (g_isZeus) {
-                var currcam = g_pCameraManager.GetActiveCamera();
-                if ((activeCam == true) && (currcam != null))
-                {
-                    UpdateCamera(camx, camy, camw, camh, cama, currcam);
-                    currcam.SetViewMat(new Matrix(camviewmat));
-                    currcam.SetProjMat(new Matrix(camprojmat));
-                    currcam.ApplyMatrices();
-                }
-                else
-                {
-                    UpdateDefaultCamera(g_worldx, g_worldy, g_worldw, g_worldh, 0);
-                }
+            var currcam = g_pCameraManager.GetActiveCamera();
+            if ((activeCam == true) && (currcam != null))
+            {
+                UpdateCamera(camx, camy, camw, camh, cama, currcam);
+                currcam.SetViewMat(new Matrix(camviewmat));
+                currcam.SetProjMat(new Matrix(camprojmat));
+                currcam.ApplyMatrices();
             }
-            else {
-                Graphics_SetViewArea(g_worldx, g_worldy, g_worldw, g_worldh, 0);
+            else
+            {
+                UpdateDefaultCamera(g_worldx, g_worldy, g_worldw, g_worldh, 0);
             }
         }
     }
@@ -687,12 +676,9 @@ function GetCanvasPixel(_buffer, _x, _y)
 ///				
 ///			</returns>
 // #############################################################################################
-var surface_getpixel = surface_getpixel_RELEASE;
-var surface_getpixel_ext = surface_getpixel_ext_RELEASE;
-function surface_getpixel_RELEASE(_id, _x, _y) 
-{
-    return surface_getpixel_ext_RELEASE(_id, _x, _y) &0xffffff;
-}
+function surface_getpixel(){}
+function surface_getpixel_ext(){}
+// @if feature("2d")
 function surface_getpixel_ext_RELEASE(_id, _x, _y) 
 {
     var pSurf = g_Surfaces.Get(yyGetInt32(_id));
@@ -702,6 +688,9 @@ function surface_getpixel_ext_RELEASE(_id, _x, _y)
 	}
 	return 0x00000000;
 }
+compile_if_used(surface_getpixel = (_id, _x, _y) => surface_getpixel_ext_RELEASE(_id, _x, _y) & 0xffffff);
+compile_if_used(surface_getpixel_ext = surface_getpixel_ext_RELEASE);
+// @endif
 
 
 
@@ -775,7 +764,8 @@ function surface_save_part(_id,_fname,_x,_y,_w,_h)
 ///				
 ///			</returns>
 // #############################################################################################
-var draw_surface = draw_surface_RELEASE;
+function draw_surface(){}
+// @if feature("2d")
 function draw_surface_RELEASE(_id, _x, _y) 
 {
     var pSurf = g_Surfaces.Get(yyGetInt32(_id));
@@ -793,6 +783,8 @@ function draw_surface_RELEASE(_id, _x, _y)
     }
     graphics.globalAlpha = alpha;
 }
+compile_if_used(draw_surface = draw_surface_RELEASE);
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -1100,7 +1092,9 @@ function draw_surface_general(_id,_left,_top,_width,_height,_x,_y,_xscale,_yscal
 ///				
 ///			</returns>
 // #############################################################################################
-function surface_copy(_destination,_x,_y,_source) {
+function surface_copy(){}
+// @if feature("2d") && function("surface_copy")
+surface_copy = (_destination,_x,_y,_source) => {
 
     var pDest = g_Surfaces.Get(yyGetInt32(_destination));
     var pSrc = g_Surfaces.Get(yyGetInt32(_source));
@@ -1113,7 +1107,8 @@ function surface_copy(_destination,_x,_y,_source) {
 		pImg.drawImage(pSrc, yyGetInt32(_x), yyGetInt32(_y));
 		pImg.restore();
 	}
-}
+};
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -1133,8 +1128,9 @@ function surface_copy(_destination,_x,_y,_source) {
 ///				
 ///			</returns>
 // #############################################################################################
-function surface_copy_part(_destination,_x,_y, _source,_xs,_ys,_ws,_hs) 
-{
+function surface_copy_part(){}
+// @if feature("2d") && function("surface_copy_part")
+surface_copy_part = (_destination,_x,_y, _source,_xs,_ys,_ws,_hs) => {
     var pDest = g_Surfaces.Get(yyGetInt32(_destination));
     var pSrc = g_Surfaces.Get(yyGetInt32(_source));
 	if( pDest!=null && pSrc!=null)
@@ -1167,7 +1163,8 @@ function surface_copy_part(_destination,_x,_y, _source,_xs,_ys,_ws,_hs)
 		pImg.drawImage(pSrc,  _xs,_ys,_ws,_hs,  _x, _y, _ws,_hs);
 		pImg.restore();
 	} 
-}
+};
+// @endif
 
 function SurfaceFormatSupported(_format)
 {        

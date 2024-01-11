@@ -176,7 +176,7 @@ function ErrorOnce(_text) {
 ///				
 ///			 </returns>
 // #############################################################################################
-function ErrorFunction(_text)
+function ErrorFunction(_text, _returnValue)
 {
     if( !g_MissingFunction_done[_text] )
     {
@@ -184,6 +184,11 @@ function ErrorFunction(_text)
         var txt =  "Error: function " + _text + " is not supported.";
         debug( txt );
     }
+    return _returnValue;
+}
+function GetErrorFunction(name, returnValue)
+{
+    return () => ErrorFunction(name, returnValue);
 }
 
 
@@ -328,8 +333,12 @@ function dbg_colour() { ErrorFunction( "dbg_colour()" ); }
 function dbg_color() { ErrorFunction( "dbg_color()" ); }
 function dbg_text() { ErrorFunction( "dbg_text()" ); }
 function dbg_sprite() { ErrorFunction( "dbg_sprite()" ); }
+function dbg_slider_int() { ErrorFunction( "dbg_slider_int()" ); }
+function dbg_add_font_glyphs() { ErrorFunction( "dbg_add_font_glyphs()" ); }
 function ref_create() { ErrorFunction( "ref_create()" ); return 0; }
 function is_debug_overlay_open() { return false; }
+function is_mouse_over_debug_overlay() { return false; }
+function is_keyboard_used_debug_overlay() { return false; }
 function show_debug_log() { ErrorFunction( "show_debug_log()" ); ; }
 
 
@@ -453,7 +462,7 @@ function show_message(_txt)
 {
     var msg = yyGetString(_txt);
     if (!msg) return;
-    alert(SplitText(msg));
+    alert(msg);
 }
 
 // #############################################################################################
@@ -503,13 +512,8 @@ function show_question_async(_str) {
 ///			</returns>
 // #############################################################################################
 function show_question(_str) {
-    _str = yyGetString(_str);
-
-    if (!_str) {
-        _str = "";
-    }
     if (window.confirm) {
-        return confirm(SplitText(_str)) ? 1.0 : 0.0;
+        return confirm(yyGetString(_str) || "") ? 1.0 : 0.0;
     }
     ErrorFunction("show_question()");
     return 0;
@@ -552,6 +556,7 @@ function get_integer(_str,_def)
 }
 
 
+/// @if function("get_login_async")
 // #############################################################################################
 /// Function:<summary>
 ///          	Create a login dialog
@@ -636,12 +641,14 @@ function createLoginDialog( _dialogData )
 	login_dialog_update();
 	g_pASyncManager.Add(_dialogData.id, null, ASYNC_USER, g_dialogName);
 } // end createLoginDialog
+/// @endif
 
 // #############################################################################################
 /// Function:<summary>
 ///          	Create an input dialog
 ///          </summary>
 // #############################################################################################
+// @if function("get_integer_async") || function("get_string_async")
 function createInputDialog( _dialogData )
 {
     //show_debug_message( "createInputDialog = " + _dialogData );
@@ -715,12 +722,14 @@ function createInputDialog( _dialogData )
 	login_dialog_update();
 	g_pASyncManager.Add(_dialogData.id, null, ASYNC_USER, g_dialogName);
 } // end createInputDialog
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
 ///          	Create a question dialog
 ///          </summary>
 // #############################################################################################
+// @if function("show_question_async")
 function createQuestionDialog( _dialogData )
 {
     //show_debug_message( "createQuestionDialog = " + _dialogData );
@@ -787,12 +796,14 @@ function createQuestionDialog( _dialogData )
 	login_dialog_update();
 	g_pASyncManager.Add(_dialogData.id, null, ASYNC_USER, g_dialogName);
 } // end createQuestionDialog
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
 ///          	Create a message dialog
 ///          </summary>
 // #############################################################################################
+// @if function("show_message_async")
 function createMessageDialog( _dialogData )
 {
     //show_debug_message( "createMessageDialog = " + _dialogData );
@@ -859,6 +870,7 @@ function createMessageDialog( _dialogData )
 	login_dialog_update();
 	g_pASyncManager.Add(_dialogData.id, null, ASYNC_USER, g_dialogName);
 } // end createMessageDialog
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -885,18 +897,26 @@ function YYDialogKick() {
     
         // get the first entry and kick that one
         switch( g_dialogs[0].type ) {
+        // @if function("get_login_async")
         case DIALOG_TYPE_LOGIN: // login dialog
             createLoginDialog( g_dialogs[0] );
             break;
+        // @endif
+        // @if function("get_integer_async") || function("get_string_async")
         case DIALOG_TYPE_INPUT: // input dialog
             createInputDialog( g_dialogs[0] );
             break;
+        // @endif
+        // @if function("show_question_async")
         case DIALOG_TYPE_QUESTION: // show question
             createQuestionDialog( g_dialogs[0] );
             break;
+        // @endif
+        // @if function("show_message_async")
         case DIALOG_TYPE_MESSAGE: // show message
             createMessageDialog( g_dialogs[0] );
             break;
+        // @endif
         } // end switch
     
     } // end if    
@@ -1191,7 +1211,7 @@ function getStacktraceArray(_error) {
     return ret;
 }
 
-
+// @if feature("debug")
 // #############################################################################################
 /// Function:<summary>
 ///          	Update the debug windows "instance" list
@@ -1367,3 +1387,5 @@ function UpdateDebugWindow() {
     UpdateDebugInstanceList();
     UpdateInsanceData();
 }
+
+// @endif

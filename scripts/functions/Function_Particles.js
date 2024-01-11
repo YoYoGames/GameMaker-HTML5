@@ -223,6 +223,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
     return pPSI;
 }
 
+// @if feature("particles")
 // #############################################################################################
 /// Function:<summary>
 ///          </summary>
@@ -297,7 +298,7 @@ function part_system_create(_partsys)
 // #############################################################################################
 function part_system_destroy(_ind)
 {
-    _ind = GetParticleSystemInstanceIndex(_ind);
+    _ind = GetParticleSystemInstanceIndex(_ind, true);
     return ParticleSystem_Destroy(_ind);
 }
 
@@ -711,7 +712,7 @@ function part_type_shape(_ind, _shape)
 function part_type_sprite(_ind, _sprite, _animate, _stretch, _random)
 {
     _ind = GetParticleTypeIndex(_ind);
-    _sprite = GetSpriteIndex(_ind);
+    _sprite = GetSpriteIndex(_sprite);
     return ParticleType_Sprite(_ind, _sprite, _animate, _stretch, _random);
 }
 
@@ -1221,8 +1222,8 @@ function part_emitter_create(_ps)
 // #############################################################################################
 function part_emitter_destroy(_ps, _ind)
 {
-    _ps = GetParticleSystemInstanceIndex(_ps);
-    _ind = GetParticleEmitterIndex(_ps, _ind);
+    _ps = GetParticleSystemInstanceIndex(_ps, true);
+    _ind = GetParticleEmitterIndex(_ps, _ind, true);
     return ParticleSystem_Emitter_Destroy(_ps, _ind);
 }
 
@@ -1430,6 +1431,8 @@ function part_emitter_relative(_ps, _ind, _enable)
     return ParticleSystem_Emitter_Relative(_ps, _ind, _enable);
 }
 
+// @endif particles
+
 // #############################################################################################
 /// Function:<summary>
 ///          	Creates an effect of the given kind (see above) at the indicated position. 
@@ -1447,7 +1450,9 @@ function part_emitter_relative(_ps, _ind, _enable)
 // #############################################################################################
 function effect_create_below(_kind, _x, _y, _size, _color)
 {
-	Effect_Create(ps_below, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
+    if (ps_below == -1)
+        Eff_Check_Systems();
+    Effect_Create(ps_below, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
 }
 
 // #############################################################################################
@@ -1467,7 +1472,9 @@ function effect_create_below(_kind, _x, _y, _size, _color)
 // #############################################################################################
 function effect_create_above(_kind, _x, _y, _size, _color)
 {
-	Effect_Create(ps_above, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
+    if (ps_above == -1)
+        Eff_Check_Systems();
+    Effect_Create(ps_above, yyGetInt32(_kind), yyGetReal(_x), yyGetReal(_y), yyGetInt32(_size), yyGetInt32(_color));
 }
 
 // #############################################################################################

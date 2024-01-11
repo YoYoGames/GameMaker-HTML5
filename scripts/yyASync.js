@@ -104,7 +104,7 @@ function ASync_ImageLoad_Callback(_event) {
     pFile.m_Complete = true;
     pFile.m_Status = ASYNC_STATUS_LOADED;
     
-    
+    // @if feature("sprites")
     if( pFile.m_Type == ASYNC_SPRITE )
     {
         // Now actually UPDATE the sprite and TPage stuff.
@@ -170,6 +170,7 @@ function ASync_ImageLoad_Callback(_event) {
 		}
         return;
     }    
+	// @endif sprites
     
     if( pFile.m_Type == ASYNC_BACKGROUND )
     {
@@ -349,7 +350,9 @@ yyASyncManager.prototype.Process = function () {
 					ds_map_add(map, "result", pFile.result);
 					ds_map_add(map, "value", pFile.value);
 					ds_map_add(map, "http_status", 0);
-				} else if (pFile.m_Type == ASYNC_AUDIO_PLAYBACK) {
+				}
+				// @if feature("audio")
+				else if (pFile.m_Type == ASYNC_AUDIO_PLAYBACK) {
 				    ds_map_add(map, "queue_id", pFile.queue_id);
 				    ds_map_add(map, "buffer_id", pFile.buffer_id);
 				    ds_map_add(map, "queue_shutdown", pFile.queue_shutdown);
@@ -357,7 +360,9 @@ yyASyncManager.prototype.Process = function () {
 				    ds_map_add(map, "sound_id", pFile.voiceHandle);
 				    ds_map_add(map, "asset_id", pFile.assetIndex);
 				    ds_map_add(map, "was_stopped", pFile.wasStopped);
-				} else if (pFile.m_Type == ASYNC_SYSTEM_EVENT) {
+				}
+				// @endif audio
+				else if (pFile.m_Type == ASYNC_SYSTEM_EVENT) {
 				    ds_map_add(map, "event_type", pFile.event_type);
 				    ds_map_add(map, "pad_index", pFile.pad_index);
 				}else{
@@ -375,15 +380,19 @@ yyASyncManager.prototype.Process = function () {
 				}
 
 				if (pFile.m_Type == ASYNC_IMAGE) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_IMAGE_LOAD, 0, true); // Throw an event for the image
+				// @if feature("sprites")
 				else if (pFile.m_Type == ASYNC_SPRITE) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_IMAGE_LOAD, 0, true); // Throw an event for the image
+				// @endif sprites
 				else if (pFile.m_Type == ASYNC_BACKGROUND) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_IMAGE_LOAD, 0, true); // Throw an event for the image
 				else if (pFile.m_Type == ASYNC_SOUND) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_SOUND_LOAD, 0, true);
 				else if (pFile.m_Type == ASYNC_WEB) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_ASYNC, 0, true);
 				else if (pFile.m_Type == ASYNC_USER) g_pObjectManager.ThrowEvent(EVENT_OTHER_WEB_USER_INTERACTION, 0, true);
 				else if (pFile.m_Type == ASYNC_BINARY) g_pObjectManager.ThrowEvent(EVENT_OTHER_ASYNC_SAVE_LOAD, 0, true);
 				else if (pFile.m_Type == ASYNC_NETWORKING) g_pObjectManager.ThrowEvent(EVENT_OTHER_NETWORKING, 0, true);
+				// @if feature("audio")
 				else if (pFile.m_Type == ASYNC_AUDIO_PLAYBACK) g_pObjectManager.ThrowEvent(EVENT_OTHER_AUDIO_PLAYBACK, 0, true);
 				else if (pFile.m_Type == ASYNC_AUDIO_PLAYBACK_ENDED) g_pObjectManager.ThrowEvent(EVENT_OTHER_AUDIO_PLAYBACK_ENDED, 0, true);
+				// @endif audio
 				else if (pFile.m_Type == ASYNC_SYSTEM_EVENT) g_pObjectManager.ThrowEvent(EVENT_OTHER_SYSTEM_EVENT, 0, true);
 
 				// Done load, so delete handle.

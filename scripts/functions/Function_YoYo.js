@@ -44,45 +44,6 @@ var     eDS_TypeMap=1,
 var g_GameMakerIdentifier = aa_1241_kz();
 function aa_1241_kz() { return 0x87155211; }
 
-// #############################################################################################
-/// Function:<summary>
-///             Create a security request object that works out the type of http request to
-///             create and allows us to send security checks
-///          </summary>
-///
-/// In:		 <param name="_canvas">The canvcas handle</param>
-/// Out:	 <returns>
-///				
-///			 </returns>
-// #############################################################################################
-/** @constructor */
-function SecurityCheck()
-{
-    var xmlHttp = null;
-    if (window.XMLHttpRequest) {
-		//for firefox, opera and safari browswers
-		xmlHttp = new XMLHttpRequest();
-	}
-	if (typeof(XMLHttpRequest) == "undefined")
-	{
-        xmlHttp = function () {
-                try { return new ActiveXObject("Msxml2.XMLHTTP.6.0"); }
-                    catch (e) {}
-                try { return new ActiveXObject("Msxml2.XMLHTTP.3.0"); }
-                    catch (e) {}
-                try { return new ActiveXObject("Msxml2.XMLHTTP"); }
-                    catch (e) {}
-                //Microsoft.XMLHTTP points to Msxml2.XMLHTTP.3.0 and is redundant
-                throw new yyError("This browser does not support XMLHttpRequest.");
-            };
-    }
-    this.securityRequest = xmlHttp;    
-    this.securityRequestInFlight = false;
-}
-
-// Global security check object and session key
-var g_securityCheck = new SecurityCheck();
-
 function YYPushEventsDispatch() {
 }
 
@@ -96,8 +57,7 @@ function code_is_compiled() { return true; }
 /// In:		<param name="_on_off"></param>
 ///				
 // #############################################################################################
-var draw_enable_alphablend = draw_enable_alphablend_html5;
-function draw_enable_alphablend_html5(_on_off)
+function draw_enable_alphablend(_on_off)
 {
 }
 
@@ -110,7 +70,6 @@ function draw_enable_alphablend_html5(_on_off)
 ///				true/false for yes/no
 ///			</returns>
 // #############################################################################################
-var YoYo_AchievementsAvailable = achievement_available;
 function achievement_available()
 {
     return false;
@@ -121,7 +80,6 @@ function achievement_available()
 ///          	Log into achievement system
 ///          </summary>
 // #############################################################################################
-var YoYo_LoginAchievements = achievement_login;
 function achievement_login()
 {
 }
@@ -131,50 +89,36 @@ function achievement_login()
 ///          	Log out of online achievements
 ///          </summary>
 // #############################################################################################
-var YoYo_LogoutAchievements = achievement_logout;
 function achievement_logout()
 {
 }
 
 
-var YoYo_achievement_login_status = achievement_login_status;
 function achievement_login_status() { }
 
-var YoYo_achievement_reset = achievement_reset;
 function achievement_reset() { }
 
-var YoYo_achievement_show_achievements = achievement_show_achievements;
 function achievement_show_achievements() { }
 
-var YoYo_achievement_show_leaderboards = achievement_show_leaderboards;
 function achievement_show_leaderboards() { }
 
-var YoYo_achievement_load_friends = achievement_load_friends;
 function achievement_load_friends() { }
 
-var YoYo_achievement_load_leaderboard = achievement_load_leaderboard;
 function achievement_load_leaderboard(){}
 
-var YoYo_achievement_get_pic = achievement_get_pic;
 function achievement_get_pic(){}
 
-var YoYo_achievement_load_progress = achievement_load_progress;
 function achievement_load_progress() { }
 
-var YoYo_achievement_send_challenge = achievement_send_challenge;
 function achievement_send_challenge() { }
 
-var YoYo_os_get_info = os_get_info;
 function os_get_info() {return -1; }
 
 
-var YoYo_achievement_event = achievement_event;
 function achievement_event() { }
 
-var YoYo_achievement_show = achievement_show;
 function achievement_show() { }
 
-var YoYo_achievement_get_info = achievement_get_info;
 function achievement_get_info() { }
 
 // #############################################################################################
@@ -186,84 +130,9 @@ function achievement_get_info() { }
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_GetConfig = os_get_config;
 function os_get_config()
 {
     return g_YoYoConfig; //"YOYO_PAID";
-}
-
-
-// #############################################################################################
-/// Function:<summary>
-///          	Get the platform we're running on (if known)
-///          </summary>
-///
-/// Out:	<returns>
-///				BROWSER_UNKNOWN = -1,
-///				BROWSER_WIN32 = 0,
-///				BROWSER_WIN64 = 1,
-///				BROWSER_MACOSX = 2,
-///				BROWSER_PSP = 3,
-///				BROWSER_IOS = 4,
-///				BROWSER_ANDROID = 5,
-///				BROWSER_LINUX = 6,
-///			</returns>
-// #############################################################################################
-function    YoYo_GetPlatform() {
-	return g_OSPlatform;
-}
-
-// #############################################################################################
-/// Function:<summary>
-///          	Get the "device" type - if knowns
-///          </summary>
-///
-/// Out:	<returns>
-///				BROWSER_TYPE = 0,
-///				BROWSER_TYPE_UNKNOWN = 255,
-///				BROWSER_IPHONE = 0,
-///				BROWSER_IPHONE_RETENA = 1,
-///				BROWSER_IPAD = 2, 
-///			</returns>
-// #############################################################################################
-function    YoYo_GetDevice(){
-	return g_DeviceType;
-}
-
-
-// #############################################################################################
-/// Function:<summary>
-///          	Get the browser type.
-///          </summary>
-///
-/// Out:	<returns>
-///				BROWSER_NOT_A_BROWSER = -1, 	// game is not being played in a browser.
-///				BROWSER_UNKNOWN = 0, 		// Unknown browser...
-///				BROWSER_IE = 1,
-///				BROWSER_FIREFOX = 2,
-///				BROWSER_CHROME = 3,
-///				BROWSER_SAFARI = 4,
-///				BROWSER_OPERA = 5,
-///				BROWSER_SAFARI_MOBILE = 6, 
-///             BROWSER_DEFAULT_ANDROID = 7,
-///             BROWSER_WINDOWS_STORE = 8
-///			</returns>
-// #############################################################################################
-function YoYo_GetBrowser() {
-	return g_OSBrowser;
-}
-
-// #############################################################################################
-/// Function:<summary>
-///          	Return the OS version number
-///          </summary>
-///
-/// Out:	<returns>
-///				The OS version, or -1
-///			</returns>
-// #############################################################################################
-function YoYo_GetVersion() {
-	return g_OSVersion;
 }
 
 // #############################################################################################
@@ -278,10 +147,9 @@ function YoYo_GetVersion() {
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_OpenURL_full = url_open_full;
 function url_open_full(_url, _target, _options) {
 	if (_target != "_self" && _target != "_blank" && _target != "_parent" && _target != "_top"){
-		yyError("Error: invalid TARGET specified. Only '_self', '_blank', 'parent' or '_top' supported. (YoYo_OpenURL)");
+		yyError("Error: invalid TARGET specified. Only '_self', '_blank', 'parent' or '_top' supported. (url_open)");
 		return;
 	}
 	var loaded = window.open(yyGetString(_url), yyGetString(_target), yyGetString(_options));
@@ -296,9 +164,8 @@ function url_open_full(_url, _target, _options) {
 ///			<param name="_target">Target to open in</param>
 ///				
 // #############################################################################################
-var YoYo_OpenURL_ext = url_open_ext;
 function url_open_ext(_url, _target) {
-	YoYo_OpenURL_full(_url, _target, "scrollbars=yes,menubar=yes,resizable=yes,toolbar=yes,location=yes,status=yes");
+	url_open_full(_url, _target, "scrollbars=yes,menubar=yes,resizable=yes,toolbar=yes,location=yes,status=yes");
 }
 
 // #############################################################################################
@@ -309,9 +176,8 @@ function url_open_ext(_url, _target) {
 /// In:		<param name="_url">URL to open</param>
 ///				
 // #############################################################################################
-var YoYo_OpenURL = url_open;
 function url_open(_url) {
-	YoYo_OpenURL_ext(_url, "_self");
+	url_open_ext(_url, "_self");
 }
 
 
@@ -324,7 +190,6 @@ function url_open(_url) {
 ///			<param name="_score">Score to post</param>
 ///				
 // #############################################################################################
-var YoYo_PostScore = achievement_post_score;
 function achievement_post_score(_scoreboard, _score)
 {
 }
@@ -338,7 +203,6 @@ function achievement_post_score(_scoreboard, _score)
 ///			<param name="_score">Score to post</param>
 ///				
 // #############################################################################################
-var YoYo_PostAchievement = achievement_post;
 function    achievement_post( _scoreboard, _achivement )
 {
 }
@@ -360,7 +224,6 @@ function    achievement_post( _scoreboard, _achivement )
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_LeaveRating = shop_leave_rating;
 function shop_leave_rating(_text, _yes, _no, _URL)
 {
 }
@@ -374,23 +237,9 @@ function shop_leave_rating(_text, _yes, _no, _URL)
 ///				time value since start of app
 ///			 </returns>
 // #############################################################################################
-var get_timer = (performance.now) ? function() { 
-                                        return performance.now() * 1000;
-                                } : 
-                                    function() {
-                                        var t = new Date().getTime() * 1000;
-                                        return t - g_YoYoTimerStart;                                        
-                                };
-
-var YoYo_GetTimer = get_timer;
-
-
-
-
-
-
-
-
+var get_timer = typeof performance !== "undefined" && performance.now
+    ? function() { return performance.now() * 1000; }
+    : function() { return new Date().getTime() * 1000 - g_YoYoTimerStart; };
 
 // #############################################################################################
 /// Function:<summary>
@@ -406,7 +255,6 @@ var YoYo_GetTimer = get_timer;
 ///				virtual key "id"
 ///			</returns>
 // #############################################################################################
-var YoYo_AddVirtualKey = virtual_key_add;
 function virtual_key_add(_x, _y, _w, _h, _keycode)
 {
     _x = yyGetInt32(_x);
@@ -440,7 +288,6 @@ function virtual_key_add(_x, _y, _w, _h, _keycode)
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_DeleteVirtualKey = virtual_key_delete;
 function virtual_key_delete(_id) {
     _id = yyGetInt32(_id);
 
@@ -482,7 +329,6 @@ function UpdateVirtualKeyDrawList() {
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_ShowVirtualKey = virtual_key_show;
 function virtual_key_show(_id) {
     _id = yyGetInt32(_id);
 
@@ -505,7 +351,6 @@ function virtual_key_show(_id) {
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_HideVirtualKey = virtual_key_hide;
 function virtual_key_hide(_id) {
     _id = yyGetInt32(_id);
 
@@ -527,7 +372,6 @@ function virtual_key_hide(_id) {
 ///				-1 to 1 tilt value
 ///			</returns>
 // #############################################################################################
-var YoYo_GetTiltX = device_get_tilt_x;
 function device_get_tilt_x()
 {
     return 0;
@@ -543,7 +387,6 @@ function device_get_tilt_x()
 ///				-1 to 1 tilt value
 ///			</returns>
 // #############################################################################################
-var YoYo_GetTiltY = device_get_tilt_y;
 function device_get_tilt_y()
 {
     return 0;
@@ -559,7 +402,6 @@ function device_get_tilt_y()
 ///				-1 to 1 tilt value
 ///			</returns>
 // #############################################################################################
-var YoYo_GetTiltZ = device_get_tilt_z;
 function device_get_tilt_z()
 {
     return 0;
@@ -574,7 +416,6 @@ function device_get_tilt_z()
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_SelectPicture = device_ios_get_imagename;
 function device_ios_get_imagename()
 {
 	MissingFunction("device_ios_get_imagename()");
@@ -589,7 +430,6 @@ function device_ios_get_imagename()
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_GetPictureSprite = device_ios_get_image;
 function device_ios_get_image()
 {
 	MissingFunction("device_ios_get_image()");
@@ -604,7 +444,6 @@ function device_ios_get_image()
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_OF_StartDashboard = openfeint_start;
 function openfeint_start()
 {
 	MissingFunction("openfeint_start()");
@@ -620,7 +459,6 @@ function openfeint_start()
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_OF_AddAchievement = achievement_map_achievement;
 function achievement_map_achievement(_a, _b)
 {
 	MissingFunction("achievement_map_achievement()");
@@ -637,7 +475,6 @@ function achievement_map_achievement(_a, _b)
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_OF_AddLeaderboard = achievement_map_leaderboard;
 function achievement_map_leaderboard(_a, _b, _c)
 {
 	MissingFunction("achievement_map_leaderboard()");
@@ -654,7 +491,6 @@ function achievement_map_leaderboard(_a, _b, _c)
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_OF_SendChallenge = openfeint_send_challenge;
 function openfeint_send_challenge(_a, _b, _c)
 {
 	MissingFunction("openfeint_send_challenge()");
@@ -669,7 +505,6 @@ function openfeint_send_challenge(_a, _b, _c)
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_OF_SendInvite = openfeint_send_invite;
 function openfeint_send_invite(_a)
 {
 	MissingFunction("openfeint_send_invite()");
@@ -686,7 +521,6 @@ function openfeint_send_invite(_a)
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_OF_SendSocial = openfeint_send_social;
 function openfeint_send_social(_a, _b, _c)
 {
 	MissingFunction("openfeint_send_social()");
@@ -701,7 +535,6 @@ function openfeint_send_social(_a, _b, _c)
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_OF_SetURL = openfeint_set_url;
 function openfeint_set_url(_a)
 {
 	MissingFunction("openfeint_set_url()");
@@ -715,7 +548,6 @@ function openfeint_set_url(_a)
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_OF_AcceptChallenge = openfeint_accept_challenge;
 function openfeint_accept_challenge()
 {
 	MissingFunction("openfeint_accept_challenge()");
@@ -730,7 +562,6 @@ function openfeint_accept_challenge()
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_OF_IsOnline = achievement_is_online;
 function achievement_is_online()
 {
 	MissingFunction("achievement_is_online()");
@@ -747,7 +578,6 @@ function achievement_is_online()
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_OF_SendChallengeResult = openfeint_send_result;
 function openfeint_send_result(_a, _b)
 {
 	MissingFunction("openfeint_send_result()");
@@ -763,7 +593,6 @@ function openfeint_send_result(_a, _b)
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_IsKeypadOpen = device_is_keypad_open;
 function device_is_keypad_open() {
 	return false;
 }
@@ -805,100 +634,6 @@ function    YoYo_Init()
 
 // #############################################################################################
 /// Function:<summary>
-///             What to do if the end user fails the security key check (grief the user)
-///          </summary>
-// #############################################################################################
-function YoYo_SecurityFail()
-{    
-    var t = setTimeout(function() {
-            for (var sprIndex in g_pSpriteManager.Sprites)
-            {
-                if (!g_pSpriteManager.Sprites.hasOwnProperty(sprIndex)) continue;
-            
-                g_pSpriteManager.Delete(sprIndex);
-                break;            
-            }
-            // And recurse...
-            YoYo_SecurityFail();
-                        
-        }, 1000); // delete a sprite every second
-}
-
-// #############################################################################################
-/// Function:<summary>
-///             Read the session key from the document element as set by the server .php
-///          </summary>
-// #############################################################################################
-function YoYo_GetSessionKey()
-{   
-    if (!document.getElementById('b4f6074452b74d86ce6d00904fcd389c')) {
-        // NM-156 is an arbitrary choice (Queensryche song if you must know...)
-        var sessionKeyElement = document.getElementById('NM-156');
-        if (sessionKeyElement)
-        {
-            sessionKey = sessionKeyElement.innerHTML;    
-            sessionKeyElement.parentNode.removeChild(sessionKeyElement);
-        }
-        else {
-            YoYo_SecurityFail();        
-        }
-    }
-}
-
-// #############################################################################################
-/// Function:<summary>
-///             On intialisation this grabs the security key from the server
-///          </summary>
-// #############################################################################################
-function YoYo_CheckSecurity(_url)
-{
-    if (!document.getElementById('42f28d8caa0d96b967645dce4278ed50')) 
-    {    
-        // Construct the final url that includes the request data used by the server to check the session state
-        var finalUrl = _url + "?" + sessionKey + "=2239";
-        // var finalUrl = "http://localhost:80/check_purchase.php?" +  sessionKey + "=2239";
-        
-        // If a prior security check is in flight then do nothing
-        if (!g_securityCheck.securityRequestInFlight)
-        {
-            g_securityCheck.securityRequestInFlight = true;
-            var t = setTimeout(function() {                      
-                g_securityCheck.securityRequest.open("GET", finalUrl, true);
-                g_securityCheck.securityRequest.onreadystatechange = function () {
-                        if (g_securityCheck.securityRequest.readyState == 4)
-                        {
-                            switch (g_securityCheck.securityRequest.status)
-                            {
-                                case 200:
-                                {
-                                    // Check response against our session key
-                                    if (g_securityCheck.securityRequest.responseText != sessionKey) 
-                                    {
-                                        // Do something unpleasant to the user
-                                        YoYo_SecurityFail();
-                                    }
-                                    g_securityCheck.securityRequestInFlight = false;
-                                }
-                                break;
-                                default:                                                                    
-                                    alert("ERROR: The game has lost connection to the server. " + g_securityCheck.securityRequest.statusText);
-                                    // Enact a reload of the page. Don't use window.location.reload() as that requests the user 
-                                    // resubmits data and allows them to deny the request and carry on playing
-                                    window.location.href = window.location.href;
-                                break;
-                            }
-                         }
-                    };
-                    g_securityCheck.securityRequest.send(null);
-                }, 5000);  // delay sending for 5 seconds  
-        }     
-    }
-}
-
-
-
-// #############################################################################################
-/// Function:<summary>
 ///          	Return the domain the page has been loaded from.
 ///          </summary>
 ///
@@ -906,9 +641,8 @@ function YoYo_CheckSecurity(_url)
 ///				The domain (127.0.0.1, www.blah.com etc.)
 ///			</returns>
 // #############################################################################################
-var YoYo_GetDomain = url_get_domain;
 function url_get_domain() {
-	return document.domain;
+	return location.hostname;
 }
 
 // #############################################################################################
@@ -947,7 +681,6 @@ function getAsyncRequestObject() {
 ///				0  or  1
 ///			 </returns>
 // #############################################################################################
-var YoYo_MouseCheckButton = device_mouse_check_button;
 function device_mouse_check_button(_dev, _button) {
 
     _dev = yyGetInt32(_dev);
@@ -978,7 +711,6 @@ function device_mouse_check_button(_dev, _button) {
 ///				0  or  1
 ///			 </returns>
 // #############################################################################################
-var YoYo_MouseCheckButtonPressed = device_mouse_check_button_pressed;
 function device_mouse_check_button_pressed(_dev, _button) {
 
     _dev = yyGetInt32(_dev);
@@ -1009,7 +741,6 @@ function device_mouse_check_button_pressed(_dev, _button) {
 ///				0  or  1
 ///			 </returns>
 // #############################################################################################
-var YoYo_MouseCheckButtonReleased = device_mouse_check_button_released;
 function device_mouse_check_button_released(_dev, _button) {
 
     _dev = yyGetInt32(_dev);
@@ -1039,7 +770,6 @@ function device_mouse_check_button_released(_dev, _button) {
 ///				mouse coordinate
 ///			 </returns>
 // #############################################################################################
-var YoYo_MouseX = device_mouse_x;
 function device_mouse_x(_dev) {
 
     _dev = yyGetInt32(_dev);
@@ -1063,7 +793,6 @@ function device_mouse_x(_dev) {
 ///				
 ///			</returns>
 // #############################################################################################
-var YoYo_MouseXRaw = device_mouse_raw_x;
 function device_mouse_raw_x(_dev) {
 
     _dev = yyGetInt32(_dev);
@@ -1085,7 +814,6 @@ function device_mouse_raw_x(_dev) {
 ///				mouse coordinate
 ///			 </returns>
 // #############################################################################################
-var YoYo_MouseY = device_mouse_y;
 function device_mouse_y(_dev) {
 
     _dev = yyGetInt32(_dev);
@@ -1109,7 +837,6 @@ function device_mouse_y(_dev) {
 ///				mouse coordinate
 ///			 </returns>
 // #############################################################################################
-var YoYo_MouseYRaw = device_mouse_raw_y;
 function device_mouse_raw_y(_dev) {
 
     _dev = yyGetInt32(_dev);
@@ -1189,13 +916,11 @@ function device_mouse_y_to_gui(_dev) {
 ///             Checks to see if a pause activity came from the OS activity in this frame
 ///          </summary>
 // #############################################################################################
-var YoYo_OSPauseEvent = os_is_paused;
 function os_is_paused() {
     return g_OSPauseEvent;
 }
 
 
-var YoYo_OSHasFocusEvent = window_has_focus;
 function window_has_focus() {
     return g_GameFocus;
 }
@@ -1218,7 +943,9 @@ function ds_exists(_ind, _type) {
         case eDS_TypeList:      return (g_ListCollection.Get(_ind) ? 1.0 : 0.0);
 	    case eDS_TypeStack:     return (g_StackCollection.Get(_ind) ? 1.0 : 0.0);
 	    case eDS_TypeQueue:     return (g_ActiveQueues.Get(_ind) ? 1.0 : 0.0);
+        // @if function("ds_grid_*")
 	    case eDS_TypeGrid:      return (g_ActiveGrids.Get(_ind) ? 1.0 : 0.0);
+        // @endif
 	    case eDS_TypePriority:  return (g_ActivePriorityQueues.Get(_ind) ? 1.0 : 0.0);
 	}
 	return 0;
@@ -1334,9 +1061,12 @@ function script_execute( _self, _other, _index )
     return 0;
 } // end script_execute
 
+// @if function("method_call")
 var method_call = script_execute_ext;
+// @endif
 function script_execute_ext( _self, _other, _index, _array, _offset, _length )
 {
+	_array = _array || [];
     _offset = _offset || 0;
     _offset = yyGetInt32(_offset);
     _length = _length || _array.length - _offset;
@@ -1412,19 +1142,23 @@ function script_execute_ext( _self, _other, _index, _array, _offset, _length )
 // #############################################################################################
 function gml_release_mode(_enable) {
     if (yyGetBool(_enable)) {
+        // @if function("position_change") || function("instance_change")
         instance_change = instance_change_RELEASE;
+        // @endif
         yyInst = yyInst_RELEASE;
-        ds_grid_get = ds_grid_get_RELEASE;
-        ds_grid_set = ds_grid_set_RELEASE;
-        ds_grid_set_pre = ds_grid_set_pre_RELEASE;
-        ds_grid_set_post = ds_grid_set_post_RELEASE;
+        compile_if_used(ds_grid_get = ds_grid_get_RELEASE);
+        compile_if_used(ds_grid_set = ds_grid_set_RELEASE);
+        compile_if_used(ds_grid_set_pre = ds_grid_set_pre_RELEASE);
+        compile_if_used(ds_grid_set_post = ds_grid_set_post_RELEASE);
     } else {
+        // @if function("position_change") || function("instance_change")
         instance_change = instance_change_DEBUG;
+        // @endif
         yyInst = yyInst_DEBUG;
-        ds_grid_get = ds_grid_get_DEBUG;
-        ds_grid_set = ds_grid_set_DEBUG;		
-        ds_grid_set_pre = ds_grid_set_pre_DEBUG;
-        ds_grid_set_post = ds_grid_set_post_DEBUG;
+        compile_if_used(ds_grid_get = ds_grid_get_DEBUG);
+        compile_if_used(ds_grid_set = ds_grid_set_DEBUG);
+        compile_if_used(ds_grid_set_pre = ds_grid_set_pre_DEBUG);
+        compile_if_used(ds_grid_set_post = ds_grid_set_post_DEBUG);
     }
 }
 

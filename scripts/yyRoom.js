@@ -70,9 +70,6 @@ yyRoom.prototype.Init = function () {
 	//this.m_NewInstances = []; 				// When a new instance is added, its added to the layers at the end of the event
 	//this.m_ParticleChanges = []; 			    // When a particle system changes depth (this needs to be global because it can be called before there is a room)
 
-	this.m_NumTiles = 0;
-	this.m_Tiles = [];
-	this.m_PlayfieldManager = new yyPlayfieldManager();
 	this.m_Views = [];
 
 	this.m_Marked = [];
@@ -154,6 +151,30 @@ yyRoom.prototype.CreateEmptyStorage = function () {
 
 };
 
+// return an expanded array of the tiles, stiles is an array with the tiles RLE compressed 
+function expandTiles( stiles )
+{
+	var r = [];
+	for( var i=0; i<stiles.length;) {
+		var c = stiles[i++];
+		if (c & 0x80000000) {
+			var b = c & 0x7fffffff;
+			++b;
+			var v = stiles[i++];
+			for( var cc=0; cc<b; ++cc) {
+				r.push( v );
+			} // end for
+		} // end if 
+		else {
+			var b = c & 0x7fffffff;
+			for( var cc=0; cc<b; ++cc) {
+				r.push( stiles[i++] );
+			} // end for
+		} // end else
+	} // end for
+	return r;
+}
+
 
 // #############################################################################################
 /// Function:<summary>
@@ -185,6 +206,7 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
 		}
 
 		// Physics world
+		// @if feature("physics")
 		if ( _pStorage.physicsWorld )
 		{
 			this.m_pStorage.physicsWorld = _pStorage.physicsWorld;
@@ -196,6 +218,7 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
 			this.m_pStorage.physicsGravityY = _pStorage.physicsGravityY;
 			this.m_pStorage.physicsPixToMeters = _pStorage.physicsPixToMeters;
 		}
+		// @endif physics world storage clone
     
 		// 1.x backgrounds
         for (var i = 0; i < _pStorage.backgrounds.length; i++) 
@@ -283,30 +306,6 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
                 };
             }
         }        
-        
-		// Tiles
-        this.m_pStorage.tiles = new Array(_pStorage.tiles.length);
-        for (var i = 0; i < _pStorage.tiles.length; i++) 
-        {
-            var sourceTile = _pStorage.tiles[i];
-            if (sourceTile != null)
-            {
-                this.m_pStorage.tiles[i] = {                            
-                    x: sourceTile.x,
-	                y: sourceTile.y,
-	                index: sourceTile.index,
-	                xo: sourceTile.xo,   
-	                yo: sourceTile.yo,
-	                w: sourceTile.w,
-	                h: sourceTile.h,
-	                depth: sourceTile.depth,
-	                id: sourceTile.id,
-	                scaleX: sourceTile.scaleX,
-	                scaleY: sourceTile.scaleY,
-					colour: sourceTile.colour
-                };
-	        }
-        }
 
 		// Layers
         this.m_pStorage.layers = new Array( _pStorage.layers.length );
@@ -332,18 +331,20 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
 				};
 
 				// Copy effect properties
+				// @if feature("layerEffects")
 				newLayer.effectProperties = new Array( sourceLayer.effectProperties.length );
 
 				var effectPropIdx;
 				for (effectPropIdx = 0; effectPropIdx < sourceLayer.effectProperties.length; effectPropIdx++) 
         		{
-					newLayer.EffectProperties[effectPropIdx] =
+					newLayer.effectProperties[effectPropIdx] =
 					{
 						type: sourceLayer.effectProperties[effectPropIdx].type,
 						name: sourceLayer.effectProperties[effectPropIdx].name,
 						value: sourceLayer.effectProperties[effectPropIdx].value
 					};
 				}
+				// @endif
 
 				// Type-specific properties
         		switch(sourceLayer.type)
@@ -514,21 +515,6 @@ yyRoom.prototype.CreateRoomFromStorage = function (_pRoomStorage)
 	this.SetPersistent(this.m_persistent);
 	this.m_Views = [];
 
-
-	// Make Tiles
-	this.m_NumTiles = 0;		
-	for (var index = 0; index < _pRoomStorage.tiles.length; index++)
-	{
-		var pTileStorage = _pRoomStorage.tiles[index];
-		if (pTileStorage != null)
-		{
-			var pTile = CreateTileFromStorage(pTileStorage);
-			this.m_PlayfieldManager.Add(pTile);
-			this.m_Tiles[pTile.id] = pTile;
-			this.m_NumTiles++;
-		}
-	}
-
 	if (_pRoomStorage.pCode != undefined) this.m_code = _pRoomStorage.pCode;
 
 	// Create views				
@@ -551,22 +537,16 @@ yyRoom.prototype.CreateRoomFromStorage = function (_pRoomStorage)
 ///             
 ///          </summary>
 // #############################################################################################
+// @if feature("physics")
 yyRoom.prototype.BuildPhysicsWorld = function() {
 
     // evaluates to true if value is not: null, undefined, NaN, empty string, 0, false
     if (this.m_pStorage.physicsWorld) {
-    
-        if(g_isZeus)
-        {
-            this.m_pPhysicsWorld = new yyPhysicsWorld(this.m_pStorage.physicsPixToMeters, g_GameTimer.GetFPS());
-        }
-        else
-        {
-            this.m_pPhysicsWorld = new yyPhysicsWorld(this.m_pStorage.physicsPixToMeters, this.GetSpeed());
-        }
+        this.m_pPhysicsWorld = new yyPhysicsWorld(this.m_pStorage.physicsPixToMeters, g_GameTimer.GetFPS());
         this.m_pPhysicsWorld.SetGravity(this.m_pStorage.physicsGravityX, this.m_pStorage.physicsGravityY);
     }
 };
+// @endif BuildPhysicsWorld
 
 // #############################################################################################
 /// Function:<summary>
@@ -694,7 +674,9 @@ yyRoom.prototype.CreateInstance = function (_x, _y, _id, _objindex, _scaleX, _sc
             g_pLayerManager.BuildElementRuntimeData(this, elandlay.layer, elandlay.element);
         }
     }
+	// @if feature("physics")
     pinst.BuildPhysicsBody();
+	// @endif
     
   //  g_pLayerManager.AddInstance(this,pinst);
     return pinst;
@@ -741,8 +723,10 @@ yyRoom.prototype.AddInstance = function (_x, _y, _id, _objindex, _overridedepth,
             g_pLayerManager.BuildElementRuntimeData(this, elandlay.layer, elandlay.element);
         }
     }
-
+	
+	// @if feature("physics")
     pinst.BuildPhysicsBody();
+	// @endif
     return pinst;
 };
 
@@ -774,7 +758,9 @@ yyRoom.prototype.AddLayerInstance = function (_x, _y, _layer, _id, _objindex)
     this.m_Active.Add(pinst);
     g_pInstanceManager.Add(pinst);
 
+	// @if feature("physics")
     pinst.BuildPhysicsBody();
+	// @endif
     
     //this.m_NewInstances.push({ inst: pinst, type: 1, layer:_layer });
 
@@ -973,87 +959,6 @@ yyRoom.prototype.UpdateViews = function () {
 				}
 			}
 		}
-		else if ((pView.visible) && (pView.objid >= 0))
-		{
-			// Find the pInstance to follow
-			pInst = null;
-			if (pView.objid < 100000)
-			{
-				// if they selected an OBJECT, then pick the 1st unmarked one!
-				var pObj = g_pObjectManager.Get(pView.objid);
-				if (pObj != null)
-				{
-					var pool = pObj.GetRPool();					
-					for (var o = 0; o < pool.length; o++)
-					{
-						pInst = pool[o];
-						if (!pInst.marked) break;   // if NOT marked, use this one!
-						pInst = null;               // makes sure we can tell we found one		        
-					}
-				}
-
-			}
-			else                           // pView object is an pInstance
-			{
-				pInst = g_pInstanceManager.Get(pView.objid);
-				if (!pInst && pInst.marked) pInst = null;
-			}
-
-			// if we have an object to follow.... then follow it!
-			if (pInst != null)
-			{
-				// Find the new position
-				l = pView.worldx;
-				t = pView.worldy;
-				ix = pInst.x;
-				iy = pInst.y;
-
-				if (2 * pView.hborder >= pView.worldw)
-				{
-					l = ix - pView.worldw / 2;
-				} else if (ix - pView.hborder < pView.worldx)
-				{
-					l = ix - pView.hborder;
-				} else if (ix + pView.hborder > pView.worldx + pView.worldw)
-				{
-					l = ix + pView.hborder - pView.worldw;
-				}
-
-				if (2 * pView.vborder >= pView.worldh)
-				{
-					t = iy - pView.worldh / 2;
-				} else if (iy - pView.vborder < pView.worldy)
-				{
-					t = iy - pView.vborder;
-				} else if (iy + pView.vborder > pView.worldy + pView.worldh)
-				{
-					t = iy + pView.vborder - pView.worldh;
-				}
-
-
-				// Make sure it does not extend beyond the room
-				if (l < 0) l = 0;
-				if (l + pView.worldw > this.m_width) l = this.m_width - pView.worldw;
-				if (t < 0) t = 0;
-				if (t + pView.worldh > this.m_height) t = this.m_height - pView.worldh;
-
-				// Restrict motion speed
-				if (pView.hspeed >= 0)
-				{
-					if ((l < pView.worldx) && (pView.worldx - l > pView.hspeed)) l = pView.worldx - pView.hspeed;
-					if ((l > pView.worldx) && (l - pView.worldx > pView.hspeed)) l = pView.worldx + pView.hspeed;
-				}
-				if (pView.vspeed >= 0)
-				{
-					if ((t < pView.worldy) && (pView.worldy - t > pView.vspeed)) t = pView.worldy - pView.vspeed;
-					if ((t > pView.worldy) && (t - pView.worldy > pView.vspeed)) t = pView.worldy + pView.vspeed;
-				}
-				pView.worldx = l;
-				pView.worldy = t;
-
-			} //if (pInst != null) 
-
-		} // if((pView.visible) && (pView.objid>=0))
 
 	}
 
@@ -1108,6 +1013,7 @@ yyRoom.prototype.DrawLayerInstanceElement = function(_rect,_layer,_el)
 				    g_skeletonDrawInstance = null;
 				    
 				}
+				// @if feature("sprites")
 				else
 				{
 	
@@ -1133,13 +1039,14 @@ yyRoom.prototype.DrawLayerInstanceElement = function(_rect,_layer,_el)
 					}
 					
 				}
+				// @endif sprites
 			}
 		} // end if
 	}
 };
 yyRoom.prototype.DrawLayerOldTilemapElement = function(_rect,_layer,_el)
 {
-    //Don't have one of these in our project, so bit hard to test...
+/*    //Don't have one of these in our project, so bit hard to test...
 //    LinkedList<CTileSlab>::iterator slabiter = _pOldTilemapEl->m_tiles.GetIterator();
 //	while (*slabiter != NULL)
 	
@@ -1157,7 +1064,7 @@ yyRoom.prototype.DrawLayerOldTilemapElement = function(_rect,_layer,_el)
 	
 	}
 	
-/*	{
+	{
 		CTileSlab* pSlab = *slabiter;
 		RTile* pTiles = pSlab->m_Tiles;
 		int numTiles = pSlab->m_nTilesUsed;
@@ -1217,6 +1124,7 @@ yyRoom.prototype.DrawLayerBackgroundElement = function(_rect,_layer,_el)
 
 
     // Does this background have a sprite?	
+	// @if feature("sprites")
 	if (sprite_exists(back.index))
 	{
 	    // get sprite details
@@ -1239,6 +1147,7 @@ yyRoom.prototype.DrawLayerBackgroundElement = function(_rect,_layer,_el)
         }
 	}
 	else
+	// @endif sprites
 	{
 		// Don't "just" clear - it doesn't respect the current viewport
 	    var oldAlpha = g_GlobalAlpha;
@@ -1262,6 +1171,7 @@ yyRoom.prototype.DrawLayerBackgroundElement = function(_rect,_layer,_el)
 // #############################################################################################
 yyRoom.prototype.DrawLayerSpriteElement = function(_rect,_layer,_el)
 {
+	// @if feature("sprites")
     if (sprite_exists(_el.m_spriteIndex))
 	{
 	    var pImage = g_pSpriteManager.Get( _el.m_spriteIndex );
@@ -1290,6 +1200,7 @@ yyRoom.prototype.DrawLayerSpriteElement = function(_rect,_layer,_el)
 			}	
 		}
 	}
+	// @endif sprites
 };
 
 var g_DefaultCameraID = -1;
@@ -1694,6 +1605,7 @@ function draw_tile(_inst,_back,_tileindex,_frame,_x,_y)
 
 yyRoom.prototype.DrawLayerTilemapElement = function(_rect,_layer,_el,_xpos,_ypos,_depth)
 {
+	// @if feature("tilemaps")
     if(background_exists(_el.m_backgroundIndex))
     {
         var backwidth = background_get_width(_el.m_backgroundIndex);
@@ -1801,6 +1713,7 @@ yyRoom.prototype.DrawLayerTilemapElement = function(_rect,_layer,_el,_xpos,_ypos
                 
                 if(g_webGL)
                 {
+					// @if feature("gl")
                     for(var y=miny;y<maxy;y++)
                     {
                         var index = y*_el.m_mapWidth+minx;
@@ -1953,10 +1866,11 @@ yyRoom.prototype.DrawLayerTilemapElement = function(_rect,_layer,_el,_xpos,_ypos
                     
                     if(tilesinthisrun>0)
                         pVerts.Current -= tilesinthisrun * 6;
-
+					// @endif
                 }
                 else
                 {
+					// @if feature("2d")
                     //Non Web-GL
                     for(var y=miny;y<maxy;y++)
                     {
@@ -2033,14 +1947,17 @@ yyRoom.prototype.DrawLayerTilemapElement = function(_rect,_layer,_el,_xpos,_ypos
 						    }
 					    }
 				    }            
+					// @endif
                 }   
             }
         }
     }
+	// @endif
 };
 
 yyRoom.prototype.DrawLayerParticleSystem = function(_rect,_layer,_el)
 {
+	// @if feature("particles")
 	var ps = _el.m_systemID;
 
 	if (!ParticleSystem_Exists(ps)) return;
@@ -2071,10 +1988,12 @@ yyRoom.prototype.DrawLayerParticleSystem = function(_rect,_layer,_el)
 	ParticleSystem_SetMatrix(ps, matWorldNew);
 	ParticleSystem_Draw(ps, _el.m_imageBlend, _el.m_imageAlpha);
 	WebGL_SetMatrix(MATRIX_WORLD, matWorldOld);
+	// @endif
 };
 
 yyRoom.prototype.DrawLayerTileElement = function (_rect, _layer, _el) {
     // TODO - cull according to screen rect
+	// @if feature("sprites")
     if (!_el.m_visible) return false;
     var pImage = g_pSpriteManager.Get(_el.m_index);
     if (pImage != null) {
@@ -2126,11 +2045,12 @@ yyRoom.prototype.DrawLayerTileElement = function (_rect, _layer, _el) {
             graphics._drawImage(pTPE, pTPE.x + (_el.m_xo * scalex), pTPE.y + (_el.m_yo * scalex), _el.m_w * scalex, _el.m_h * scalex, _el.m_x, _el.m_y, _el.m_w * _el.m_imageScaleX, _el.m_h * _el.m_imageScaleY, col);
         }*/
     }
+	// @endif sprites
 };
 
 
 yyRoom.prototype.DrawLayerSequenceElement = function (_rect, _layer, _pSequenceEl) {
-
+	// @if feature("sequences")
 	// Update sequence element in case there has been changes between the sequence instance update pre-step and now 
 	g_pSequenceManager.EvaluateLayerSequenceElement(_pSequenceEl, true);
 
@@ -2183,8 +2103,10 @@ yyRoom.prototype.DrawLayerSequenceElement = function (_rect, _layer, _pSequenceE
             }
         }
     }
+	// @endif
 };
 
+// @if feature("sequences")
 yyRoom.prototype.DrawSequence = function (_rect, _layer, _pSequenceEl, _evalTree, _headPosition, _lastHeadPosition, _headDirection, _sequence, _isNested, _sequenceMatrix) {
 
     if (_sequence == null)
@@ -2314,7 +2236,7 @@ yyRoom.prototype.DrawTrackList = function (_rect, _layer, _pSequenceEl, _evalTre
 };
 
 yyRoom.prototype.HandleSequenceGraphic = function (_rect, _layer, _pSequenceEl, _node, _track, _headPosition, _lastHeadPosition, _headDirection, _sequence) {
-
+	// @if feature("sprites")
     var keyframeStore = _track.m_keyframeStore;
 
     var keyframeIndex = keyframeStore.GetKeyframeIndexAtFrame(_headPosition, _sequence.m_length);
@@ -2424,7 +2346,8 @@ yyRoom.prototype.HandleSequenceGraphic = function (_rect, _layer, _pSequenceEl, 
 
     var oldworldmat;
     var restorematrix = false;
-
+	
+	// @if feature("gl") && feature("nineslice")
     if ((g_webGL) && (sprite.nineslicedata != null) && (sprite.nineslicedata.enabled == true))
     {
         var spriteScaleX = Math.sqrt((_node.value.matrix.m[0] * _node.value.matrix.m[0]) + (_node.value.matrix.m[1] * _node.value.matrix.m[1]));
@@ -2452,6 +2375,7 @@ yyRoom.prototype.HandleSequenceGraphic = function (_rect, _layer, _pSequenceEl, 
             WebGL_SetMatrix(MATRIX_WORLD, normalisedworldmat);
         }
     }
+	// @endif gl nineslice
 
 
     //if (_node.value.Overrides(eT_Width)) {
@@ -2465,6 +2389,7 @@ yyRoom.prototype.HandleSequenceGraphic = function (_rect, _layer, _pSequenceEl, 
 
     if (!g_webGL)
     {
+		// @if feature("2d")
         // extract sprite rotation, scale, and translation from the world matrix
         var worldMatrix = g_Matrix[MATRIX_WORLD];
         var spriteRotationZ = Math.atan2(worldMatrix.m[1], worldMatrix.m[0]) * (-180 / Math.PI);
@@ -2487,6 +2412,7 @@ yyRoom.prototype.HandleSequenceGraphic = function (_rect, _layer, _pSequenceEl, 
 
         // Reset the world matrix
         WebGL_SetMatrix(MATRIX_WORLD, worldMatrix);
+		// @endif 2d
     }
     else
     {
@@ -2497,6 +2423,7 @@ yyRoom.prototype.HandleSequenceGraphic = function (_rect, _layer, _pSequenceEl, 
     {
         WebGL_SetMatrix(MATRIX_WORLD, oldworldmat);
     }
+	// @endif sprites
 };
 
 
@@ -2806,6 +2733,7 @@ yyRoom.prototype.HandleSequenceInstance = function (_rect, _layer, _pSequenceEl,
 								//if (!pInst.PerformEvent(EVENT_DRAW, 0, pInst, pInst))
 								if( !pInst.REvent[EVENT_DRAW] )
 								{
+									// @if feature("sprites")
 									// Otherwise just DRAW it..
 									var pSprite = g_pSpriteManager.Get(pInst.sprite_index);
 									if (pSprite)
@@ -2825,6 +2753,7 @@ yyRoom.prototype.HandleSequenceInstance = function (_rect, _layer, _pSequenceEl,
 														);
 										}
 									}
+									// @endif sprites
 								}
 								else
 								{
@@ -2920,7 +2849,7 @@ yyRoom.prototype.HandleSequenceParticle = function (_rect, _layer, _pSequenceEl,
 };
 
 yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _node, _track, _headPosition, _lastHeadPosition, _headDirection, _sequence) {
-
+	// @if feature("fonts")
     var keyframeStore = _track.m_keyframeStore;
 
     var keyframeIndex = keyframeStore.GetKeyframeIndexAtFrame(_headPosition, _sequence.m_length);
@@ -2957,26 +2886,26 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 
 	var frameWidth = -1;
 	var frameHeight = -1;
-	if (_node.value.paramset & (1 << eT_FrameSize))
+	if (_node.value.paramset.GetBit(eT_FrameSize))
 	{
 		frameWidth = _node.value.FrameSizeX;
 		frameHeight = _node.value.FrameSizeY;
 	}	
 
 	var charSpacing = 0.0;
-	if (_node.value.paramset & (1 << eT_CharacterSpacing))
+	if (_node.value.paramset.GetBit(eT_CharacterSpacing))
 	{
 		charSpacing = _node.value.CharacterSpacing;
 	}
 
 	var lineSpacing = 0.0;
-	if (_node.value.paramset & (1 << eT_LineSpacing))
+	if (_node.value.paramset.GetBit(eT_LineSpacing))
 	{
 		lineSpacing = _node.value.LineSpacing;
 	}
 
 	var paraSpacing = 0.0;
-	if (_node.value.paramset & (1 << eT_ParagraphSpacing))
+	if (_node.value.paramset.GetBit(eT_ParagraphSpacing))
 	{
 		paraSpacing = _node.value.ParagraphSpacing;
 	}
@@ -2991,6 +2920,7 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 	{
 		if (g_webGL)
 		{
+			// @if feature("gl")
 			// Set up stencil
 			if (g_clippingMaskStack == null || g_clippingMaskStack.length == 0)
 			{
@@ -3066,9 +2996,11 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaRef, g_globalClippingMaskState.AlphaRef);
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaFunc, g_globalClippingMaskState.AlphaFunc);
 			}
+			// @endif
 		}
 		else
 		{
+			// @if feature("2d")
 			worldMatrix = g_Matrix[MATRIX_WORLD];
 
 			graphics.save();
@@ -3091,6 +3023,7 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 			graphics.lineTo(transposvec3.X, transposvec3.Y);
 			graphics.closePath();    
 			graphics.clip();
+			// @endif
 		}
 	}
 	
@@ -3100,6 +3033,7 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 	{
 		if (g_webGL)
 		{
+			// @if feature("gl")
 			// Always alpha test
 			if (g_globalClippingMaskState.AlphaTestEnable == 0)
 			{
@@ -3156,17 +3090,22 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 			if (g_clippingMaskStack.length == 0) {
 				g_globalClippingMaskState.Apply();
 			}
+			// @endif
 		}
 		else
 		{
+			// @if feature("2d")
 			graphics.restore();
+			// @endif
 		}
 	}
 
 	draw_set_font(oldFontID);
 	draw_set_color(oldCol);
 	draw_set_alpha(oldAlpha);
+	// @endif fonts
 };
+// @endif sequences
 
 
 
@@ -3195,15 +3134,12 @@ yyRoom.prototype.DrawRoomLayers = function(_rect){
 		    else
 		    {
 			    WebGL_d3d_set_depth_RELEASE(player.depth);		
-		    }		
-	        
-	        
-	     //   GR_Depth = player.depth;
-	        //TODO SetLayerShader
-	        //TODO ExecuteLayerScript
+		    }
 
+			// @if feature("layerEffects")
 			if (player.m_effectEnabled)
 				ExecuteEffectFunction(player, EFFECT_LAYER_BEGIN_FUNC, EVENT_DRAW, 0);
+			// @endif
 
 	        SetLayerShader(player.m_shaderId);
 	        ExecuteLayerScript(player.m_id, player.m_beginScript);
@@ -3221,18 +3157,22 @@ yyRoom.prototype.DrawRoomLayers = function(_rect){
 	                {
 	                    this.DrawLayerInstanceElement(_rect,player,el);
 	                }
-	                else if(el.m_type === eLayerElementType_OldTilemap)
-	                {
-	                    this.DrawLayerOldTilemapElement(_rect,player,el);
-	                }
+	                //else if(el.m_type === eLayerElementType_OldTilemap)
+	                //{
+	                //    this.DrawLayerOldTilemapElement(_rect,player,el);
+	                //}
+					// @if feature("sprites")
 	                else if(el.m_type === eLayerElementType_Sprite)
 	                {
 	                    this.DrawLayerSpriteElement(_rect,player,el,0,0,0);
 	                }
+					// @endif sprites
+					// @if feature("tilemaps")
 	                else if(el.m_type === eLayerElementType_Tilemap)
 	                {
 	                    this.DrawLayerTilemapElement(_rect,player,el);
 	                }   
+					// @endif
 					else if(el.m_type === eLayerElementType_ParticleSystem)
 					{
 						this.DrawLayerParticleSystem(_rect,player,el);
@@ -3241,18 +3181,22 @@ yyRoom.prototype.DrawRoomLayers = function(_rect){
 					{
 						this.DrawLayerTileElement(_rect,player,el);
 					}
+					// @if feature("sequences")
 					else if (el.m_type === eLayerElementType_Sequence)
 					{
 					    this.DrawLayerSequenceElement(_rect, player, el);
 					}
+					// @endif
 	            }
 	        }
 
 	        ExecuteLayerScript(player.m_id, player.m_endScript);
 	        ResetLayerShader(player.m_shaderId);
 
+			// @if feature("layerEffects")
 			if (player.m_effectEnabled)
 				ExecuteEffectFunction(player, EFFECT_LAYER_END_FUNC, EVENT_DRAW, 0);
+			// @endif
 	    }
 
 	    Current_Event_Type = oldtype;
@@ -3301,6 +3245,7 @@ yyRoom.prototype.DrawTheRoom = function (_rect) {
 // #############################################################################################
 yyRoom.prototype.DrawUserCursor = function () {
 	// Draw USER curser
+	// @if feature("sprites")
 	if (g_CurrentCursor >= 0)
 	{
 		var pSpr = g_pSpriteManager.Get(g_CurrentCursor);
@@ -3311,6 +3256,7 @@ yyRoom.prototype.DrawUserCursor = function () {
 		g_CurrentCursorFrame++;
 		if (g_CurrentCursorFrame > pSpr.numb) g_CurrentCursorFrame -= pSpr.numb;
 	}
+	// @endif sprites
 };
 
 // #############################################################################################
@@ -3359,6 +3305,7 @@ yyRoom.prototype.ClearEffectLayerIDs = function () {
 
 function ExecuteEffectFunction(_pLayer, _funcname, _etype, _enumb)
 {
+	// @if feature("layerEffects")
 	if (_pLayer === null)
 		return;
 
@@ -3400,6 +3347,7 @@ function ExecuteEffectFunction(_pLayer, _funcname, _etype, _enumb)
 	Current_Event_Type = oldtype;
 	Current_Event_Number = oldnumb;
 	*/
+	// @endif
 };
 
 function ExecuteLayerScript(layerid,script)
@@ -3423,18 +3371,22 @@ function ExecuteLayerScript(layerid,script)
 
 function SetLayerShader(shaderid)
 {
+	// @if feature("shaders")
     if(shaderid!=-1)
     {
         shader_set(shaderid);    
     
     }
+	// @endif
 };
 function ResetLayerShader(shaderid)
 {
+	// @if feature("shaders")
     if(shaderid!=-1)
     {
         shader_reset();
     }
+	// @endif
 };
 // #############################################################################################
 /// Function:<summary>
@@ -3444,7 +3396,7 @@ function ResetLayerShader(shaderid)
 /// In:		 <param name="r">Rect to "fit" in</param>
 // #############################################################################################
 yyRoom.prototype.ExecuteDrawEvent = function (_rect, _event) {
-	var pSprite, pInst, i, pool, pSprites;
+	var pSprite, pInst, i, pool;
 	
 	Current_Event_Type = _event;
 
@@ -3466,8 +3418,10 @@ yyRoom.prototype.ExecuteDrawEvent = function (_rect, _event) {
 
 			Current_Event_Number = EVENT_DRAW_BEGIN;
 
+			// @if feature("layerEffects")
 			if (player.m_effectEnabled)
 				ExecuteEffectFunction(player, EFFECT_LAYER_BEGIN_FUNC, EVENT_DRAW_BEGIN, 0);
+			// @endif
 
 	        SetLayerShader(player.m_shaderId);
 	        ExecuteLayerScript(player.m_id, player.m_beginScript);
@@ -3499,8 +3453,10 @@ yyRoom.prototype.ExecuteDrawEvent = function (_rect, _event) {
 	        ExecuteLayerScript(player.m_id,player.m_endScript);
 	        ResetLayerShader(player.m_shaderId);
 
+			// @if feature("layerEffects")
 			if (player.m_effectEnabled)
 				ExecuteEffectFunction(player, EFFECT_LAYER_END_FUNC, EVENT_DRAW_BEGIN, 0);
+			// @endif
 	    
 	    }
 	}
@@ -3509,7 +3465,6 @@ yyRoom.prototype.ExecuteDrawEvent = function (_rect, _event) {
 	
 	
 	    pool = this.m_Active.pool;
-	    pSprites = g_pSpriteManager.Sprites;
 
 	    for (i = pool.length - 1; i >= 0; i--)
 	    {
@@ -3622,13 +3577,8 @@ yyRoom.prototype.DrawViews = function (r) {
 	
 		Graphics_SetViewPort(0, 0, g_ApplicationWidth, g_ApplicationHeight);
          
-		if (g_isZeus) {
-			g_DefaultView.cameraID = g_DefaultCameraID;
-		    UpdateDefaultCamera(0, 0, g_RunRoom.m_width, g_RunRoom.m_height, 0);
-		}
-		else {
-		    Graphics_SetViewArea(0, 0, g_RunRoom.m_width, g_RunRoom.m_height, 0);
-		}
+		g_DefaultView.cameraID = g_DefaultCameraID;
+		UpdateDefaultCamera(0, 0, g_RunRoom.m_width, g_RunRoom.m_height, 0);
 	} 
 	else {
 	
@@ -3689,51 +3639,17 @@ yyRoom.prototype.DrawViews = function (r) {
                                               g_pCurrentView.portw * sx, g_pCurrentView.porth * sy );
                     }
 
-			        if(g_isZeus/* && (g_webGL!=null)*/)
-			        {
-			            g_pCameraManager.SetActiveCamera(g_pCurrentView.cameraID);
-			            var pCam = g_pCameraManager.GetActiveCamera();
-			            if(pCam!=null)
-			            {
-			                pCam.Begin();						
-			                pCam.ApplyMatrices();												
-			            }
-			        }
-			        else
-			            Graphics_SetViewArea(g_pCurrentView.worldx, g_pCurrentView.worldy, g_pCurrentView.worldw, g_pCurrentView.worldh, g_pCurrentView.angle);
+					g_pCameraManager.SetActiveCamera(g_pCurrentView.cameraID);
+					var pCam = g_pCameraManager.GetActiveCamera();
+					if(pCam!=null)
+					{
+						pCam.Begin();						
+						pCam.ApplyMatrices();												
+		            }
 
-                    if(/*(g_webGL==null) || */(!g_isZeus))
-                    {
-			            // no Angle allowed on view....unless it's webgl...
-			            if( Math.abs( g_pCurrentView.angle) < 0.001)
-			            {
-			                r.left = g_pCurrentView.worldx;
-			                r.top = g_pCurrentView.worldy;
-			                r.right = g_pCurrentView.worldx + g_pCurrentView.worldw;
-			                r.bottom = g_pCurrentView.worldy + g_pCurrentView.worldh;
-			            } 
-			            else
-			            {
-			                // We need a larger area here to make sure we draw enough - calculate extents from rotation
-			                var rad = g_pCurrentView.angle * (Pi/180);
-			                var s = Math.abs( Math.sin(rad));
-			                var c = Math.abs( Math.cos(rad));
-			                var ex = (c * g_pCurrentView.worldw) + (s * g_pCurrentView.worldh);
-			                var ey = (s * g_pCurrentView.worldw) + (c * g_pCurrentView.worldh);
-			                r.left = g_pCurrentView.worldx + (g_pCurrentView.worldw - ex)/2;
-			                r.right = g_pCurrentView.worldx + (g_pCurrentView.worldw + ex)/2;
-			                r.top = g_pCurrentView.worldy + (g_pCurrentView.worldh - ey)/2; 
-			                r.bottom = g_pCurrentView.worldy + (g_pCurrentView.worldh + ey)/2; 
-			            }
-			            g_pBuiltIn.view_current = i;
-			            this.DrawTheRoom(r);
-			        }
-			        else
-			        {
-
-			            g_pBuiltIn.view_current = i;
-			            this.DrawTheRoom(g_roomExtents);
-			        }
+                    
+					g_pBuiltIn.view_current = i;
+					this.DrawTheRoom(g_roomExtents);
 
 
 			        if (g_pCurrentView.surface_id != -1) {
@@ -3742,16 +3658,12 @@ yyRoom.prototype.DrawViews = function (r) {
 			        Current_View++;
     			    
     			  
-			        if (g_isZeus)
-			        {			
-    			    
-			            var pCam = g_pCameraManager.GetActiveCamera();
-			            if(pCam!=null)
-			            {
-			                pCam.End(); 
-			            }			    
-				        g_pCameraManager.SetActiveCamera(-1);		// no active camera
-			        }
+					var pCam = g_pCameraManager.GetActiveCamera();
+					if(pCam!=null)
+					{
+						pCam.End(); 
+					}			    
+					g_pCameraManager.SetActiveCamera(-1);		// no active camera
 
 			    }
 			    Graphics_Restore();
@@ -3829,6 +3741,7 @@ yyRoom.prototype.PostDraw = function (r) {
     {
 	    Graphics_SetViewPort(0, 0, r.right, r.bottom);
 	    Graphics_SetViewArea(0, 0, r.right, r.bottom, 0);
+		UpdateDefaultCamera(0, 0, r.right, r.bottom, 0);
 	    this.ExecuteDrawEvent(r, EVENT_DRAW_POST);
 	}
 	Graphics_Restore();
@@ -4082,82 +3995,7 @@ yyRoom.prototype.ActivateInstance = function (_pInst) {
 	}
 };
 
-// #############################################################################################
-/// Property: <summary>
-///           	Add a tile to the room.
-///           </summary>
-// #############################################################################################
-yyRoom.prototype.AddTile = function (_pTile) {
 
-	this.m_PlayfieldManager.Add(_pTile);
-	this.m_Tiles[_pTile.id] = _pTile;
-	this.m_NumTiles++;
-};
-
-
-
-// #############################################################################################
-/// Property: <summary>
-///           	Add a tile to the room.
-///           </summary>
-// #############################################################################################
-yyRoom.prototype.DeleteTile = function (_id) {
-	var pTile = this.m_Tiles[_id];
-	if (pTile)
-	{
-	    this.m_PlayfieldManager.DeleteTile(pTile);
-		this.m_Tiles[_id] = undefined;
-		this.m_NumTiles--;
-	}
-};
-
-// #############################################################################################
-/// Property: <summary>
-///           	Add a tile to the room.
-///           </summary>
-// #############################################################################################
-yyRoom.prototype.DeleteTileLayer = function (_depth) {
-
-	var pPlayfield = this.m_PlayfieldManager.Get(_depth);
-	if (pPlayfield != null && pPlayfield != undefined) {
-	
-	    var pool = pPlayfield.GetPool();
-	    
-	    // Delete all tile that exist in this layer.	    
-	    for (var tile = 0; tile < pool.length; tile++)
-	    {
-	    	var pTile = pool[tile];
-	    	if (pTile)
-	    	{
-	    		this.m_Tiles[pTile.id] = null;
-	    		this.m_NumTiles--;
-	    	}
-	    }	    
-	}
-	this.m_PlayfieldManager.Delete(_depth);
-};
-
-
-// #############################################################################################
-/// Property: <summary>
-///           	Remove all tiles currently in use
-///           </summary>
-// #############################################################################################
-yyRoom.prototype.ClearTiles = function () {
-
-    this.m_NumTiles = 0;
-    this.m_Tiles = [];
-};
-
-
-// #############################################################################################
-/// Property: <summary>
-///           	Remove all tiles specified in storage
-///           </summary>
-// #############################################################################################
-yyRoom.prototype.ClearTilesFromStorage = function () {
-	this.m_pStorage.tiles = [];
-};
 
 
 
@@ -4233,6 +4071,7 @@ yyRoom.prototype.ProcessNewInstanceList = function () {
 */
 
 yyRoom.prototype.ProcessParticleDepthChange = function () {
+	// @if feature("particles")
     // Particle systems changing depth
 	if (g_isZeus) {
 	    var len = g_ParticleChanges.length;
@@ -4254,6 +4093,7 @@ yyRoom.prototype.ProcessParticleDepthChange = function () {
         }
 	}
 	if( g_ParticleChanges.length!=0 ) g_ParticleChanges = []; // wipe array
+	// @endif
 };
 
 
@@ -4360,6 +4200,25 @@ yyRoomManager.prototype.Get = function (_Index) {
 // #############################################################################################
 yyRoomManager.prototype.GetOrder = function (_Index) {
 	return this.pRooms[this.m_RoomOrder[_Index]];
+};
+
+// #############################################################################################
+/// Function:<summary>
+///             Retrieves an array of all room asset IDs.
+///          </summary>
+///
+/// Out:	 <returns>
+///				An array of all room asset IDs.
+///			 </returns>
+// #############################################################################################
+yyRoomManager.prototype.List = function () {
+	var ids = [];
+	for (var i = 0; i < this.pRooms.length; ++i) {
+		if (this.pRooms[i]) {
+			ids.push(i);
+		}
+	}
+	return ids;
 };
 
 // #############################################################################################

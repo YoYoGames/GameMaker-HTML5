@@ -1,3 +1,4 @@
+// @if feature("audio_effects")
 function TremoloEffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.Tremolo);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
@@ -72,3 +73,4 @@ TremoloEffectStruct.paramDescriptors = () => ({
     offset:    { name: "offset",    integer: false, defaultValue: 0.0, minValue: 0.0, maxValue: 1.0 },
     shape:     { name: "shape",     integer: true,  defaultValue: 0,   minValue: 0,   maxValue: 4 }
 });
+// @endif

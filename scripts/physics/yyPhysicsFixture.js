@@ -13,6 +13,7 @@
 // 15/02/2012		1.0         CPH     1st version
 // 
 // **********************************************************************************************************************
+// @if feature("physics")
 /** @constructor */
 function yyPhysicsFixture() {
 //function yyPhysicsFixture(_fixtureID) {
@@ -226,3 +227,4 @@ yyPhysicsFixture.prototype.SetKinematic = function() {
     
     this.m_kinematic = true;
 };
+// @endif

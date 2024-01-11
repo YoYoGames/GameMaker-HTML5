@@ -15,6 +15,7 @@
 //
 // **********************************************************************************************************************
 
+// @if feature("paths")
 var P_STRAIGHT = 0,
 	P_CURVED = 1;
 
@@ -849,4 +850,24 @@ yyPathManager.prototype.Delete = function (_pPath) {
 	this.Paths[_pPath.id] = undefined;
 };
 
-
+// #############################################################################################
+/// Function:<summary>
+///             Retrieves an array of all path asset IDs.
+///          </summary>
+///
+/// Out:	 <returns>
+///				An array of all path asset IDs.
+///			 </returns>
+// #############################################################################################
+yyPathManager.prototype.List = function () {
+	var ids = [];
+	for (var i = 0; i < this.Paths.length; ++i)
+	{
+		if (this.Paths[i])
+		{
+			ids.push(i);
+		}
+	}
+	return ids;
+};
+// @endif

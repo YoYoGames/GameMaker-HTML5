@@ -282,7 +282,6 @@ function point_direction(_x1,_y1, _x2,_y2)
 		}
 	}
 }
-function ComputeDir(_x1,_y1, _x2,_y2){ return point_direction(_x1,_y1, _x2,_y2); }
 
 
 // #############################################################################################
@@ -987,8 +986,8 @@ function radtodeg(_x) {
 // #############################################################################################
 function mean() 
 {
-	var args = mean.arguments;
-	var argc = mean.arguments.length;
+	var args = arguments;
+	var argc = arguments.length;
 
 	if (argc == 0) return 0;
     
@@ -1012,8 +1011,8 @@ function mean()
 // #############################################################################################
 function median()
 {
-    var args = median.arguments;
-    var argc = median.arguments.length;
+    var args = arguments;
+    var argc = arguments.length;
 
     if (argc == 0) return 0;
 
@@ -1120,7 +1119,9 @@ function dot_product_normalised(_x1,_y1,_x2,_y2)
     // return DOT product
     return (_x1 * _x2 + _y1 * _y2) / (mag1 * mag2);
 }
+// @if function("dot_product_normalized")
 var dot_product_normalized = dot_product_normalised;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -1154,7 +1155,9 @@ function dot_product_3d_normalised(_x1, _y1, _z1, _x2, _y2, _z2) {
     // return DOT product
 	return (_x1 * _x2 + _y1 * _y2 + _z1 * _z2) / (mag1 * mag2);
 }
+// @if function("dot_product_3d_normalized")
 var dot_product_3d_normalized = dot_product_3d_normalised;
+// @endif
 
 // #############################################################################################
 /// Function:<summary>
@@ -1398,6 +1401,28 @@ function ptr(_x) {
     return ret;
 }
 
+function handle( _s )
+{
+    var ret = undefined;
+    if ((typeof _s == "string" ) && _s.startsWith("ref ")) {
+
+        // get the type of the handle
+        var indexOfSpace = _s.indexOf( " ", 4 );
+        var handleTypeString = _s.substring( 4, indexOfSpace );
+
+        // get the index of the handle
+        var numberString = _s.substring(indexOfSpace+1);
+        var handleIndex = Number(numberString);
+
+        // convert the handleTypeString to the Reference type
+        var type = Name2Ref( handleTypeString );
+
+        // get the reference type
+        ret = MAKE_REF( type, handleIndex );
+    } // end if
+    return ret;
+} // end handle
+
 // #############################################################################################
 /// Function:<summary>
 ///          	Returns whether x is a string (as opposed to a real value).
@@ -1535,7 +1560,7 @@ function lerp(_val1, _val2, _amount) {
     _val1 = yyGetReal(_val1);
     _val2 = yyGetReal(_val2);
 
-    return _val1 + ((_val2 - _val1) * _amount);
+    return _val1 + ((_val2 - _val1) * yyGetReal(_amount));
 }
 
 
@@ -1598,7 +1623,34 @@ var g_NumberRE = new RegExp(
 function yyCompareVal(_val1, _val2, _prec, _showError) {
     var ret = undefined;
     _showError = (_showError == undefined) ?  true : _showError;
-    if ((typeof _val1 == "number") && (typeof _val2 == "number")) {
+
+    // Check if we are comparing YYRefs
+    var compareRefs = false;
+    if (_val1 instanceof YYRef) {
+        if (!(_val2 instanceof YYRef)) {
+            _val1 = _val1.value; // Cast the YYRef to it's index
+        }
+        // Both are YYRefs
+        else compareRefs = true;
+    }
+    else if (_val2 instanceof YYRef) {
+        // At this point we know _val1 is not a YYRef
+        _val2 = _val2.value; // Cast the YYRef to it's index
+    }
+
+    // Both are YYRefs
+    if (compareRefs) {
+        var t = _val1.type - _val2.type;
+        if (t == 0) {
+            // Type match we need to compare the value
+            var v = _val1.value - _val2.value;
+            ret = (v == 0) ? 0 : (v < 0) ? -1 : 1;
+        } else {
+            // Type mismatch don't even know how to compare this we should probably error
+            ret = (t < 0) ? -1 : 1;
+        }
+    } // end if
+    else if ((typeof _val1 == "number") && (typeof _val2 == "number")) {
         var f = _val1 - _val2;
         if (Number.isNaN(f)) {
             f = (_val1 == _val2) ? 0 : f;

@@ -853,6 +853,11 @@ class CSelfDestructingTimeSource extends CConfigurableTimeSource
 };
 
 /* Built-in time sources */
-var g_GlobalTimeSource = new CTimeSource(eTimeSource_Global);
-var g_GameTimeSource = new CStatefulTimeSource(eTimeSource_Game);
-var g_SDTimeSourceParent = new CTimeSource(eTimeSource_SDParent);
+const g_GlobalTimeSource = new CTimeSource(eTimeSource_Global);
+const g_GameTimeSource = new CStatefulTimeSource(eTimeSource_Game);
+const g_SDTimeSourceParent = new CTimeSource(eTimeSource_SDParent);
+const g_TimeSourceMap = new Map([
+	[eTimeSource_Global, g_GlobalTimeSource],
+	[eTimeSource_Game, g_GameTimeSource]
+	// g_SDTimeSourceParent is invisible
+]);

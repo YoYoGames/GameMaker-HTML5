@@ -36,7 +36,7 @@ var REGIONATTACHMENT_OY4 = 7;
 function SetSkeletonDrawInstance(_instance) {
     g_skeletonDrawInstance = _instance;
 };
-
+// @if feature("spine")
 function yyImageProxy()
 {
     this.width = null;
@@ -1830,3 +1830,4 @@ yySkeletonSprite.prototype.GetAttachmentsForSlot = function(_slotName)
 
 	return attachmentNames;
 };
+// @endif spine

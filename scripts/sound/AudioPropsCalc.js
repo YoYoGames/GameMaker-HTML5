@@ -1,3 +1,4 @@
+// @if feature("audio")
 function AudioPropsCalc() {}
 
 AudioPropsCalc.invalid_index = -1;
@@ -81,3 +82,4 @@ AudioPropsCalc.GetGroupProps = function(_assetIndex) {
         gain: new TimeRampedParamLinear(AudioPropsCalc.default_gain),
     }))();
 };
+// @endif audio

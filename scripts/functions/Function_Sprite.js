@@ -33,8 +33,11 @@ var		MASK_PRECISE   = 0,
 // #############################################################################################
 function    sprite_exists( _index )
 {
-    if( g_pSpriteManager.Get(yyGetInt32(_index)) == null ) return false;
-    return true;
+	// @if feature("sprites")
+	return g_pSpriteManager.Get(yyGetInt32(_index)) != null;
+	// @else
+	return false;
+	// @endif sprites
 }
 
 
@@ -51,9 +54,11 @@ function    sprite_exists( _index )
 // #############################################################################################
 function    sprite_get_width( _index )
 {
+	// @if feature("sprites")
     var pSpr = g_pSpriteManager.Get(yyGetInt32(_index));
-    if( pSpr==null) return 0;
-    return pSpr.width;
+    if( pSpr!=null) return pSpr.width;
+	// @endif sprites
+    return 0;
 }
 
 
@@ -69,9 +74,11 @@ function    sprite_get_width( _index )
 // #############################################################################################
 function    sprite_get_height( _index )
 {
+	// @if feature("sprites")
     var pSpr = g_pSpriteManager.Get(yyGetInt32(_index));
-    if( pSpr==null) return 0;
-    return pSpr.height;
+    if( pSpr!=null) return pSpr.height;;
+	// @endif sprites
+    return 0;
 }
 
 
@@ -381,7 +388,8 @@ function sprite_set_alpha_from_sprite( _dest, _src )
 ///			 <param name="_smooth"></param>
 ///				
 // #############################################################################################
-var sprite_add_from_screen = sprite_add_from_screen_RELEASE;
+function sprite_add_from_screen(){}
+// @if feature("2d")
 function sprite_add_from_screen_RELEASE(_ind, _x, _y, _w, _h, _removeback, _smooth) {
 
     _ind = yyGetInt32(_ind);
@@ -433,6 +441,8 @@ function sprite_add_from_screen_RELEASE(_ind, _x, _y, _w, _h, _removeback, _smoo
 
 	return _ind;
 }
+compile_if_used(sprite_add_from_screen = sprite_add_from_screen_RELEASE);
+// @endif
 
 
 // #############################################################################################
@@ -453,7 +463,8 @@ function sprite_add_from_screen_RELEASE(_ind, _x, _y, _w, _h, _removeback, _smoo
 ///				
 ///			 </returns>
 // #############################################################################################
-var sprite_create_from_surface = sprite_create_from_surface_RELEASE;
+function sprite_create_from_surface(){}
+// @if feature("2d")
 function sprite_create_from_surface_RELEASE(_id, _x, _y, _w, _h, _removeback, _smooth, _xorig, _yorig)
 {
     _id = yyGetInt32(_id);
@@ -531,6 +542,8 @@ function sprite_create_from_surface_RELEASE(_id, _x, _y, _w, _h, _removeback, _s
 
 	return newindex;
 }
+compile_if_used(sprite_create_from_surface = sprite_create_from_surface_RELEASE);
+// @endif
 
 
 
@@ -551,7 +564,8 @@ function sprite_create_from_surface_RELEASE(_id, _x, _y, _w, _h, _removeback, _s
 ///				
 ///			 </returns>
 // #############################################################################################
-var sprite_add_from_surface = sprite_add_from_surface_RELEASE;
+function sprite_add_from_surface(){}
+// @if feature("2d")
 function sprite_add_from_surface_RELEASE(_ind, _id, _x, _y, _w, _h, _removeback, _smooth)
 {
     _ind = yyGetInt32(_ind);
@@ -603,6 +617,8 @@ function sprite_add_from_surface_RELEASE(_ind, _id, _x, _y, _w, _h, _removeback,
 
 	return _ind;
 }
+compile_if_used(sprite_add_from_surface = sprite_add_from_surface_RELEASE);
+// @endif
 
 
 
@@ -652,8 +668,7 @@ function sprite_save(_ind,_subimg,_fname)
 ///				
 ///			 </returns>
 // #############################################################################################
-var sprite_duplicate = sprite_duplicate_RELEASE;
-function sprite_duplicate_RELEASE(_ind) 
+function sprite_duplicate(_ind) 
 {
     var pSpr = g_pSpriteManager.Get(yyGetInt32(_ind));
 	if (pSpr == null) return 0;
@@ -1431,7 +1446,11 @@ function sprite_set_cache_size_ext(_ind, _index, _max) {
 // #############################################################################################
 function sprite_get_tpe(_index, _subimage)
 {
-    _index = yyGetInt32(_index);
+    _index = yyGetRef(_index, REFID_SPRITE, g_pSpriteManager.Sprites.length, g_pSpriteManager.Sprites);
+	if(typeof _subimage != "number")
+	{
+		yyError("sprite_get_tpe() subimg argument should be a Real!");
+	}
     _subimage = yyGetInt32(_subimage);
 
 	var pSpr = g_pSpriteManager.Get(_index);
@@ -1477,8 +1496,12 @@ function sprite_get_tpe(_index, _subimage)
 // #############################################################################################
 function sprite_get_texture(_spriteIndex, _frameIndex)
 {
-    _spriteIndex = yyGetInt32(_spriteIndex);
-
+    _spriteIndex = yyGetRef(_spriteIndex, REFID_SPRITE, g_pSpriteManager.Sprites.length, g_pSpriteManager.Sprites);
+	if(typeof _frameIndex != "number")
+	{
+		yyError("sprite_get_texture() subimg argument should be a Real!");
+	}
+	
     if (sprite_exists(_spriteIndex)) {
     
         var spr = g_pSpriteManager.Get(_spriteIndex);        
@@ -1488,9 +1511,7 @@ function sprite_get_texture(_spriteIndex, _frameIndex)
 				{
 					WebGLTexture: pTPE.texture,
 					TPE: pTPE,
-					toString: () => {
-						return "Texture:" + pTPE.texture.URL;
-					}
+					toString: () => "Texture:" + pTPE.texture.URL
 				}
 			);
 	    }
@@ -1513,8 +1534,11 @@ function sprite_get_texture(_spriteIndex, _frameIndex)
 // #############################################################################################
 function sprite_get_uvs(_spriteIndex, _frameIndex)
 {
-    _spriteIndex = yyGetInt32(_spriteIndex);
-
+    _spriteIndex = yyGetRef(_spriteIndex, REFID_SPRITE, g_pSpriteManager.Sprites.length, g_pSpriteManager.Sprites);
+	if(typeof _frameIndex != "number")
+	{
+		yyError("sprite_get_uvs() subimg argument should be a Real!");
+	}
     if (sprite_exists(_spriteIndex)) {
     
         var spr = g_pSpriteManager.Get(_spriteIndex);
@@ -1812,6 +1836,7 @@ function sprite_get_info( _spriteIndex )
             break;
         case 1: // SWF
             break;
+		// @if feature("spine")
         case 2: // SPINE
             if (pSpr.m_skeletonSprite != undefined) {
 
@@ -1888,10 +1913,12 @@ function sprite_get_info( _spriteIndex )
 				variable_struct_set(ret, "slots", slotsArray); //ret.gmlslots = slotsArray;
             } // end if
             break;
-
+		// @endif
         } // end switch
-
+		
+		// @if feature("nineslice")
         variable_struct_set(ret, "nineslice", (pSpr.nineslicedata != undefined) ? pSpr.nineslicedata : undefined); //ret.gmlnineslice = (pSpr.nineslicedata != undefined) ? pSpr.nineslicedata : undefined;
+		// @endif
 
         if (pSpr.sequence != undefined) {
             // get broadcast messages

@@ -11,23 +11,43 @@
 // **********************************************************************************************************************
 
 // WebGL.js redefines these to useful functions
-var fn_texture_get_texel_width = function() { ErrorFunction("yy_texture_get_texel_width()"); };
-var fn_texture_get_texel_height = function() { ErrorFunction("yy_texture_get_texel_height()"); };
-var fn_texture_set_stage = function() { ErrorFunction("texture_set_stage()"); };
-
-var fn_shader_is_compiled = function() { ErrorFunction("shader_is_compiled()"); };
-var fn_shader_set = function() { ErrorFunction("shader_set()"); };
-var fn_shader_get_uniform = function() { ErrorFunction("shader_get_uniform()"); };
-var fn_shader_set_uniform_i = function() { ErrorFunction("shader_set_uniform_i()"); };
-var fn_shader_set_uniform_f = function() { ErrorFunction("shader_set_uniform_f()"); };
-var fn_shader_set_uniform_matrix = function() { ErrorFunction("shader_set_uniform_matrix()"); };
-var fn_shader_get_sampler_index = function() { ErrorFunction("shader_set_uniform_matrix()"); };
-var fn_shader_enable_corner_id = function() { ErrorFunction("shader_enable_corner_id()"); };
-var fn_shader_set_uniform_i_array = function() { ErrorFunction("shader_set_uniform_array_i()"); };
-var fn_shader_set_uniform_f_array = function() { ErrorFunction("shader_set_uniform_array_f()"); };
-var fn_shader_set_uniform_f_buffer = function() { ErrorFunction("shader_set_uniform_buffer_f()"); };
-var fn_shader_set_uniform_matrix_array = function() { ErrorFunction("shader_set_uniform_matrix_array()"); };
-var fn_shader_get_name = function (index) { ErrorFunction("shader_get_name()"); };
+function fn_texture_get_texel_width(){}
+function fn_texture_get_texel_height(){}
+function fn_texture_set_stage(){}
+function fn_shader_is_compiled(){}
+function fn_shader_set(){}
+function fn_shader_get_uniform(){}
+function fn_shader_set_uniform_i(){}
+function fn_shader_set_uniform_f(){}
+function fn_shader_set_uniform_matrix(){}
+function fn_shader_get_sampler_index(){}
+function fn_shader_enable_corner_id(){}
+function fn_shader_set_uniform_i_array(){}
+function fn_shader_set_uniform_f_array(){}
+function fn_shader_set_uniform_f_buffer(){}
+function fn_shader_set_uniform_matrix_array(){}
+function fn_shader_get_name(){}
+// @if feature("2d") && (feature("shaders") || function("texture_get_texel_*") || function("texture_set_stage"))
+(() => {
+    let _stub = (_name, _val) => () => ErrorFunction(_name, _val);
+    compile_if_used(texture_get_texel_width, fn_texture_get_texel_width = _stub("fn_texture_get_texel_width", 0));
+    compile_if_used(texture_get_texel_height, fn_texture_get_texel_height = _stub("fn_texture_get_texel_height", 0));
+    compile_if_used(texture_set_stage, fn_texture_set_stage = _stub("fn_texture_set_stage"));
+    compile_if_used(shader_is_compiled, fn_shader_is_compiled = _stub("fn_shader_is_compiled", 0));
+    fn_shader_set = _stub("fn_shader_set");
+    compile_if_used(shader_get_uniform, fn_shader_get_uniform = _stub("fn_shader_get_uniform", -1));
+    compile_if_used(shader_set_uniform_i, fn_shader_set_uniform_i = _stub("fn_shader_set_uniform_i"));
+    compile_if_used(shader_set_uniform_f, fn_shader_set_uniform_f = _stub("fn_shader_set_uniform_f"));
+    compile_if_used(shader_set_uniform_matrix, fn_shader_set_uniform_matrix = _stub("fn_shader_set_uniform_matrix"));
+    compile_if_used(shader_get_sampler_index, fn_shader_get_sampler_index = _stub("fn_shader_get_sampler_index", -1));
+    compile_if_used(shader_enable_corner_id, fn_shader_enable_corner_id = _stub("fn_shader_enable_corner_id"));
+    compile_if_used(shader_set_uniform_i_array, fn_shader_set_uniform_i_array = _stub("fn_shader_set_uniform_i_array"));
+    compile_if_used(shader_set_uniform_f_array, fn_shader_set_uniform_f_array = _stub("fn_shader_set_uniform_f_array"));
+    compile_if_used(shader_set_uniform_f_buffer, fn_shader_set_uniform_f_buffer = _stub("fn_shader_set_uniform_f_buffer"));
+    compile_if_used(shader_set_uniform_matrix_array, fn_shader_set_uniform_matrix_array = _stub("fn_shader_set_uniform_matrix_array"));
+    compile_if_used(shader_get_name, fn_shader_get_name = _stub("fn_shader_get_name", "<undefined>"));
+})();
+// @endif
 var g_CurrentShader = -1;
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -159,7 +179,9 @@ function shader_current() {
 ///          </summary>
 // #############################################################################################
 function shader_get_uniform(_shaderIndex, _constName) {
-
+    if (_shaderIndex < 0 || _shaderIndex >= g_pGMFile.Shaders.length) {
+        yyError("shader_get_uniform :: Illegal shader handle");
+    }
     return fn_shader_get_uniform(yyGetInt32(_shaderIndex), yyGetString(_constName));
 }
 

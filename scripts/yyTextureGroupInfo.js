@@ -240,6 +240,16 @@ function texture_flush(_tex_id_or_groupname)
     }           
 }
 
+function texturegroup_get_names()
+{
+    var ret = [];
+    for(var i = 0; i < g_pTextureGroupInfoManager.TextureGroupInfo.length; i++)
+    {
+        ret.push( g_pTextureGroupInfoManager.TextureGroupInfo[i].pName );
+    }
+    return ret;
+}
+
 function texturegroup_get_textures(_groupname)
 {
     var pTGInfo = g_pTextureGroupInfoManager.Find(yyGetString(_groupname));

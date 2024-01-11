@@ -37,6 +37,7 @@ function    yyBuiltIn()
     this.working_directory = "/";
     this.temp_directory = "/";
     this.program_directory = "/";
+    this.cache_directory = "/";
     this.delta_time = 0;
     this.last_time = 0;
 
@@ -181,10 +182,10 @@ yyBuiltIn.prototype.get_browser_height = function () { return GetBrowserHeight()
 yyBuiltIn.prototype.get_delta_time = function () { return this.delta_time; };
 
 
-yyBuiltIn.prototype.get_os_type = function () { return g_OSPlatform; };   //{ return YoYo_GetPlatform(); };
-yyBuiltIn.prototype.get_os_device = function () { return YoYo_GetDevice(); };
-yyBuiltIn.prototype.get_os_browser = function () { return YoYo_GetBrowser(); };
-yyBuiltIn.prototype.get_os_version = function () { return YoYo_GetVersion(); };
+yyBuiltIn.prototype.get_os_type = function () { return g_OSPlatform; };
+yyBuiltIn.prototype.get_os_device = function () { return g_DeviceType; };
+yyBuiltIn.prototype.get_os_browser = function () { return g_OSBrowser; };
+yyBuiltIn.prototype.get_os_version = function () { return g_OSVersion; };
 yyBuiltIn.prototype.get_async_load = function () { return this.async_load; };
 yyBuiltIn.prototype.get_event_data = function () { return this.event_data; };
 yyBuiltIn.prototype.get_display_aa = function () { return 0; };
@@ -278,8 +279,8 @@ yyBuiltIn.prototype.getbackground_blend = function () { return g_pBuiltIn.backgr
 yyBuiltIn.prototype.getbackground_alpha = function () { return g_pBuiltIn.background_alpha[0]; };
 
 
-yyBuiltIn.prototype.set_room_speed = function (_val) { _val = yyGetReal(_val); if (g_isZeus) { return g_GameTimer.SetFrameRate(_val); } else { return g_RunRoom.SetSpeed(_val); } };
-yyBuiltIn.prototype.get_room_speed = function (_val) { if (g_isZeus) { return g_GameTimer.GetFPS(_val); } else { return g_RunRoom.m_speed; } };
+yyBuiltIn.prototype.set_room_speed = function (_val) { _val = yyGetReal(_val); return g_GameTimer.SetFrameRate(yyGetReal(_val)); };
+yyBuiltIn.prototype.get_room_speed = function (_val) { return g_GameTimer.GetFPS(_val); };
 
 yyBuiltIn.prototype.set_room_caption = function (_val) { return g_RunRoom.SetCaption(yyGetString(_val)); };
 yyBuiltIn.prototype.set_room_width = function (_val) { return g_RunRoom.SetWidth(yyGetReal(_val)); };
