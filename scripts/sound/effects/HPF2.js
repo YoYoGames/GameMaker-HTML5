@@ -39,13 +39,13 @@ function HPF2EffectStruct(_params) {
 }
 
 HPF2EffectStruct.Index = {
-    Bypass: AudioEffectStruct.Index.Bypass,
+    Bypass: 0,
     Cutoff: 1,
     Q: 2
 };
 
 HPF2EffectStruct.ParamDescriptors = [
-    AudioEffectStruct.Bypass,
+    { name: "bypass", integer: true,  defaultValue: 0,      minValue: 0,    maxValue: 1 },
     { name: "cutoff", integer: false, defaultValue: 1500.0, minValue: 10.0, maxValue: 20000.0 },
     { name: "q",      integer: false, defaultValue: 1.5,    minValue: 1.0,  maxValue: 100.0 }
 ];

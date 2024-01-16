@@ -53,14 +53,14 @@ function DelayEffectStruct(_params) {
 }
 
 DelayEffectStruct.Index = {
-    Bypass: AudioEffectStruct.Index.Bypass,
+    Bypass: 0,
     Time: 1,
     Feedback: 2,
     Mix: 3
 };
 
 DelayEffectStruct.ParamDescriptors = [
-    AudioEffectStruct.Bypass,
+    { name: "bypass",   integer: true,  defaultValue: 0,    minValue: 0,   maxValue: 1 },
     { name: "time",     integer: false, defaultValue: 0.2,  minValue: 0.0, maxValue: 5.0 },
     { name: "feedback", integer: false, defaultValue: 0.5,  minValue: 0.0, maxValue: 1.0 },
     { name: "mix",      integer: false, defaultValue: 0.35, minValue: 0.0, maxValue: 1.0 }

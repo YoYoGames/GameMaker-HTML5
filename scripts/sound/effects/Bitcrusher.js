@@ -67,7 +67,7 @@ function BitcrusherEffectStruct(_params) {
 }
 
 BitcrusherEffectStruct.Index = {
-    Bypass: AudioEffectStruct.Index.Bypass,
+    Bypass: 0,
     Gain: 1,
     Factor: 2,
     Resolution: 3,
@@ -75,7 +75,7 @@ BitcrusherEffectStruct.Index = {
 };
 
 BitcrusherEffectStruct.ParamDescriptors = [
-    AudioEffectStruct.Bypass,
+    { name: "bypass",     integer: true,  defaultValue: 0,   minValue: 0,   maxValue: 1 },
     { name: "gain",       integer: false, defaultValue: 1.0, minValue: 0.0, maxValue: Number.MAX_VALUE },
     { name: "factor",     integer: true,  defaultValue: 20,  minValue: 1,   maxValue: 100 },
     { name: "resolution", integer: true,  defaultValue: 8,   minValue: 2,   maxValue: 16  },

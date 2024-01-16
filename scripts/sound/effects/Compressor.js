@@ -94,7 +94,7 @@ function CompressorEffectStruct(_params) {
 }
 
 CompressorEffectStruct.Index = {
-    Bypass: AudioEffectStruct.Index.Bypass,
+    Bypass: 0,
     InGain: 1,
     Threshold: 2,
     Ratio: 3,
@@ -104,7 +104,7 @@ CompressorEffectStruct.Index = {
 };
 
 CompressorEffectStruct.ParamDescriptors = [
-    AudioEffectStruct.Bypass,
+    { name: "bypass",    integer: true,  defaultValue: 0,     minValue: 0,    maxValue: 1 },
     { name: "ingain",    integer: false, defaultValue: 1,     minValue: 1e-6, maxValue: Number.MAX_VALUE },
     { name: "threshold", integer: false, defaultValue: 0.125, minValue: 1e-3, maxValue: 1 },
     { name: "ratio",     integer: false, defaultValue: 4,     minValue: 1,    maxValue: Number.MAX_VALUE },

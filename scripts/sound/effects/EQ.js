@@ -177,10 +177,10 @@ function EQEffectStruct(_params) {
 }
 
 EQEffectStruct.Index = {
-    Bypass: AudioEffectStruct.Index.Bypass
+    Bypass: 0
 };
 
 EQEffectStruct.ParamDescriptors = [
-    AudioEffectStruct.Bypass
+    { name: "bypass", integer: true, defaultValue: 0, minValue: 0, maxValue: 1 }
 ];
 // @endif

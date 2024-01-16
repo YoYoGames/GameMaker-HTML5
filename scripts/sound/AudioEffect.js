@@ -102,7 +102,9 @@ AudioEffectStruct.Index = {
     Bypass: 0
 };
 
-AudioEffectStruct.Bypass = { name: "bypass", integer: true, defaultValue: 0, minValue: 0, maxValue: 1 };
+AudioEffectStruct.ParamDescriptors = [
+    { name: "bypass", integer: true, defaultValue: 0, minValue: 0, maxValue: 1 }
+];
 
 AudioEffectStruct.prototype.addInstance = function() {
     const node = g_WorkletNodeManager.createEffect(this);
@@ -116,13 +118,11 @@ AudioEffectStruct.prototype.initParams = function(_params) {
     const descriptors = this.getParamDescriptors();
     
     descriptors.forEach((_desc, _idx) => {
-        const val = (() => {
-            if (_params === undefined || _params["gml" + _desc.name] === undefined) {
-                return _desc.defaultValue;
-            }
-
-            return _params["gml" + _desc.name];
-        })();
+        let val = _desc.defaultValue;
+    
+        if (_params !== undefined && _params["gml" + _desc.name] !== undefined) {
+            val = _params["gml" + _desc.name];
+        }
 
         this.setParam(_idx, val);
     });

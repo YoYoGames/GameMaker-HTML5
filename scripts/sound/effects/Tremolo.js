@@ -67,7 +67,7 @@ function TremoloEffectStruct(_params) {
 }
 
 TremoloEffectStruct.Index = {
-    Bypass: AudioEffectStruct.Index.Bypass,
+    Bypass: 0,
     Rate: 1,
     Intensity: 2,
     Offset: 3,
@@ -75,7 +75,7 @@ TremoloEffectStruct.Index = {
 };
 
 TremoloEffectStruct.ParamDescriptors = [
-    AudioEffectStruct.Bypass,
+    { name: "bypass",    integer: true,  defaultValue: 0,   minValue: 0,   maxValue: 1 },
     { name: "rate",      integer: false, defaultValue: 5.0, minValue: 0.0, maxValue: 20.0 },
     { name: "intensity", integer: false, defaultValue: 1.0, minValue: 0.0, maxValue: 1.0 },
     { name: "offset",    integer: false, defaultValue: 0.0, minValue: 0.0, maxValue: 1.0 },

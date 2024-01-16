@@ -53,14 +53,14 @@ function HiShelfEffectStruct(_params) {
 }
 
 HiShelfEffectStruct.Index = {
-    Bypass: AudioEffectStruct.Index.Bypass,
+    Bypass: 0,
     Freq: 1,
     Q: 2,
     Gain: 3
 };
 
 HiShelfEffectStruct.ParamDescriptors = [
-    AudioEffectStruct.Bypass,
+    { name: "bypass", integer: true,  defaultValue: 0,      minValue: 0,    maxValue: 1 },
     { name: "freq",   integer: false, defaultValue: 5000.0, minValue: 10.0, maxValue: 20000.0 },
     { name: "q",      integer: false, defaultValue: 1.0,    minValue: 1.0,  maxValue: 100.0 },
     { name: "gain",   integer: false, defaultValue: 1e-2,   minValue: 1e-6, maxValue: Number.MAX_VALUE } 

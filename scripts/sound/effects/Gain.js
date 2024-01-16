@@ -25,12 +25,12 @@ function GainEffectStruct(_params) {
 }
 
 GainEffectStruct.Index = {
-    Bypass: AudioEffectStruct.Index.Bypass,
+    Bypass: 0,
     Gain: 1
 };
 
 GainEffectStruct.ParamDescriptors = [
-    AudioEffectStruct.Bypass,
-    { name: "gain", integer: false, defaultValue: 0.5, minValue: 0.0, maxValue: Number.MAX_VALUE }
+    { name: "bypass", integer: true,  defaultValue: 0,   minValue: 0,   maxValue: 1 },
+    { name: "gain",   integer: false, defaultValue: 0.5, minValue: 0.0, maxValue: Number.MAX_VALUE }
 ];
 // @endif
