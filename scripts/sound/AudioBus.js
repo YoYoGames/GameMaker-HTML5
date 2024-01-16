@@ -148,6 +148,19 @@ AudioBus.isNodeIndex = function(_prop)
 	return false;
 };
 
+AudioBus.prototype.getParamDescriptors = function() {
+	return AudioBus.ParamDescriptors;
+};
+
+AudioBus.prototype.getParamDescriptor = function(_idx) {
+	return AudioBus.ParamDescriptors[_idx];
+};
+
+AudioBus.ParamDescriptors = [
+	{ name: "bypass", integer: true,  defaultValue: 0, minValue: 0, maxValue: 1 },
+	{ name: "gain",   integer: false, defaultValue: 1, minValue: 0, maxValue: Number.MAX_VALUE }
+];
+
 function DummyAudioBus() {
 	this.outputNode = Audio_CreateGainNode(g_WebAudioContext);
 
