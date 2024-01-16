@@ -256,7 +256,7 @@ function sequence_track_new(_type)
 		case eSTT_Audio: pTrack = new yySequenceAudioTrack(); break;
 		case eSTT_Text: pTrack = new yySequenceTextTrack(); break;
 		case eSTT_Real: pTrack = new yySequenceRealTrack(); break;
-		case eSTT_Color: pTrack = new yySequenceColorTrack(); break;
+		case eSTT_Color: pTrack = new yySequenceColourTrack(); break;
 		case eSTT_Bool: pTrack = new yySequenceBoolTrack(); break;
 		case eSTT_String: pTrack = new yySequenceStringTrack(); break;
 		case eSTT_AudioEffect: pTrack = new yySequenceAudioEffectTrack(); break;
