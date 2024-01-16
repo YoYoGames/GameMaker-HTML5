@@ -91,19 +91,19 @@ eSTT_Real = 3;
 eSTT_Color = 4;
 eSTT_Bool = 5;
 eSTT_String = 6;
-eSTT_AudioEffect = 7;
-eSTT_Sequence = 8;
-eSTT_ClipMask = 9;
-eSTT_ClipMask_Mask = 10;
-eSTT_ClipMask_Subject = 11;
-eSTT_Group = 12;
-eSTT_Empty = 13;
-eSTT_SpriteFrames = 14;
-eSTT_Instance = 15;
-eSTT_Message = 16;
-eSTT_Moment = 17;
-eSTT_Text = 18;
-eSTT_Particle = 19;
+eSTT_Sequence = 7;
+eSTT_ClipMask = 8;
+eSTT_ClipMask_Mask = 9;
+eSTT_ClipMask_Subject = 10;
+eSTT_Group = 11;
+eSTT_Empty = 12;
+eSTT_SpriteFrames = 13;
+eSTT_Instance = 14;
+eSTT_Message = 15;
+eSTT_Moment = 16;
+eSTT_Text = 17;
+eSTT_Particle = 18;
+eSTT_AudioEffect = 19;
 eSTT_Max = 20;
 
 // @if feature("sequences")
@@ -156,7 +156,7 @@ eT_AudioEffect_Hishelf = 39;
 eT_AudioEffect_Hpf2 = 40;
 eT_AudioEffect_Loshelf = 41;
 eT_AudioEffect_Lpf2 = 42;
-eT_AudioEffect_PeakEQ = 43;
+eT_AudioEffect_Peakeq = 43;
 eT_AudioEffect_Reverb1 = 44;
 eT_AudioEffect_Tremolo = 45;
 
@@ -1010,7 +1010,7 @@ function yySequenceAudioEffectTrack(_pStorage) {
             case eT_AudioEffect_Hpf2:		return AudioEffect.Type.HPF2;
             case eT_AudioEffect_Loshelf:	return AudioEffect.Type.LoShelf;
             case eT_AudioEffect_Lpf2:		return AudioEffect.Type.LPF2;
-            case eT_AudioEffect_PeakEQ:		return AudioEffect.Type.PeakEQ;
+            case eT_AudioEffect_Peakeq:		return AudioEffect.Type.PeakEQ;
             case eT_AudioEffect_Reverb1:	return AudioEffect.Type.Reverb1;
             case eT_AudioEffect_Tremolo:	return AudioEffect.Type.Tremolo;
             default:
@@ -2296,7 +2296,7 @@ function yySequenceBaseTrack(_pStorage) {
                     case eT_AudioEffect_Gain:
                     case eT_AudioEffect_Hishelf:
                     case eT_AudioEffect_Loshelf:
-                    case eT_AudioEffect_PeakEQ:
+                    case eT_AudioEffect_Peakeq:
                     case eT_AudioEffect_Hpf2:
                     case eT_AudioEffect_Lpf2:
                     case eT_AudioEffect_Reverb1:
@@ -2362,6 +2362,18 @@ function yySequenceBaseTrack(_pStorage) {
         else if (this.pName == "textEffect_shadowSoftness") this.builtinName = eT_TextEffect_ShadowSoftness;
         else if (this.pName == "textEffect_shadowOffset") this.builtinName = eT_TextEffect_ShadowOffset;
         else if (this.pName == "textEffect_shadowColour") this.builtinName = eT_TextEffect_ShadowColour;
+        else if (this.pName == "audioEffect_bus") this.builtinName = eT_AudioEffect_Bus;
+        else if (this.pName == "audioEffect_bitcrusher") this.builtinName = eT_AudioEffect_Bitcrusher;
+        else if (this.pName == "audioEffect_compressor") this.builtinName = eT_AudioEffect_Compressor;
+        else if (this.pName == "audioEffect_delay") this.builtinName = eT_AudioEffect_Delay;
+        else if (this.pName == "audioEffect_gain") this.builtinName = eT_AudioEffect_Gain;
+        else if (this.pName == "audioEffect_hishelf") this.builtinName = eT_AudioEffect_Hishelf;
+        else if (this.pName == "audioEffect_hpf2") this.builtinName = eT_AudioEffect_Hpf2;
+        else if (this.pName == "audioEffect_loshelf") this.builtinName = eT_AudioEffect_Loshelf;
+        else if (this.pName == "audioEffect_lpf2") this.builtinName = eT_AudioEffect_Lpf2;
+        else if (this.pName == "audioEffect_peakeq") this.builtinName = eT_AudioEffect_Peakeq;
+        else if (this.pName == "audioEffect_reverb1") this.builtinName = eT_AudioEffect_Reverb1;
+        else if (this.pName == "audioEffect_tremolo") this.builtinName = eT_AudioEffect_Tremolo;
         else this.builtinName = eT_UserDefined;
     };
     // @endif
