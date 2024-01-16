@@ -140,6 +140,7 @@ function sequence_keyframestore_new(_type)
 		case eSTT_String:
 		case eSTT_Real:
 	    case eSTT_Color:
+		case eSTT_AudioEffect:
 	    case eSTT_Message:
         case eSTT_Moment:
             pKeyframeStore = new yyKeyframeStore(_type);
@@ -180,6 +181,7 @@ function sequence_keyframe_new(_type)
 		case eSTT_String:
 		case eSTT_Real:
 	    case eSTT_Color:
+		case eSTT_AudioEffect:
 	    case eSTT_Message:
         case eSTT_Moment:		
             pKeyframe = new yyKeyframe(_type);
@@ -220,6 +222,7 @@ function sequence_keyframedata_new(_type)
 		case eSTT_String: pKey = new yyStringTrackKey(); break;
 		case eSTT_Real: pKey = new yyRealTrackKey(); break;
 	    case eSTT_Color: pKey = new yyColorTrackKey(); break;
+		case eSTT_AudioEffect: pKey = new yyAudioEffectTrackKey(); break;
 	    case eSTT_Message: pKey = new yyMessageEventTrackKey(); break;
 		case eSTT_Moment: pKey = new yyMomentEventTrackKey(); break;
 		default: yyError("Unsupported keyframe type"); break;
@@ -256,6 +259,7 @@ function sequence_track_new(_type)
 		case eSTT_Color: pTrack = new yySequenceColorTrack(); break;
 		case eSTT_Bool: pTrack = new yySequenceBoolTrack(); break;
 		case eSTT_String: pTrack = new yySequenceStringTrack(); break;
+		case eSTT_AudioEffect: pTrack = new yySequenceAudioEffectTrack(); break;
 		case eSTT_Sequence: pTrack = new yySequenceSequenceTrack(); break;		
 		case eSTT_Particle: pTrack = new yySequenceParticleTrack(); break;
 		case eSTT_ClipMask: pTrack = new yySequenceClipMaskTrack(); break;
