@@ -144,11 +144,11 @@ AudioEffectStruct.prototype.setParam = function(_idx, _val) {
 AudioEffectStruct.prototype.getParamDescriptors = function() {
     const structType = AudioEffectStruct.GetStructType(this.type);
     return structType.ParamDescriptors;
-}
+};
 
 AudioEffectStruct.prototype.getParamDescriptor = function(_idx) {
     return this.getParamDescriptors()[_idx];
-}
+};
 
 AudioEffectStruct.prototype.removeNode = function(_node) { 
     const idx = this.nodes.findIndex(elem => elem === _node);
