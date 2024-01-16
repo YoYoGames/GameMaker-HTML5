@@ -3,7 +3,7 @@ function EQEffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.EQ);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
 
-    this.initParams(_params, PeakEQEffectStruct.paramDescriptors());
+    this.initParams(_params);
 
     const paramsWereGiven = (_params !== undefined);
 
@@ -56,7 +56,7 @@ function EQEffectStruct(_params) {
     }
 
     if (_params.gmlhicut === undefined) {
-        this.hicut.gmlcutoff = LPF2EffectStruct.paramDescriptors().cutoff.maxValue;
+        this.hicut.gmlcutoff = LPF2EffectStruct.ParamDescriptors[LPF2EffectStruct.Index.Cutoff].maxValue;
         this.hicut.gmlq = 1;
     }
 
@@ -176,7 +176,11 @@ function EQEffectStruct(_params) {
     };
 }
 
-EQEffectStruct.paramDescriptors = () => ({
-    bypass: AudioEffectStruct.paramDescriptors().bypass
-});
+EQEffectStruct.Index = {
+    Bypass: AudioEffectStruct.Index.Bypass
+};
+
+EQEffectStruct.ParamDescriptors = [
+    AudioEffectStruct.Bypass
+];
 // @endif

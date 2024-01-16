@@ -3,65 +3,66 @@ function LoShelfEffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.LoShelf);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
 
-    this.initParams(_params, LoShelfEffectStruct.paramDescriptors());
+    this.initParams(_params);
 
     // Define user-facing properties
     Object.defineProperties(this, {
         gmlfreq: {
             enumerable: true,
             get: () => {
-                return this.params.freq;
+                return this.params[LoShelfEffectStruct.Index.Freq];
             },
             set: (_freq) => {
-                this.setParam(LoShelfEffectStruct.paramDescriptors().freq, _freq);
+                const val = this.setParam(LoShelfEffectStruct.Index.Freq, _freq);
 
                 this.nodes.forEach((_node) => {
                     const freq = _node.parameters.get("freq");
-                    freq.value = this.params.freq;
+                    freq.value = val;
                 });
             }
         },
         gmlq: {
             enumerable: true,
             get: () => {
-                return this.params.q;
+                return this.params[LoShelfEffectStruct.Index.Q];
             },
             set: (_q) => {
-                this.setParam(LoShelfEffectStruct.paramDescriptors().q, _q);
+                const val = this.setParam(LoShelfEffectStruct.Index.Q, _q);
 
                 this.nodes.forEach((_node) => {
                     const q = _node.parameters.get("q");
-                    q.value = this.params.q;
+                    q.value = val;
                 });
             }
         },
         gmlgain: {
             enumerable: true,
             get: () => {
-                return this.params.gain;
+                return this.params[LoShelfEffectStruct.Index.Gain];
             },
             set: (_gain) => {
-                this.setParam(LoShelfEffectStruct.paramDescriptors().gain, _gain);
+                const val = this.setParam(LoShelfEffectStruct.Index.Gain, _gain);
 
                 this.nodes.forEach((_node) => {
                     const gain = _node.parameters.get("gain");
-                    gain.value = this.params.gain;
+                    gain.value = val;
                 });
             }
         }
     });
 }
 
-LoShelfEffectStruct.paramDescriptors = () => ({
-    bypass: AudioEffectStruct.paramDescriptors().bypass,
-    __freq: { name: "freq",   integer: false, defaultValue: 500.0,  minValue: 10.0, maxValue: 20000.0 },
-    q:      { name: "q",      integer: false, defaultValue: 1.0,    minValue: 1.0,  maxValue: 100.0 },
-    gain:   { name: "gain",   integer: false, defaultValue: 1e-2,   minValue: 1e-6, maxValue: Number.MAX_VALUE },
+LoShelfEffectStruct.Index = {
+    Bypass: AudioEffectStruct.Index.Bypass,
+    Freq: 1,
+    Q: 2,
+    Gain: 3
+};
 
-    get freq() {
-        this.__freq.maxValue = g_WebAudioContext ? Math.min(g_WebAudioContext.sampleRate / 2.0, this.__freq.maxValue) : this.__freq.maxValue;
-        this.__freq.defaultValue = Math.min(this.__freq.defaultValue, this.__freq.maxValue);
-        return this.__freq;
-    } 
-});
+LoShelfEffectStruct.ParamDescriptors = [
+    AudioEffectStruct.Bypass,
+    { name: "freq",   integer: false, defaultValue: 500.0,  minValue: 10.0, maxValue: 20000.0 },
+    { name: "q",      integer: false, defaultValue: 1.0,    minValue: 1.0,  maxValue: 100.0 },
+    { name: "gain",   integer: false, defaultValue: 1e-2,   minValue: 1e-6, maxValue: Number.MAX_VALUE }
+];
 // @endif

@@ -3,65 +3,66 @@ function HiShelfEffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.HiShelf);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
 
-    this.initParams(_params, HiShelfEffectStruct.paramDescriptors());
+    this.initParams(_params);
 
     // Define user-facing properties
     Object.defineProperties(this, {
         gmlfreq: {
             enumerable: true,
             get: () => {
-                return this.params.freq;
+                return this.params[HiShelfEffectStruct.Index.Freq];
             },
             set: (_freq) => {
-                this.setParam(HiShelfEffectStruct.paramDescriptors().freq, _freq);
+                const val = this.setParam(HiShelfEffectStruct.Index.Freq, _freq);
 
                 this.nodes.forEach((_node) => {
                     const freq = _node.parameters.get("freq");
-                    freq.value = this.params.freq;
+                    freq.value = val;
                 });
             }
         },
         gmlq: {
             enumerable: true,
             get: () => {
-                return this.params.q;
+                return this.params[HiShelfEffectStruct.Index.Q];
             },
             set: (_q) => {
-                this.setParam(HiShelfEffectStruct.paramDescriptors().q, _q);
+                const val = this.setParam(HiShelfEffectStruct.Index.Q, _q);
 
                 this.nodes.forEach((_node) => {
                     const q = _node.parameters.get("q");
-                    q.value = this.params.q;
+                    q.value = val;
                 });
             }
         },
         gmlgain: {
             enumerable: true,
             get: () => {
-                return this.params.gain;
+                return this.params[HiShelfEffectStruct.Index.Gain];
             },
             set: (_gain) => {
-                this.setParam(HiShelfEffectStruct.paramDescriptors().gain, _gain);
+                const val = this.setParam(HiShelfEffectStruct.Index.Gain, _gain);
 
                 this.nodes.forEach((_node) => {
                     const gain = _node.parameters.get("gain");
-                    gain.value = this.params.gain;
+                    gain.value = val;
                 });
             }
         }
     });
 }
 
-HiShelfEffectStruct.paramDescriptors = () => ({
-    bypass: AudioEffectStruct.paramDescriptors().bypass,
-    __freq: { name: "freq",   integer: false, defaultValue: 5000.0, minValue: 10.0, maxValue: 20000.0 },
-    q:      { name: "q",      integer: false, defaultValue: 1.0,    minValue: 1.0,  maxValue: 100.0 },
-    gain:   { name: "gain",   integer: false, defaultValue: 1e-2,   minValue: 1e-6, maxValue: Number.MAX_VALUE },
+HiShelfEffectStruct.Index = {
+    Bypass: AudioEffectStruct.Index.Bypass,
+    Freq: 1,
+    Q: 2,
+    Gain: 3
+};
 
-    get freq() {
-        this.__freq.maxValue = g_WebAudioContext ? Math.min(g_WebAudioContext.sampleRate / 2.0, this.__freq.maxValue) : this.__freq.maxValue;
-        this.__freq.defaultValue = Math.min(this.__freq.defaultValue, this.__freq.maxValue);
-        return this.__freq;
-    } 
-});
+HiShelfEffectStruct.ParamDescriptors = [
+    AudioEffectStruct.Bypass,
+    { name: "freq",   integer: false, defaultValue: 5000.0, minValue: 10.0, maxValue: 20000.0 },
+    { name: "q",      integer: false, defaultValue: 1.0,    minValue: 1.0,  maxValue: 100.0 },
+    { name: "gain",   integer: false, defaultValue: 1e-2,   minValue: 1e-6, maxValue: Number.MAX_VALUE } 
+];
 // @endif

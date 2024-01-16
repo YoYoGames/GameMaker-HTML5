@@ -3,74 +3,82 @@ function TremoloEffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.Tremolo);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
 
-    this.initParams(_params, TremoloEffectStruct.paramDescriptors());
+    this.initParams(_params);
 
     // Define user-facing properties
     Object.defineProperties(this, {
         gmlrate: {
             enumerable: true,
             get: () => {
-                return this.params.rate;
+                return this.params[TremoloEffectStruct.Index.Rate];
             },
             set: (_rate) => {
-                this.setParam(TremoloEffectStruct.paramDescriptors().rate, _rate);
+                const val = this.setParam(TremoloEffectStruct.Index, _rate);
 
                 this.nodes.forEach((_node) => {
                     const rate = _node.parameters.get("rate");
-                    rate.value = this.params.rate;
+                    rate.value = val;
                 });
             }
         },
         gmlintensity: {
             enumerable: true,
             get: () => {
-                return this.params.intensity;
+                return this.params[TremoloEffectStruct.Index.Intensity];
             },
             set: (_intensity) => {
-                this.setParam(TremoloEffectStruct.paramDescriptors().intensity, _intensity);
+                const val = this.setParam(TremoloEffectStruct.Intensity, _intensity);
 
                 this.nodes.forEach((_node) => {
                     const intensity = _node.parameters.get("intensity");
-                    intensity.setTargetAtTime(this.params.intensity, 0, AudioEffect.PARAM_TIME_CONSTANT);
+                    intensity.setTargetAtTime(val, 0, AudioEffect.PARAM_TIME_CONSTANT);
                 });
             }
         },
         gmloffset: {
             enumerable: true,
             get: () => {
-                return this.params.offset;
+                return this.params[TremoloEffectStruct.Index.Offset];
             },
             set: (_offset) => {
-                this.setParam(TremoloEffectStruct.paramDescriptors().offset, _offset);
+                const val = this.setParam(TremoloEffectStruct.Offset, _offset);
 
                 this.nodes.forEach((_node) => {
                     const offset = _node.parameters.get("offset");
-                    offset.value = this.params.offset;
+                    offset.value = val;
                 });
             }
         },
         gmlshape: {
             enumerable: true,
             get: () => {
-                return this.params.shape;
+                return this.params[TremoloEffectStruct.Index.Shape];
             },
             set: (_shape) => {
-                this.setParam(TremoloEffectStruct.paramDescriptors().shape, _shape);
+                const val = this.setParam(TremoloEffectStruct.Shape, _shape);
 
                 this.nodes.forEach((_node) => {
                     const shape = _node.parameters.get("shape");
-                    shape.value = this.params.shape;
+                    shape.value = val;
                 });
             }
         }
     });
 }
 
-TremoloEffectStruct.paramDescriptors = () => ({
-    bypass: AudioEffectStruct.paramDescriptors().bypass,
-    rate:      { name: "rate",      integer: false, defaultValue: 5.0, minValue: 0.0, maxValue: 20.0 },
-    intensity: { name: "intensity", integer: false, defaultValue: 1.0, minValue: 0.0, maxValue: 1.0 },
-    offset:    { name: "offset",    integer: false, defaultValue: 0.0, minValue: 0.0, maxValue: 1.0 },
-    shape:     { name: "shape",     integer: true,  defaultValue: 0,   minValue: 0,   maxValue: 4 }
-});
+TremoloEffectStruct.Index = {
+    Bypass: AudioEffectStruct.Index.Bypass,
+    Rate: 1,
+    Intensity: 2,
+    Offset: 3,
+    Shape: 4
+};
+
+TremoloEffectStruct.ParamDescriptors = [
+    AudioEffectStruct.Bypass,
+    { name: "rate",      integer: false, defaultValue: 5.0, minValue: 0.0, maxValue: 20.0 },
+    { name: "intensity", integer: false, defaultValue: 1.0, minValue: 0.0, maxValue: 1.0 },
+    { name: "offset",    integer: false, defaultValue: 0.0, minValue: 0.0, maxValue: 1.0 },
+    { name: "shape",     integer: true,  defaultValue: 0,   minValue: 0,   maxValue: 4 }
+];
 // @endif
