@@ -1857,6 +1857,7 @@ function yySequenceBaseTrack(_pStorage) {
             {
                 if(_val instanceof Array)
                 {
+                    _val.forEach(_track => { _track.m_parent = this; });
                     this.m_tracks = _val;
                 }
                 else
@@ -4058,6 +4059,7 @@ function yySequence(_pStorage) {
             {
                 if(_val instanceof Array)
                 {
+                    _val.forEach(_track => { _track.m_parent = this; });
                     this.m_tracks = _val;
                 }
                 else
