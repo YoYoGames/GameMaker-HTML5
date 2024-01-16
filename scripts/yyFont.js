@@ -1890,7 +1890,7 @@ yyFontManager.prototype.Split_TextBlock = function (_pStr, linewidth, thefont) {
 							end = e;
 						}
 						else {
-							while(pNew[end]!=whitespace)
+							while(pNew[end]!=whitespace && end<len)
 								end++;
 						}
 
