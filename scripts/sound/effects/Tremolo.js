@@ -13,7 +13,7 @@ function TremoloEffectStruct(_params) {
                 return this.params[TremoloEffectStruct.Index.Rate];
             },
             set: (_rate) => {
-                const val = this.setParam(TremoloEffectStruct.Index, _rate);
+                const val = this.setParam(TremoloEffectStruct.Index.Rate, _rate);
 
                 this.nodes.forEach((_node) => {
                     const rate = _node.parameters.get("rate");
@@ -27,7 +27,7 @@ function TremoloEffectStruct(_params) {
                 return this.params[TremoloEffectStruct.Index.Intensity];
             },
             set: (_intensity) => {
-                const val = this.setParam(TremoloEffectStruct.Intensity, _intensity);
+                const val = this.setParam(TremoloEffectStruct.Index.Intensity, _intensity);
 
                 this.nodes.forEach((_node) => {
                     const intensity = _node.parameters.get("intensity");
@@ -41,7 +41,7 @@ function TremoloEffectStruct(_params) {
                 return this.params[TremoloEffectStruct.Index.Offset];
             },
             set: (_offset) => {
-                const val = this.setParam(TremoloEffectStruct.Offset, _offset);
+                const val = this.setParam(TremoloEffectStruct.Index.Offset, _offset);
 
                 this.nodes.forEach((_node) => {
                     const offset = _node.parameters.get("offset");
@@ -55,7 +55,7 @@ function TremoloEffectStruct(_params) {
                 return this.params[TremoloEffectStruct.Index.Shape];
             },
             set: (_shape) => {
-                const val = this.setParam(TremoloEffectStruct.Shape, _shape);
+                const val = this.setParam(TremoloEffectStruct.Index.Shape, _shape);
 
                 this.nodes.forEach((_node) => {
                     const shape = _node.parameters.get("shape");
