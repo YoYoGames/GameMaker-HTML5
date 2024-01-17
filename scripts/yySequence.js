@@ -1607,11 +1607,15 @@ function yySequenceAudioTrack(_pStorage) {
 
     this.UpdateBusLayout = function()
     {
-        if (this.m_busStruct === null)
-            return;
-
         const fxStructs = this.m_tracks.filter(_track => _track.m_effectStruct instanceof AudioEffectStruct)
                                        .map(_track => _track.m_effectStruct);
+
+        if (fxStructs.length == 0 && this.m_busStruct === null)
+        {
+            return;
+        }
+        
+        this.InstantiateBus();
         
         for (let i = 0; i < AudioBus.NUM_EFFECT_SLOTS; ++i)
         {
@@ -1620,6 +1624,12 @@ function yySequenceAudioTrack(_pStorage) {
             {
                 this.m_busStruct.proxy[AudioBus.NUM_EFFECT_SLOTS - 1 - i] = fxStructs[i];
             }
+        }
+
+        if (fxStructs.length > AudioBus.NUM_EFFECT_SLOTS)
+        {
+            yyError("Failed to assign effect to bus. Audio tracks cannot hold more than "
+                + AudioBus.NUM_EFFECT_SLOTS + " audio effect tracks");
         }
     }
 }
@@ -5721,6 +5731,14 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
                             //audio_emitter_falloff(pInfo.emitterindex, )
 
                             audio_emitter_position(pAudioInfo.emitterindex, emitterPosX, emitterPosY, 0.0);
+
+                            _pTrack.UpdateBusLayout();
+
+							if (_pTrack.m_busStruct != null
+								&& audio_emitter_get_bus(pAudioInfo.emitterindex) !== _pTrack.m_busStruct)
+							{
+								audio_emitter_bus(pAudioInfo.emitterindex, _pTrack.m_busStruct);
+							}
                         }
 
                         _srcVars.emitterIndex = pAudioInfo.emitterindex;
@@ -5734,8 +5752,6 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
             g_SeqStack.pop();
         }
     }
-
-    _pTrack.UpdateBusLayout();
 };
 
 
