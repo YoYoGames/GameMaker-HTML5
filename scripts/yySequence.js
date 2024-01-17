@@ -1601,8 +1601,27 @@ function yySequenceAudioTrack(_pStorage) {
             }
         }
     
-        yyError("Failed to push effect to bus: track is full");
+        yyError("Failed to push effect to bus. Audio tracks cannot hold more than "
+            + AudioBus.NUM_EFFECT_SLOTS + " audio effect tracks");
     };
+
+    this.UpdateBusLayout = function()
+    {
+        if (this.m_busStruct === null)
+            return;
+
+        const fxStructs = this.m_tracks.filter(_track => _track.m_effectStruct instanceof AudioEffectStruct)
+                                       .map(_track => _track.m_effectStruct);
+        
+        for (let i = 0; i < AudioBus.NUM_EFFECT_SLOTS; ++i)
+        {
+            // Potentially getting undefined elements here is intentional
+            if (fxStructs[i] !== this.m_busStruct.effects[AudioBus.NUM_EFFECT_SLOTS - 1 - i])
+            {
+                this.m_busStruct.proxy[AudioBus.NUM_EFFECT_SLOTS - 1 - i] = fxStructs[i];
+            }
+        }
+    }
 }
 
 // #############################################################################################
@@ -5715,6 +5734,8 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
             g_SeqStack.pop();
         }
     }
+
+    _pTrack.UpdateBusLayout();
 };
 
 
