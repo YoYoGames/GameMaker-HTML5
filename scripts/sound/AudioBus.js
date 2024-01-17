@@ -92,21 +92,21 @@ AudioBus.prototype.findPrevNode = function(_idx)
 
 AudioBus.prototype.handleConnections = function(_idx, _newNodes)
 {
-	const currentNode = this.nodes[_idx];
+	const currentNodes = this.nodes[_idx];
 
-	if (currentNode === undefined && _newNodes === undefined)
+	if (currentNodes === undefined && _newNodes === undefined)
 		return; // No need to change anything
 
 	const prevNode = this.findPrevNode(_idx);
 	const nextNode = this.findNextNode(_idx);
 
 	// Disconnect the previous node
-	if (currentNode !== undefined)
+	if (currentNodes !== undefined)
 	{
-		prevNode.disconnect(currentNode);
+		prevNode.disconnect(currentNodes.input);
 
-		currentNode.disconnect();
-		this.effects[_idx].removeNode(currentNode);
+		currentNodes.output.disconnect();
+		this.effects[_idx].removeNode(currentNodes.output);
 	}
 	else
 	{
