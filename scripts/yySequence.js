@@ -103,11 +103,13 @@ eSTT_Message = 15;
 eSTT_Moment = 16;
 eSTT_Text = 17;
 eSTT_Particle = 18;
-eSTT_Max = 19;
+eSTT_AudioEffect = 19;
+eSTT_Max = 20;
 
 // @if feature("sequences")
 
-function TrackIsParameter(type) { return (type == eSTT_Real || type == eSTT_Color || type == eSTT_Bool || type == eSTT_String); }
+function TrackIsParameter(type) { return (type == eSTT_Real || type == eSTT_Color || type == eSTT_Bool
+    || type == eSTT_String || type == eSTT_AudioEffect); }
 
 eT_UserDefined = 0;
 __X__ = 1;
@@ -145,10 +147,23 @@ eT_TextEffect_ShadowSoftness = 31;
 eT_TextEffect_ShadowOffset = 32;
 eT_TextEffect_ShadowColour = 33;
 
+eT_AudioEffect_Bus = 34;
+eT_AudioEffect_Bitcrusher = 35;
+eT_AudioEffect_Compressor = 36;
+eT_AudioEffect_Delay = 37;
+eT_AudioEffect_Gain = 38;
+eT_AudioEffect_Hishelf = 39;
+eT_AudioEffect_Hpf2 = 40;
+eT_AudioEffect_Loshelf = 41;
+eT_AudioEffect_Lpf2 = 42;
+eT_AudioEffect_Peakeq = 43;
+eT_AudioEffect_Reverb1 = 44;
+eT_AudioEffect_Tremolo = 45;
+
 // Extras only in the runner
-eT_OriginX = 34;
-eT_OriginY = 35;
-eT_HeadPosChanged = 36;
+eT_OriginX = 46;
+eT_OriginY = 47;
+eT_HeadPosChanged = 48;
 
 eACCT_Linear = 0;
 eACCT_CatmullRom_Centripetal = 1;
@@ -307,6 +322,7 @@ function SequenceBaseTrack_Load(_pStorage) {
             case "GMClipMask_Subject": newTrack = new yySequenceClipMask_SubjectTrack(_pStorage); break;
             case "GMStringTrack": newTrack = new yySequenceStringTrack(_pStorage); break;
             case "GMBoolTrack": newTrack = new yySequenceBoolTrack(_pStorage); break;
+            case "GMAudioEffectTrack": newTrack = new yySequenceAudioEffectTrack(_pStorage); break;
             // @endif
         }
 
@@ -498,7 +514,7 @@ function yySequenceRealTrack(_pStorage) {
     };
     
     //calculate accumulated frames travelled (area under image speed keys) from _startKey to _key
-//returns true if _res is set
+    //returns true if _res is set
     this.calculateAnimDistance = function(_channel, _startKey, _key, _seqlength, _res)
     {
 	    var pRes = null;
@@ -579,6 +595,447 @@ function yySequenceRealTrack(_pStorage) {
 
 	    pRes = yymax(dtotal,0);
 	    return pRes;
+    };
+}
+
+// #############################################################################################
+/// Function:<summary>
+///             Create a new Real Track object
+///          </summary>
+// #############################################################################################
+/** @constructor */
+function yySequenceAudioEffectTrack(_pStorage) {
+
+    yySequenceParameterTrack.call(this, _pStorage); //base constructor
+    this.m_type = eSTT_AudioEffect;
+    this.m_effectStruct = null;
+
+    if ((_pStorage != null) && (_pStorage != undefined)) {
+        this.m_interpolation = _pStorage.interpolation;
+    }
+
+    Object.defineProperties(this, {
+        gmlinterpolation: {
+            enumerable: true,
+            get: function () { return this.m_interpolation; },
+            set: function (_val)
+            {
+                var val = yyGetInt32(_val);
+                if ((val >= 0) && (val < sRM_Max))
+                {
+                    this.m_interpolation = val;
+                }
+                else
+                {
+                    debug("Trying to set interpolation property of track to out-of-bounds value " + yyGetReal(_val));
+                }                
+            }
+        }
+    });
+
+    this.getCachedChannelVal = function (_channel, _key, _seqlength, _descriptor)
+    {
+        var pRes = null;
+
+        var dirty = false;
+        var force = false;
+        if (_channel >= this.numCachedPoints.length || this.numCachedPoints[_channel] == 0)
+        {
+            force = true;
+        }
+        else if (this.globalChangeIndex < GetCurrSeqObjChangeIndex())
+        {
+            if (this.m_keyframeStore.IsDirty(this.changeIndex))
+            {
+                dirty = true;
+            }
+
+            this.globalChangeIndex = GetCurrSeqObjChangeIndex();
+        }
+
+        if (dirty || force)
+        {
+            // We need to update the cached points for *all* used channels here otherwise when we update changeIndex we lose the ability to detect changes on other channels
+            var maxchan = yymax(this.numCachedPoints.length, _channel + 1);
+            for (var i = 0; i < maxchan; i++)
+            {
+                if ((i >= this.numCachedPoints.length) || (this.numCachedPoints[i] != -1))
+                {
+                    this.UpdateCachedPoints(i, _seqlength);
+                }
+            }
+            this.changeIndex = yymax(this.changeIndex, this.m_keyframeStore.changeIndex);
+        }
+
+        var numpoints = this.numCachedPoints[_channel];
+        if (numpoints == 0)
+        {
+            // _res must contain the default value, or be handled otherwise
+            return null; // no points to be found
+        }
+
+        var pPoints = this.cachedPoints[_channel];
+
+        // TODO: might be worth switching back to linear search in conjunction with keeping track of the index of the start of the pair
+        // of evaluated points we interpolated between - this should make normal playback very cheap (unless we're dealing with
+        // a lot of tightly packed control points).
+
+        // Special-case for end point
+        if (pPoints[numpoints - 1].m_x < _key)
+        {
+            pRes = pPoints[numpoints - 1].m_value;
+            return pRes;
+        }
+
+        // binary search
+        var start, end, mid;
+        start = 0;
+        end = numpoints;
+
+        mid = (start + end) >> 1;
+        while (mid != start)
+        {
+            if (pPoints[mid].m_x > _key)
+            {
+                end = mid;
+            }
+            else
+            {
+                start = mid;
+            }
+
+            mid = (start + end) >> 1;
+        }
+
+        if ((this.m_interpolation == sRM_DirectAssign) || (mid == (numpoints - 1)))
+        {
+            if (pPoints[0].m_x > _key)
+            {
+                pRes = _descriptor.defaultValue;
+            }
+            else
+            {
+                pRes = pPoints[mid].m_value;
+            }
+        }
+        else
+        {
+            let pFirstPoint = pPoints[mid];
+            let pSecondPoint = pPoints[mid + 1];
+    
+            if (pPoints[0].m_x > _key)
+            {
+                pSecondPoint = pFirstPoint;
+
+                pFirstPoint = new yyAnimCurvePoint();
+                pFirstPoint.m_x = 0;
+                pFirstPoint.m_value = _descriptor.defaultValue;
+            }
+    
+            if (_channel == 0)
+            {
+                pRes = pFirstPoint.m_value;
+            }
+            else if ((pSecondPoint.m_x - pFirstPoint.m_x) > 0.0)
+            {
+                const prop = (_key - pFirstPoint.m_x) / (pSecondPoint.m_x - pFirstPoint.m_x);
+    
+                pRes = (pSecondPoint.m_value * prop) + (pFirstPoint.m_value * (1.0 - prop));
+    
+                if (_descriptor.integer)
+                {
+                    pRes = Math.floor(pRes);
+                }
+            }
+            else
+            {
+                pRes = pFirstPoint.m_value;
+            }
+        }
+
+        return pRes;
+    };
+
+    // #############################################################################################
+    /// Function:<summary>
+    ///             Returns the value for a given channel at the given key
+    ///          </summary>
+    // #############################################################################################
+    this.getValue = function (_channel, _key, _seqlength) {
+        const paramDescriptor = this.GetParamDescriptor(_channel);
+
+        if (!this.enabled) return paramDescriptor.defaultValue;
+        if (this.m_keyframeStore == null) return paramDescriptor.defaultValue;
+        if (this.m_keyframeStore.numKeyframes == 0) return paramDescriptor.defaultValue;
+
+        return this.getCachedChannelVal(_channel, _key, _seqlength, paramDescriptor);
+    };
+
+    // #############################################################################################
+    /// Function:<summary>
+    ///             Update the cached points for the given channel
+    ///          </summary>
+    // #############################################################################################
+    this.UpdateCachedPoints = function(_channel, _seqlength) {
+	    // Mirror new IDE length paradigm
+        _seqlength += 1;
+
+        if(_channel > this.numCachedPoints.length)
+        {
+            var oldMaxCachedChannels = this.numCachedPoints.length;
+            this.numCachedPoints.length = _channel + 1;
+
+            // initialise newly added num cached points entries to -1
+            // Setting this to -1 allows us to detect channels which are never actually used
+            for(var i = oldMaxCachedChannels; i < this.numCachedPoints.length; i++)
+            {
+                this.numCachedPoints[i] = -1;
+            }
+        }
+
+        // Reset number of cached points
+        this.numCachedPoints[_channel] = 0;
+
+        // Now step through the keyframe list and add the points to the appropriate cached point list
+        // I'm currently assuming that they'll be in order and no keyframes will overlap
+        for (var i = 0; i < this.m_keyframeStore.numKeyframes; i++)
+        {
+            var key = this.m_keyframeStore.keyframes[i];
+            var value = key.m_channels[_channel];
+            if (value == null) {
+                // Hack (also in IDE);
+                // take the first key then; but we require that this key is an animation curve and that curve contains this channel then
+                value = key.m_channels[0];
+                if ((value == null) || ((value.m_curveIndex == -1) && (value.m_pEmbeddedCurve == null)))
+                    continue;
+            }
+
+            if ((value.m_curveIndex == -1) && (value.m_pEmbeddedCurve == null))
+            {
+                var pPoint = this.AllocNewCachedPoint(_channel);
+                pPoint.m_x = key.m_key;
+                pPoint.m_value = value.m_realValue;
+
+                if (!key.m_stretch && key.m_length > 1)
+                {
+                    var pPoint = this.AllocNewCachedPoint(_channel);
+                    pPoint.m_x = (key.m_key + (key.m_length));
+                    pPoint.m_value = value.m_realValue;
+                }
+                else if (key.m_stretch == true)
+                {
+                    if (i == (this.m_keyframeStore.numKeyframes - 1))
+                    {
+                        // This is the last keyframe, so stretch until the end of the sequence
+                        if ((_seqlength - key.m_key) > 1)
+                        {
+                            var pPoint = this.AllocNewCachedPoint(_channel);
+                            pPoint.m_x = key.m_key + (_seqlength - key.m_key);
+                            pPoint.m_value = value.m_realValue;
+                        }
+                    }
+                    else
+                    {
+                        // Get the next key position and add a new point just before it
+                        var nextkey = this.m_keyframeStore.keyframes[i + 1];
+                        if (nextkey.m_key > (key.m_key + 1))
+                        {
+                            var pPoint = this.AllocNewCachedPoint(_channel);
+                            pPoint.m_x = nextkey.m_key;
+                            pPoint.m_value = value.m_realValue;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                var keylength = key.m_length;
+                if (key.m_stretch == true)
+                {
+                    if (i == (this.m_keyframeStore.numKeyframes - 1))
+                    {
+                        // This is the last keyframe, so stretch until the end of the sequence
+                        if (_seqlength <= 0) continue;	// err...
+                        else
+                        {
+                            //keylength = _seqlength - (key->key + 1);
+                            keylength = _seqlength - key.m_key;
+                        }
+                    }
+                    else
+                    {
+                        var nextkey = this.m_keyframeStore.keyframes[i + 1];
+                        if (nextkey.m_key > key.m_key)
+                        {
+                            keylength = nextkey.m_key - key.m_key;
+                        }
+                    }
+                }
+
+                var pCurve = null;
+
+                if (value.m_hasEmbeddedCurve)
+			    {
+			        pCurve = value.m_pEmbeddedCurve;
+			    }
+			    else
+                {
+                    // Try and find curve in the global resource list
+                    pCurve = g_pAnimCurveManager.Get(value.m_curveIndex);
+                }
+
+                if (pCurve == null)
+                {
+                    //dbg_csol.Output("Could not find anim curve.\n");
+                    continue;
+                }
+
+                var curvechannel = _channel;
+                if (curvechannel >= pCurve.m_numChannels)
+                {
+                    curvechannel = pCurve.m_numChannels - 1;
+                }
+
+                // Now add the curve key points
+                pCurve.Evaluate(this, curvechannel, _channel, key.m_key, keylength);
+            }
+        }
+    };
+    
+    //calculate accumulated frames travelled (area under image speed keys) from _startKey to _key
+    //returns true if _res is set
+    this.calculateAnimDistance = function(_channel, _startKey, _key, _seqlength, _res)
+    {
+	    var pRes = null;
+
+	    if (!this.enabled) return null;
+        if (this.m_keyframeStore == null) return null;
+        if (this.m_keyframeStore.numKeyframes == 0) return null;
+
+	    var numpoints = this.numCachedPoints[_channel];
+	    if (numpoints == 0) {
+		    return null; // no points to be found
+	    }
+
+	    //if requested key position is less than start, zero accumulated distance
+	    var relKey = _key - _startKey;
+	    if (relKey <= 0) {
+		    pRes = 0;
+		    return pRes;
+	    }
+
+	    var pPoints = this.cachedPoints[_channel];
+	    var dtotal = 0;
+	    //if there is just a single key, speed is constant across entire track
+	    if (numpoints == 1) {
+		    dtotal = pPoints[0].m_value * relKey;
+		    pRes = dtotal;
+		    return pRes;
+	    }
+
+	    var interpolated = this.m_interpolation == sRM_Lerp;
+	    //velocity is continuous up to the first key-
+	    var p0 = pPoints[0];
+	    var t = yymin(p0.m_x, _key) - _startKey;
+	    if( t > 0 )
+		    dtotal = p0.m_value * t;
+
+	    for (var i = 1; i < numpoints; ++i)
+	    {
+		    if (p0.m_x >= _key)
+			    break;
+
+		    var p1 = pPoints[i];
+		    if (p1.m_x > _startKey)   //ignore this segment if its entirely before the start key
+		    {
+			    t = yymin(p1.m_x, _key) - p0.m_x;
+			    if (t > 0)
+			    {
+				    var d;
+				    var offset = (_startKey - p0.m_x); // distance from p0 to startKey - >0 if start position intersects this segment
+				    if (!interpolated)
+				    {
+					    if (offset > 0) //if start position intersects this segment
+						    t -= offset;
+					    d = p0.m_value * t;
+				    }
+				    else
+				    {
+					    var a = (p1.m_value - p0.m_value) / (p1.m_x - p0.m_x);
+					    var v0 = p0.m_value;
+					    if (offset >0) {//if start position intersects this segment
+						    t -= offset;
+						    v0 += a * offset;
+					    }
+					    d = v0 * t + (0.5 * a * t * t); //v0t +1/2at^2
+				    }
+				    dtotal += d;
+			    }
+		    }
+		    p0 = p1;
+	    }
+	    //add any remainder from last key to requested head - constant v to end of track
+	    var rem = _key - p0.m_x;
+	    if (rem > 0)
+	    {
+		    var d = p0.m_value * (rem);
+		    dtotal += d;
+	    }
+
+	    pRes = yymax(dtotal,0);
+	    return pRes;
+    };
+
+    this.InstantiateEffect = function()
+    {
+        if (this.m_effectStruct === null)
+        {
+            const effectType = this.AudioEffectTypeFromTrackName();
+            this.m_effectStruct = audio_effect_create(effectType);
+            this.m_parent.PushEffectStruct(this.m_effectStruct);
+        }
+
+        return this.m_effectStruct;
+    };
+
+    this.AudioEffectTypeFromTrackName = function()
+    {
+        switch (this.builtinName)
+        {
+            case eT_AudioEffect_Bitcrusher: return AudioEffect.Type.Bitcrusher;
+            case eT_AudioEffect_Compressor: return AudioEffect.Type.Compressor;
+            case eT_AudioEffect_Delay:		return AudioEffect.Type.Delay;
+            case eT_AudioEffect_Gain:		return AudioEffect.Type.Gain;
+            case eT_AudioEffect_Hishelf:	return AudioEffect.Type.HiShelf;
+            case eT_AudioEffect_Hpf2:		return AudioEffect.Type.HPF2;
+            case eT_AudioEffect_Loshelf:	return AudioEffect.Type.LoShelf;
+            case eT_AudioEffect_Lpf2:		return AudioEffect.Type.LPF2;
+            case eT_AudioEffect_Peakeq:		return AudioEffect.Type.PeakEQ;
+            case eT_AudioEffect_Reverb1:	return AudioEffect.Type.Reverb1;
+            case eT_AudioEffect_Tremolo:	return AudioEffect.Type.Tremolo;
+            default:
+                yyError("Unsupported audio effect track type");
+                return undefined;
+        }
+    };
+
+    this.IsBusTrack = function()
+    {
+        return (this.builtinName == eT_AudioEffect_Bus);
+    };
+
+    this.GetAFXStruct = function() {
+        if (this.IsBusTrack()) {
+            return this.m_parent.m_busStruct;
+        }
+
+        return this.m_effectStruct;
+    };
+
+    this.GetParamDescriptor = function(_channel)
+    {
+        const struct = this.GetAFXStruct();
+        return struct.getParamDescriptor(_channel);
     };
 }
 
@@ -665,9 +1122,9 @@ function yySequenceParameterTrack(_pStorage) {
             // We need to update the cached points for *all* used channels here otherwise when we update changeIndex we lose the ability to detect changes on other channels
             var maxchan = yymax(this.numCachedPoints.length, _channel + 1);
             for (var i = 0; i < maxchan; i++)
-{
+            {
                 if ((i >= this.numCachedPoints.length) || (this.numCachedPoints[i] != -1))
-{
+                {
                     this.UpdateCachedPoints(i, _seqlength);
                 }
             }
@@ -676,7 +1133,7 @@ function yySequenceParameterTrack(_pStorage) {
 
         var numpoints = this.numCachedPoints[_channel];
         if (numpoints == 0)
-{
+        {
             // _res must contain the default value, or be handled otherwise
             return null; // no points to be found
         }
@@ -1119,6 +1576,62 @@ function yySequenceAudioTrack(_pStorage) {
 
     yySequenceBaseTrack.call(this, _pStorage); //base constructor
     this.m_type = eSTT_Audio;
+    this.m_busStruct = null;
+
+    this.InstantiateBus = function()
+    {
+        if (this.m_busStruct === null)
+        {
+            this.m_busStruct = audio_bus_create();
+        }
+
+        return this.m_busStruct;
+    };
+
+    this.PushEffectStruct = function(_effectStruct)
+    {
+        const busStruct = this.InstantiateBus();
+
+        for (let i = AudioBus.NUM_EFFECT_SLOTS - 1; i >= 0; --i)
+        {
+            if (busStruct.proxy[i] == undefined)
+            {
+                busStruct.proxy[i] = _effectStruct;
+                return;
+            }
+        }
+    
+        yyError("Failed to push effect to bus. Audio tracks cannot hold more than "
+            + AudioBus.NUM_EFFECT_SLOTS + " audio effect tracks");
+    };
+
+    this.UpdateBusLayout = function()
+    {
+        const fxStructs = this.m_tracks.filter(_track => _track.m_effectStruct instanceof AudioEffectStruct)
+                                       .map(_track => _track.m_effectStruct);
+
+        if (fxStructs.length == 0 && this.m_busStruct === null)
+        {
+            return;
+        }
+        
+        this.InstantiateBus();
+        
+        for (let i = 0; i < AudioBus.NUM_EFFECT_SLOTS; ++i)
+        {
+            // Potentially getting undefined elements here is intentional
+            if (fxStructs[i] !== this.m_busStruct.effects[AudioBus.NUM_EFFECT_SLOTS - 1 - i])
+            {
+                this.m_busStruct.proxy[AudioBus.NUM_EFFECT_SLOTS - 1 - i] = fxStructs[i];
+            }
+        }
+
+        if (fxStructs.length > AudioBus.NUM_EFFECT_SLOTS)
+        {
+            yyError("Failed to assign effect to bus. Audio tracks cannot hold more than "
+                + AudioBus.NUM_EFFECT_SLOTS + " audio effect tracks");
+        }
+    }
 }
 
 // #############################################################################################
@@ -1306,6 +1819,7 @@ function yySequenceBaseTrack(_pStorage) {
     this.m_numResources = 0;
     this.m_ownedResources = [];
     this.m_keyframeStore = new yyKeyframeStore();
+    this.m_parent = null;
 
     if ((_pStorage != null) && (_pStorage != undefined)) {
 
@@ -1327,6 +1841,7 @@ function yySequenceBaseTrack(_pStorage) {
         this.m_tracks = [];
         for (var trackIndex = 0; trackIndex < this.m_numTracks; ++trackIndex) {
             this.m_tracks[trackIndex] = SequenceBaseTrack_Load(_pStorage.tracks[this.m_numTracks - 1 - trackIndex]);
+            this.m_tracks[trackIndex].m_parent = this;
         }
 
         this.m_numResources = _pStorage.ownedResourceModels.length;
@@ -1371,6 +1886,7 @@ function yySequenceBaseTrack(_pStorage) {
             {
                 if(_val instanceof Array)
                 {
+                    _val.forEach(_track => { _track.m_parent = this; });
                     this.m_tracks = _val;
                 }
                 else
@@ -1788,6 +2304,47 @@ function yySequenceBaseTrack(_pStorage) {
                             }
                         }
                         break;
+                    case eT_AudioEffect_Bus:
+                        if (track.m_type == eSTT_AudioEffect)
+                        {
+                            if (!isCreationTrack || !(_result.paramset.GetBit(eT_AudioEffect_Bus)))
+                            {
+                                const parentTrack = track.m_parent;
+                                const busStruct = parentTrack.InstantiateBus();
+
+                                busStruct.getParamDescriptors().forEach((_desc, _idx) => {
+                                    busStruct["gml" + _desc.name] = track.evaluate(_idx, _head, _length);
+                                });
+                                
+                                _result.paramset.SetBit(eT_AudioEffect_Bus);
+                            }
+                        }
+                        break;
+                    case eT_AudioEffect_Bitcrusher:
+                    case eT_AudioEffect_Compressor:
+                    case eT_AudioEffect_Delay:
+                    case eT_AudioEffect_Gain:
+                    case eT_AudioEffect_Hishelf:
+                    case eT_AudioEffect_Loshelf:
+                    case eT_AudioEffect_Peakeq:
+                    case eT_AudioEffect_Hpf2:
+                    case eT_AudioEffect_Lpf2:
+                    case eT_AudioEffect_Reverb1:
+                    case eT_AudioEffect_Tremolo:
+                        if (track.m_type == eSTT_AudioEffect)
+                        {
+                            if (!isCreationTrack || !(_result.paramset.GetBit(track.builtinName)))
+                            {
+                                const effectStruct = track.InstantiateEffect();
+
+                                effectStruct.getParamDescriptors().forEach((_desc, _idx) => {
+                                    effectStruct["gml" + _desc.name] = track.evaluate(_idx, _head, _length);
+                                });
+                                
+                                _result.paramset.SetBit(track.builtinName);
+                            }
+                        }
+                        break;
                 }
             }
         }
@@ -1835,6 +2392,18 @@ function yySequenceBaseTrack(_pStorage) {
         else if (this.pName == "textEffect_shadowSoftness") this.builtinName = eT_TextEffect_ShadowSoftness;
         else if (this.pName == "textEffect_shadowOffset") this.builtinName = eT_TextEffect_ShadowOffset;
         else if (this.pName == "textEffect_shadowColour") this.builtinName = eT_TextEffect_ShadowColour;
+        else if (this.pName == "audioEffect_bus") this.builtinName = eT_AudioEffect_Bus;
+        else if (this.pName == "audioEffect_bitcrusher") this.builtinName = eT_AudioEffect_Bitcrusher;
+        else if (this.pName == "audioEffect_compressor") this.builtinName = eT_AudioEffect_Compressor;
+        else if (this.pName == "audioEffect_delay") this.builtinName = eT_AudioEffect_Delay;
+        else if (this.pName == "audioEffect_gain") this.builtinName = eT_AudioEffect_Gain;
+        else if (this.pName == "audioEffect_hishelf") this.builtinName = eT_AudioEffect_Hishelf;
+        else if (this.pName == "audioEffect_hpf2") this.builtinName = eT_AudioEffect_Hpf2;
+        else if (this.pName == "audioEffect_loshelf") this.builtinName = eT_AudioEffect_Loshelf;
+        else if (this.pName == "audioEffect_lpf2") this.builtinName = eT_AudioEffect_Lpf2;
+        else if (this.pName == "audioEffect_peakeq") this.builtinName = eT_AudioEffect_Peakeq;
+        else if (this.pName == "audioEffect_reverb1") this.builtinName = eT_AudioEffect_Reverb1;
+        else if (this.pName == "audioEffect_tremolo") this.builtinName = eT_AudioEffect_Tremolo;
         else this.builtinName = eT_UserDefined;
     };
     // @endif
@@ -2422,6 +2991,124 @@ function yyStringTrackKey(_pStorage)
 
 // #############################################################################################
 /// Function:<summary>
+///             Create a new Audio Effect Track Key object
+///          </summary>
+// #############################################################################################
+/** @constructor */
+function yyAudioEffectTrackKey(_pStorage)
+{
+    yyTrackKeyBase.call(this); //base constructor
+
+    this.__type = "[AudioEffectTrackKey]";
+
+    this.m_realValue = 0;
+    this.m_hasEmbeddedCurve = false;
+    this.m_curveIndex = -1;
+    this.m_pEmbeddedCurve = null;
+
+    if ((_pStorage != null) && (_pStorage != undefined)) {
+        this.m_realValue = _pStorage.realValue;
+        this.m_hasEmbeddedCurve = _pStorage.hasEmbeddedCurve;
+        this.m_curveIndex = _pStorage.curveIndex;
+
+        if (_pStorage.pEmbeddedCurve != undefined)
+        {
+            this.m_pEmbeddedCurve = new yyAnimCurve(_pStorage.pEmbeddedCurve);
+        }        
+    }
+
+    this.UpdateDirtiness = function()
+    {
+        var currChangeIndex = this.changeIndex;
+        for(var channel in this.m_channels)
+        {
+            var pCurve = g_pAnimCurveManager.GetCurveFromID(channel.m_curveIndex);
+    
+            if ((pCurve != null) && (pCurve.IsDirty(currChangeIndex)))
+            {
+                this.changeIndex = yymax(this.changeIndex, pCurve.changeIndex);			
+            }
+        }
+    };
+
+    Object.defineProperties(this, {
+        gmlvalue: {
+            enumerable: true,
+            get: function () { return this.m_realValue; },
+            set: function (_val)
+            {
+                this.m_realValue = yyGetReal(_val);
+
+                // Clear curve data
+                this.m_curveIndex = -1;
+                this.m_hasEmbeddedCurve = false;
+                this.m_pEmbeddedCurve = null;
+            }
+        }, 
+        gmlhasEmbeddedCurve: {
+            enumerable: true,
+            get: function () { return this.m_hasEmbeddedCurve; },
+            set: function (_val) { this.m_hasEmbeddedCurve = yyGetBool(_val); }
+        },
+        gmlcurve: {
+            enumerable: true,
+            get: function ()
+            {
+                var tempcurve = undefined;
+                if ((this.m_hasEmbeddedCurve == true) && (this.m_pEmbeddedCurve != null))
+                {
+                    tempcurve = this.m_pEmbeddedCurve;
+                }
+                else
+                {
+                    tempcurve = g_pAnimCurveManager.Get(this.m_curveIndex);                    
+                }
+
+                if ((tempcurve == undefined) || (tempcurve == null))
+                    return -1;
+                else
+                    return tempcurve;
+            },
+            set: function (_val)
+            {
+                if(typeof(_val) == "object")
+                {
+                    var idx = g_pAnimCurveManager.AnimCurves.indexOf(_val);
+                    if (idx == -1)
+                    {
+                        // Embedded curve
+                        this.m_pEmbeddedCurve = _val;
+                        this.m_hasEmbeddedCurve = true;
+                        this.m_curveIndex = -1;
+                    }
+                    else
+                    {
+                        this.m_curveIndex = idx;
+                        this.m_hasEmbeddedCurve = false;
+                        this.m_pEmbeddedCurve = null;
+                    }
+                }
+                else
+                {
+                    // Check for valid index
+                    if(g_pAnimCurveManager.Get(this.m_curveIndex) != null)
+                    {
+                        this.m_curveIndex = _val;
+                        this.m_hasEmbeddedCurve = false;
+                        this.m_pEmbeddedCurve = null;
+                    }
+                    else
+                    {
+                        throw new Error("Invalid curve passed to curve property of keyframe channel");
+                    }
+                }
+            }
+        },     
+    });
+}
+
+// #############################################################################################
+/// Function:<summary>
 ///             Create a new Text Track Key object
 ///          </summary>
 // #############################################################################################
@@ -2588,6 +3275,9 @@ function yyKeyframe(_type, _pStorage) {
                     break;
                 case eSTT_String:
                     newKeyframe = new yyStringTrackKey(data);
+                    break;
+                case eSTT_AudioEffect:
+                    newKeyframe = new yyAudioEffectTrackKey(data);
                     break;
                 case eSTT_Sequence:
                     newKeyframe = new yySequenceTrackKey(data);
@@ -3272,6 +3962,7 @@ function yySequence(_pStorage) {
         this.m_tracks = [];
         for (var trackIndex = 0; trackIndex < this.m_numTracks; ++trackIndex) {
             this.m_tracks[trackIndex] = SequenceBaseTrack_Load(_pStorage.tracks[this.m_numTracks - 1 - trackIndex]);
+            this.m_tracks[trackIndex].m_parent = this;
         }
 
         this.m_numEvents = _pStorage.sequenceEvents.length;
@@ -3397,6 +4088,7 @@ function yySequence(_pStorage) {
             {
                 if(_val instanceof Array)
                 {
+                    _val.forEach(_track => { _track.m_parent = this; });
                     this.m_tracks = _val;
                 }
                 else
@@ -4962,7 +5654,7 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
             g_SeqStack.push(pAudioKey);
 
             for (var channelKey in pAudioKey.m_channels)
-{
+            {
                 var ppChanKey = pAudioKey.m_channels[channelKey];
 
                 g_SeqStack.push(ppChanKey);
@@ -4978,6 +5670,11 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
                         {
                             audio_stop_sound(pAudioInfo.soundindex);
                             pAudioInfo.soundindex = -1;
+
+                            if (_pTrack.m_busStruct !== null)
+                            {
+                                audio_bus_clear_emitters(_pTrack.m_busStruct);
+                            }
                         }
                     }
                     else
@@ -4989,11 +5686,21 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
                             {
                                 audio_stop_sound(pAudioInfo.soundindex);
                                 pAudioInfo.soundindex = -1;
+
+                                if (_pTrack.m_busStruct !== null)
+								{
+									audio_bus_clear_emitters(_pTrack.m_busStruct);
+								}
                             }
                         }
 
                         if (pAudioInfo.soundindex == -1)
                         {
+                            if (_pTrack.m_busStruct !== null)
+							{
+								audio_emitter_bus(pAudioInfo.emitterindex, _pTrack.m_busStruct);
+							}
+
                             pAudioInfo.playdir = _headDir;
                             pAudioInfo.soundindex = audio_play_sound_on(pAudioInfo.emitterindex, ppChanKey.m_soundIndex, (ppChanKey.m_mode == eSM_Loop) ? true : false, 1.0);
 
@@ -5024,6 +5731,14 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
                             //audio_emitter_falloff(pInfo.emitterindex, )
 
                             audio_emitter_position(pAudioInfo.emitterindex, emitterPosX, emitterPosY, 0.0);
+
+                            _pTrack.UpdateBusLayout();
+
+							if (_pTrack.m_busStruct != null
+								&& audio_emitter_get_bus(pAudioInfo.emitterindex) !== _pTrack.m_busStruct)
+							{
+								audio_emitter_bus(pAudioInfo.emitterindex, _pTrack.m_busStruct);
+							}
                         }
 
                         _srcVars.emitterIndex = pAudioInfo.emitterindex;
