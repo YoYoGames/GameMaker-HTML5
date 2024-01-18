@@ -1022,7 +1022,7 @@ function yySequenceAudioEffectTrack(_pStorage) {
     this.IsBusTrack = function()
     {
         return (this.builtinName == eT_AudioEffect_Bus);
-    }
+    };
 
     this.GetAFXStruct = function() {
         if (this.IsBusTrack()) {
