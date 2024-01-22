@@ -3112,9 +3112,12 @@ function audio_destroy_stream(_soundid)
             audio_stop_sound(_soundid);
             audio_sampledata[_soundid] = null;
         }
+        
+        return 1;
     }
-}
 
+    return -1;
+}
 
 function allocateBufferSound( )
 {
