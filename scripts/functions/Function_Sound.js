@@ -109,7 +109,11 @@ function audio_update()
 
     // Update and apply gains
     g_AudioGroups.forEach(_group => _group.gain.update());
-    audio_sampledata.forEach(_asset => _asset.gain.update());
+    audio_sampledata.forEach(_asset => {
+        if (_asset != null) {
+            _asset.gain.update();
+        }
+    });
     audio_sounds.forEach(_voice => _voice.updateGain());
 }
 
@@ -3112,9 +3116,12 @@ function audio_destroy_stream(_soundid)
             audio_stop_sound(_soundid);
             audio_sampledata[_soundid] = null;
         }
+        
+        return 1;
     }
-}
 
+    return -1;
+}
 
 function allocateBufferSound( )
 {
