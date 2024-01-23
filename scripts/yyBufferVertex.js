@@ -39,6 +39,7 @@ var vertex_create_buffer,
     vertex_ubyte4,
     vertex_freeze,
     vertex_submit,
+    vertex_submit_ext,
     vertex_get_number,
     vertex_get_buffer_size,
     vertex_create_buffer_from_buffer,
@@ -70,6 +71,7 @@ var vertex_create_buffer,
     vertex_ubyte4 = _stub("vertex_ubyte4");
     vertex_freeze = _stub("vertex_freeze");
     vertex_submit = _stub("vertex_submit");
+    vertex_submit_ext = _stub("vertex_submit_ext");
     vertex_get_number = _stub("vertex_get_number");
     vertex_get_buffer_size = _stub("vertex_get_buffer_size");
     vertex_create_buffer_from_buffer = _stub("vertex_create_buffer_from_buffer", -1);
@@ -117,6 +119,7 @@ function InitBufferVertexFunctions() {
     vertex_ubyte4 = WebGL_vertex_ubyte4_RELEASE;
     vertex_freeze = WebGL_vertex_freeze_RELEASE;
     vertex_submit = WebGL_vertex_submit_RELEASE;
+    vertex_submit_ext = WebGL_vertex_submit_ext_RELEASE;
     vertex_get_number = WebGL_vertex_get_number_RELEASE;
     vertex_get_buffer_size = WebGL_vertex_get_buffer_size_RELEASE;
     draw_flush = WebGL_draw_flush_RELEASE;
@@ -704,6 +707,34 @@ function WebGL_vertex_submit_RELEASE(_buffer, _primType, _texture)
         }
    
         vertexBuffer.Submit(WebGL_translate_primitive_builder_type(yyGetInt32(_primType)), _texture);
+    }
+}
+
+// #############################################################################################
+/// Function:<summary>
+///             Draw a portion of a vertex buffer
+///          </summary>
+/// In:		<param name="_buffer">Buffer to get count of</param>
+/// In:		<param name="_primType">Type of primitive to render with</param>
+/// In:		<param name="_texture">Texture handle to draw with, or -1 for FLAT</param>
+/// In:		<param name="_offset">The index of the first vertex.</param>
+/// In:		<param name="_number">Number of vertices to draw.</param>
+// #############################################################################################
+function WebGL_vertex_submit_ext_RELEASE(_buffer, _primType, _texture, _offset, _number)
+{
+    g_webGL.Flush();
+    var prim, vertexBuffer = g_vertexBuffers[yyGetInt32(_buffer)];
+    if (vertexBuffer) {
+
+        if (g_CurrentShader != -1) {
+            var shader = g_shaderPrograms[g_CurrentShader].program;
+            var pVertexFormat = vertexBuffer.GetFormat();
+            if (pVertexFormat.Format.length < shader.AttribIndices.length) {
+                ErrorOnce("Trying to use a vertex buffer with too few inputs for the seleted shader.");
+            }
+        }
+   
+        vertexBuffer.Submit(WebGL_translate_primitive_builder_type(yyGetInt32(_primType)), _texture, yyGetInt32(_offset), yyGetInt32(_number));
     }
 }
 

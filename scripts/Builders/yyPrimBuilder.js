@@ -12,7 +12,7 @@
 
 // @if feature("gl") && (function("draw_primitive_*") || function("draw_vertex*") || function("vertex_*"))
 
-// primitive type translation is shared between draw_primitive_* and vertex_submit
+// primitive type translation is shared between draw_primitive_* and vertex_submit(_ext)
 var PrimType_POINTLIST = 1,
 	PrimType_LINELIST = 2,
 	PrimType_LINESTRIP	= 3,
