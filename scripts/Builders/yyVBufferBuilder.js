@@ -369,6 +369,10 @@ function yyVBufferBuilder(_size) {
             vertexCount = m_vertexCount - _offset;
         }
 
+        if (vertexCount <= 0) {
+            return;
+        }
+
         if (m_frozen) {
 
             // Directly submit the vertex buffer
