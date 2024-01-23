@@ -1538,6 +1538,8 @@ function json_convert_pointer_null( _v )
 		} // end for
 		break;
 	case "object":
+		if (_v == g_pBuiltIn.pointer_null) ret = undefined;
+		else
 		for( var key in _v) {
 			if (_v.hasOwnProperty(key)) {
 				_v[key] = json_convert_pointer_null(_v[key]);
@@ -1561,7 +1563,7 @@ function json_parse( _v, _func )
 	try {
 		var ret = JSON.parse(_v, _json_reviver);	
 		if (g_counterPointerNull > 0) {
-			json_convert_pointer_null(ret);
+			ret = json_convert_pointer_null(ret);
 		} // end if
 		return ret;
 	} 
