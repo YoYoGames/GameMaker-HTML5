@@ -243,6 +243,124 @@ function yyBuffer( _size, _type, _alignment, _srcbytebuff ) {
 	    }
 	}
 }
+if (!DataView.prototype.getFloat16) {
+    // #################################################################################################
+    /// Function: getFloat16
+    /// Description:
+    ///     Retrieve and decode a 16-bit floating-point number from a DataView.
+    ///
+    /// Parameters:
+    ///     byteOffset - The offset where the 16-bit float is stored.
+    ///     littleEndian - Specifies the endianness of the data (true for little-endian, false for big-endian).
+    ///
+    /// Returns:
+    ///     The decoded 16-bit floating-point number.
+    ///     If the input data is invalid or out of range, NaN is returned.
+    // #################################################################################################
+    DataView.prototype.getFloat16 = function (byteOffset, littleEndian) {
+        // Define a custom getFloat16 method if it doesn't exist
+        // byteOffset: The offset where the 16-bit float is stored
+        // littleEndian: Specifies the endianness of the data
+
+        // Read the 16-bit float as an unsigned integer
+        const uint16 = this.getUint16(byteOffset, littleEndian);
+
+        // Extract the sign bit (bit 15)
+        const sign = (uint16 & 0x8000) ? -1 : 1;
+
+        // Extract the exponent bits (bits 10-14)
+        const exponent = (uint16 >> 10) & 0x1F;
+
+        // Extract the mantissa bits (bits 0-9)
+        const mantissa = uint16 & 0x3FF;
+
+        if (exponent === 0) {
+            // If exponent is 0, it's a denormalized number or zero
+            if (mantissa === 0) {
+                // Zero
+                return sign * 0.0;
+            } else {
+                // Denormalized number
+                // Calculate the value using the formula for denormalized numbers
+                return sign * Math.pow(2, -14) * (mantissa / 1024);
+            }
+        } else if (exponent === 31) {
+            // If exponent is 31, it's infinity or NaN
+            if (mantissa === 0) {
+                // Positive or negative infinity
+                return (sign === 1) ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
+            } else {
+                // NaN
+                return NaN;
+            }
+        } else {
+            // Normalized number
+            // Calculate the value using the formula for normalized numbers
+            return sign * Math.pow(2, exponent - 15) * (1 + mantissa / 1024);
+        }
+    };
+}
+
+if (!DataView.prototype.setFloat16) {
+    // #################################################################################################
+    /// Function: setFloat16
+    /// Description:
+    ///     Encode and write a 16-bit floating-point number (float16) to a DataView.
+    ///
+    /// Parameters:
+    ///     offset - The offset where the float16 will be written in the DataView.
+    ///     value - The float16 value to encode and write.
+    ///     littleEndian - Optional. Specifies the endianness of the data (true for little-endian, false for big-endian).
+    ///
+    /// Returns:
+    ///     None.
+    ///
+    /// Throws:
+    ///     - RangeError if the provided float16 value is out of the representable range for float16.
+    ///
+    /// Details:
+    ///     The function encodes the provided float16 value as per IEEE 754-2008 standard for half-precision
+    ///     floating-point numbers and writes it to the specified offset in the DataView. If the value is
+    ///     outside the representable range for float16, a RangeError is thrown.
+    ///
+    ///     Special cases:
+    ///     - If the value is 0, it is written as a positive zero.
+    ///     - If the value is NaN, it is written as the NaN representation.
+    ///
+    /// Example Usage:
+    ///     const dataView = new DataView(new ArrayBuffer(2));
+    ///     dataView.setFloat16(0, 1.0, true); // Write float16 value 1.0 in little-endian
+    // #################################################################################################
+    DataView.prototype.setFloat16 = function (offset, value, littleEndian = true) {
+        // Define a custom setFloat16 method if it doesn't exist
+        // offset: The offset where the 16-bit float will be written
+        // value: The float16 value to write
+        // littleEndian: Specifies the endianness of the data (true for little-endian, false for big-endian)
+
+        // Ensure the value is within the representable range of float16
+        if (value < -65504.0 || value > 65504.0) {
+            throw new RangeError("Float16 value is out of range.");
+        }
+
+        // Handle special cases for zero and NaN
+        if (value === 0) {
+            // Zero
+            this.setUint16(offset, 0, littleEndian);
+        } else if (isNaN(value)) {
+            // NaN
+            this.setUint16(offset, 0x7E00, littleEndian); // NaN representation
+        } else {
+            // For non-zero, non-NaN values:
+            const sign = value < 0 ? 0x8000 : 0; // Determine the sign bit
+            const absValue = Math.abs(value);
+            const exponent = Math.floor(Math.log2(absValue)) + 15; // Calculate the exponent
+            const mantissa = Math.round(absValue * Math.pow(2, 10 - exponent)); // Calculate the mantissa
+            const uint16Value = sign | (exponent << 10) | mantissa; // Combine sign, exponent, and mantissa
+            this.setUint16(offset, uint16Value, littleEndian); // Write the uint16 representation
+        }
+    };
+}
+
 
 // #############################################################################################
 /// Function:<summary>
@@ -470,6 +588,11 @@ yyBuffer.prototype.yyb_read = function(_type) {
             res = new Long( this.m_DataView.getUint32(this.m_BufferIndex, true), 0);
             this.m_BufferIndex += 4;
             break;
+
+        case eBuffer_F16:
+            res = this.m_DataView.getFloat16(this.m_BufferIndex, true);
+            this.m_BufferIndex += 2;
+            break;
         case eBuffer_F32:
             res = this.m_DataView.getFloat32(this.m_BufferIndex, true);
             this.m_BufferIndex += 4;
@@ -478,6 +601,7 @@ yyBuffer.prototype.yyb_read = function(_type) {
             res = this.m_DataView.getFloat64(this.m_BufferIndex, true);
             this.m_BufferIndex += 8;
             break;
+            
         case eBuffer_U64:
             var low = this.m_DataView.getUint32(this.m_BufferIndex, true);
             this.m_BufferIndex += 4;
@@ -1260,6 +1384,11 @@ yyBuffer.prototype.yyb_write = function(_type, _value) {
             this.m_DataView.setUint32(this.m_BufferIndex, _value, true);
             this.m_BufferIndex += 4;
             break;
+
+        case eBuffer_F16:
+            this.m_DataView.setFloat16(this.m_BufferIndex, _value, true);
+            this.m_BufferIndex += 2;
+            break;
         case eBuffer_F32:
             this.m_DataView.setFloat32(this.m_BufferIndex, _value, true);
             this.m_BufferIndex += 4;
@@ -1268,6 +1397,7 @@ yyBuffer.prototype.yyb_write = function(_type, _value) {
             this.m_DataView.setFloat64(this.m_BufferIndex, _value, true);
             this.m_BufferIndex += 8;
             break;
+        
         case eBuffer_U64:
             var int64Val = yyGetInt64(_value);
             this.m_DataView.setUint32(this.m_BufferIndex, int64Val.low, true);
@@ -1336,12 +1466,17 @@ yyBuffer.prototype.yyb_peek = function(_type, _offset) {
         case eBuffer_U32:
             res = this.m_DataView.getUint32(_offset, true);
             break;
+
+        case eBuffer_F16:
+            res = this.m_DataView.getFloat16(_offset, true);
+            break;
         case eBuffer_F32:
             res = this.m_DataView.getFloat32(_offset, true);
             break;
         case eBuffer_F64:
             res = this.m_DataView.getFloat64(_offset, true);
             break;
+
         case eBuffer_U64:
             var low = this.m_DataView.getUint32(_offset, true);
             var high = this.m_DataView.getUint32(_offset + 4, true);
