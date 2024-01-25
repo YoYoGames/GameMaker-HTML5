@@ -243,6 +243,7 @@ function yyBuffer( _size, _type, _alignment, _srcbytebuff ) {
 	    }
 	}
 }
+
 if (!DataView.prototype.getFloat16) {
     // #################################################################################################
     /// Function: getFloat16
@@ -331,33 +332,52 @@ if (!DataView.prototype.setFloat16) {
     ///     const dataView = new DataView(new ArrayBuffer(2));
     ///     dataView.setFloat16(0, 1.0, true); // Write float16 value 1.0 in little-endian
     // #################################################################################################
-    DataView.prototype.setFloat16 = function (offset, value, littleEndian = true) {
-        // Define a custom setFloat16 method if it doesn't exist
-        // offset: The offset where the 16-bit float will be written
-        // value: The float16 value to write
-        // littleEndian: Specifies the endianness of the data (true for little-endian, false for big-endian)
-
-        // Ensure the value is within the representable range of float16
-        if (value < -65504.0 || value > 65504.0) {
-            throw new RangeError("Float16 value is out of range.");
-        }
-
-        // Handle special cases for zero and NaN
-        if (value === 0) {
-            // Zero
-            this.setUint16(offset, 0, littleEndian);
-        } else if (isNaN(value)) {
-            // NaN
-            this.setUint16(offset, 0x7E00, littleEndian); // NaN representation
+    DataView.prototype.setFloat16 = function(offset, value, littleEndian = true) {
+        let sign = 0;
+        let exponent = 0;
+        let mantissa = 0;
+    
+        // Used references: https://en.wikipedia.org/wiki/Half-precision_floating-point_format
+        if (isNaN(value)) {
+            // If the value is NaN, use the standard NaN representation for float16.
+            mantissa = 0x200;
+            exponent = 0x1F;
+        } else if (value === Infinity || value === -Infinity) {
+            // Handling Infinity.
+            exponent = 0x1F;
+        } else if (value === 0) {
+            // Handling zero (both positive and negative).
+            sign = (1 / value === -Infinity) ? 0x8000 : 0;
         } else {
-            // For non-zero, non-NaN values:
-            const sign = value < 0 ? 0x8000 : 0; // Determine the sign bit
-            const absValue = Math.abs(value);
-            const exponent = Math.floor(Math.log2(absValue)) + 15; // Calculate the exponent
-            const mantissa = Math.round(absValue * Math.pow(2, 10 - exponent)); // Calculate the mantissa
-            const uint16Value = sign | (exponent << 10) | mantissa; // Combine sign, exponent, and mantissa
-            this.setUint16(offset, uint16Value, littleEndian); // Write the uint16 representation
+            sign = value < 0 ? 0x8000 : 0;
+            value = Math.abs(value);
+    
+            if (value >= Math.pow(2, -14)) {
+                // Handle normal numbers.
+                let exponentAndMantissa = Math.floor(Math.log2(value) + 15);
+                exponent = exponentAndMantissa;
+                mantissa = Math.floor((value / Math.pow(2, exponent - 15) - 1) * 1024);
+    
+                if (mantissa === 1024) {
+                    // Handle rounding that causes exponent overflow.
+                    exponentAndMantissa += 1;
+                    exponent = exponentAndMantissa;
+                    mantissa = 0;
+                }
+    
+                if (exponentAndMantissa > 30) {
+                    // Handle overflow to Infinity.
+                    exponent = 0x1F;
+                    mantissa = 0;
+                }
+            } else {
+                // Handle subnormal numbers.
+                mantissa = Math.floor(value / Math.pow(2, -24));
+            }
         }
+    
+        const float16 = sign | (exponent << 10) | mantissa;
+        this.setUint16(offset, float16, littleEndian);
     };
 }
 
