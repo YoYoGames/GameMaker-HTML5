@@ -263,6 +263,8 @@ if (!DataView.prototype.getFloat16) {
         // byteOffset: The offset where the 16-bit float is stored
         // littleEndian: Specifies the endianness of the data
 
+        // Used references: https://en.wikipedia.org/wiki/Half-precision_floating-point_format
+
         // Read the 16-bit float as an unsigned integer
         const uint16 = this.getUint16(byteOffset, littleEndian);
 
@@ -289,7 +291,7 @@ if (!DataView.prototype.getFloat16) {
             // If exponent is 31, it's infinity or NaN
             if (mantissa === 0) {
                 // Positive or negative infinity
-                return (sign === 1) ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
+                return (sign === 1) ? Infinity : -Infinity;
             } else {
                 // NaN
                 return NaN;
@@ -315,9 +317,6 @@ if (!DataView.prototype.setFloat16) {
     ///
     /// Returns:
     ///     None.
-    ///
-    /// Throws:
-    ///     - RangeError if the provided float16 value is out of the representable range for float16.
     ///
     /// Details:
     ///     The function encodes the provided float16 value as per IEEE 754-2008 standard for half-precision
@@ -359,12 +358,13 @@ if (!DataView.prototype.setFloat16) {
                 mantissa = Math.floor((value / Math.pow(2, exponent - 15) - 1) * 1024);
     
                 if (mantissa === 1024) {
-                    // Handle rounding that causes exponent overflow.
+                    // This needs to be done otherwise this will cause exponent overflow.
                     exponentAndMantissa += 1;
                     exponent = exponentAndMantissa;
                     mantissa = 0;
                 }
     
+                // Check if we overflow into Infinity.
                 if (exponentAndMantissa > 30) {
                     // Handle overflow to Infinity.
                     exponent = 0x1F;
