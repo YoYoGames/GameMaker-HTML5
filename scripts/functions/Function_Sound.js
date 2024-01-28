@@ -771,8 +771,10 @@ audioSound.prototype.getPlaybackPosition = function(_contextTime) {
             playbackPosition += timePassed;
         }
         else {
+            playbackPosition = loopStart + (timePassed - timeToLoopStart);
             const loopLength = this.getLoopLength();
-            playbackPosition = loopStart + (timePassed - timeToLoopStart) % loopLength;
+            if (loopLength !== 0)
+                playbackPosition %= loopLength;
         }
     }
 
