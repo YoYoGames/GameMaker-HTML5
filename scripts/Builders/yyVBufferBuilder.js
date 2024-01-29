@@ -385,7 +385,7 @@ function yyVBufferBuilder(_size) {
                 // Check whether the webgl texture has been initialised yet and do so if not
                 if (_texture && !_texture.WebGLTexture.webgl_textureid) {
                     WebGL_BindTexture(_texture.TPE);
-                    if(_texture.WebGLTexture.webgl_textureid.Image == undefined || _texture.WebGLTexture.webgl_textureid.Image == null) {
+                    if(WebGL_IsTextureImageValid(_texture.WebGLTexture.webgl_textureid)) {
                         yyError("vertex_submit: trying to use an invalid texture");
 						return;
 					}
@@ -401,10 +401,11 @@ function yyVBufferBuilder(_size) {
                 // Check whether the webgl texture has been initialised yet and do so if not
                 if (_texture && !_texture.WebGLTexture.webgl_textureid) {
                     WebGL_BindTexture(_texture.TPE);
-                    if(_texture.WebGLTexture.webgl_textureid.Image == undefined|| _texture.WebGLTexture.webgl_textureid.Image == null) {
+                    if(WebGL_IsTextureImageValid(_texture.WebGLTexture.webgl_textureid)) {
                         yyError("vertex_submit: trying to use an invalid texture");
 						return;
 					}
+					
                 }
                 pBuff = g_webGL.AllocVerts(_primType, _texture.WebGLTexture.webgl_textureid, m_FVF, vertexCount);
             }
