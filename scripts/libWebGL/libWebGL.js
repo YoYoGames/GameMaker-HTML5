@@ -1426,7 +1426,7 @@ function yyWebGL(_canvas, _options) {
             bits |= gl.STENCIL_BUFFER_BIT;
         }
         _clearCol = (_clearCol !== undefined) ? _clearCol : 0;
-        _clearDepth = (_clearDepth !== undefined) ? _clearDepth : 0;
+        _clearDepth = (_clearDepth !== undefined) ? _clearDepth : 1.0;
         _clearStencil = (_clearStencil !== undefined) ? _clearStencil : 0;
         m_CommandBuilder.ClearScreen(bits, _clearCol, _clearDepth, _clearStencil);
     };
