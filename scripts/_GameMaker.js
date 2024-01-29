@@ -158,31 +158,7 @@ function yyUnhandledExceptionHandler( event )
 		game_end(-1);
 	} // end if
 	else {
-        // Create a regular expression pattern to split error stack string.
-        const regexPattern = new RegExp("\n\\s*?at"); 
-
         let error = event.error; 
-        const message = error.message; 
-
-        // Split the error stack string into an array of call stack entries and remove leading/trailing spaces.
-        // The first entry, usually a message or irrelevant info, is omitted.
-        const stacktrace = error.stack 
-        .split(regexPattern) 
-        .map(entry => entry.trim()) 
-        .slice(1); 
-
-        // Attempt to parse the first call stack entry to identify the script where the error originated.
-        // The script name is assumed to be the substring before the first space in the entry.
-        let script = ""; 
-        if (stacktrace.length > 0) { 
-            const firstEntry = stacktrace[0]; 
-            const firstSpaceIndex = firstEntry.indexOf(' '); 
-            if (firstSpaceIndex !== -1) { 
-                script = firstEntry.substring(0, firstSpaceIndex); 
-            } else { 
-                script = firstEntry; 
-            } 
-        } 
 
         // Construct a GML struct to encapsulate the error details.
         let errorStruct = { } 
@@ -190,9 +166,8 @@ function yyUnhandledExceptionHandler( event )
         errorStruct.__yyIsGMLObject = true; 
 
         // Add error details to the struct with a "gml" prefix for each member.
-        errorStruct.gmlmessage = message; 
-        errorStruct.gmlstacktrace = stacktrace; 
-        errorStruct.gmlscript = script; 
+        errorStruct.gmlmessage = error.message;
+        errorStruct.gmlstacktrace = error.stack;
 
         // Pass the error struct to the custom error handler
         var ret = g_GMLUnhandledExceptionHandler( undefined, undefined, errorStruct ); 
