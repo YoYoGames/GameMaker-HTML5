@@ -305,6 +305,14 @@ function InitD3DFunctions() {
     // rest of the matrix functions are already assigned
 
     // GPU functions
+    compile_if_used(gpu_set_stencil_enable = WebGL_gpu_set_stencil_enable);
+    compile_if_used(gpu_set_stencil_func = WebGL_gpu_set_stencil_func);
+    compile_if_used(gpu_set_stencil_ref = WebGL_gpu_set_stencil_ref);
+    compile_if_used(gpu_set_stencil_read_mask = WebGL_gpu_set_stencil_read_mask);
+    compile_if_used(gpu_set_stencil_write_mask = WebGL_gpu_set_stencil_write_mask);
+    compile_if_used(gpu_set_stencil_fail = WebGL_gpu_set_stencil_fail);
+    compile_if_used(gpu_set_stencil_depth_fail = WebGL_gpu_set_stencil_depth_fail);
+    compile_if_used(gpu_set_stencil_pass = WebGL_gpu_set_stencil_pass);
     compile_if_used(gpu_set_blendmode = WebGL_gpu_set_blendmode);
     compile_if_used(gpu_set_blendenable = WebGL_gpu_set_blendenable);
     compile_if_used(gpu_set_ztestenable = WebGL_gpu_set_ztestenable);
@@ -342,6 +350,14 @@ function InitD3DFunctions() {
     compile_if_used(gpu_set_tex_mip_enable = WebGL_gpu_set_tex_mip_enable);
     compile_if_used(gpu_set_tex_mip_enable_ext = WebGL_gpu_set_tex_mip_enable_ext);
 
+    compile_if_used(gpu_get_stencil_enable = WebGL_gpu_get_stencil_enable);
+    compile_if_used(gpu_get_stencil_func = WebGL_gpu_get_stencil_func);
+    compile_if_used(gpu_get_stencil_ref = WebGL_gpu_get_stencil_ref);
+    compile_if_used(gpu_get_stencil_read_mask = WebGL_gpu_get_stencil_read_mask);
+    compile_if_used(gpu_get_stencil_write_mask = WebGL_gpu_get_stencil_write_mask);
+    compile_if_used(gpu_get_stencil_fail = WebGL_gpu_get_stencil_fail);
+    compile_if_used(gpu_get_stencil_depth_fail = WebGL_gpu_get_stencil_depth_fail);
+    compile_if_used(gpu_get_stencil_pass = WebGL_gpu_get_stencil_pass);
     compile_if_used(gpu_get_blendenable = WebGL_gpu_get_blendenable);
     gpu_get_ztestenable = WebGL_gpu_get_ztestenable;
     compile_if_used(gpu_get_depth = WebGL_gpu_get_depth);

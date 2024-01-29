@@ -416,11 +416,13 @@ function yyCommandBuilder(_interpolatePixels) {
     ///           </summary>
     // #############################################################################################
     /** @this {yyCommandBuilder} */
-    this.ClearScreen = function (_mask,_col) {
+    this.ClearScreen = function (_mask, _clearCol, _clearDepth, _clearStencil) {
 
 	    m_commandList.push(CMD_CLEARSCREEN);
 	    m_commandList.push(_mask);
-	    m_commandList.push(Math.floor(_col));
+	    m_commandList.push(Math.floor(_clearCol));
+	    m_commandList.push(_clearDepth);
+	    m_commandList.push(_clearStencil);
     };
 
     // #############################################################################################
@@ -1324,14 +1326,18 @@ function yyCommandBuilder(_interpolatePixels) {
                     {
                         var depthMask = gl.getParameter(gl.DEPTH_WRITEMASK);
                         var colorMask = gl.getParameter(gl.COLOR_WRITEMASK);
+                        var stencilMask = gl.getParameter(gl.STENCIL_WRITEMASK);
                         gl.depthMask(true);
                         gl.colorMask(true, true, true, true);
-                        col = m_commandList[i + 2];
+                        var col = m_commandList[i + 2];
                         gl.clearColor((col & 0xff) / 255.0, ((col >> 8) & 0xff) / 255.0, ((col >> 16) & 0xff) / 255.0, ((col >>24) & 0xff) / 255.0);
+                        gl.clearDepth(m_commandList[i + 3]);
+                        gl.clearStencil(m_commandList[i + 4]);
                         gl.clear(m_commandList[i + 1]);
                         gl.depthMask(depthMask);
                         gl.colorMask(colorMask[0], colorMask[1], colorMask[2], colorMask[3]);
-                        i += 3;
+                        gl.stencilMask(stencilMask);
+                        i += 5;
                         break;
                     }
                     

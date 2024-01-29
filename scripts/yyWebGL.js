@@ -183,7 +183,9 @@ function InitWebGLFunctions() {
     draw_line_width_color = WebGL_draw_line_width_color_RELEASE;
     compile_if_used(draw_line_width_colour = WebGL_draw_line_width_color_RELEASE);
     draw_clear_alpha = WebGL_draw_clear_alpha_RELEASE; // used by yyEffects
-    draw_set_color = WebGL_draw_set_color_RELEASE;
+    compile_if_used(draw_clear_depth = WebGL_draw_clear_depth_RELEASE);
+    compile_if_used(draw_clear_stencil = WebGL_draw_clear_stencil_RELEASE);
+    compile_if_used(draw_clear_ext = WebGL_draw_clear_ext_RELEASE);
     compile_if_used(draw_set_colour = WebGL_draw_set_color_RELEASE);
     draw_set_alpha = WebGL_draw_set_alpha_RELEASE; // used for vkeys
     draw_set_blend_mode_ext = WEBGL_draw_set_blend_mode_ext_RELEASE;
@@ -732,6 +734,79 @@ function WebGL_draw_clear_alpha_RELEASE(_col, _alpha) {
     if (_alpha < 0)  _alpha = 0;
     var col = ((_alpha * 255.0) << 24) | ConvertGMColour(yyGetInt32(_col));
     g_webGL.ClearScreen(true, true, false, col);	
+}
+
+function WebGL_draw_clear_depth_RELEASE(_depth) {
+    g_webGL.ClearScreen(
+        false,
+        true,
+        false,
+        undefined,
+        yyGetReal(_depth),
+        undefined
+    );
+}
+
+function WebGL_draw_clear_stencil_RELEASE(_stencil) {
+    g_webGL.ClearScreen(
+        false,
+        false,
+        true,
+        undefined,
+        undefined,
+        yyGetInt32(_stencil),
+    );
+}
+
+function WebGL_draw_clear_ext_RELEASE(_color, _alpha, _depth, _stencil) {
+    var hasCol, hasAlpha, hasDepth, hasStencil;
+	hasCol = hasAlpha = hasDepth = hasStencil = false;
+    var col, alpha, depth, stencil;
+
+    if (_color !== undefined)
+    {
+        col = ConvertGMColour(yyGetInt32(_col));
+        hasCol = true;
+    }
+
+    if (_alpha !== undefined)
+    {
+        alpha = yyGetReal(_alpha);
+        hasAlpha = true;
+    }
+
+    if (_depth !== undefined)
+    {
+        depth = yyGetReal(_depth);
+        hasDepth = true;
+    }
+
+    if (_stencil !== undefined)
+    {
+        stencil = yyGetInt32(_stencil);
+        hasStencil = true;
+    }
+
+    if (hasCol && !hasAlpha)
+    {
+        yyError("draw_clear_ext() - argument alpha must be specified if argument col is not undefined");
+        return;
+    }
+
+    if (hasAlpha && !hasCol)
+    {
+        yyError("draw_clear_ext() - argument col must be specified if argument alpha is not undefined");
+        return;
+    }
+
+    g_webGL.ClearScreen(
+        hasCol,
+        hasDepth,
+        hasStencil,
+        ((alpha * 255.0) << 24) | col,
+        depth,
+        stencil,
+    );
 }
 
 // #############################################################################################

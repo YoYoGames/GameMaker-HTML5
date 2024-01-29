@@ -89,6 +89,10 @@ function surface_get_depth_disable()
     return g_createsurfacedepthbuffers ? false : true;
 }
 
+function surface_has_depth(_id)
+{
+    return true;
+}
 
 // #############################################################################################
 /// Function:<summary>

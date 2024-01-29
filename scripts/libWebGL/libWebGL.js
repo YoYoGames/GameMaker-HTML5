@@ -1405,9 +1405,15 @@ function yyWebGL(_canvas, _options) {
     /// Function:<summary>
     ///				Clear the region in the indicated color
     ///          </summary>
+    /// In:		<param name="_colour">Whether to clear colour (true/false).</param>
+    /// 		<param name="_depth">Whether to clear the depth buffer (true/false).</param>
+    /// 		<param name="_stencil">Whether to clear the stencil buffer (true/false).</param>
+    /// 		<param name="_clearCol">The clear color. Can be undefined if _colour is false.</param>
+    /// 		<param name="_clearDepth">The clear depth value. Can be undefined if _depth is false.</param>
+    /// 		<param name="_clearStencil">The clear stencil value. Can be undefined if _stencil is false.</param>
     // #############################################################################################
     /** @this {yyWebGL} */
-    this.ClearScreen = function (_colour, _depth, _stencil, _col) {
+    this.ClearScreen = function (_colour, _depth, _stencil, _clearCol, _clearDepth, _clearStencil) {
     
         var bits = 0;
         if (_colour) {
@@ -1419,7 +1425,10 @@ function yyWebGL(_canvas, _options) {
         if (_stencil) {
             bits |= gl.STENCIL_BUFFER_BIT;
         }
-	    m_CommandBuilder.ClearScreen(bits, _col);
+        _clearCol = (_clearCol !== undefined) ? _clearCol : 0;
+        _clearDepth = (_clearDepth !== undefined) ? _clearDepth : 0;
+        _clearStencil = (_clearStencil !== undefined) ? _clearStencil : 0;
+        m_CommandBuilder.ClearScreen(bits, _clearCol, _clearDepth, _clearStencil);
     };
 
     // #############################################################################################
