@@ -5055,7 +5055,11 @@ function WebGL_IsTextureImageValid(_tex)
 	}
 	
 	if(_tex.Image instanceof HTMLImageElement
-		|| _tex.Image instanceof Uint8Array)
+		|| _tex.Image instanceof HTMLCanvasElement
+		|| _tex.Image instanceof HTMLVideoElement
+		|| _tex.Image instanceof ImageData
+		|| _tex.Image instanceof Uint8Array
+	)
 	{
 		return true;
 	}
