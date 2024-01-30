@@ -5046,6 +5046,26 @@ function WebGL_IsTextureValid(_tex, _mipoptions)
     }
 }
 
+function WebGL_IsTextureImageValid(_tex)
+{
+	// check if bound image is a valid object that a texture can be created from
+	if(_tex.Image == undefined || _tex.Image == null)
+	{
+		return false;
+	}
+	
+	if(_tex.Image instanceof HTMLImageElement
+		|| _tex.Image instanceof HTMLCanvasElement
+		|| _tex.Image instanceof HTMLVideoElement
+		|| _tex.Image instanceof ImageData
+		|| _tex.Image instanceof Uint8Array
+	)
+	{
+		return true;
+	}
+	return false;
+}
+
 
 
 
