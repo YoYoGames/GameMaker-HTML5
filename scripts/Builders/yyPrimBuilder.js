@@ -133,7 +133,7 @@ function WebGL_draw_primitive_begin_texture_RELEASE(_kind, _tex) {
     // If they've managed to find a path through the code without this texture being bound...
     if (g_PrimTexture && !g_PrimTexture.webgl_textureid) {
         WebGL_BindTexture({texture: g_PrimTexture});
-		if(WebGL_IsTextureImageValid(g_PrimTexture.webgl_textureid)) {
+		if(!WebGL_IsTextureImageValid(g_PrimTexture.webgl_textureid)) {
             yyError("draw_primitive_begin_texture: trying to use an invalid texture");
 			return;
 		}
