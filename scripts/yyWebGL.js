@@ -765,7 +765,7 @@ function WebGL_draw_clear_ext_RELEASE(_color, _alpha, _depth, _stencil) {
 
     if (_color !== undefined)
     {
-        col = ConvertGMColour(yyGetInt32(_col));
+        col = ConvertGMColour(yyGetInt32(_color));
         hasCol = true;
     }
 
@@ -3543,6 +3543,7 @@ function initTextureFramebuffer(_pTPE, _w,_h, _format) {
     
     _pTPE.FrameBuffer = frameBufferData.FrameBuffer;
     _pTPE.texture.webgl_textureid = frameBufferData.Texture;	
+    _pTPE.textureDepth.webgl_textureid = frameBufferData.textureDepth;	
 }
 
 
@@ -3577,12 +3578,16 @@ function WebGL_surface_create_RELEASE(_w, _h, _format, _forceid) {
     var pTPE = new yyTPageEntry();
    
     pTPE.texture = document.createElement("surf");		// we need an image/surface to attach to, so make a small one
-    pTPE.m_Width = _w;
-    pTPE.m_Height = _h;
     pTPE.texture.width = _w;
     pTPE.texture.height = _h;
     pTPE.texture.m_Width = _w;
     pTPE.texture.m_Height = _h;    
+
+    pTPE.textureDepth = document.createElement("surf");
+    pTPE.textureDepth.width = _w;
+    pTPE.textureDepth.height = _h;
+    pTPE.textureDepth.m_Width = _w;
+    pTPE.textureDepth.m_Height = _h;
 
     if( _forceid != undefined )
     {
@@ -3600,6 +3605,8 @@ function WebGL_surface_create_RELEASE(_w, _h, _format, _forceid) {
     pTPE.y = 0;
     pTPE.w = _w;
     pTPE.h = _h;
+    pTPE.m_Width = _w;
+    pTPE.m_Height = _h;
     pTPE.XOffset = 0;
     pTPE.YOffset = 0;
     pTPE.CropWidth = pTPE.w;
@@ -3619,6 +3626,7 @@ function WebGL_surface_create_RELEASE(_w, _h, _format, _forceid) {
 	}
     pTPE.m_pTPE = pTPE;				// Canvas compatability
     pTPE.texture.complete = true;
+    pTPE.textureDepth.complete = true;
 
     // Add cache details	
     pTPE.cache = [];                // clear colour cache
@@ -3662,6 +3670,7 @@ function WebGL_surface_free_RELEASE(_id) {
         
         // Make sure we aren't holding onto an invalid texture id
 	    pSurf.texture.webgl_textureid = undefined;
+	    pSurf.textureDepth.webgl_textureid = undefined;
 	    
 	    g_Surfaces.DeleteIndex(_id);
     } else if (!pSurf) {

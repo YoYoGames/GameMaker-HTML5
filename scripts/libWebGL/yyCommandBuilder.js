@@ -431,10 +431,10 @@ function yyCommandBuilder(_interpolatePixels) {
     ///           </summary>
     // #############################################################################################
     /** @this {yyCommandBuilder} */
-    this.SetRenderTarget = function (_Target) {
-
+    this.SetRenderTarget = function (_color, _depth) {
 	    m_commandList.push(CMD_SETRENDER_TARGET);
-	    m_commandList.push(_Target);
+	    m_commandList.push(_color);
+	    m_commandList.push(_depth);
     };
 
 
@@ -1460,8 +1460,12 @@ function yyCommandBuilder(_interpolatePixels) {
                 // Set the current render target    
                 case CMD_SETRENDER_TARGET:
                     {
-                        gl.bindFramebuffer(gl.FRAMEBUFFER, m_commandList[i + 1]);
-                        i += 2;
+                        var framebuffer = m_commandList[i + 1];
+                        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+                        if (framebuffer != null) {
+                            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, m_commandList[i + 2], 0);
+                        }
+                        i += 3;
                         break;
                     }
                 
