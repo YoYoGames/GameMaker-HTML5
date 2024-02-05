@@ -4939,6 +4939,8 @@ function SetupProprietaryShaders() {
         for (var i = 0; i < g_pGMFile.Shaders.length; i++)
         {
             var shader = g_pGMFile.Shaders[i];
+            if (shader === undefined) continue;
+            
             g_shaderPrograms[i] = g_webGL.AddShader(shader.Vertex, shader.Fragment, shader.Attributes);
 
             if (g_shaderPrograms[i].program == null)
