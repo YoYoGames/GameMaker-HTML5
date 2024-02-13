@@ -787,6 +787,13 @@ function GameMaker_Init()
 	canvas.addEventListener("click", function (e) {
 	    window.focus();
 	});
+
+    /* ...this helps with eliminating stutter on mobile */
+    document.addEventListener('touchstart', e => {
+        e.preventDefault();
+    }, {
+        passive: false
+    });
     
     g_FrameStartTime = Date.now();
 	window.requestAnimFrame(animate);
