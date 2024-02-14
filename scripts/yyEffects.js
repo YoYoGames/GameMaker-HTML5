@@ -73,7 +73,8 @@ function yyEffectParameterInfo()
 	this.type = 0;
 	this.elements = 0;
 	this.arraysize = 0;
-
+	this.convert = 0.0;
+	
 	this.defaults_data = null;
 	this.min_data = null;
 	this.max_data = null;
@@ -131,7 +132,6 @@ yyEffectInfo.prototype.SetupFromJson = function (_json)
 		var jsonParam = parameters[i];
 
 		var param = new yyEffectParameterInfo();
-		
 		
 		param.pName = jsonParam.name;
 		param.pDisplayName = jsonParam.displayname;
@@ -220,23 +220,10 @@ yyEffectInfo.prototype.SetupFromJson = function (_json)
 			}
 		}
 		
-		// for some reason getting "undefined" if accessing the "convertValueToTimeModulated" property directly
-		// on the jsonParam object even though the key and value are both present in the object. Accessing indirectly
-		// by getting the index of the key and using that to get the value seems to work for the time being though.
-		//if(jsonParam.convertValueToTimeModulated !== undefined)
-		//{
-			param.convertValueToTimeModulated = jsonParam.convertValueToTimeModulated;
-		//}
-		debug("cvt: " + param.convertValueToTimeModulated);
-		
-		/*
-		var idx = Object.keys(jsonParam).indexOf("convertValueToTimeModulated");
-		if(idx != -1)
+		if(jsonParam.convertValueToTimeModulated !== undefined)
 		{
-			var vals = Object.values(jsonParam);
-			param.convertValueToTimeModulated = vals[idx];
+			param.convert = jsonParam.convertValueToTimeModulated;
 		}
-		*/
 		
 		this.pParams.push(param);
 	}
@@ -537,7 +524,7 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 						case FAE_PARAM_FLOAT:
 						{
 							var cVar = pVar.slice();
-							if(pParam.convertValueToTimeModulated != undefined)
+							if(pParam.convert > 0.0)
 							{
 								for(var j = 0; j < cVar.length; j++)
 								{
@@ -549,7 +536,7 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 											s = -1.0;
 										}
 										var aVar = abs(cVar[j]);
-										var oneOver = pParam.convertValueToTimeModulated / aVar;
+										var oneOver = pParam.convert / aVar;
 										cVar[j] = ((fElapsedTime % oneOver) / oneOver) * s;
 									}
 								}
@@ -571,7 +558,7 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 					{
 						case FAE_PARAM_FLOAT:
 						{		
-							if(pParam.convertValueToTimeModulated != undefined && abs(pVar) > 0.0)
+							if(pParam.convert > 0.0 && abs(pVar) > 0.0)
 							{
 								var s = 1.0;
 								if(pVar < 0.0)
@@ -579,7 +566,7 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 									s = -1.0;
 								}
 								var aVar = abs(pVar);
-								var oneOver = pParam.convertValueToTimeModulated / aVar;
+								var oneOver = pParam.convert / aVar;
 								pVar = ((fElapsedTime % oneOver) / oneOver) * s;
 							}
 							shader_set_uniform_f(this.pParamUniformIDs[i], pVar);
