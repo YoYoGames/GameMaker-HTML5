@@ -528,7 +528,7 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 							{
 								for(var j = 0; j < cVar.length; j++)
 								{
-									if(abs(cVar[i]) > 0.0)
+									if(abs(cVar[j]) > 0.0)
 									{
 										var s = 1.0;
 										if(cVar[j] < 0.0)
