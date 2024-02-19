@@ -161,7 +161,7 @@ function yyUnhandledExceptionHandler( event )
         let error = event.error; 
 
         // Construct a GML struct to encapsulate the error details.
-        let errorStruct = { } 
+        let errorStruct = { };
         errorStruct.__type = "___struct___"; 
         errorStruct.__yyIsGMLObject = true; 
 
