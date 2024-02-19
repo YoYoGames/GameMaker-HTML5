@@ -1509,8 +1509,9 @@ function audio_sound_get_gain(_index)
     else {
         const asset = Audio_GetSound(_index);
 
-        if (asset !== undefined)
+        if (asset !== null) {
             return asset.gain.get();
+        }
     }
 
     return 0;
@@ -1643,8 +1644,7 @@ function audio_sound_get_track_position(_soundid)
 	{
 	    const sound_asset = Audio_GetSound(_soundid);
 
-	    if (sound_asset != undefined)
-	    {
+	    if (sound_asset !== null) {
 	        return sound_asset.trackPos;
 	    }
 	}
@@ -1678,8 +1678,7 @@ function audio_sound_set_track_position(_soundid, _time)
 	    {
 	        const sampleData = Audio_GetSound(_soundid);
 
-	        if (sampleData != undefined)
-	        {
+	        if (sampleData !== null) {
 	            sampleData.trackPos = _time;
 	        }
 	    }
