@@ -1181,32 +1181,22 @@ function getFreeVoice(_props)
 	return null;
 }
 
-function Audio_GetSound(soundid)
-{
-	var pSound = null;
-	if(soundid>=0 && soundid<=audio_sampledata.length )
-	{
-		pSound = audio_sampledata[soundid];
-	}
-	else
-	{
-		var bufferSoundId = soundid - BASE_BUFFER_SOUND_INDEX;
-		if( bufferSoundId >=0 && bufferSoundId < g_bufferSoundCount)
-		{
-				pSound = buffer_sampledata[bufferSoundId];
-		}
-		else
-		{
-			var queueSoundId = soundid - BASE_QUEUE_SOUND_INDEX;
+function Audio_GetSound(soundid) {
+    if (soundid >= 0 && soundid < audio_sampledata.length) {
+        return audio_sampledata[soundid];
+    }
 
-			if (queueSoundId >= 0 && queueSoundId < g_queueSoundCount)
-			{
-				pSound = queue_sampledata[queueSoundId];
-			}
-		}
-	}
+    const bufferSoundId = soundid - BASE_BUFFER_SOUND_INDEX;
+    if (bufferSoundId >= 0 && bufferSoundId < g_bufferSoundCount) {
+            return buffer_sampledata[bufferSoundId];
+    }
 
-	return pSound;
+    const queueSoundId = soundid - BASE_QUEUE_SOUND_INDEX;
+    if (queueSoundId >= 0 && queueSoundId < g_queueSoundCount) {
+        return queue_sampledata[queueSoundId];
+    }
+
+    return null;
 }
 
 function Audio_GetEmitterOrThrow(_emitterIndex) {
