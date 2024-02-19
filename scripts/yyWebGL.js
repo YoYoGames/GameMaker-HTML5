@@ -744,7 +744,7 @@ function WebGL_draw_clear_depth_RELEASE(_depth) {
         true,
         false,
         undefined,
-        yyGetReal(_depth),
+        yyGetReal(_depth) * 0.5 + 0.5,
         undefined
     );
 }
@@ -779,7 +779,7 @@ function WebGL_draw_clear_ext_RELEASE(_color, _alpha, _depth, _stencil) {
 
     if (_depth !== undefined)
     {
-        depth = yyGetReal(_depth);
+        depth = yyGetReal(_depth) * 0.5 + 0.5;
         hasDepth = true;
     }
 
