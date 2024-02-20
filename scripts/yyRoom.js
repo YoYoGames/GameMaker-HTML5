@@ -1645,8 +1645,8 @@ yyRoom.prototype.DrawLayerTilemapElement = function(_rect,_layer,_el,_xpos,_ypos
 		{
 			col1 = 0xfffefffe;
 			col2 = 0xfffeffff;
-			col3 = 0xffffffff;
-			col4 = 0xfffffffe;
+			col3 = 0xfffffffe;
+			col4 = 0xffffffff;
 		}
         
         if(pBack.TPEntry===null || pBack.TPEntry === undefined)
