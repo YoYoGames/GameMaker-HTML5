@@ -2634,7 +2634,9 @@ function WebGL_draw_rectangle_RELEASE(_x1, _y1, _x2, _y2, _outline)
     //pUVs = pBuff.UVs;
 
     var col = ~~((g_GlobalAlpha * 255.0) << 24) | (g_GlobalColour & 0xffffff);
-	col2 = col3 = col4 = col;
+	var col2 = col;
+	var col3 = col; 
+	var col4 = col;
     if (GR_MarkVertCorners) {
 	
         col  &= 0xfffefffe;			// clear out bits, ready for "marking"

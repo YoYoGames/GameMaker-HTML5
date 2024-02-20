@@ -1350,7 +1350,20 @@ function DrawTile(_rect,_back,_indexdata,_frame,_x,_y,_depth)
                 if(g_webGL)
                 {
 					var col = ~~((g_GlobalAlpha * 255.0) << 24) | (g_GlobalColour & 0xffffff);
-                 
+					var col2 = col;
+					var col3 = col;
+					var col4 = col;		
+					if(GR_MarkVertCorners)
+					{   
+						col  &= 0xfffefffe;			// clear out bits, ready for "marking"
+						col2 &= 0xfffefffe;			// 
+						col3 &= 0xfffefffe;			// 
+						col4 &= 0xfffefffe;			// 
+						col2 |= 0x00000001;			// Mark which corner we're in!
+						col3 |= 0x00010000;
+						col4 |= 0x00010001;
+					}
+					
                     var tiledata = _indexdata;
                     tiledata&= tiledatamask;
                     
@@ -1468,8 +1481,10 @@ function DrawTile(_rect,_back,_indexdata,_frame,_x,_y,_depth)
                     pCoords[v5 + 1] = bottomrightY;	
                     pCoords[v5 + 2] = depth;
                 	
-                    pColours[v0] = pColours[v1] = pColours[v2] = pColours[v3] = pColours[v4] = pColours[v5] = col;
-                    
+					pColours[v0] = col1;
+					pColours[v1] = pColours[v4] = col2;
+					pColours[v5] = col3;
+					pColours[v2] = pColours[v3] = col4;
                    
                     pUVs[v0 + 0] =  topleftU;
                     pUVs[v0 + 1] =  topleftV;	
@@ -1621,6 +1636,18 @@ yyRoom.prototype.DrawLayerTilemapElement = function(_rect,_layer,_el,_xpos,_ypos
         var tileincu =0,tileincv=0;
         var origu=0,origv=0;
         
+		
+		var col1 = 0xffffffff;
+		var col2 = 0xffffffff;
+		var col3 = 0xffffffff;
+		var col4 = 0xffffffff;		
+		if(GR_MarkVertCorners)
+		{
+			col1 = 0xfffefffe;
+			col2 = 0xfffeffff;
+			col3 = 0xffffffff;
+			col4 = 0xfffffffe
+		}
         
         if(pBack.TPEntry===null || pBack.TPEntry === undefined)
         {
@@ -1838,8 +1865,10 @@ yyRoom.prototype.DrawLayerTilemapElement = function(_rect,_layer,_el,_xpos,_ypos
 	                        pCoords[v5 + 1] = bottomrightY;	
 	                        pCoords[v5 + 2] = depth;
                         	
-                            pColours[v0] = pColours[v1] = pColours[v2] = pColours[v3] = pColours[v4] = pColours[v5] = 0xffffffff;
-                            
+							pColours[v0] = col1;
+							pColours[v1] = pColours[v4] = col2;
+							pColours[v5] = col3;
+							pColours[v2] = pColours[v3] = col4;
                            
                             pUVs[v0 + 0] =  topleftU;
 	                        pUVs[v0 + 1] =  topleftV;	

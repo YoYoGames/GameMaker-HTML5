@@ -2214,8 +2214,9 @@ yyPhysicsWorld.prototype.DrawParticles_WebGL = function (_typeMask, _category, _
 		    pCoords[v0 + 2] = pCoords[v1 + 2] = pCoords[v2 + 2] = pCoords[v3 + 2] = pCoords[v4 + 2] = pCoords[v5 + 2] = GR_Depth;
             
             var col = (colours[n].b & 0xff) | ((colours[n].g << 8) & 0xff00) | ((colours[n].r << 16) & 0xff0000) | ((colours[n].a << 24) & 0xff000000);
-			
-			col2 = col3 = col4 = col;
+			var col2 = col;
+			var col3 = col;
+			var col4 = col;
 			if (GR_MarkVertCorners) {
 			
 				col  &= 0xfffefffe;			// clear out bits, ready for "marking"
@@ -2298,8 +2299,9 @@ yyPhysicsWorld.prototype.DrawParticlesExt_WebGL = function (_typeMask, _category
     
     // _col, _alpha
     var col = _col | (((_alpha * 255) & 0xff) << 24);    
-    
-	col2 = col3 = col4 = col;
+    var col2 = col;
+	var col3 = col;
+	var col4 = col;
 	if (GR_MarkVertCorners) {
 	
 		col  &= 0xfffefffe;			// clear out bits, ready for "marking"
