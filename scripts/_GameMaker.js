@@ -2291,7 +2291,7 @@ function GameMaker_Tick()
         newfps = 0;
         lastfpstime = g_CurrentTime;
 	}
-
+    newfps++;
     // schedule next frame:
     // this might be best done after if(!Run_Paused) block,
     // but then an exception would halt the game loop.
@@ -2301,13 +2301,19 @@ function GameMaker_Tick()
     if (delay < 0) {
         delay = 0;
     }
-    g_FrameStartTime +=delay;
+    
     if (delay <= 4) {
+        g_FrameStartTime +=delay;
         if (window.yyRequestAnimationFrame) {
             window.yyRequestAnimationFrame(animate);
-        } 
-    } 
-    newfps++;
+        } else{
+           
+        }
+    } else{
+        g_FrameStartTime -=delay;
+        window.postMessage("yyRequestAnimationFrame", "*");
+    }
+    
 
     if (!Run_Paused)
     {
