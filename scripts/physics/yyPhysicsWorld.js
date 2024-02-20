@@ -2214,8 +2214,24 @@ yyPhysicsWorld.prototype.DrawParticles_WebGL = function (_typeMask, _category, _
 		    pCoords[v0 + 2] = pCoords[v1 + 2] = pCoords[v2 + 2] = pCoords[v3 + 2] = pCoords[v4 + 2] = pCoords[v5 + 2] = GR_Depth;
             
             var col = (colours[n].b & 0xff) | ((colours[n].g << 8) & 0xff00) | ((colours[n].r << 16) & 0xff0000) | ((colours[n].a << 24) & 0xff000000);
-            pColours[v0] = pColours[v1] = pColours[v2] = pColours[v3] = pColours[v4] = pColours[v5] = col;
-            
+			
+			col2 = col3 = col4 = col;
+			if (GR_MarkVertCorners) {
+			
+				col  &= 0xfffefffe;			// clear out bits, ready for "marking"
+				col2 &= 0xfffefffe;			// 
+				col3 &= 0xfffefffe;			// 
+				col4 &= 0xfffefffe;			// 
+				col2 |= 0x00000001;			// Mark which corner we're in!
+				col3 |= 0x00010000;
+				col4 |= 0x00010001;
+			}
+			
+            pColours[v0] = pColours[v5] = col;
+			pColours[v1] = col2;
+			pColours[v2] = pColours[v3] = col3;
+			pColours[v4] = col4;
+			
             pUVs[v0 + 0] = pUVs[v4 + 0] = pUVs[v5 + 0] = pTPE.x / pTPE.texture.width;
             pUVs[v0 + 1] = pUVs[v1 + 1] = pUVs[v5 + 1] = pTPE.y / pTPE.texture.height;
             pUVs[v1 + 0] = pUVs[v2 + 0] = pUVs[v3 + 0] = (pTPE.x + pTPE.w) / pTPE.texture.width;
@@ -2283,6 +2299,18 @@ yyPhysicsWorld.prototype.DrawParticlesExt_WebGL = function (_typeMask, _category
     // _col, _alpha
     var col = _col | (((_alpha * 255) & 0xff) << 24);    
     
+	col2 = col3 = col4 = col;
+	if (GR_MarkVertCorners) {
+	
+		col  &= 0xfffefffe;			// clear out bits, ready for "marking"
+		col2 &= 0xfffefffe;			// 
+		col3 &= 0xfffefffe;			// 
+		col4 &= 0xfffefffe;			// 
+		col2 |= 0x00000001;			// Mark which corner we're in!
+		col3 |= 0x00010000;
+		col4 |= 0x00010001;
+	}
+			
     var x1 =  -_xscale * (_spr.xOrigin-pTPE.XOffset);
 	var y1 =  -_yscale * (_spr.yOrigin-pTPE.YOffset);
 	var x2 = x1 + (_xscale*pTPE.CropWidth);
@@ -2304,9 +2332,12 @@ yyPhysicsWorld.prototype.DrawParticlesExt_WebGL = function (_typeMask, _category
 	    	    pCoords[v1 + 0] = pCoords[v2 + 0] = pCoords[v3 + 0] = x + x2;
 	    	    pCoords[v2 + 1] = pCoords[v3 + 1] = pCoords[v4 + 1] = y + y2;
 	    	    pCoords[v0 + 2] = pCoords[v1 + 2] = pCoords[v2 + 2] = pCoords[v3 + 2] = pCoords[v4 + 2] = pCoords[v5 + 2] = GR_Depth;
-                            
-                pColours[v0] = pColours[v1] = pColours[v2] = pColours[v3] = pColours[v4] = pColours[v5] = col;
-                
+                         
+				pColours[v0] = pColours[v5] = col;
+				pColours[v1] = col2;
+				pColours[v2] = pColours[v3] = col3;
+				pColours[v4] = col4;
+			
                 pUVs[v0 + 0] = pUVs[v4 + 0] = pUVs[v5 + 0] = pTPE.x / pTPE.texture.width;
                 pUVs[v0 + 1] = pUVs[v1 + 1] = pUVs[v5 + 1] = pTPE.y / pTPE.texture.height;
                 pUVs[v1 + 0] = pUVs[v2 + 0] = pUVs[v3 + 0] = (pTPE.x + pTPE.w) / pTPE.texture.width;
