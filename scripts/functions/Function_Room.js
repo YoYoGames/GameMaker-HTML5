@@ -160,10 +160,10 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                 {
                     // Shared properties
                     var newLayer = {};
+                    var eLayerElementType = 0;
                     newLayer.__yyIsGMLObject = true;
                     variable_struct_set(newLayer, "name", sourceLayer.pName ? sourceLayer.pName : "");
                     variable_struct_set(newLayer, "id", sourceLayer.id ? sourceLayer.id : 0);
-                    variable_struct_set(newLayer, "type", sourceLayer.type ? sourceLayer.type : 0);
                     variable_struct_set(newLayer, "depth", sourceLayer.depth ? sourceLayer.depth : 0);
                     variable_struct_set(newLayer, "xoffset", sourceLayer.x ? sourceLayer.x : 0);
                     variable_struct_set(newLayer, "yoffset", sourceLayer.y ? sourceLayer.y : 0);
@@ -213,6 +213,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                 variable_struct_set( element, "image_speed", sourceLayer.bimage_speed ?  sourceLayer.bimage_speed : 1);
                                 variable_struct_set( element, "image_index", sourceLayer.bimage_index ? sourceLayer.bimage_index : 0 );
                                 variable_struct_set( element, "speed_type", sourceLayer.playbackspeedtype ? sourceLayer.playbackspeedtype : 0 );
+                                eLayerElementType = eLayerElementType_Background;
                                 break;
 
                             case YYLayerType_Instance:
@@ -224,6 +225,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                     variable_struct_set( element, "inst_id", sourceLayer.iinstIDs[ii] );
                                     elements[ii] = element;
                                 } // end for
+                                eLayerElementType = eLayerElementType_Instance;
                                 break;
 
                             case YYLayerType_Tile:
@@ -238,6 +240,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                 variable_struct_set( element, "background_index", sourceLayer.tIndex ? sourceLayer.tIndex : 0 );
                                 if (_tilemap_data)
                                     variable_struct_set( element, "tiles", sourceLayer.ttiles ? expandTiles(sourceLayer.ttiles) : [] );
+                                eLayerElementType = eLayerElementType_Tilemap;
                                 break;
 
                             case YYLayerType_Asset:
@@ -324,6 +327,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                     variable_struct_set( element, "angle", srcParticle.sRotation);
                                     elements.push(element);
                                 } // end for
+                                eLayerElementType = eLayerElementType_Sprite;
                                 break;
                             case YYLayerType_Effect:
                                 //newLayer.effectInfo = sourceLayer.m_pInitialEffectInfo;
@@ -341,8 +345,10 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                 //    effectParams[pp] = param;
                                 //} // end for
                                 //variable_struct_set( newLayer, "effectInfo", effectInfo);
+                                eLayerElementType = eLayerElementType_Effect;
                                 break;
                         } // end switch
+                        variable_struct_set(newLayer, "type", eLayerElementType);
                         variable_struct_set(newLayer, "elements", elements);
                     } // end if
                 } // end if
