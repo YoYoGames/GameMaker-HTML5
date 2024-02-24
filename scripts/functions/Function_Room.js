@@ -133,11 +133,16 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                     inst.__yyIsGMLObject = true;
                     variable_struct_set(inst, "x", sourceInstance.x ? sourceInstance.x : 0);
                     variable_struct_set(inst, "y", sourceInstance.y ? sourceInstance.y : 0);
-                    variable_struct_set(inst, "object_index", pObj.Name);
+                    
+			//broken as object_index cannot be set on objects as per g_instance_names
+			//variable_struct_set(inst, "object_index", pObj.Name);
+			
+			inst.object_index = pObj.Name;//unsafe fix
+			
                     variable_struct_set(inst, "id", sourceInstance.id);
                     variable_struct_set(inst, "angle", sourceInstance.angle ? sourceInstance.angle : 0);
-                    variable_struct_set(inst, "scaleX", sourceInstance.scaleX ? sourceInstance.scaleX : 1);
-                    variable_struct_set(inst, "scaleY", sourceInstance.scaleY ? sourceInstance.scaleY : 1);
+                    variable_struct_set(inst, "xscale", sourceInstance.scaleX ? sourceInstance.scaleX : 1);
+                    variable_struct_set(inst, "yscale", sourceInstance.scaleY ? sourceInstance.scaleY : 1);
                     variable_struct_set(inst, "image_speed", sourceInstance.imageSpeed ? sourceInstance.imageSpeed : 1);
                     variable_struct_set(inst, "image_index", sourceInstance.imageIndex ? sourceInstance.imageIndex : 0);
                     variable_struct_set(inst, "colour", sourceInstance.image_blend ? sourceInstance.image_blend : 0x00ffffff);
