@@ -128,7 +128,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                 var sourceInstance = pStorage.pInstances[i];
                 if (sourceInstance) 
                 {
-                    var pObj = g_pObjectManager.Get(yyGetInt32(_ind));
+                    var pObj = g_pObjectManager.Get(yyGetInt32(sourceInstance.index));
                     var inst = {};
                     inst.__yyIsGMLObject = true;
                     variable_struct_set(inst, "x", sourceInstance.x ? sourceInstance.x : 0);
