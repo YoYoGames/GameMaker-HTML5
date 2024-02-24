@@ -2273,7 +2273,7 @@ function variable_instance_set(_id, _var, _val) {
 			if (pInst.__yyIsGMLObject || (!pInst.marked && pInst.active)) {
                 var settings = undefined;
                 if ((typeof g_var2obf !== "undefined") && (g_var2obf[_var] != undefined)) {
-                    ret = g_instance_names[g_var2obf[_var]]; //doesn't do anything with ret - not sure what this is supposed to be doing but looks wrong
+                    settings = g_instance_names[g_var2obf[_var]];
                 } else {
                     settings = g_instance_names[ _var ];
                 } // end else
