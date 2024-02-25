@@ -160,7 +160,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                 {
                     // Shared properties
                     var newLayer = {};
-                    var eLayerElementType = 0;
+                    var eLayerElementType = eLayerElementType_Undefined;
                     newLayer.__yyIsGMLObject = true;
                     variable_struct_set(newLayer, "name", sourceLayer.pName ? sourceLayer.pName : "");
                     variable_struct_set(newLayer, "id", sourceLayer.id ? sourceLayer.id : 0);
