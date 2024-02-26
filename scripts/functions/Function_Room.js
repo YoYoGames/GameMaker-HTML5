@@ -1,4 +1,4 @@
-﻿
+﻿﻿
 // **********************************************************************************************************************
 // 
 // Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
@@ -128,16 +128,23 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                 var sourceInstance = pStorage.pInstances[i];
                 if (sourceInstance) 
                 {
-                    var pObj = g_pObjectManager.Get(yyGetInt32(_ind));
+                    var pObj = g_pObjectManager.Get(yyGetInt32(sourceInstance.index));
                     var inst = {};
                     inst.__yyIsGMLObject = true;
                     variable_struct_set(inst, "x", sourceInstance.x ? sourceInstance.x : 0);
                     variable_struct_set(inst, "y", sourceInstance.y ? sourceInstance.y : 0);
-                    variable_struct_set(inst, "object_index", pObj.Name);
-                    variable_struct_set(inst, "id", sourceInstance.id);
+                    
+			//broken as object_index/id cannot be set on objects as per g_instance_names
+			//variable_struct_set(inst, "object_index", pObj.Name);
+			//variable_struct_set(inst, "id", sourceInstance.id);
+
+            //unsafe fixes
+			inst.object_index = pObj.Name;
+            inst.id = sourceInstance.id;
+
                     variable_struct_set(inst, "angle", sourceInstance.angle ? sourceInstance.angle : 0);
-                    variable_struct_set(inst, "scaleX", sourceInstance.scaleX ? sourceInstance.scaleX : 1);
-                    variable_struct_set(inst, "scaleY", sourceInstance.scaleY ? sourceInstance.scaleY : 1);
+                    variable_struct_set(inst, "xscale", sourceInstance.scaleX ? sourceInstance.scaleX : 1);
+                    variable_struct_set(inst, "yscale", sourceInstance.scaleY ? sourceInstance.scaleY : 1);
                     variable_struct_set(inst, "image_speed", sourceInstance.imageSpeed ? sourceInstance.imageSpeed : 1);
                     variable_struct_set(inst, "image_index", sourceInstance.imageIndex ? sourceInstance.imageIndex : 0);
                     variable_struct_set(inst, "colour", sourceInstance.image_blend ? sourceInstance.image_blend : 0x00ffffff);
@@ -160,10 +167,10 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                 {
                     // Shared properties
                     var newLayer = {};
+                    var eLayerElementType = eLayerElementType_Undefined;
                     newLayer.__yyIsGMLObject = true;
                     variable_struct_set(newLayer, "name", sourceLayer.pName ? sourceLayer.pName : "");
                     variable_struct_set(newLayer, "id", sourceLayer.id ? sourceLayer.id : 0);
-                    variable_struct_set(newLayer, "type", sourceLayer.type ? sourceLayer.type : 0);
                     variable_struct_set(newLayer, "depth", sourceLayer.depth ? sourceLayer.depth : 0);
                     variable_struct_set(newLayer, "xoffset", sourceLayer.x ? sourceLayer.x : 0);
                     variable_struct_set(newLayer, "yoffset", sourceLayer.y ? sourceLayer.y : 0);
@@ -213,6 +220,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                 variable_struct_set( element, "image_speed", sourceLayer.bimage_speed ?  sourceLayer.bimage_speed : 1);
                                 variable_struct_set( element, "image_index", sourceLayer.bimage_index ? sourceLayer.bimage_index : 0 );
                                 variable_struct_set( element, "speed_type", sourceLayer.playbackspeedtype ? sourceLayer.playbackspeedtype : 0 );
+                                eLayerElementType = eLayerElementType_Background;
                                 break;
 
                             case YYLayerType_Instance:
@@ -224,6 +232,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                     variable_struct_set( element, "inst_id", sourceLayer.iinstIDs[ii] );
                                     elements[ii] = element;
                                 } // end for
+                                eLayerElementType = eLayerElementType_Instance;
                                 break;
 
                             case YYLayerType_Tile:
@@ -238,6 +247,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                 variable_struct_set( element, "background_index", sourceLayer.tIndex ? sourceLayer.tIndex : 0 );
                                 if (_tilemap_data)
                                     variable_struct_set( element, "tiles", sourceLayer.ttiles ? expandTiles(sourceLayer.ttiles) : [] );
+                                eLayerElementType = eLayerElementType_Tilemap;
                                 break;
 
                             case YYLayerType_Asset:
@@ -324,6 +334,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                     variable_struct_set( element, "angle", srcParticle.sRotation);
                                     elements.push(element);
                                 } // end for
+                                eLayerElementType = eLayerElementType_Sprite;
                                 break;
                             case YYLayerType_Effect:
                                 //newLayer.effectInfo = sourceLayer.m_pInitialEffectInfo;
@@ -341,8 +352,10 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                 //    effectParams[pp] = param;
                                 //} // end for
                                 //variable_struct_set( newLayer, "effectInfo", effectInfo);
+                                eLayerElementType = eLayerElementType_Effect;
                                 break;
                         } // end switch
+                        variable_struct_set(newLayer, "type", eLayerElementType);
                         variable_struct_set(newLayer, "elements", elements);
                     } // end if
                 } // end if
