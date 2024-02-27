@@ -73,7 +73,8 @@ function yyEffectParameterInfo()
 	this.type = 0;
 	this.elements = 0;
 	this.arraysize = 0;
-
+	this.convert = 0.0;
+	
 	this.defaults_data = null;
 	this.min_data = null;
 	this.max_data = null;
@@ -108,7 +109,7 @@ function yyEffectInfo(_pStorage)
 yyEffectInfo.prototype.SetupFromJson = function (_json) 
 {
 	var jsonObj = JSON.parse(_json);
-
+	
 	this.pName = jsonObj.name;
 	this.pDisplayName = jsonObj.displayname;
 	this.type = jsonObj.type == "filter" ? FAE_TYPE_FILTER : FAE_TYPE_EFFECT;
@@ -123,7 +124,7 @@ yyEffectInfo.prototype.SetupFromJson = function (_json)
 	}
 
 	var parameters = jsonObj.parameters;
-
+	
 	this.numParameters = parameters.length;
 	this.pParams = [];
 	for(var i = 0; i < parameters.length; i++)
@@ -218,8 +219,12 @@ yyEffectInfo.prototype.SetupFromJson = function (_json)
 				}
 			}
 		}
-
-
+		
+		if(jsonParam.convertValueToTimeModulated !== undefined)
+		{
+			param.convert = jsonParam.convertValueToTimeModulated;
+		}
+		
 		this.pParams.push(param);
 	}
 };
@@ -507,6 +512,7 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 		for (var i = 0; i < this.pEffectInfo.numParameters; i++)
 		{
 			var pParam = this.pEffectInfo.pParams[i]; //EffectParameterInfo
+			
 			var pVar = this[pParam.pName];
 			if (pVar != null)
 			{
@@ -517,7 +523,25 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 					{
 						case FAE_PARAM_FLOAT:
 						{
-							shader_set_uniform_f_array(this.pParamUniformIDs[i], pVar);
+							var cVar = pVar.slice();
+							if(pParam.convert > 0.0)
+							{
+								for(var j = 0; j < cVar.length; j++)
+								{
+									if(abs(cVar[j]) > 0.0)
+									{
+										var s = 1.0;
+										if(cVar[j] < 0.0)
+										{
+											s = -1.0;
+										}
+										var aVar = abs(cVar[j]);
+										var oneOver = pParam.convert / aVar;
+										cVar[j] = ((fElapsedTime % oneOver) / oneOver) * s;
+									}
+								}
+							}
+							shader_set_uniform_f_array(this.pParamUniformIDs[i], cVar);
 						} break;
 						case FAE_PARAM_INT:
 						case FAE_PARAM_BOOL:
@@ -533,7 +557,18 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 					switch (pParam.type)
 					{
 						case FAE_PARAM_FLOAT:
-						{						
+						{		
+							if(pParam.convert > 0.0 && abs(pVar) > 0.0)
+							{
+								var s = 1.0;
+								if(pVar < 0.0)
+								{
+									s = -1.0;
+								}
+								var aVar = abs(pVar);
+								var oneOver = pParam.convert / aVar;
+								pVar = ((fElapsedTime % oneOver) / oneOver) * s;
+							}
 							shader_set_uniform_f(this.pParamUniformIDs[i], pVar);
 						} break;
 						case FAE_PARAM_INT:

@@ -158,8 +158,20 @@ function yyUnhandledExceptionHandler( event )
 		game_end(-1);
 	} // end if
 	else {
-		var ret = g_GMLUnhandledExceptionHandler( undefined, undefined, event.error );
-		game_end( ret );
+        let error = event.error; 
+
+        // Construct a GML struct to encapsulate the error details.
+        let errorStruct = { };
+        errorStruct.__type = "___struct___"; 
+        errorStruct.__yyIsGMLObject = true; 
+
+        // Add error details to the struct with a "gml" prefix for each member.
+        errorStruct.gmlmessage = error.message;
+        errorStruct.gmlstacktrace = error.stack;
+
+        // Pass the error struct to the custom error handler
+        var ret = g_GMLUnhandledExceptionHandler( undefined, undefined, errorStruct ); 
+        game_end( ret );
 	}
 	debugger;
 	return false;
@@ -775,6 +787,13 @@ function GameMaker_Init()
 	canvas.addEventListener("click", function (e) {
 	    window.focus();
 	});
+
+    /* ...this helps with eliminating stutter on mobile */
+    document.addEventListener('touchstart', e => {
+        e.preventDefault();
+    }, {
+        passive: false
+    });
     
     g_FrameStartTime = Date.now();
 	window.requestAnimFrame(animate);
