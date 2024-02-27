@@ -1172,7 +1172,7 @@ yyEffectsManager.prototype.CreateNewEffectInstance = function (_effectname, _aut
 	{
 		// Look for a function with a matching name (this should be the constructor)
 		var script_id = method_get_index_from_name(pEffectInfo.pScriptOrShaderName);
-		if (script_id != -1)
+		if ((script_id != null) && (script_id != -1))
 		{
 			// Create a new struct using the constructor and store this in a new EffectInstance
 			//F_JSNewGMLObject(res, m_pScriptInstance, NULL, 1, &scriptarg);

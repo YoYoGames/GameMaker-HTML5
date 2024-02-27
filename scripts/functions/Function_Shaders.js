@@ -93,7 +93,7 @@ function Shader_Find(name)
 {
 	for(var i = 0; i < g_pGMFile.Shaders.length; i++)
 	{
-		if(g_pGMFile.Shaders[i].name === name)
+		if ((g_pGMFile.Shaders[i] != null) && (g_pGMFile.Shaders[i] != undefined) && (g_pGMFile.Shaders[i].name === name))
 		{
 			return i;
 		}

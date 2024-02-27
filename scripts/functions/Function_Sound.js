@@ -2879,7 +2879,7 @@ function Audio_InitSampleData()
     var index;
     for (index = 0; index < g_pGMFile.Sounds.length; index++)
 	{
-	    if(  g_pGMFile.Sounds[index]!==null)
+	    if (g_pGMFile.Sounds[index] && (g_pGMFile.Sounds[index]!==null))
 	    {
             var sampleData = new audioSampleData();
             audio_sampledata[index] = sampleData;
