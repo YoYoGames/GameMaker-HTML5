@@ -85,7 +85,7 @@ AudioBus.prototype.findNextNode = function(_idx)
 AudioBus.prototype.findPrevNode = function(_idx) 
 {
 	const nodes = this.nodes.slice(0, _idx);
-	const prevNode = nodes.findLast((_node) => _node !== undefined);
+	const prevNode = nodes.slice().reverse().find((_node) => _node !== undefined);
 
 	return (prevNode !== undefined) ? prevNode.output : this.inputNode;
 };
