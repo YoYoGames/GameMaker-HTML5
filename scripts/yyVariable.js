@@ -1994,12 +1994,11 @@ function variable_global_get(_var) {
 function variable_global_set(_var, _val) {
 
     _var = yyGetString(_var);
-
-    var ret = false;
+    
     var f;
     var settings = undefined;
     if ((typeof g_var2obf !== "undefined") && (g_var2obf[_var] != undefined)) {
-        ret = g_global_names[ g_var2obf[_var] ];
+        settings = g_global_names[ g_var2obf[_var] ];
     } else {
         settings = g_global_names[ _var ];
     } // end else
@@ -2010,9 +2009,10 @@ function variable_global_set(_var, _val) {
         else {
             global[ "gml"+_var ] = _val;
         } // end else
-    }  
-    else if (settings[0]) { // are we allowed to get???
+    }
+    else if (settings[1]) { // are we allowed to set???
         if (settings[3] != null ) {
+            var f = undefined;
             if ((typeof g_var2obf !== "undefined") && (g_var2obf[settings[3]] != undefined)) {
                 f = g_pBuiltIn[ g_var2obf[settings[3]] ];
             } else {
@@ -2264,7 +2264,6 @@ function variable_instance_set(_id, _var, _val) {
 
     _var = yyGetString(_var);
 
-    var ret = false;
     if (pObj != null && pObj.length > 0)
     {    	
     	for (var inst = 0; inst < pObj.length; inst++)
@@ -2273,7 +2272,7 @@ function variable_instance_set(_id, _var, _val) {
 			if (pInst.__yyIsGMLObject || (!pInst.marked && pInst.active)) {
                 var settings = undefined;
                 if ((typeof g_var2obf !== "undefined") && (g_var2obf[_var] != undefined)) {
-                    ret = g_instance_names[g_var2obf[_var]]; //doesn't do anything with ret - not sure what this is supposed to be doing but looks wrong
+                    settings = g_instance_names[g_var2obf[_var]];
                 } else {
                     settings = g_instance_names[ _var ];
                 } // end else
