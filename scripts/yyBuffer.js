@@ -2675,6 +2675,7 @@ function buffer_load_async(_buffer, _fname, _offset, _size) {
     _buffer = yyGetInt32(_buffer);
     _fname = yyGetString(_fname);
     _offset = yyGetInt32(_offset);
+    _size = yyGetInt32(_size);
 
     var pBuff = g_BufferStorage.Get(_buffer);
     if (!pBuff) return -1;
@@ -2683,23 +2684,31 @@ function buffer_load_async(_buffer, _fname, _offset, _size) {
     var pTextFile = LoadBinaryFile_Block(_fname, true);
     if (pTextFile)
     {
-        if (_size >= 0 && pTextFile.length > _size)
+        // files from local storage are base64 encoded so "some trickery required"
+        var tmpbuffid = buffer_base64_decode(pTextFile);
+        // if we decoded successfully
+        if (tmpbuffid >= 0)
         {
-            pTextFile = pTextFile.slice(0, _size);
+            if (_size >= 0 && buffer_get_size(tmpbuffid) > _size)
+            {
+                // shrink the buffer down if we have to, this will change the size
+                // if _size is larger than our buffer size then this if block won't execute
+                // as if _size was -1
+                buffer_resize(tmpbuffid, _size);
+            }
+
+            // poll for the buffer size again as it could've been modified
+            buffer_copy(tmpbuffid, 0, buffer_get_size(tmpbuffid), _buffer, _offset);
+            buffer_delete(tmpbuffid);
+            tmpbuffid = -1; // we no longer need the decoded data, it should be copied.
+            
+            var pFile = g_pASyncManager.Add(_buffer, _fname, ASYNC_BINARY, undefined);
+            pFile.m_Complete = true;
+            pFile.m_Status = 200;   // HTTP okay
+            g_LastErrorStatus = 0;
+            return _buffer;
         }
-
-        var oldPos = pBuff.m_BufferIndex;
-
-        pBuff.m_BufferIndex = _offset;
-        pBuff.yyb_write(eBuffer_Text, pTextFile);
-
-        pBuff.m_BufferIndex = oldPos;
-        
-        var pFile = g_pASyncManager.Add(_buffer, _fname, ASYNC_BINARY, undefined);
-        pFile.m_Complete = true;
-        pFile.m_Status = 200;   // HTTP okay
-        g_LastErrorStatus = 0;
-        return _buffer;
+        // if not, try loading via http then
     }
     
     // kick off a load, and then file an async callback
@@ -2710,7 +2719,7 @@ function buffer_load_async(_buffer, _fname, _offset, _size) {
         X.responseType = "arraybuffer";
         X.onload = ASync_ImageLoad_Callback;
         X.ms_offset = _offset;
-        X.ms_size = yyGetInt32(_size);
+        X.ms_size = _size;
         X.ms_filename = _fname;
         X.ms_buffer = _buffer;
        

@@ -103,6 +103,9 @@ function yyCommandBuilder(_interpolatePixels) {
         m_destBlend = gl.ONE_MINUS_SRC_ALPHA,
         m_srcBlendAlpha = gl.SRC_ALPHA,
         m_destBlendAlpha = gl.ONE_MINUS_SRC_ALPHA;
+
+    var m_depthMask,
+        m_colorMask;
 	    
 	var m_frameCount = 0,
 	    m_nullTexture;
@@ -729,7 +732,7 @@ function yyCommandBuilder(_interpolatePixels) {
 	        break;
             
 	        case yyGL.RenderState_ZWriteEnable:
-	            gl.depthMask(_renderStateData);
+                SetDepthMask(_renderStateData);
 	        break;
 
             case yyGL.RenderState_AlphaTestEnable:
@@ -837,7 +840,7 @@ function yyCommandBuilder(_interpolatePixels) {
             break;
     	    
 	        case yyGL.RenderState_ColourWriteEnable:	        
-	            gl.colorMask(_renderStateData.red, _renderStateData.green, _renderStateData.blue, _renderStateData.alpha);
+	            SetColorMask(_renderStateData.red, _renderStateData.green, _renderStateData.blue, _renderStateData.alpha);
 	        break;	   	     
     	        
 	        case yyGL.RenderState_StencilEnable:
@@ -1286,6 +1289,33 @@ function yyCommandBuilder(_interpolatePixels) {
         }
     }
 
+    function SetDepthMask(_value) {
+        if (g_createsurfacedepthbuffers) {
+            gl.depthMask(_value);
+            m_depthMask = _value;
+        } else {
+            m_depthMask = false;
+        }
+    }
+
+    function SetColorMask(_r,_g,_b,_a) {
+        gl.colorMask(_r,_g,_b,_a);
+        m_colorMask = [_r,_g,_b,_a];
+    }
+
+    function GetDepthMask() {
+        if (g_createsurfacedepthbuffers) {
+            return (m_depthMask !== null && m_depthMask !== undefined) ? m_depthMask : (m_depthMask = gl.getParameter(gl.DEPTH_WRITEMASK));
+        } else {
+            m_depthMask = false;
+            return m_depthMask;
+        }
+    }
+
+    function GetColorMask() {
+        return (m_colorMask !== null && m_colorMask !== undefined) ? m_colorMask : (m_colorMask = gl.getParameter(gl.COLOR_WRITEMASK));
+    }
+
     // #############################################################################################
     /// Property: <summary>
     ///           	Execute the GL rendering loop.
@@ -1472,7 +1502,7 @@ function yyCommandBuilder(_interpolatePixels) {
                 // Render states
                 case CMD_SET_COLOUR_MASK:
                     {
-                        gl.colorMask(m_commandList[i + 2], m_commandList[i + 3], m_commandList[i + 4], m_commandList[i + 1]);
+                        SetColorMask(m_commandList[i + 2], m_commandList[i + 3], m_commandList[i + 4], m_commandList[i + 1]);
                         i += 5;
                         break;
                     }

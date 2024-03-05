@@ -1418,7 +1418,8 @@ yyObjectManager.prototype.Add = function (_pObj) {
 /// In:		 <param name="pObj">Object to add</param>
 // #############################################################################################
 yyObjectManager.prototype.Get = function (_ID) {
-	return this.objidlist[_ID];
+    var index = yyGetRef(_ID, REFID_OBJECT, undefined, undefined, true );
+	return this.objidlist[index];
 };
 
 

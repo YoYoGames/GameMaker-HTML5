@@ -1594,7 +1594,7 @@ function Resource_Find(_name, _array) {
     for (var index = 0; index < _array.length; index++)
     {
         var pObjStorage = _array[index];
-        if (pObjStorage.pName == _name) {
+        if ( pObjStorage && (pObjStorage.pName == _name)) {
             return index;
         }
     }
@@ -1606,7 +1606,7 @@ function Resource_Find_Shader(_name, _array) {
     for (var index = 0; index < _array.length; index++)
     {
         var pObjStorage = _array[index];
-        if (pObjStorage.name == _name) {
+        if ( pObjStorage && (pObjStorage.name == _name)) {
             return index;
         }
     }
@@ -1620,7 +1620,7 @@ function Resource_Find_Script(_name, _array) {
     for (var index = 0; index < _array.length; index++)
     {
         var scrName = _array[index];
-        if( scrName.endsWith(_name)){
+        if(scrName &&  scrName.endsWith(_name)){
             if( scrName == gmlName )
                 return index + 100000;
             else if( scrName == _name ) 
@@ -1634,7 +1634,7 @@ function Resource_Find_Script(_name, _array) {
         for (var index = 0; index < _array.length; index++)
         {
             var scrName = _array[index];
-            if( scrName.endsWith(_name)){
+            if(scrName && scrName.endsWith(_name)){
                 if( scrName == globalName )
                     return index + 100000;
             }

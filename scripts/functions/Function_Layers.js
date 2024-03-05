@@ -2588,7 +2588,7 @@ function layer_background_index( arg1,arg2)
     if (el != null)
     {
         var image_index = yyGetInt32(arg2);
-        var max_index = sprite_get_number(el.m_pBackground.image_index);
+        var max_index = sprite_get_number(el.m_pBackground.index);
 
         el.m_pBackground.image_index = fwrap(image_index, max_index);
     }

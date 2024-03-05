@@ -1,4 +1,4 @@
-﻿// **********************************************************************************************************************
+// **********************************************************************************************************************
 // 
 // Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
 // 
@@ -2437,7 +2437,7 @@ yySpriteManager.prototype.Sprite_Find = function(_name)
 {
 	for(var i = 0; i < this.Sprites.length; i++)
 	{
-		if(this.Sprites[i].pName == _name)
+		if((this.Sprites[i] != null) && (this.Sprites[i] != undefined) && (this.Sprites[i].pName == _name))
 		{
 			return i;
 		}
