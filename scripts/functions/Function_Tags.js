@@ -97,9 +97,12 @@ TagManager.prototype.AssetHasTags = function(_assetId, _assetType, _pTags, _allT
 
     //!_pTags may be string or array of string
     var testTags = this.FindTagIds( _pTags, false );
-    var result = (_allTags) ? true : false;
-    
-    //check each input tag ptr against  assets tag list
+
+    //prevents this function from returning true when _allTags is enabled and there are no tag results in testTags
+    if(testTags.length == 0)
+        return false;
+
+    //check each input tag ptr against assets tag list
     for( var t=0; t < testTags.length; ++t )
     {
         var bAssetHasTag = false;
@@ -115,6 +118,10 @@ TagManager.prototype.AssetHasTags = function(_assetId, _assetType, _pTags, _allT
 		if (_allTags && !bAssetHasTag)
 			return false; //all tags must match
     }
+    
+    //result after checking all testTags, all tags match or no tags match
+    var result = (_allTags) ? true : false;
+    
     return result;
 };
 
