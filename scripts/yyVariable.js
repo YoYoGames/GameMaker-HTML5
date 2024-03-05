@@ -1430,7 +1430,6 @@ function array_unique_ext(_array, _offset, _length) {
         if (!_set.has(_element)) {
             _array[_idx] = _element;
             _idx += _step;
-            _ret++;
         }
         
         _set.add(_element);
