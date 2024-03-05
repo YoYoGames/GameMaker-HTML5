@@ -477,7 +477,6 @@ yyInstance.prototype = {
 		{
 			this.__image_index = _frame;	// just use value as-is
 		}
-		this.frame_overflow = 0;
 	},
 
 	// image_single property
@@ -810,6 +809,16 @@ yyInstance.prototype.SetImageIndex = function(_frame)
 {
 	this.__image_index = _frame;
 };
+ 
+/* Writes to image_index from GML will go via this function, allowing us to 
+ * clear frame_overflow whenever image_index is directly updated by game code. 
+*/ 
+yyInstance.prototype.SetImageIndexGML = function(_frame) 
+{ 
+	this.image_index = _frame; 
+	this.frame_overflow = 0; 
+}; 
+
 
 yyInstance.prototype.SetDirtyBBox = function (flag) { this.bbox_dirty = flag; };
 yyInstance.prototype.GetDirty = function () { return this.bbox_dirty; };
