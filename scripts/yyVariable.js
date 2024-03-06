@@ -154,6 +154,12 @@ GMLObject.prototype.toString = function () {
     return yyGetString(this);
 };
 
+GMLObject.prototype.SetImageIndexGML = function(_frame) 
+{ 
+    this.image_index = _frame; 
+};
+
+
 function __yy_gml_object_create( _self, _a )
 {
     var r = new GMLObject();
