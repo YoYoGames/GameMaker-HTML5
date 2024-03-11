@@ -3908,7 +3908,7 @@ function draw_tilemap(inst, arg1,arg2,arg3)
         var room = g_pLayerManager.GetTargetRoomObj();
         var x = yyGetReal(arg2);
         var y = yyGetReal(arg3);
-        var depth = GetInstanceDepth(inst);
+        var depth = GR_Depth;
         room.DrawLayerTilemapElement(g_roomExtents, null, el, x, y, depth);
     }
 
