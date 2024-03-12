@@ -67,7 +67,7 @@ function collision_point(_pInst, _x,_y,_obj,_prec,_notme)
     if(_obj instanceof YYRef)
 	{
 		var reftype = _obj.type;
-		if (reftype == REFID_BACKGROUND)
+		if (reftype == REFID_TILEMAP)
 		{
 			if (Tilemap_PointPlace( _x, _y, _obj, null,_prec))
 			{
@@ -86,7 +86,7 @@ function collision_point(_pInst, _x,_y,_obj,_prec,_notme)
 		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
 		{
 			var obj2 = _obj[i]; 
-			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_TILEMAP))
 			{
 				if (Tilemap_PointPlace( _x, _y, obj2, null,_prec))
 				{
@@ -131,7 +131,7 @@ function AppendCollisionResults(_instArray, _destList, _px, _py) {
         if(pInst instanceof YYRef)
         {
             var reftype = pInst.type;
-		    if (reftype == REFID_BACKGROUND)
+		    if (reftype == REFID_TILEMAP)
             {
                 var pRoom = g_pLayerManager.GetTargetRoomObj();
                 var elementAndLayer = g_pLayerManager.GetElementFromID( pRoom,pInst.value);
@@ -182,7 +182,7 @@ function collision_point_list(_pInst, _x, _y, _obj, _prec, _notme, _list, _order
 	if(_obj instanceof YYRef)
 	{
 		var reftype = _obj.type;
-		if (reftype == REFID_BACKGROUND)
+		if (reftype == REFID_TILEMAP)
 		{
 			Tilemap_PointPlace( _x, _y, _obj, instList,_prec);
 			skipafterswitch = true;
@@ -194,7 +194,7 @@ function collision_point_list(_pInst, _x, _y, _obj, _prec, _notme, _list, _order
 		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
 		{
 			var obj2 = _obj[i]; 
-			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_TILEMAP))
 			{
 				Tilemap_PointPlace( _x, _y, obj2, instList,_prec);
 			}
@@ -262,7 +262,7 @@ function collision_rectangle(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
     if(_obj instanceof YYRef)
 	{
 		var reftype = _obj.type;
-		if (reftype == REFID_BACKGROUND)
+		if (reftype == REFID_TILEMAP)
 		{
 			if (Tilemap_CollisionRectangle( _x1, _y1,_x2,_y2, _obj, null,_prec))
 			{
@@ -282,7 +282,7 @@ function collision_rectangle(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
 		{
 			var obj2 = _obj[i]; 
-			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_TILEMAP))
 			{
 				if (Tilemap_CollisionRectangle( _x1, _y1,_x2,_y2, obj2, null,_prec))
 				{
@@ -349,7 +349,7 @@ function collision_rectangle_list(_pInst, _x1, _y1, _x2, _y2, _obj, _prec, _notm
 	if(_obj instanceof YYRef)
 	{
 		var reftype = _obj.type;
-		if (reftype == REFID_BACKGROUND)
+		if (reftype == REFID_TILEMAP)
 		{
 			Tilemap_CollisionRectangle( _x1, _y1,_x2,_y2, _obj, instList,_prec);
 			skipafterswitch = true;
@@ -361,7 +361,7 @@ function collision_rectangle_list(_pInst, _x1, _y1, _x2, _y2, _obj, _prec, _notm
 		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
 		{
 			var obj2 = _obj[i]; 
-			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_TILEMAP))
 			{
 				Tilemap_CollisionRectangle( _x1, _y1,_x2,_y2, obj2,instList,_prec);
 			}
@@ -493,7 +493,7 @@ function collision_ellipse(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
     if(_obj instanceof YYRef)
 	{
 		var reftype = _obj.type;
-		if (reftype == REFID_BACKGROUND)
+		if (reftype == REFID_TILEMAP)
 		{
 			if (Tilemap_CollisionEllipse( _x1, _y1,_x2,_y2, _obj, null,_prec))
 			{
@@ -513,7 +513,7 @@ function collision_ellipse(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
 		{
 			var obj2 = _obj[i]; 
-			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_TILEMAP))
 			{
 				if (Tilemap_CollisionEllipse( _x1, _y1,_x2,_y2, obj2, null,_prec))
 				{
@@ -557,7 +557,7 @@ function collision_ellipse_list(_pInst, _x1, _y1, _x2, _y2, _obj, _prec, _notme,
 	if(_obj instanceof YYRef)
 	{
 		var reftype = _obj.type;
-		if (reftype == REFID_BACKGROUND)
+		if (reftype == REFID_TILEMAP)
 		{
 			Tilemap_CollisionEllipse( _x1, _y1,_x2,_y2, _obj, instList,_prec);
 			skipafterswitch = true;
@@ -569,7 +569,7 @@ function collision_ellipse_list(_pInst, _x1, _y1, _x2, _y2, _obj, _prec, _notme,
 		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
 		{
 			var obj2 = _obj[i]; 
-			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_TILEMAP))
 			{
 				Tilemap_CollisionEllipse( _x1, _y1,_x2,_y2, obj2,instList,_prec);
 			}
@@ -648,7 +648,7 @@ function collision_line(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
     if(_obj instanceof YYRef)
 	{
 		var reftype = _obj.type;
-		if (reftype == REFID_BACKGROUND)
+		if (reftype == REFID_TILEMAP)
 		{
 			if (Tilemap_CollisionLine( _x1, _y1,_x2,_y2, _obj, null,_prec))
 			{
@@ -668,7 +668,7 @@ function collision_line(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
 		{
 			var obj2 = _obj[i]; 
-			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_TILEMAP))
 			{
 				if (Tilemap_CollisionLine( _x1, _y1,_x2,_y2, obj2, null,_prec))
 				{
@@ -715,7 +715,7 @@ function collision_line_list(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,_list,_or
 	if(_obj instanceof YYRef)
 	{
 		var reftype = _obj.type;
-		if (reftype == REFID_BACKGROUND)
+		if (reftype == REFID_TILEMAP)
 		{
 			Tilemap_CollisionLine( _x1, _y1,_x2,_y2, _obj, instList,_prec);
 			skipafterswitch = true;
@@ -727,7 +727,7 @@ function collision_line_list(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,_list,_or
 		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
 		{
 			var obj2 = _obj[i]; 
-			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_TILEMAP))
 			{
 				Tilemap_CollisionLine( _x1, _y1,_x2,_y2, obj2,instList,_prec);
 			}
