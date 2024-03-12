@@ -1133,80 +1133,76 @@ function ExtractFunctionName(_func) {
 ///			</returns>
 // #############################################################################################
 function stacktrace(_error) {
-  
+
     var f = arguments.callee.caller;
     var str = "Error: " + _error + "\n" + "--------------------------------------------------------------------\n";
     while (f) {
         var name = "\t"+ExtractFunctionName(f.toString());
         str += name + '(';
         for (var i = 0; i < f.arguments.length; i++) {
-            if (i != 0) {
+            if (i !== 0) {
                 str += ', ';
             }
-            
-            if (typeof f.arguments[i] == "string") {
+
+            if (typeof f.arguments[i] === "string") {
                 str += '"' + f.arguments[i].toString() + '"';
             }
-            else if ((typeof f.arguments[i] == "number") || (f.arguments[i] instanceof Long)) {
+            else if ((typeof f.arguments[i] === "number") || (f.arguments[i] instanceof Long)) {
                 str += f.arguments[i].toString();
             }
+            else if (f.arguments[i] === undefined) {
+                str += "[undefined]";
+            }
+            else if (f.arguments[i] === null) {
+                str += "[null]";
+            }
+            else if (f.arguments[i].__type) {
+                str += f.arguments[i].__type;
+            }
             else {
-                if (f.arguments[i] == undefined) {
-                    str += "[undefined]";                    
-                }
-                else if (f.arguments[i] == null) {
-                    str += "[null]";
-                }
-                else if (f.arguments[i].__type) {
-                    str += f.arguments[i].__type;
-                }
-                else {
-                    str += "[unknown]";
-                }
+                str += "[unknown]";
             }
         }
         str += ")\n";   //+ chr(13);
-        f = f.caller;        
+        f = f.caller;
     }
     debug(str);
 }
 
 function getStacktraceArray(_error) {
-  
+
     var f = arguments.callee.caller;
     var ret = [];
     while (f && (ret.length < 100)) {
         var name = ExtractFunctionName(f.toString());
         str = name + '(';
         for (var i = 0; i < f.arguments.length; i++) {
-            if (i != 0) {
+            if (i !== 0) {
                 str += ', ';
             }
-            
-            if (typeof f.arguments[i] == "string") {
+
+            if (typeof f.arguments[i] === "string") {
                 str += '"' + f.arguments[i].toString() + '"';
             }
-            else if ((typeof f.arguments[i] == "number") || (f.arguments[i] instanceof Long)) {
+            else if ((typeof f.arguments[i] === "number") || (f.arguments[i] instanceof Long)) {
                 str += f.arguments[i].toString();
             }
+            else if (f.arguments[i] === undefined) {
+                str += "[undefined]";
+            }
+            else if (f.arguments[i] === null) {
+                str += "[null]";
+            }
+            else if (f.arguments[i].__type) {
+                str += f.arguments[i].__type;
+            }
             else {
-                if (f.arguments[i] == undefined) {
-                    str += "[undefined]";                    
-                }
-                else if (f.arguments[i] == null) {
-                    str += "[null]";
-                }
-                else if (f.arguments[i].__type) {
-                    str += f.arguments[i].__type;
-                }
-                else {
-                    str += "[unknown]";
-                }
+                str += "[unknown]";
             }
         }
         str += ")\n";   //+ chr(13);
         ret.push( str );
-        f = f.caller;        
+        f = f.caller;
     }
     return ret;
 }

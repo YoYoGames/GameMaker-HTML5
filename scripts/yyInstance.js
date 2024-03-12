@@ -50,7 +50,7 @@ function    yyInstance( _xx, _yy, _id, _objectind, _AddObjectLink, _create_dummy
 	this.__friction = 0;
 	this.__gravity = 0;
 	this.__gravity_direction = 270;
-	this.object_index = _objectind;
+	this.__object_index = yyGetRef(_objectind, REFID_OBJECT, undefined, undefined, true );
 	this.id = _id;
 	this.active = true;						// true if in the active list, false if not.
 
@@ -134,7 +134,7 @@ function    yyInstance( _xx, _yy, _id, _objectind, _AddObjectLink, _create_dummy
         this.UpdateSpriteIndex(this.pObject.SpriteIndex);
     }else{
         this.createCounter = 0;   
-        this.object_index = 0;
+        this.__object_index = 0;
         //C++ runner creates a dummy object that has sprite_index -1 should probably mimic its behaviour and create an object but for now we'll just copy its sprite index
         this.sprite_index = -1;
         this.m_pSkeletonAnimation = null;
@@ -426,6 +426,10 @@ yyInstance.prototype = {
     	this.bbox_dirty = true;
     	this.m_pSkeletonAnimation = null;
 	},
+
+	// object_index property
+	get object_index() { return MAKE_REF(REFID_OBJECT, this.__object_index ); },
+	set object_index(_ind) { this.__object_index = yyGetRef( _ind, REFID_OBJECT, undefined, undefined, true ); },
 
 	// image_index property
 	get image_index() { return this.__image_index; },
@@ -805,15 +809,16 @@ yyInstance.prototype.SetImageIndex = function(_frame)
 {
 	this.__image_index = _frame;
 };
+ 
+/* Writes to image_index from GML will go via this function, allowing us to 
+ * clear frame_overflow whenever image_index is directly updated by game code. 
+*/ 
+yyInstance.prototype.SetImageIndexGML = function(_frame) 
+{ 
+	this.image_index = _frame; 
+	this.frame_overflow = 0; 
+}; 
 
-/* Writes to image_index from GML will go via this function, allowing us to
- * clear frame_overflow whenever image_index is directly updated by game code.
-*/
-yyInstance.prototype.SetImageIndexGML = function(_frame)
-{
-	this.image_index = _frame;
-	this.frame_overflow = 0;
-};
 
 yyInstance.prototype.SetDirtyBBox = function (flag) { this.bbox_dirty = flag; };
 yyInstance.prototype.GetDirty = function () { return this.bbox_dirty; };
@@ -922,7 +927,7 @@ yyInstance.prototype.GetObjectIndex = function () {
 yyInstance.prototype.SetObjectIndex = function (_objindex, _LinkToObjectType, _SetDepthNow) {
 
 	// Set the TYPE index
-	this.object_index = _objindex;
+	this.__object_index = _objindex;
 
 	if (this.pObject != null)
 	{

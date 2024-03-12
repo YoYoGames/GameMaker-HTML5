@@ -3052,7 +3052,7 @@ function layerTilemapGetElement(tm_element_id)
 function layer_tilemap_get_id( arg1) 
 {
     var room = g_pLayerManager.GetTargetRoomObj();
-    if (room === null) MAKE_REF(REFID_BACKGROUND,-1);
+    if (room === null) return MAKE_REF(REFID_TILEMAP,-1);
 
     var layer = layerGetObj(room, arg1); 
     if(layer!=null)
@@ -3060,10 +3060,10 @@ function layer_tilemap_get_id( arg1)
         var element = g_pLayerManager.GetFirstElementOfType(layer,eLayerElementType_Tilemap);
         if(element!=null && element.m_type == eLayerElementType_Tilemap)
         {
-            return MAKE_REF(REFID_BACKGROUND,element.m_id);
+            return MAKE_REF(REFID_TILEMAP,element.m_id);
         }
     }
-    return MAKE_REF(REFID_BACKGROUND,-1);
+    return MAKE_REF(REFID_TILEMAP,-1);
 
 };
 function layer_tilemap_exists( arg1,arg2) 
@@ -3089,7 +3089,7 @@ function layer_tilemap_exists( arg1,arg2)
 function layer_tilemap_create( arg1,arg2,arg3,arg4,arg5,arg6) 
 {
     var room = g_pLayerManager.GetTargetRoomObj();
-    if (room === null) return MAKE_REF(REFID_BACKGROUND,-1);;
+    if (room === null) return MAKE_REF(REFID_TILEMAP,-1);;
 
     var layer = layerGetObj(room, arg1);
    
@@ -3115,10 +3115,10 @@ function layer_tilemap_create( arg1,arg2,arg3,arg4,arg5,arg6)
    
         g_pLayerManager.AddNewElement(room,layer,TileLayer,true);
 
-        return MAKE_REF(REFID_BACKGROUND,TileLayer.m_id);
+        return MAKE_REF(REFID_TILEMAP,TileLayer.m_id);
        
     }
-    return MAKE_REF(REFID_BACKGROUND,-1);
+    return MAKE_REF(REFID_TILEMAP,-1);
 };
 function layer_tilemap_destroy( arg1) 
 {
@@ -3908,7 +3908,7 @@ function draw_tilemap(inst, arg1,arg2,arg3)
         var room = g_pLayerManager.GetTargetRoomObj();
         var x = yyGetReal(arg2);
         var y = yyGetReal(arg3);
-        var depth = GetInstanceDepth(inst);
+        var depth = GR_Depth;
         room.DrawLayerTilemapElement(g_roomExtents, null, el, x, y, depth);
     }
 
