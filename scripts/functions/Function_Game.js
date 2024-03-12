@@ -1653,7 +1653,7 @@ function ResourceGetTypeIndex(_name )
 	if ((ret = Resource_Find(_name, g_pGMFile.Sprites)) >= 0)                  { typeId.type=AT_Sprite;     typeId.id = ret; return typeId; }
     if ((ret = Resource_Find(_name, g_pGMFile.GMRooms)) >= 0)                  { typeId.type=AT_Room;       typeId.id = ret; return typeId; }
 	if ((ret = Resource_Find(_name, g_pGMFile.Sounds)) >= 0)	               { typeId.type=AT_Sound;      typeId.id = ret; return typeId; }
-	if ((ret = Resource_Find(_name, g_pGMFile.Backgrounds)) >= 0)              { typeId.type=AT_Tilemap;    typeId.id = ret; return typeId; }
+	if ((ret = Resource_Find(_name, g_pGMFile.Backgrounds)) >= 0)              { typeId.type=AT_Tileset;    typeId.id = ret; return typeId; }
 	if ((ret = Resource_Find(_name, g_pGMFile.Paths)) >= 0)                    { typeId.type=AT_Path;       typeId.id = ret; return typeId; }
 	if ((ret = Resource_Find(_name, g_pGMFile.Fonts)) >= 0)                    { typeId.type=AT_Font;       typeId.id = ret; return typeId; }
     // @if feature("timelines")
@@ -1682,7 +1682,7 @@ function ResourceGetName( _index, _assetType )
         case AT_Sprite:	        return (sprite_exists(_index)) ? sprite_get_name(_index) : "";
         case AT_Sound:		    return (sound_exists(_index)) ? sound_get_name(_index) : "";
         case AT_Room:		    return (room_exists(_index)) ? room_get_name(_index) : "";
-        case AT_Tilemap:        return (background_exists(_index)) ? background_get_name(_index) : "";
+        case AT_Tileset:        return (background_exists(_index)) ? background_get_name(_index) : "";
         case AT_Path:		    return ( path_exists(_index)) ? path_get_name(_index) : "";
         case AT_Script:	        return ( script_exists(_index)) ? script_get_name(_index) : "";
         case AT_Font:		    return ( font_exists(_index)) ? font_get_name(_index) : "";
@@ -1754,7 +1754,7 @@ function asset_get_ids(_assetType)
     case AT_Object:         ids = g_pObjectManager.List(); refs = true; break;
     case AT_Sprite:         ids = g_pSpriteManager.List(); break;
     case AT_Room:           ids = g_pRoomManager.List(); break;
-    case AT_Tilemap:        ids = g_pBackgroundManager.List(); refs = true; break;
+    case AT_Tileset:        ids = g_pBackgroundManager.List(); refs = true; break;
     case AT_Path:           ids = g_pPathManager.List(); break;
     case AT_Script: {
         ids = [];
