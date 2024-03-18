@@ -30,7 +30,7 @@ var	eLayerElementType_Undefined = 0,
     eLayerElementType_ParticleSystem=6,
     eLayerElementType_Tile = 7,					// probably replace a single oldtilemap with a whole bunch of these
     eLayerElementType_Sequence = 8,
-    eLayerElementType_Effect = 9;
+    eLayerElementType_Text = 9;
 
 var TileInherit_Shift = 31;
 var TileFlip_Shift = 29;
@@ -300,7 +300,6 @@ function CLayerEffectParam()
 /** @constructor */
 function CLayerEffectInfo()
 {
-    this.m_type = eLayerElementType_Effect;
     this.pName="";
     this.numParams = 0;
     this.pParams=[];
