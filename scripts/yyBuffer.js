@@ -1338,6 +1338,9 @@ yyBuffer.prototype.yyb_write = function(_type, _value) {
             var oldsize = this.m_Size;
             var newSize = this.m_Size;
 
+            if(newSize<4) 
+                newSize = 4;
+
             while ((this.m_BufferIndex + sizeneeded) > newSize) {
                 newSize = (newSize << 1); 
             }
