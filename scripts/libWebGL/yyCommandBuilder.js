@@ -31,7 +31,8 @@
 function yyCommandBuilder(_interpolatePixels) {    
 
     var gl = this._gl;
-
+	var m_minMaxExt = gl.getExtension("EXT_blend_minmax");
+	
     // Private constants
     var CMD_NOP = 0,
         CMD_SETTEXTURE = 1,
@@ -103,7 +104,9 @@ function yyCommandBuilder(_interpolatePixels) {
         m_destBlend = gl.ONE_MINUS_SRC_ALPHA,
         m_srcBlendAlpha = gl.SRC_ALPHA,
         m_destBlendAlpha = gl.ONE_MINUS_SRC_ALPHA;
-
+		m_blendEquation = gl.FUNC_ADD;
+		m_blendEquationAlpha = gl.FUNC_ADD;
+		
     var m_depthMask,
         m_colorMask;
 	    
@@ -663,6 +666,24 @@ function yyCommandBuilder(_interpolatePixels) {
 	    }
 	    return 0;
     }
+	
+    // #############################################################################################
+    /// Function:<summary>
+    ///             Private: Convert the engine blend equation to an opengl version
+    ///          </summary>
+    // #############################################################################################	
+	function ConvertBlendEquation( _value )
+	{
+		switch( _value )
+		{
+			case yyGL.BlendEquation_Add: 			return gl.FUNC_ADD;
+			case yyGL.BlendEquation_Subtract:		return gl.FUNC_SUBTRACT;
+			case yyGL.BlendEquation_InvSubtract:	return gl.FUNC_REVERSE_SUBTRACT;
+			case yyGL.BlendEquation_Min:			return m_minMaxExt.MIN_EXT;
+			case yyGL.BlendEquation_Max:			return m_minMaxExt.MAX_EXT;
+		}
+		return gl.FUNC_ADD;
+	}
 
     // #############################################################################################
     /// Function:<summary>
@@ -747,6 +768,16 @@ function yyCommandBuilder(_interpolatePixels) {
                 m_destBlend = ConvertBlend(_renderStateData);
                 gl.blendFuncSeparate(m_srcBlend, m_destBlend, m_srcBlendAlpha, m_destBlendAlpha);            
 	        break;	        
+			
+			case yyGL.RenderState_BlendEquation:
+				m_blendEquation = ConvertBlendEquation(_renderStateData);
+				gl.blendEquationSeparate(m_blendEquation, m_blendEquationAlpha);
+			break;
+			
+			case yyGL.RenderState_BlendEquationAlpha:
+				m_blendEquationAlpha = ConvertBlendEquation(_renderStateData);
+				gl.blendEquationSeparate(m_blendEquation, m_blendEquationAlpha);
+			break;
     	    
 	        case yyGL.RenderState_CullMode:
 	            if (_renderStateData != yyGL.Cull_NoCulling) {	            	
