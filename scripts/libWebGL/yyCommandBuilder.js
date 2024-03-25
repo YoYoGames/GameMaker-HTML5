@@ -32,6 +32,10 @@ function yyCommandBuilder(_interpolatePixels) {
 
     var gl = this._gl;
 	var m_minMaxExt = gl.getExtension("EXT_blend_minmax");
+	if(m_minMaxExt == null)
+	{
+		debug("Extension EXT_blend_minmax not found! Min and Max blend modes will not be available!");
+	}
 	
     // Private constants
     var CMD_NOP = 0,
@@ -674,13 +678,34 @@ function yyCommandBuilder(_interpolatePixels) {
     // #############################################################################################	
 	function ConvertBlendEquation( _value )
 	{
+		// handle missing EXT_blend_minmax
 		switch( _value )
 		{
 			case yyGL.BlendEquation_Add: 			return gl.FUNC_ADD;
 			case yyGL.BlendEquation_Subtract:		return gl.FUNC_SUBTRACT;
 			case yyGL.BlendEquation_InvSubtract:	return gl.FUNC_REVERSE_SUBTRACT;
-			case yyGL.BlendEquation_Min:			return m_minMaxExt.MIN_EXT;
-			case yyGL.BlendEquation_Max:			return m_minMaxExt.MAX_EXT;
+			case yyGL.BlendEquation_Max:
+													if(m_minMaxExt == null)
+													{
+														debug("Trying to set BlendEquation_Max but EXT_blend_minmax is not supported by device!");
+														return gl.FUNC_ADD;
+													}
+													else
+													{
+														return m_minMaxExt.MAX_EXT;
+													}
+													break;
+			case yyGL.BlendEquation_Min:
+													if(m_minMaxExt == null)
+													{
+														debug("Trying to set BlendEquation_Min but EXT_blend_minmax is not supported by device!");
+														return gl.FUNC_ADD;
+													}
+													else
+													{
+														return m_minMaxExt.MIN_EXT;
+													}
+													break;
 		}
 		return gl.FUNC_ADD;
 	}
