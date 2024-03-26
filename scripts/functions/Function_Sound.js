@@ -109,7 +109,11 @@ function audio_update()
 
     // Update and apply gains
     g_AudioGroups.forEach(_group => _group.gain.update());
-    audio_sampledata.forEach(_asset => _asset.gain.update());
+    audio_sampledata.forEach(_asset => {
+        if (_asset != null) {
+            _asset.gain.update();
+        }
+    });
     audio_sounds.forEach(_voice => _voice.updateGain());
 }
 
@@ -1177,32 +1181,22 @@ function getFreeVoice(_props)
 	return null;
 }
 
-function Audio_GetSound(soundid)
-{
-	var pSound = null;
-	if(soundid>=0 && soundid<=audio_sampledata.length )
-	{
-		pSound = audio_sampledata[soundid];
-	}
-	else
-	{
-		var bufferSoundId = soundid - BASE_BUFFER_SOUND_INDEX;
-		if( bufferSoundId >=0 && bufferSoundId < g_bufferSoundCount)
-		{
-				pSound = buffer_sampledata[bufferSoundId];
-		}
-		else
-		{
-			var queueSoundId = soundid - BASE_QUEUE_SOUND_INDEX;
+function Audio_GetSound(soundid) {
+    if (soundid >= 0 && soundid < audio_sampledata.length) {
+        return audio_sampledata[soundid];
+    }
 
-			if (queueSoundId >= 0 && queueSoundId < g_queueSoundCount)
-			{
-				pSound = queue_sampledata[queueSoundId];
-			}
-		}
-	}
+    const bufferSoundId = soundid - BASE_BUFFER_SOUND_INDEX;
+    if (bufferSoundId >= 0 && bufferSoundId < g_bufferSoundCount) {
+            return buffer_sampledata[bufferSoundId];
+    }
 
-	return pSound;
+    const queueSoundId = soundid - BASE_QUEUE_SOUND_INDEX;
+    if (queueSoundId >= 0 && queueSoundId < g_queueSoundCount) {
+        return queue_sampledata[queueSoundId];
+    }
+
+    return null;
 }
 
 function Audio_GetEmitterOrThrow(_emitterIndex) {
@@ -1505,8 +1499,9 @@ function audio_sound_get_gain(_index)
     else {
         const asset = Audio_GetSound(_index);
 
-        if (asset !== undefined)
+        if (asset !== null) {
             return asset.gain.get();
+        }
     }
 
     return 0;
@@ -1639,8 +1634,7 @@ function audio_sound_get_track_position(_soundid)
 	{
 	    const sound_asset = Audio_GetSound(_soundid);
 
-	    if (sound_asset != undefined)
-	    {
+	    if (sound_asset !== null) {
 	        return sound_asset.trackPos;
 	    }
 	}
@@ -1674,8 +1668,7 @@ function audio_sound_set_track_position(_soundid, _time)
 	    {
 	        const sampleData = Audio_GetSound(_soundid);
 
-	        if (sampleData != undefined)
-	        {
+	        if (sampleData !== null) {
 	            sampleData.trackPos = _time;
 	        }
 	    }
@@ -2886,7 +2879,7 @@ function Audio_InitSampleData()
     var index;
     for (index = 0; index < g_pGMFile.Sounds.length; index++)
 	{
-	    if(  g_pGMFile.Sounds[index]!==null)
+	    if (g_pGMFile.Sounds[index] && (g_pGMFile.Sounds[index]!==null))
 	    {
             var sampleData = new audioSampleData();
             audio_sampledata[index] = sampleData;
@@ -3112,9 +3105,12 @@ function audio_destroy_stream(_soundid)
             audio_stop_sound(_soundid);
             audio_sampledata[_soundid] = null;
         }
+        
+        return 1;
     }
-}
 
+    return -1;
+}
 
 function allocateBufferSound( )
 {

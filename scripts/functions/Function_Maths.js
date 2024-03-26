@@ -453,7 +453,7 @@ function random_use_old_version(_true_false) {
 // #############################################################################################
 /// Function:<summary>
 ///          	Returns a random number between 0 and 1
-///             PRNG from http://www.lomont.org/Math/Papers/2008/Lomont_PRNG_2008.pdf
+///             PRNG from https://web.archive.org/web/20160303224645/http://www.lomont.org/Math/Papers/2008/Lomont_PRNG_2008.pdf
 ///             other reading http://stackoverflow.com/questions/1046714/what-is-a-good-random-number-generator-for-a-game
 ///          </summary>
 // #############################################################################################

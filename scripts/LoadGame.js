@@ -1,4 +1,4 @@
-﻿// **********************************************************************************************************************
+// **********************************************************************************************************************
 // 
 // Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
 // 
@@ -494,7 +494,7 @@ function LoadGame_PreLoadAssets(_GameFile)
     {
         for (index = 0; index < _GameFile.Sounds.length; index++)
 	    {
-		    if(  _GameFile.Sounds[index]!==null)
+		    if( _GameFile.Sounds[index] && (  _GameFile.Sounds[index]!==null))
 		    {
 	            var groupId = 0;    //default
 	            if( _GameFile.Sounds[index].groupId !== undefined ){
@@ -771,7 +771,7 @@ function LoadGame(_GameFile)
     // Load Sprites
 	// @if feature("sprites")
     for(index=0; index<_GameFile.Sprites.length; index++ ){
-        if(  _GameFile.Sprites[index]===null ){
+        if (!_GameFile.Sprites[index] || (  _GameFile.Sprites[index]===null )) {
             g_pSpriteManager.AddSprite( null );
         }else{
             var pSprite = CreateSpriteFromStorage( _GameFile.Sprites[index] ); 
@@ -782,10 +782,14 @@ function LoadGame(_GameFile)
     
 
     // Load Backgrounds
-    for(index=0; index<_GameFile.Backgrounds.length; index++ ){
-    	var im = g_pBackgroundManager.AddImage(_GameFile.Backgrounds[index]);
-    	var pImage = g_pBackgroundManager.GetImage(im);
-		if( pImage!==null ) pImage.copy = TPE_Copy;
+    for(index=0; index<_GameFile.Backgrounds.length; index++ ){    	
+    	if (!_GameFile.Backgrounds[index]) {
+			g_pBackgroundManager.AddImage(null);
+    	} else {
+	    	var im = g_pBackgroundManager.AddImage(_GameFile.Backgrounds[index]);
+	    	var pImage = g_pBackgroundManager.GetImage(im);
+			if( pImage!==null ) pImage.copy = TPE_Copy;
+		} // end else
     }
     
     // Load Fonts
@@ -808,7 +812,7 @@ function LoadGame(_GameFile)
     for (var index = 0; index < _GameFile.GMRooms.length; index++)
     {
         var pRoomStorage = _GameFile.GMRooms[index];
-        if( pRoomStorage !== null ){
+        if(pRoomStorage && ( pRoomStorage !== null )){
             pRoom = new yyRoom();
 
             // MJD: NO idea why this is done. Rooms are re-created from storage on ROOM START 

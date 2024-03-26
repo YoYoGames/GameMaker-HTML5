@@ -19,16 +19,16 @@ var AT_None = -1,
 	AT_Sprite = 1,
 	AT_Sound = 2,
 	AT_Room = 3,
-	AT_Background = 4,
-	AT_Path = 5,
-	AT_Script = 6,
-	AT_Font = 7,
-	AT_Timeline = 8,
-    AT_Tiles = 9, // In HTML5 tile resources are added as part of the background array
-	AT_Shader = 10,
-    AT_Sequence = 11,
-    AT_AnimCurve = 12;
-    AT_ParticleSystem = 13;
+	AT_Path = 4,
+	AT_Script = 5,
+	AT_Font = 6,
+	AT_Timeline = 7,
+	AT_Shader = 8,
+    AT_Sequence = 9,
+    AT_AnimCurve = 10,
+    AT_ParticleSystem = 11,
+    AT_Tilemap = 12, 
+    AT_Tileset = 13;
 
 var REFCAT_RESOURCE			= 0x01000000;
 var REFCAT_DATA_STRUCTURE	= 0x02000000;
@@ -47,16 +47,16 @@ var REFID_OBJECT			= (AT_Object | REFCAT_RESOURCE);
 var REFID_SPRITE			= (AT_Sprite | REFCAT_RESOURCE);
 var REFID_SOUND				= (AT_Sound | REFCAT_RESOURCE);
 var REFID_ROOM				= (AT_Room | REFCAT_RESOURCE);
-var REFID_BACKGROUND		= (AT_Background | REFCAT_RESOURCE);
 var REFID_PATH				= (AT_Path | REFCAT_RESOURCE);
 var REFID_SCRIPT			= (AT_Script | REFCAT_RESOURCE);
 var REFID_FONT				= (AT_Font | REFCAT_RESOURCE);
 var REFID_TIMELINE			= (AT_Timeline | REFCAT_RESOURCE);
-var REFID_TILES				= (AT_Tiles | REFCAT_RESOURCE);
 var REFID_SHADER			= (AT_Shader | REFCAT_RESOURCE);
 var REFID_SEQUENCE			= (AT_Sequence | REFCAT_RESOURCE);
 var REFID_ANIMCURVE			= (AT_AnimCurve | REFCAT_RESOURCE);
 var REFID_PARTICLESYSTEM	= (AT_ParticleSystem | REFCAT_RESOURCE);
+var REFID_TILEMAP			= (AT_Tilemap | REFCAT_RESOURCE);
+var REFID_TILESET			= (AT_Tileset | REFCAT_RESOURCE);
 
 var REFID_DS_LIST		= (0x00000001 | REFCAT_DATA_STRUCTURE);
 var REFID_DS_MAP		= (0x00000002 | REFCAT_DATA_STRUCTURE);
@@ -113,12 +113,10 @@ var  g_name2ref = [
     {   "name" : "sprite", "type" : REFID_SPRITE},
     {   "name" : "sound", "type" : REFID_SOUND},
     {   "name" : "room", "type" : REFID_ROOM},
-    {   "name" : "background", "type" : REFID_BACKGROUND},
     {   "name" : "path", "type" : REFID_PATH},
     {   "name" : "script", "type" : REFID_SCRIPT},
     {   "name" : "font", "type" : REFID_FONT},
     {   "name" : "timeline", "type" : REFID_TIMELINE},
-    {   "name" : "tiles", "type" : REFID_TILES},
     {   "name" : "shader", "type" : REFID_SHADER},
     {   "name" : "sequence", "type" : REFID_SEQUENCE},
     {   "name" : "animcurve", "type" : REFID_ANIMCURVE},
@@ -132,6 +130,9 @@ var  g_name2ref = [
     {   "name" : "vertex format", "type" : REFID_VERTEX_FORMAT},
     {   "name" : "surface", "type" : REFID_SURFACE},
     {   "name" : "time source", "type" : REFID_TIME_SOURCE},
+    {   "name" : "tilemap", "type" : REFID_TILEMAP},
+    {   "name" : "tileset", "type" : REFID_TILESET},
+
 ];
 
 

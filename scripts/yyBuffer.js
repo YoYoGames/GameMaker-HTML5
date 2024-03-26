@@ -244,6 +244,141 @@ function yyBuffer( _size, _type, _alignment, _srcbytebuff ) {
 	}
 }
 
+
+// #################################################################################################
+/// Function: yygetFloat16
+/// Description:
+///     Retrieve and decode a 16-bit floating-point number from a DataView.
+///
+/// Parameters:
+///     byteOffset - The offset where the 16-bit float is stored.
+///     littleEndian - Specifies the endianness of the data (true for little-endian, false for big-endian).
+///
+/// Returns:
+///     The decoded 16-bit floating-point number.
+///     If the input data is invalid or out of range, NaN is returned.
+// #################################################################################################
+DataView.prototype.yygetFloat16 = function (byteOffset, littleEndian) {
+    // byteOffset: The offset where the 16-bit float is stored
+    // littleEndian: Specifies the endianness of the data
+
+    // Used references: https://en.wikipedia.org/wiki/Half-precision_floating-point_format
+
+    // Read the 16-bit float as an unsigned integer
+    const uint16 = this.getUint16(byteOffset, littleEndian);
+
+    // Extract the sign bit (bit 15)
+    const sign = (uint16 & 0x8000) ? -1 : 1;
+
+    // Extract the exponent bits (bits 10-14)
+    const exponent = (uint16 >> 10) & 0x1F;
+
+    // Extract the mantissa bits (bits 0-9)
+    const mantissa = uint16 & 0x3FF;
+
+    if (exponent === 0) {
+        // If exponent is 0, it's a denormalized number or zero
+        if (mantissa === 0) {
+            // Zero
+            return sign * 0.0;
+        } else {
+            // Denormalized number
+            // Calculate the value using the formula for denormalized numbers
+            return sign * Math.pow(2, -14) * (mantissa / 1024);
+        }
+    } else if (exponent === 31) {
+        // If exponent is 31, it's infinity or NaN
+        if (mantissa === 0) {
+            // Positive or negative infinity
+            return (sign === 1) ? Infinity : -Infinity;
+        } else {
+            // NaN
+            return NaN;
+        }
+    } else {
+        // Normalized number
+        // Calculate the value using the formula for normalized numbers
+        return sign * Math.pow(2, exponent - 15) * (1 + mantissa / 1024);
+    }
+};
+
+// #################################################################################################
+/// Function: yysetFloat16
+/// Description:
+///     Encode and write a 16-bit floating-point number (float16) to a DataView.
+///
+/// Parameters:
+///     offset - The offset where the float16 will be written in the DataView.
+///     value - The float16 value to encode and write.
+///     littleEndian - Optional. Specifies the endianness of the data (true for little-endian, false for big-endian).
+///
+/// Returns:
+///     None.
+///
+/// Details:
+///     The function encodes the provided float16 value as per IEEE 754-2008 standard for half-precision
+///     floating-point numbers and writes it to the specified offset in the DataView. If the value is
+///     outside the representable range for float16, a RangeError is thrown.
+///
+///     Special cases:
+///     - If the value is 0, it is written as a positive zero.
+///     - If the value is NaN, it is written as the NaN representation.
+///
+/// Example Usage:
+///     const dataView = new DataView(new ArrayBuffer(2));
+///     dataView.yysetFloat16(0, 1.0, true); // Write float16 value 1.0 in little-endian
+// #################################################################################################
+DataView.prototype.yysetFloat16 = function(offset, value, littleEndian = true) {
+    let sign = 0;
+    let exponent = 0;
+    let mantissa = 0;
+
+    // Used references: https://en.wikipedia.org/wiki/Half-precision_floating-point_format
+    if (isNaN(value)) {
+        // If the value is NaN, use the standard NaN representation for float16.
+        mantissa = 0x200;
+        exponent = 0x1F;
+    } else if (value === Infinity || value === -Infinity) {
+        // Handling Infinity.
+        exponent = 0x1F;
+    } else if (value === 0) {
+        // Handling zero (both positive and negative).
+        sign = (1 / value === -Infinity) ? 0x8000 : 0;
+    } else {
+        sign = value < 0 ? 0x8000 : 0;
+        value = Math.abs(value);
+
+        if (value >= Math.pow(2, -14)) {
+            // Handle normal numbers.
+            let exponentAndMantissa = Math.floor(Math.log2(value) + 15);
+            exponent = exponentAndMantissa;
+            mantissa = Math.floor((value / Math.pow(2, exponent - 15) - 1) * 1024);
+
+            if (mantissa === 1024) {
+                // We might end in an exponent overflow state.
+                exponentAndMantissa += 1;
+                exponent = exponentAndMantissa;
+                mantissa = 0;
+            }
+
+            // Check if we overflow into Infinity.
+            if (exponentAndMantissa > 30) {
+                // Handle overflow to Infinity.
+                exponent = 0x1F;
+                mantissa = 0;
+            }
+        } else {
+            // Handle subnormal numbers.
+            mantissa = Math.floor(value / Math.pow(2, -24));
+        }
+    }
+
+    const float16 = sign | (exponent << 10) | mantissa;
+    this.setUint16(offset, float16, littleEndian);
+};
+
+
+
 // #############################################################################################
 /// Function:<summary>
 ///          	Return the size of a "type"
@@ -470,6 +605,11 @@ yyBuffer.prototype.yyb_read = function(_type) {
             res = new Long( this.m_DataView.getUint32(this.m_BufferIndex, true), 0);
             this.m_BufferIndex += 4;
             break;
+
+        case eBuffer_F16:
+            res = this.m_DataView.yygetFloat16(this.m_BufferIndex, true);
+            this.m_BufferIndex += 2;
+            break;
         case eBuffer_F32:
             res = this.m_DataView.getFloat32(this.m_BufferIndex, true);
             this.m_BufferIndex += 4;
@@ -478,6 +618,7 @@ yyBuffer.prototype.yyb_read = function(_type) {
             res = this.m_DataView.getFloat64(this.m_BufferIndex, true);
             this.m_BufferIndex += 8;
             break;
+            
         case eBuffer_U64:
             var low = this.m_DataView.getUint32(this.m_BufferIndex, true);
             this.m_BufferIndex += 4;
@@ -1197,6 +1338,9 @@ yyBuffer.prototype.yyb_write = function(_type, _value) {
             var oldsize = this.m_Size;
             var newSize = this.m_Size;
 
+            if(newSize<4) 
+                newSize = 4;
+
             while ((this.m_BufferIndex + sizeneeded) > newSize) {
                 newSize = (newSize << 1); 
             }
@@ -1260,6 +1404,11 @@ yyBuffer.prototype.yyb_write = function(_type, _value) {
             this.m_DataView.setUint32(this.m_BufferIndex, _value, true);
             this.m_BufferIndex += 4;
             break;
+
+        case eBuffer_F16:
+            this.m_DataView.yysetFloat16(this.m_BufferIndex, _value, true);
+            this.m_BufferIndex += 2;
+            break;
         case eBuffer_F32:
             this.m_DataView.setFloat32(this.m_BufferIndex, _value, true);
             this.m_BufferIndex += 4;
@@ -1268,6 +1417,7 @@ yyBuffer.prototype.yyb_write = function(_type, _value) {
             this.m_DataView.setFloat64(this.m_BufferIndex, _value, true);
             this.m_BufferIndex += 8;
             break;
+        
         case eBuffer_U64:
             var int64Val = yyGetInt64(_value);
             this.m_DataView.setUint32(this.m_BufferIndex, int64Val.low, true);
@@ -1336,12 +1486,17 @@ yyBuffer.prototype.yyb_peek = function(_type, _offset) {
         case eBuffer_U32:
             res = this.m_DataView.getUint32(_offset, true);
             break;
+
+        case eBuffer_F16:
+            res = this.m_DataView.yygetFloat16(_offset, true);
+            break;
         case eBuffer_F32:
             res = this.m_DataView.getFloat32(_offset, true);
             break;
         case eBuffer_F64:
             res = this.m_DataView.getFloat64(_offset, true);
             break;
+
         case eBuffer_U64:
             var low = this.m_DataView.getUint32(_offset, true);
             var high = this.m_DataView.getUint32(_offset + 4, true);
@@ -2523,6 +2678,7 @@ function buffer_load_async(_buffer, _fname, _offset, _size) {
     _buffer = yyGetInt32(_buffer);
     _fname = yyGetString(_fname);
     _offset = yyGetInt32(_offset);
+    _size = yyGetInt32(_size);
 
     var pBuff = g_BufferStorage.Get(_buffer);
     if (!pBuff) return -1;
@@ -2531,23 +2687,31 @@ function buffer_load_async(_buffer, _fname, _offset, _size) {
     var pTextFile = LoadBinaryFile_Block(_fname, true);
     if (pTextFile)
     {
-        if (_size >= 0 && pTextFile.length > _size)
+        // files from local storage are base64 encoded so "some trickery required"
+        var tmpbuffid = buffer_base64_decode(pTextFile);
+        // if we decoded successfully
+        if (tmpbuffid >= 0)
         {
-            pTextFile = pTextFile.slice(0, _size);
+            if (_size >= 0 && buffer_get_size(tmpbuffid) > _size)
+            {
+                // shrink the buffer down if we have to, this will change the size
+                // if _size is larger than our buffer size then this if block won't execute
+                // as if _size was -1
+                buffer_resize(tmpbuffid, _size);
+            }
+
+            // poll for the buffer size again as it could've been modified
+            buffer_copy(tmpbuffid, 0, buffer_get_size(tmpbuffid), _buffer, _offset);
+            buffer_delete(tmpbuffid);
+            tmpbuffid = -1; // we no longer need the decoded data, it should be copied.
+            
+            var pFile = g_pASyncManager.Add(_buffer, _fname, ASYNC_BINARY, undefined);
+            pFile.m_Complete = true;
+            pFile.m_Status = 200;   // HTTP okay
+            g_LastErrorStatus = 0;
+            return _buffer;
         }
-
-        var oldPos = pBuff.m_BufferIndex;
-
-        pBuff.m_BufferIndex = _offset;
-        pBuff.yyb_write(eBuffer_Text, pTextFile);
-
-        pBuff.m_BufferIndex = oldPos;
-        
-        var pFile = g_pASyncManager.Add(_buffer, _fname, ASYNC_BINARY, undefined);
-        pFile.m_Complete = true;
-        pFile.m_Status = 200;   // HTTP okay
-        g_LastErrorStatus = 0;
-        return _buffer;
+        // if not, try loading via http then
     }
     
     // kick off a load, and then file an async callback
@@ -2558,7 +2722,7 @@ function buffer_load_async(_buffer, _fname, _offset, _size) {
         X.responseType = "arraybuffer";
         X.onload = ASync_ImageLoad_Callback;
         X.ms_offset = _offset;
-        X.ms_size = yyGetInt32(_size);
+        X.ms_size = _size;
         X.ms_filename = _fname;
         X.ms_buffer = _buffer;
        

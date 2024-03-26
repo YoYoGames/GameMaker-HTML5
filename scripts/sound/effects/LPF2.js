@@ -3,50 +3,50 @@ function LPF2EffectStruct(_params) {
     AudioEffectStruct.call(this, AudioEffect.Type.LPF2);
     Object.setPrototypeOf(this, AudioEffectStruct.prototype);
 
-    this.initParams(_params, LPF2EffectStruct.paramDescriptors());
+    this.initParams(_params);
 
     // Define user-facing properties
     Object.defineProperties(this, {
         gmlcutoff: {
             enumerable: true,
             get: () => {
-                return this.params.cutoff;
+                return this.params[LPF2EffectStruct.Index.Cutoff];
             },
             set: (_cutoff) => {
-                this.setParam(LPF2EffectStruct.paramDescriptors().cutoff, _cutoff);
+                const val = this.setParam(LPF2EffectStruct.Index.Cutoff, _cutoff);
 
                 this.nodes.forEach((_node) => {
                     const cutoff = _node.parameters.get("cutoff");
-                    cutoff.value = this.params.cutoff;
+                    cutoff.value = val;
                 });
             }
         },
         gmlq: {
             enumerable: true,
             get: () => {
-                return this.params.q;
+                return this.params[LPF2EffectStruct.Index.Q];
             },
             set: (_q) => {
-                this.setParam(LPF2EffectStruct.paramDescriptors().q, _q);
+                const val = this.setParam(LPF2EffectStruct.Index.Q, _q);
 
                 this.nodes.forEach((_node) => {
                     const q = _node.parameters.get("q");
-                    q.value = this.params.q;
+                    q.value = val;
                 });
             }
         }
     });
 }
 
-LPF2EffectStruct.paramDescriptors = () => ({
-    bypass: AudioEffectStruct.paramDescriptors().bypass,
-    freq:   { name: "cutoff", integer: false, defaultValue: 500.0, minValue: 10.0, maxValue: 20000.0 },
-    q:      { name: "q",      integer: false, defaultValue: 1.5,   minValue: 1.0,  maxValue: 100.0 },
+LPF2EffectStruct.Index = {
+    Bypass: 0,
+    Cutoff: 1,
+    Q: 2
+};
 
-    get cutoff() {
-        this.freq.maxValue = g_WebAudioContext ? Math.min(g_WebAudioContext.sampleRate / 2.0, this.freq.maxValue) : this.freq.maxValue;
-        this.freq.defaultValue = Math.min(this.freq.defaultValue, this.freq.maxValue);
-        return this.freq;
-    } 
-});
+LPF2EffectStruct.ParamDescriptors = [
+    { name: "bypass", integer: true,  defaultValue: 0,      minValue: 0,    maxValue: 1 },
+    { name: "cutoff", integer: false, defaultValue: 500.0, minValue: 10.0, maxValue: 20000.0 },
+    { name: "q",      integer: false, defaultValue: 1.5,   minValue: 1.0,  maxValue: 100.0 } 
+];
 // @endif

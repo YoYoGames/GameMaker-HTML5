@@ -355,52 +355,70 @@ function yyVBufferBuilder(_size) {
     ///          </summary>
     // #############################################################################################
     /** @this {yyVBufferBuilder} */	
-    this.Submit = function(_primType, _texture) {
+    this.Submit = function(_primType, _texture, _offset, _number) {
+        if (_offset === undefined) _offset = 0;
+        if (_number === undefined) _number = -1;
+
+        if (_offset < 0) {
+            yyError("vertex_submit_ext: offset cannot be a negative number!");
+            return;
+        }
+
+        var vertexCount = (_number < 0) ? m_vertexCount : _number;
+        if (_offset + vertexCount > m_vertexCount) {
+            vertexCount = m_vertexCount - _offset;
+        }
+
+        if (vertexCount <= 0) {
+            return;
+        }
+
         if (m_frozen) {
 
             // Directly submit the vertex buffer
             // (I don't believe a flush is necessary as it shouldn't affect
             // the building up of the current in-flight vertex buffer)
             if (_texture == -1) {
-                g_webGL.DispatchVBuffer(_primType,null, m_VBuffer, 0);
+                g_webGL.DispatchVBuffer(_primType,null, m_VBuffer, _offset, vertexCount);
             }
             else {
                 // Check whether the webgl texture has been initialised yet and do so if not
                 if (_texture && !_texture.WebGLTexture.webgl_textureid) {
                     WebGL_BindTexture(_texture.TPE);
-                    if (!WebGL_IsTextureValid(_texture.WebGLTexture.webgl_textureid, WebGL_gpu_get_tex_mip_enable())) {
-                        yyError("vertex_submit: trying to use a texture that does not exist");
-                        return;
-                    }
+                    if(!WebGL_IsTextureImageValid(_texture.WebGLTexture.webgl_textureid)) {
+                        yyError("vertex_submit: trying to use an invalid texture");
+						return;
+					}
                 }
-                g_webGL.DispatchVBuffer(_primType, _texture.WebGLTexture.webgl_textureid, m_VBuffer, 0);
+                g_webGL.DispatchVBuffer(_primType, _texture.WebGLTexture.webgl_textureid, m_VBuffer, _offset, vertexCount);
             }
         }
         else {
             var pBuff;
             if (_texture == -1) {
-                pBuff = g_webGL.AllocVerts(_primType, null, m_FVF, m_vertexCount);
+                pBuff = g_webGL.AllocVerts(_primType, null, m_FVF, vertexCount);
             } else {
                 // Check whether the webgl texture has been initialised yet and do so if not
                 if (_texture && !_texture.WebGLTexture.webgl_textureid) {
                     WebGL_BindTexture(_texture.TPE);
-                    if (!WebGL_IsTextureValid(_texture.WebGLTexture.webgl_textureid, WebGL_gpu_get_tex_mip_enable())) {
-                        yyError("vertex_submit: trying to use a texture that does not exist");
-                        return;
-                    }
+                    if(!WebGL_IsTextureImageValid(_texture.WebGLTexture.webgl_textureid)) {
+                        yyError("vertex_submit: trying to use an invalid texture");
+						return;
+					}
+					
                 }
-                pBuff = g_webGL.AllocVerts(_primType, _texture.WebGLTexture.webgl_textureid, m_FVF, m_vertexCount);
+                pBuff = g_webGL.AllocVerts(_primType, _texture.WebGLTexture.webgl_textureid, m_FVF, vertexCount);
             }
 
             // Get the data across
             var currpos = pBuff.Current * m_vertexFormat.ByteSize;
 
             // Open a data view onto the vertex array to allow for easy copying to the VBuffer vertex data store
-            var vertexDataView = new Int8Array(m_arrayBuffer, 0, m_vertexCount * m_vertexFormat.ByteSize);
+            var vertexDataView = new Int8Array(m_arrayBuffer, _offset * m_vertexFormat.ByteSize, vertexCount * m_vertexFormat.ByteSize);
 
             // This buffer copy might seem a bit unnecessary but it's there so that the vertex buffer can be reused
             pBuff.VertexData.set(vertexDataView, currpos);
-            pBuff.Current += m_vertexCount;
+            pBuff.Current += vertexCount;
         }
     };
 

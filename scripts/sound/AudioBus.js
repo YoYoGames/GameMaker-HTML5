@@ -85,28 +85,28 @@ AudioBus.prototype.findNextNode = function(_idx)
 AudioBus.prototype.findPrevNode = function(_idx) 
 {
 	const nodes = this.nodes.slice(0, _idx);
-	const prevNode = nodes.findLast((_node) => _node !== undefined);
+	const prevNode = nodes.slice().reverse().find((_node) => _node !== undefined);
 
 	return (prevNode !== undefined) ? prevNode.output : this.inputNode;
 };
 
 AudioBus.prototype.handleConnections = function(_idx, _newNodes)
 {
-	const currentNode = this.nodes[_idx];
+	const currentNodes = this.nodes[_idx];
 
-	if (currentNode === undefined && _newNodes === undefined)
+	if (currentNodes === undefined && _newNodes === undefined)
 		return; // No need to change anything
 
 	const prevNode = this.findPrevNode(_idx);
 	const nextNode = this.findNextNode(_idx);
 
 	// Disconnect the previous node
-	if (currentNode !== undefined)
+	if (currentNodes !== undefined)
 	{
-		prevNode.disconnect(currentNode);
+		prevNode.disconnect(currentNodes.input);
 
-		currentNode.disconnect();
-		this.effects[_idx].removeNode(currentNode);
+		currentNodes.output.disconnect();
+		this.effects[_idx].removeNode(currentNodes.output);
 	}
 	else
 	{
@@ -147,6 +147,19 @@ AudioBus.isNodeIndex = function(_prop)
 
 	return false;
 };
+
+AudioBus.prototype.getParamDescriptors = function() {
+	return AudioBus.ParamDescriptors;
+};
+
+AudioBus.prototype.getParamDescriptor = function(_idx) {
+	return AudioBus.ParamDescriptors[_idx];
+};
+
+AudioBus.ParamDescriptors = [
+	{ name: "bypass", integer: true,  defaultValue: 0, minValue: 0, maxValue: 1 },
+	{ name: "gain",   integer: false, defaultValue: 1, minValue: 0, maxValue: Number.MAX_VALUE }
+];
 
 function DummyAudioBus() {
 	this.outputNode = Audio_CreateGainNode(g_WebAudioContext);

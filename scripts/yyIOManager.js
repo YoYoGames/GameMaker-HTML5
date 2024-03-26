@@ -968,6 +968,7 @@ function onMouseUp(_evt) {
 /// In:		<param name="_evt"></param>
 // #############################################################################################
 function onMouseWheel(_evt) {
+	_evt.preventDefault();
 	if(_evt.detail)
 	{
 		g_MouseWheel = -_evt.detail;

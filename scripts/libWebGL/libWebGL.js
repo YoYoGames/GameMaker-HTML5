@@ -2103,10 +2103,10 @@ function yyWebGL(_canvas, _options) {
     ///          </summary>
     // #############################################################################################
     /** @this {yyWebGL} */
-    this.DispatchVBuffer = function (_prim, _texture, _vbuffer, _vertexStart) {
+    this.DispatchVBuffer = function (_prim, _texture, _vbuffer, _vertexStart, _vertexCount) {
     
         yyGL.REQUIRE((_texture == null) || (_texture instanceof yyGLTexture), "Texture is not a yyGLTexture", yyGL.ERRORLEVEL_Development);        
-        m_VBufferManager.Dispatch(_prim, _texture, _vbuffer, _vertexStart);
+        m_VBufferManager.Dispatch(_prim, _texture, _vbuffer, _vertexStart, _vertexCount);
     };
 
 

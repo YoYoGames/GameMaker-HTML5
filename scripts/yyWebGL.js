@@ -1,4 +1,4 @@
-﻿// **********************************************************************************************************************
+// **********************************************************************************************************************
 // 
 // Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
 // 
@@ -939,8 +939,8 @@ function WebGL_TextureDrawSimple_RELEASE(_pTPE, _x, _y, _alpha)
 	    col2 &= 0xfffefffe;			// 
 	    col3 &= 0xfffefffe;			// 
 	    col4 &= 0xfffefffe;			// 
-	    col2 |= 0x00010000;			// Mark which corner we're in!
-	    col3 |= 0x00000001;
+	    col2 |= 0x00000001;			// Mark which corner we're in!
+	    col3 |= 0x00010000;
 	    col4 |= 0x00010001;
     }
 
@@ -1023,8 +1023,8 @@ function WebGL_drawImage_Replacement_RELEASE(_pTPE, _tx,_ty,_tw,_th,  _x,_y,_w,_
 	    _col2 &= 0xfffefffe;			// 
 	    _col3 &= 0xfffefffe;			// 
 	    _col4 &= 0xfffefffe;			// 
-	    _col2 |= 0x00010000;			// Mark which corner we're in!
-	    _col3 |= 0x00000001;
+	    _col2 |= 0x00000001;			// Mark which corner we're in!
+	    _col3 |= 0x00010000;
 	    _col4 |= 0x00010001;
     }
 
@@ -1115,8 +1115,8 @@ function	WebGL_TextureDrawTiled_RELEASE( _pTPE, _x, _y, _xsc, _ysc, vtiled, htil
 	    col2 &= 0xfffefffe;			// 
 	    col3 &= 0xfffefffe;			// 
 	    col4 &= 0xfffefffe;			// 
-	    col2 |= 0x00010000;			// Mark which corner we're in!
-	    col3 |= 0x00000001;
+	    col2 |= 0x00000001;			// Mark which corner we're in!
+	    col3 |= 0x00010000;
 	    col4 |= 0x00010001;
     }
 
@@ -1156,44 +1156,44 @@ function	WebGL_TextureDrawTiled_RELEASE( _pTPE, _x, _y, _xsc, _ysc, vtiled, htil
 
             var xx2 = xx + nw;
 
-		    // Bottom Left
-		    pColours[index] = col4;
+		    // Top Left
+		    pColours[index] = col1;
 		    pCoords[index + 0] = xx;
 		    pCoords[index + 1] = yy;
 		    pCoords[index + 2] = GR_Depth;
 		    pUVs[index + 0] = u;
 		    pUVs[index + 1] = v;
 		
-		    // Top Left
+		    // Top Right
 		    index += stride;
-		    pColours[index] = col1;
+		    pColours[index] = col2;
 		    pCoords[index + 0] = xx2;
 		    pCoords[index + 1] = yy;
 		    pCoords[index + 2] = GR_Depth;
 		    pUVs[index + 0] = u2;
 		    pUVs[index + 1] = v;
 	
-		    // Top Right
+		    // Bottom Right
 		    index += stride;
-		    pColours[index] = col2;
+		    pColours[index] = col3;
 		    pCoords[index + 0] = xx2;
 		    pCoords[index + 1] = yy2;
 		    pCoords[index + 2] = GR_Depth;
 		    pUVs[index + 0] = u2;
 		    pUVs[index + 1] = v2;
 
-		    // Top Right
+		    // Bottom Right
 		    index += stride;
-		    pColours[index] = col2;
+		    pColours[index] = col3;
 		    pCoords[index + 0] = xx2;
 		    pCoords[index + 1] = yy2;
 		    pCoords[index + 2] = GR_Depth;
 		    pUVs[index + 0] = u2;
 		    pUVs[index + 1] = v2;
 			
-		    // Bottom Right
+		    // Bottom Left
 		    index += stride;
-		    pColours[index] = col3;
+		    pColours[index] = col4;
 		    pCoords[index + 0] = xx;
 		    pCoords[index + 1] = yy2;
 		    pCoords[index + 2] = GR_Depth;
@@ -2312,8 +2312,8 @@ function WebGL_TextureDraw_RELEASE(_pTPE, _xorig, _yorig, _x, _y, _xsc, _ysc, _r
 	    _col2 &= 0xfffefffe;			// 
 	    _col3 &= 0xfffefffe;			// 
 	    _col4 &= 0xfffefffe;			// 
-	    _col2 |= 0x00010000;			// Mark which corner we're in!
-	    _col3 |= 0x00000001;
+	    _col2 |= 0x00000001;			// Mark which corner we're in!
+	    _col3 |= 0x00010000;
 	    _col4 |= 0x00010001;
     }
     pColours[v0] = pColours[v5] = _col;
@@ -2378,8 +2378,8 @@ function WebGL_TextureDrawPos_RELEASE(_pTPE, _x1, _y1, _x2, _y2, _x3, _y3, _x4, 
 	    col2 &= 0xfffefffe;			// 
 	    col3 &= 0xfffefffe;			// 
 	    col4 &= 0xfffefffe;			// 
-	    col2 |= 0x00010000;			// Mark which corner we're in!
-	    col3 |= 0x00000001;
+	    col2 |= 0x00000001;			// Mark which corner we're in!
+	    col3 |= 0x00010000;
 	    col4 |= 0x00010001;
     }
     pColours[v0] = pColours[v5] = col;
@@ -2496,8 +2496,8 @@ function WebGL_TextureDrawWH_RELEASE(_pTPE, _xorig, _yorig, _width, _height, _x,
 	    _col2 &= 0xfffefffe;			// 
 	    _col3 &= 0xfffefffe;			// 
 	    _col4 &= 0xfffefffe;			// 
-	    _col2 |= 0x00010000;			// Mark which corner we're in!
-	    _col3 |= 0x00000001;
+	    _col2 |= 0x00000001;			// Mark which corner we're in!
+	    _col3 |= 0x00010000;
 	    _col4 |= 0x00010001;
     }
     pColours[v0] = pColours[v5] = _col;
@@ -2634,6 +2634,19 @@ function WebGL_draw_rectangle_RELEASE(_x1, _y1, _x2, _y2, _outline)
     //pUVs = pBuff.UVs;
 
     var col = ~~((g_GlobalAlpha * 255.0) << 24) | (g_GlobalColour & 0xffffff);
+	var col2 = col;
+	var col3 = col; 
+	var col4 = col;
+    if (GR_MarkVertCorners) {
+	
+        col  &= 0xfffefffe;			// clear out bits, ready for "marking"
+	    col2 &= 0xfffefffe;			// 
+	    col3 &= 0xfffefffe;			// 
+	    col4 &= 0xfffefffe;			// 
+	    col2 |= 0x00000001;			// Mark which corner we're in!
+	    col3 |= 0x00010000;
+	    col4 |= 0x00010001;
+    }
 	
     // Don't care about UV's as it's a SOLID white texture... so whatever is there is good.
     if (!_outline)
@@ -2651,7 +2664,10 @@ function WebGL_draw_rectangle_RELEASE(_x1, _y1, _x2, _y2, _outline)
 	    pCoords[v2 + 1] = pCoords[v3 + 1] = pCoords[v4 + 1] = _y2;
 	    pCoords[v0 + 2] = pCoords[v1 + 2] = pCoords[v2 + 2] = pCoords[v3 + 2] = pCoords[v4 + 2] = pCoords[v5 + 2] = GR_Depth;
 
-	    pColours[v0] = pColours[v1] = pColours[v2] = pColours[v3] = pColours[v4] = pColours[v5] = col;
+		pColours[v0] = pColours[v5] = col;
+		pColours[v1] = col2;
+		pColours[v2] = pColours[v3] = col3;
+		pColours[v4] = col4;
     } 
     else
     {
@@ -4939,6 +4955,8 @@ function SetupProprietaryShaders() {
         for (var i = 0; i < g_pGMFile.Shaders.length; i++)
         {
             var shader = g_pGMFile.Shaders[i];
+            if (shader === undefined) continue;
+            
             g_shaderPrograms[i] = g_webGL.AddShader(shader.Vertex, shader.Fragment, shader.Attributes);
 
             if (g_shaderPrograms[i].program == null)
@@ -5044,6 +5062,26 @@ function WebGL_IsTextureValid(_tex, _mipoptions)
     {
         return false;
     }
+}
+
+function WebGL_IsTextureImageValid(_tex)
+{
+	// check if bound image is a valid object that a texture can be created from
+	if(_tex.Image == undefined || _tex.Image == null)
+	{
+		return false;
+	}
+	
+	if(_tex.Image instanceof HTMLImageElement
+		|| _tex.Image instanceof HTMLCanvasElement
+		|| _tex.Image instanceof HTMLVideoElement
+		|| _tex.Image instanceof ImageData
+		|| _tex.Image instanceof Uint8Array
+	)
+	{
+		return true;
+	}
+	return false;
 }
 
 

@@ -373,7 +373,7 @@ function event_perform_async(_pInst, _pOther, _event, _ds_map)
     _event = yyGetInt32(_event);
     _ds_map = yyGetInt32(_ds_map);
     g_pBuiltIn.async_load = _ds_map;
-    g_pObjectManager.ThrowEvent(EVENT_OTHER,_event);
+    g_pObjectManager.ThrowEvent(EVENT_OTHER | _event,0,true);
 	
 	ds_map_destroy(_ds_map);
 	
@@ -1594,7 +1594,7 @@ function Resource_Find(_name, _array) {
     for (var index = 0; index < _array.length; index++)
     {
         var pObjStorage = _array[index];
-        if (pObjStorage.pName == _name) {
+        if ( pObjStorage && (pObjStorage.pName == _name)) {
             return index;
         }
     }
@@ -1606,7 +1606,7 @@ function Resource_Find_Shader(_name, _array) {
     for (var index = 0; index < _array.length; index++)
     {
         var pObjStorage = _array[index];
-        if (pObjStorage.name == _name) {
+        if ( pObjStorage && (pObjStorage.name == _name)) {
             return index;
         }
     }
@@ -1620,7 +1620,7 @@ function Resource_Find_Script(_name, _array) {
     for (var index = 0; index < _array.length; index++)
     {
         var scrName = _array[index];
-        if( scrName.endsWith(_name)){
+        if(scrName &&  scrName.endsWith(_name)){
             if( scrName == gmlName )
                 return index + 100000;
             else if( scrName == _name ) 
@@ -1634,7 +1634,7 @@ function Resource_Find_Script(_name, _array) {
         for (var index = 0; index < _array.length; index++)
         {
             var scrName = _array[index];
-            if( scrName.endsWith(_name)){
+            if(scrName && scrName.endsWith(_name)){
                 if( scrName == globalName )
                     return index + 100000;
             }
@@ -1653,7 +1653,7 @@ function ResourceGetTypeIndex(_name )
 	if ((ret = Resource_Find(_name, g_pGMFile.Sprites)) >= 0)                  { typeId.type=AT_Sprite;     typeId.id = ret; return typeId; }
     if ((ret = Resource_Find(_name, g_pGMFile.GMRooms)) >= 0)                  { typeId.type=AT_Room;       typeId.id = ret; return typeId; }
 	if ((ret = Resource_Find(_name, g_pGMFile.Sounds)) >= 0)	               { typeId.type=AT_Sound;      typeId.id = ret; return typeId; }
-	if ((ret = Resource_Find(_name, g_pGMFile.Backgrounds)) >= 0)              { typeId.type= g_isZeus ? AT_Tiles : AT_Background,      typeId.id = ret; return typeId; }
+	if ((ret = Resource_Find(_name, g_pGMFile.Backgrounds)) >= 0)              { typeId.type=AT_Tileset;    typeId.id = ret; return typeId; }
 	if ((ret = Resource_Find(_name, g_pGMFile.Paths)) >= 0)                    { typeId.type=AT_Path;       typeId.id = ret; return typeId; }
 	if ((ret = Resource_Find(_name, g_pGMFile.Fonts)) >= 0)                    { typeId.type=AT_Font;       typeId.id = ret; return typeId; }
     // @if feature("timelines")
@@ -1682,8 +1682,7 @@ function ResourceGetName( _index, _assetType )
         case AT_Sprite:	        return (sprite_exists(_index)) ? sprite_get_name(_index) : "";
         case AT_Sound:		    return (sound_exists(_index)) ? sound_get_name(_index) : "";
         case AT_Room:		    return (room_exists(_index)) ? room_get_name(_index) : "";
-        case AT_Tiles:
-        case AT_Background:     return (background_exists(_index)) ? background_get_name(_index) : "";
+        case AT_Tileset:        return (background_exists(_index)) ? background_get_name(_index) : "";
         case AT_Path:		    return ( path_exists(_index)) ? path_get_name(_index) : "";
         case AT_Script:	        return ( script_exists(_index)) ? script_get_name(_index) : "";
         case AT_Font:		    return ( font_exists(_index)) ? font_get_name(_index) : "";
@@ -1737,19 +1736,6 @@ function asset_get_type(_name)
     _name = yyGetString(_name);
     var typeId = ResourceGetTypeIndex(_name);
     return typeId.type;
-/*
-    if (Resource_Find(_name, g_pGMFile.GMObjects) >= 0)     { return AT_Object; }
-    if (Resource_Find(_name, g_pGMFile.GMRooms) >= 0)       { return AT_Room; }
-	if (Resource_Find(_name, g_pGMFile.Sprites) >= 0)       { return AT_Sprite; }
-	if (Resource_Find(_name, g_pGMFile.Sounds) >= 0)	    { return AT_Sound; }
-	if (Resource_Find(_name, g_pGMFile.Backgrounds) >= 0)   { return AT_Background; }
-	if (Resource_Find(_name, g_pGMFile.Paths) >= 0)         { return AT_Path; }
-	if (Resource_Find(_name, g_pGMFile.Fonts) >= 0)         { return AT_Font; }	
-	if (Resource_Find(_name, g_pGMFile.Timelines) >= 0)     { return AT_Timeline; }
-	// if (Resource_Find(_name, g_pGMFile.Scripts) >= 0)       { return AT_Script; }
-	if (Resource_Find(_name, g_pGMFile.Shaders) >= 0)       { return AT_Shader; }
-	return -1;
-*/
 }
 
 // #############################################################################################
@@ -1768,8 +1754,7 @@ function asset_get_ids(_assetType)
     case AT_Object:         ids = g_pObjectManager.List(); refs = true; break;
     case AT_Sprite:         ids = g_pSpriteManager.List(); break;
     case AT_Room:           ids = g_pRoomManager.List(); break;
-    case AT_Tiles:
-    case AT_Background:     ids = g_pBackgroundManager.List(); refs = true; break;
+    case AT_Tileset:        ids = g_pBackgroundManager.List(); refs = true; break;
     case AT_Path:           ids = g_pPathManager.List(); break;
     case AT_Script: {
         ids = [];

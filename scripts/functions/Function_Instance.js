@@ -123,7 +123,7 @@ function instance_position(_x,_y,_obj)
 	if(_obj instanceof YYRef)
 	{
 		var reftype = _obj.type;
-		if (reftype == REFID_BACKGROUND)
+		if (reftype == REFID_TILEMAP)
 		{
 			if (Tilemap_PointPlace( _x, _y, _obj, null,true))
 			{
@@ -144,7 +144,7 @@ function instance_position(_x,_y,_obj)
 		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
 		{
 			var obj2 = _obj[i]; 
-			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_TILEMAP))
 			{
 				if (Tilemap_PointPlace( _x, _y, obj2, null,true))
 				{
@@ -185,7 +185,7 @@ function instance_position_list(_x, _y, _obj, _list, _ordered)
 	if(_obj instanceof YYRef)
 	{
 		var reftype = _obj.type;
-		if (reftype == REFID_BACKGROUND)
+		if (reftype == REFID_TILEMAP)
 		{
 			Tilemap_PointPlace( _x, _y, _obj, instList,true);
 			skipafterswitch = true;
@@ -197,7 +197,7 @@ function instance_position_list(_x, _y, _obj, _list, _ordered)
 		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
 		{
 			var obj2 = _obj[i]; 
-			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_TILEMAP))
 			{
 				Tilemap_PointPlace( _x, _y, obj2, instList,true);
 			}
@@ -1224,7 +1224,7 @@ function PerformColTest(_selfinst,_x,_y,_obj)
 	if(_obj instanceof YYRef)
 	{
 		var reftype = _obj.type;
-		if (reftype == REFID_BACKGROUND)
+		if (reftype == REFID_TILEMAP)
 		{
 			if (Tilemap_InstancePlace(_selfinst, _x, _y, _obj, null,true))
 			{
@@ -1244,7 +1244,7 @@ function PerformColTest(_selfinst,_x,_y,_obj)
 		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
 		{
 			var obj2 = _obj[i]; 
-			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_TILEMAP))
 			{
 				if (Tilemap_InstancePlace(_selfinst, _x, _y, obj2, null,true))
 				{
@@ -1307,7 +1307,7 @@ function instance_place_list(_pInst, _x, _y, _obj, _list, _ordered)
 	if(_obj instanceof YYRef)
 	{
 		var reftype = _obj.type;
-		if (reftype == REFID_BACKGROUND)
+		if (reftype == REFID_TILEMAP)
 		{
 			Tilemap_InstancePlace(_pInst, _x, _y, _obj, instList,true);
 			skipafterswitch = true;
@@ -1319,7 +1319,7 @@ function instance_place_list(_pInst, _x, _y, _obj, _list, _ordered)
 		for (var i =0;i<_obj.length;i++)  //Can't do for... in ... due to yyarray_owner
 		{
 			var obj2 = _obj[i]; 
-			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_BACKGROUND))
+			if((obj2 instanceof YYRef) &&  (obj2.type==REFID_TILEMAP))
 			{
 				Tilemap_InstancePlace(_pInst, _x, _y, obj2, instList,true);
 			}

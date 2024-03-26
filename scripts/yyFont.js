@@ -789,8 +789,8 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
 		_col2 &= 0xfffefffe;			// 
 		_col3 &= 0xfffefffe;			// 
 		_col4 &= 0xfffefffe;			// 
-		_col2 |= 0x00010000;			// Mark which corner we're in!
-		_col3 |= 0x00000001;
+		_col2 |= 0x00000001;			// Mark which corner we're in!
+		_col3 |= 0x00010000;
 		_col4 |= 0x00010001;
 	}
 	
@@ -1890,7 +1890,7 @@ yyFontManager.prototype.Split_TextBlock = function (_pStr, linewidth, thefont) {
 							end = e;
 						}
 						else {
-							while(pNew[end]!=whitespace)
+							while(pNew[end]!=whitespace && end<len)
 								end++;
 						}
 
