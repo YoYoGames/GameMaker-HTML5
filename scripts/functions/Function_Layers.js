@@ -5090,7 +5090,7 @@ function fx_set_parameter(_effect, _name, _val)
     }
     else
     {
-        var arr = arguments.slice(2);
+        var arr = Array.prototype.slice.call(arguments, 2);
         _effect.instance.SetParamVar(_name, arr);
     }
 }
