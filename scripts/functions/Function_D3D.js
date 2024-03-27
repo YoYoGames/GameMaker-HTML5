@@ -1023,11 +1023,11 @@ function WebGL_gpu_set_blendmode(_mode)
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, false);
 				break;
 				
-		case 4: g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_SrcAlpha);
+		case 4: g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_One);
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_One); // min blend
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquation, yyGL.BlendEquation_Min);
 				
-				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_SrcAlpha);
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_One);
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.Blend_One); // min blend
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquationAlpha, yyGL.BlendEquation_Min);
 				
