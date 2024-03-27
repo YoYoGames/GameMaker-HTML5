@@ -39,6 +39,8 @@ function gpu_set_cullmode(){}
 function gpu_set_blendmode(){}
 function gpu_set_blendmode_ext(){}
 function gpu_set_blendmode_ext_sepalpha(){}
+function gpu_set_blendequation(){}
+function gpu_set_blendequation_sepalpha(){}
 function gpu_set_colorwriteenable(){}
 function gpu_set_colourwriteenable(){}
 function gpu_set_alphatestenable(){}
@@ -140,6 +142,8 @@ function gpu_set_state(){}
     compile_if_used(gpu_set_blendmode = _stub("gpu_set_blendmode"));
     compile_if_used(gpu_set_blendmode_ext = _stub("gpu_set_blendmode_ext"));
     compile_if_used(gpu_set_blendmode_ext_sepalpha = _stub("gpu_set_blendmode_ext_sepalpha"));
+	compile_if_used(gpu_set_blendequation = _stub("gpu_set_blendequation"));
+	compile_if_used(gpu_set_blendequation_sepalpha = _stub("gpu_set_blendequation_sepalpha"));
     compile_if_used(gpu_set_colorwriteenable = _stub("gpu_set_colorwriteenable"));
     compile_if_used(gpu_set_colourwriteenable = _stub("gpu_set_colourwriteenable"));
     compile_if_used(gpu_set_alphatestenable = _stub("gpu_set_alphatestenable"));
@@ -284,6 +288,8 @@ function InitD3DFunctions() {
     compile_if_used(gpu_set_blendmode = WebGL_gpu_set_blendmode);
     compile_if_used(gpu_set_blendmode_ext = WebGL_gpu_set_blendmode_ext);
     compile_if_used(gpu_set_blendmode_ext_sepalpha = WebGL_gpu_set_blendmode_ext_sepalpha);
+	compile_if_used(gpu_set_blendequation = WebGL_gpu_set_blendequation);
+	compile_if_used(gpu_set_blendequation_sepalpha = WebGL_gpu_set_blendequation_sepalpha);
     compile_if_used(gpu_set_colorwriteenable = WebGL_gpu_set_colorwriteenable);
     compile_if_used(gpu_set_colourwriteenable = WebGL_gpu_set_colourwriteenable);
     compile_if_used(gpu_set_alphatestenable = WebGL_gpu_set_alphatestenable);
@@ -987,33 +993,66 @@ function WebGL_gpu_set_blendmode(_mode)
 	{
 		case 1:	g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_SrcAlpha); 
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_One); // add blend
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquation, yyGL.BlendEquation_Add);
 				
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_SrcAlpha); 
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.Blend_One); // add blend
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquationAlpha, yyGL.BlendEquation_Add);
+				
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, false);
 				break;
 
-		case 2:	g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_SrcAlpha);
-				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_InvSrcColour); // color blend				
+		case 2:	g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_One);
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_One); // max blend				
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquation, yyGL.BlendEquation_Max);
+				
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_One); 
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.Blend_One); // max blend				
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquationAlpha, yyGL.BlendEquation_Max);
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, false);
+				break;
 
+		case 3: g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_SrcAlpha);
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_One); // subtract blend
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquation, yyGL.BlendEquation_Subtract);
+				
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_SrcAlpha); 
-				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.Blend_InvSrcColour); // color blend
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.Blend_One); // subtract blend
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquationAlpha, yyGL.BlendEquation_Subtract);
+				
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, false);
 				break;
-
-		case 3: g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_Zero);
-				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_InvSrcColour); // subtract blend
-
-				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_Zero); 
-				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.Blend_InvSrcColour); // subtract blend
+				
+		case 4: g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_One);
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_One); // min blend
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquation, yyGL.BlendEquation_Min);
+				
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_One);
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.Blend_One); // min blend
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquationAlpha, yyGL.BlendEquation_Min);
+				
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, false);
+				break;
+				
+		case 5: g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_SrcAlpha);
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_One); // reverse subtract
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquation, yyGL.BlendEquation_InvSubtract);
+				
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_SrcAlpha);
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.BlendOne); // reverse subtract
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquationAlpha, yyGL.BlendEquation_InvSubtract);
+				
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, false);
 				break;
 
 		default:g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_SrcAlpha);
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_InvSrcAlpha);
-
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquation, yyGL.BlendEquation_Add);
+				
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_SrcAlpha); 
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.Blend_InvSrcAlpha); 
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquationAlpha, yyGL.BlendEquation_Add);
+				
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, false);
 				break;
 	}
@@ -1069,6 +1108,35 @@ function WebGL_gpu_set_blendmode_ext_sepalpha(_src,_dest,_srcalpha,_destalpha)
     g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, srcblendalpha); 
     g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, destblendalpha); 
     g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, true);
+}
+
+function WebGL_gpu_set_blendequation(_equation)
+{
+	var blendequation = yyGetInt32(_equation);
+	
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquation, blendequation);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquationAlpha, blendequation);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, false);
+}
+
+function WebGL_gpu_set_blendequation_sepalpha(_equation, _equation_alpha)
+{
+	var blendequation, blendequationalpha;
+	
+	if(Array.isArray(_equation))
+	{
+		blendequation = yyGetInt32(_equation[0]);
+		blendequationalpha = yyGetInt32(_equation[1]);
+	}
+	else
+	{
+		blendequation = yyGetInt32(_equation);
+		blendequationalpha = yyGetInt32(_equation_alpha);
+	}
+	
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquation, blendequation);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquationAlpha, blendequationalpha);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, true);	
 }
 
 function WebGL_gpu_set_colorwriteenable(_red,_green,_blue,_alpha)
