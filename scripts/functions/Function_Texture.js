@@ -65,7 +65,11 @@ function    draw_sprite_ext( _pInst, _sprite, _sub_index, _x,_y, _xscale, _yscal
 {
 	_sub_index = yyGetReal(_sub_index);
 	_alpha = yyGetReal(_alpha);
-    if( _sub_index<0  ) _sub_index = _pInst.image_index;
+
+    if( _sub_index<0  ) 
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
+
     var pSpr = g_pSpriteManager.Get(_sprite);
     if( pSpr!=null ){
         _alpha = min(1.0, _alpha);
@@ -82,7 +86,11 @@ function    draw_sprite_ext( _pInst, _sprite, _sub_index, _x,_y, _xscale, _yscal
 function    draw_sprite( _pInst, _sprite, _sub_index, _x,_y )
 {
 	_sub_index = yyGetReal(_sub_index);
-    if( _sub_index<0  ) _sub_index = _pInst.image_index;
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
+
     var pSpr = g_pSpriteManager.Get(_sprite);
     if( pSpr!=null ){
 		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);
@@ -99,7 +107,11 @@ function draw_sprite_pos(_pInst, _sprite, _sub_index, _x1, _y1, _x2,_y2, _x3,_y3
 
 	_sub_index = yyGetReal(_sub_index);
 	_alpha = yyGetReal(_alpha);
-    if( _sub_index<0  ) _sub_index = _pInst.image_index;
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
+
 	var pSpr = g_pSpriteManager.Get(_sprite);
 	if (pSpr != null)
 	{
@@ -127,7 +139,11 @@ function draw_sprite_pos(_pInst, _sprite, _sub_index, _x1, _y1, _x2,_y2, _x3,_y3
 function draw_sprite_stretched(_pInst, _sprite, _sub_index, _x, _y, _w,_h) 
 {
 	_sub_index = yyGetReal(_sub_index);
-    if( _sub_index<0  ) _sub_index = _pInst.image_index;
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
+
 	var pSpr = g_pSpriteManager.Get(_sprite);
 	if (pSpr != null)
 	{
@@ -167,7 +183,11 @@ function draw_sprite_stretched(_pInst, _sprite, _sub_index, _x, _y, _w,_h)
 function    draw_sprite_stretched_ext( _pInst, _sprite, _sub_index, _x,_y, _w, _h, _colour, _alpha )
 {
 	_sub_index = yyGetReal(_sub_index);
-    if( _sub_index<0  ) _sub_index = _pInst.image_index;
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
+
 	var pSpr = g_pSpriteManager.Get(_sprite);
 	if (pSpr != null)
 	{
@@ -206,7 +226,11 @@ function    draw_sprite_stretched_ext( _pInst, _sprite, _sub_index, _x,_y, _w, _
 function draw_sprite_part(_pInst, _sprite, _sub_index, _left, _top, _width, _height, _x, _y) 
 {
 	_sub_index = yyGetReal(_sub_index);
-    if( _sub_index<0  ) _sub_index = _pInst.image_index;
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
+
 	var pSpr = g_pSpriteManager.Get(_sprite);
 	if (pSpr != null)
 	{
@@ -244,7 +268,11 @@ function draw_sprite_part(_pInst, _sprite, _sub_index, _left, _top, _width, _hei
 function draw_sprite_part_ext(_pInst, _sprite, _sub_index, _left, _top, _width, _height, _x, _y, _xscale, _yscale, _color, _alpha)
 {
 	_sub_index = yyGetReal(_sub_index);
-    if( _sub_index<0  ) _sub_index = _pInst.image_index;
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
+
 	var pSpr = g_pSpriteManager.Get(_sprite);
 	if (pSpr != null)
 	{
@@ -277,7 +305,10 @@ function draw_sprite_part_ext(_pInst, _sprite, _sub_index, _left, _top, _width, 
 function draw_sprite_tiled(_pInst, _sprite, _sub_index, _x, _y) {
 
 	_sub_index = yyGetReal(_sub_index);
-    if( _sub_index<0  ) _sub_index = _pInst.image_index;
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
     
 	var pSpr = g_pSpriteManager.Get(_sprite);
 	if (pSpr != null)
@@ -313,7 +344,10 @@ function draw_sprite_tiled(_pInst, _sprite, _sub_index, _x, _y) {
 function draw_sprite_tiled_ext(_pInst, _sprite,_sub_index,_x,_y,_xscale,_yscale,_color,_alpha) 
 {
 	_sub_index = yyGetReal(_sub_index);
-    if( _sub_index<0  ) _sub_index = _pInst.image_index;
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
     
 	var pSpr = g_pSpriteManager.Get(_sprite);
 	if (pSpr != null)
@@ -359,7 +393,10 @@ function draw_sprite_tiled_ext(_pInst, _sprite,_sub_index,_x,_y,_xscale,_yscale,
 function draw_sprite_general(_pInst, _sprite, _sub_index, _left, _top, _width, _height, _x, _y, _xscale, _yscale, _rot, _c1, _c2, _c3, _c4, _alpha) 
 {
 	_sub_index = yyGetReal(_sub_index);
-    if( _sub_index<0  ) _sub_index = _pInst.image_index;
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
 	var pSpr = g_pSpriteManager.Get(_sprite);
 	if (pSpr != null)
 	{
