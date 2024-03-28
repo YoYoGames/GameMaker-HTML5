@@ -112,6 +112,7 @@ function yyCommandBuilder(_interpolatePixels) {
 		m_blendEquationAlpha = gl.FUNC_ADD;
 		
     var m_depthMask,
+        m_stencilMask,
         m_colorMask;
 	    
 	var m_frameCount = 0,
@@ -426,11 +427,13 @@ function yyCommandBuilder(_interpolatePixels) {
     ///           </summary>
     // #############################################################################################
     /** @this {yyCommandBuilder} */
-    this.ClearScreen = function (_mask,_col) {
+    this.ClearScreen = function (_mask, _clearCol, _clearDepth, _clearStencil) {
 
 	    m_commandList.push(CMD_CLEARSCREEN);
 	    m_commandList.push(_mask);
-	    m_commandList.push(Math.floor(_col));
+	    m_commandList.push(Math.floor(_clearCol));
+	    m_commandList.push(_clearDepth);
+	    m_commandList.push(_clearStencil);
     };
 
     // #############################################################################################
@@ -439,10 +442,10 @@ function yyCommandBuilder(_interpolatePixels) {
     ///           </summary>
     // #############################################################################################
     /** @this {yyCommandBuilder} */
-    this.SetRenderTarget = function (_Target) {
-
+    this.SetRenderTarget = function (_color, _depth) {
 	    m_commandList.push(CMD_SETRENDER_TARGET);
-	    m_commandList.push(_Target);
+	    m_commandList.push(_color);
+	    m_commandList.push(_depth);
     };
 
 
@@ -933,6 +936,7 @@ function yyCommandBuilder(_interpolatePixels) {
 		    break;
     		
 		    case yyGL.RenderState_StencilWriteMask:		
+                m_stencilMask = _renderStateData;
 		        gl.stencilMask(_renderStateData);
 		    break;	
 
@@ -1352,6 +1356,15 @@ function yyCommandBuilder(_interpolatePixels) {
         }
     }
 
+    function SetStencilMask(_value) {
+        if (g_createsurfacedepthbuffers) {
+            gl.stencilMask(_value);
+            m_stencilMask = _value;
+        } else {
+            m_stencilMask = false;
+        }
+    }
+
     function SetColorMask(_r,_g,_b,_a) {
         gl.colorMask(_r,_g,_b,_a);
         m_colorMask = [_r,_g,_b,_a];
@@ -1363,6 +1376,15 @@ function yyCommandBuilder(_interpolatePixels) {
         } else {
             m_depthMask = false;
             return m_depthMask;
+        }
+    }
+
+    function GetStencilMask() {
+        if (g_createsurfacedepthbuffers) {
+            return (m_stencilMask !== null && m_stencilMask !== undefined) ? m_stencilMask : (m_stencilMask = gl.getParameter(gl.STENCIL_WRITEMASK));
+        } else {
+            m_stencilMask = false;
+            return m_stencilMask;
         }
     }
 
@@ -1410,14 +1432,18 @@ function yyCommandBuilder(_interpolatePixels) {
                     {
                         var depthMask = GetDepthMask();
                         var colorMask = GetColorMask();
+                        var stencilMask = GetStencilMask();
                         gl.depthMask(true);
                         gl.colorMask(true, true, true, true);
-                        col = m_commandList[i + 2];
+                        var col = m_commandList[i + 2];
                         gl.clearColor((col & 0xff) / 255.0, ((col >> 8) & 0xff) / 255.0, ((col >> 16) & 0xff) / 255.0, ((col >>24) & 0xff) / 255.0);
+                        gl.clearDepth(m_commandList[i + 3]);
+                        gl.clearStencil(m_commandList[i + 4]);
                         gl.clear(m_commandList[i + 1]);
-                        gl.depthMask(depthMask);
-                        gl.colorMask(colorMask[0], colorMask[1], colorMask[2], colorMask[3]);
-                        i += 3;
+                        SetDepthMask(depthMask);
+                        SetColorMask(colorMask[0], colorMask[1], colorMask[2], colorMask[3]);
+                        SetStencilMask(stencilMask);
+                        i += 5;
                         break;
                     }
                     
@@ -1540,8 +1566,12 @@ function yyCommandBuilder(_interpolatePixels) {
                 // Set the current render target    
                 case CMD_SETRENDER_TARGET:
                     {
-                        gl.bindFramebuffer(gl.FRAMEBUFFER, m_commandList[i + 1]);
-                        i += 2;
+                        var framebuffer = m_commandList[i + 1];
+                        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+                        if (framebuffer != null) {
+                            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, m_commandList[i + 2], 0);
+                        }
+                        i += 3;
                         break;
                     }
                 

@@ -889,9 +889,12 @@ Audio_WebAudio=1,
 	g_pProjection =null,
 	g_pView =null,
 	g_CurrentFrameBuffer =null,
+	g_CurrentDepthBuffer =null,
 	g_CurrentSurfaceId =-1, // for surface_get_target
+	g_CurrentDepthId =-1,
 
 	g_CurrentSurfaceIdStack =[], // ditto
+	g_CurrentDepthIdStack =[],
 
 	g_gmlConst =null,
 	g_AudioBusMain = null;
@@ -1238,6 +1241,7 @@ function    InitAboyneGlobals() {
     g_DialogActive = false;
 
     g_CurrentFrameBuffer =
+    g_CurrentDepthBuffer =
     g_LastEventpObject = null;
 
     g_LastEvent =
