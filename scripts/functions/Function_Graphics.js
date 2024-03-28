@@ -2293,13 +2293,28 @@ function skeleton_animation_get_event_frames(_inst, _anim, _event)
 ///             Clear the animation at the given track
 ///          </summary>
 // #############################################################################################
-function skeleton_animation_clear(_inst, _track) {
+function skeleton_animation_clear(_inst, _track, _reset, _mixDuration) {
+	if(_reset === undefined)
+	{
+		_reset = false;
+	}
+	else{
+		_reset = yyGetBool(_reset);
+	}
 
-    var skeletonAnim = _inst.SkeletonAnimation();
-    if (skeletonAnim)
-	{		
-        skeletonAnim.ClearAnimation(yyGetInt32(_track));
-	}	
+	if(_mixDuration === undefined)
+	{
+		_mixDuration = 0.0;
+	}
+	else{
+		_mixDuration = yyGetReal(_mixDuration);
+	}
+
+	var skeletonAnim = _inst.SkeletonAnimation();
+	if (skeletonAnim)
+	{
+		skeletonAnim.ClearAnimation(yyGetInt32(_track), _reset, _mixDuration);
+	}
 }
 
 // #############################################################################################
