@@ -1432,11 +1432,15 @@ yySkeletonInstance.prototype.GetAnimation = function (_track) {
 ///             Clear the animation at the given track
 ///          </summary>
 // #############################################################################################
-yySkeletonInstance.prototype.ClearAnimation = function (_track) {
-
-    if ((_track >= 0) && (_track < this.m_animationState.tracks.length)) {
-		this.m_animationState.clearTrack(_track);
-	}	
+yySkeletonInstance.prototype.ClearAnimation = function (_track, _reset, _mixDuration) {
+	if ((_track >= 0) && (_track < this.m_animationState.tracks.length)) {
+		if(_reset) {
+			this.m_animationState.setEmptyAnimation(_track, _mixDuration);
+		}
+		else{
+			this.m_animationState.clearTrack(_track);
+		}
+	}
 };
 
 // #############################################################################################
