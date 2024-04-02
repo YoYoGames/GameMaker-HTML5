@@ -80,6 +80,8 @@ function gpu_get_blendmode_src(){}
 function gpu_get_blendmode_dest(){}
 function gpu_get_blendmode_srcalpha(){}
 function gpu_get_blendmode_destalpha(){}
+function gpu_get_blendequation(){}
+function gpu_get_blendequation_sepalpha(){}
 function gpu_get_colorwriteenable(){}
 function gpu_get_colourwriteenable(){}
 function gpu_get_alphatestenable(){}
@@ -183,6 +185,8 @@ function gpu_set_state(){}
     compile_if_used(gpu_get_blendmode_dest = _stub("gpu_get_blendmode_dest"));
     compile_if_used(gpu_get_blendmode_srcalpha = _stub("gpu_get_blendmode_srcalpha"));
     compile_if_used(gpu_get_blendmode_destalpha = _stub("gpu_get_blendmode_destalpha"));
+	compile_if_used(gpu_get_blendequation = _stub("gpu_get_blendequation"));
+	compile_if_used(gpu_get_blendequation_sepalpha = _stub("gpu_get_blendequation_sepalpha"));
     compile_if_used(gpu_get_colorwriteenable = _stub("gpu_get_colorwriteenable"));
     compile_if_used(gpu_get_colourwriteenable = _stub("gpu_get_colourwriteenable"));
     gpu_get_alphatestenable = _stub("gpu_get_alphatestenable"); // used by application_surface drawer
@@ -1547,6 +1551,19 @@ function WebGL_gpu_get_blendmode_srcalpha()
 function WebGL_gpu_get_blendmode_destalpha()
 {
     return g_webGL.RSMan.GetRenderState(yyGL.RenderState_DestBlendAlpha);
+}
+
+function WebGL_gpu_get_blendequation()
+{
+	return g_webGL.RSMan.GetRenderState(yyGL.RenderState_BlendEquation);
+}
+
+function WebGL_gpu_get_blendequation_sepalpha()
+{
+	var params = new Array();
+	params[0] = g_webGL.RSMan.GetRenderState(yyGL.RenderState_BlendEquation);
+	params[1] = g_webGL.RSMan.GetRenderState(yyGL.RenderState_BlendEquationAlpha);
+	return params;
 }
 
 function WebGL_gpu_get_colorwriteenable()

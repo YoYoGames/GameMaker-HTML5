@@ -682,8 +682,8 @@ function yyCommandBuilder(_interpolatePixels) {
 		switch( _value )
 		{
 			case yyGL.BlendEquation_Add: 			return gl.FUNC_ADD;
-			case yyGL.BlendEquation_Subtract:		return gl.FUNC_SUBTRACT;
-			case yyGL.BlendEquation_InvSubtract:	return gl.FUNC_REVERSE_SUBTRACT;
+			case yyGL.BlendEquation_Subtract:		return gl.FUNC_REVERSE_SUBTRACT;
+			case yyGL.BlendEquation_InvSubtract:	return gl.FUNC_SUBTRACT;
 			case yyGL.BlendEquation_Max:
 													if(m_minMaxExt == null)
 													{
