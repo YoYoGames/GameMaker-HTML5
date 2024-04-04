@@ -466,6 +466,36 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
 							};
 						}
 
+						// Text items
+						newLayer.tcount = sourceLayer.tcount;
+						newLayer.textitems = new Array(sourceLayer.textitems.length);
+
+						for (assetIdx = 0; i < sourceLayer.textitems.length; assetIdx++)
+						{
+							var srcTextitem = sourceLayer.textitems[assetIdx];
+
+							newLayer.textitems[assetIdx] =
+							{
+								sX: srcTextitem.sX,
+								sY: srcTextitem.sY,
+								sFontIndex: srcTextitem.sFontIndex,
+								sXScale: srcTextitem.sXScale,
+								sYScale: srcTextitem.sYScale,
+								sRotation: srcTextitem.sRotation,
+								sBlend: srcTextitem.sBlend,
+								sXOrigin: srcTextitem.sXOrigin,
+								sYOrigin: srcTextitem.sYOrigin,
+								sText: srcTextitem.sText,
+								sAlignment: srcTextitem.sAlignment,
+								sCharSpacing: srcTextitem.sCharSpacing,
+								sLineSpacing: srcTextitem.sLineSpacing,
+								sFrameW: srcTextitem.sFrameW,
+								sFrameH: srcTextitem.sFrameH,
+								sWrap: srcTextitem.sWrap,
+								sName: srcTextitem.sName,								
+							};
+						}
+
         				break;
 					case YYLayerType_Effect:
 						newLayer.m_pInitialEffectInfo = sourceLayer.m_pInitialEffectInfo;

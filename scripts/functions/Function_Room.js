@@ -112,7 +112,8 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                     variable_struct_set(v, "vborder", sourceView.vborder ? sourceView.vborder : 32);
                     variable_struct_set(v, "hspeed", sourceView.hspeed ? sourceView.hspeed : -1);
                     variable_struct_set(v, "vspeed", sourceView.vspeed ? sourceView.vspeed : -1);
-                    variable_struct_set(v, "object", sourceView.index ? sourceView.index : -1);
+                    var indexref = sourceView.index ? ((sourceView.index >= 100000) ? MAKE_REF(REFID_INSTANCE, sourceView.index) : MAKE_REF(REFID_OBJECT, sourceView.index)): -1;
+                    variable_struct_set(v, "object", indexref);
                     variable_struct_set(v, "cameraID", sourceView.cameraID ? sourceView.cameraID : -1);
                     views[i] = v;
                 } // end if            
@@ -167,10 +168,10 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                 {
                     // Shared properties
                     var newLayer = {};
-                    var eLayerType = eLayerType_Undefined;
                     newLayer.__yyIsGMLObject = true;
                     variable_struct_set(newLayer, "name", sourceLayer.pName ? sourceLayer.pName : "");
                     variable_struct_set(newLayer, "id", sourceLayer.id ? sourceLayer.id : 0);
+                    variable_struct_set(newLayer, "type", sourceLayer.type ? sourceLayer.type : 0);
                     variable_struct_set(newLayer, "depth", sourceLayer.depth ? sourceLayer.depth : 0);
                     variable_struct_set(newLayer, "xoffset", sourceLayer.x ? sourceLayer.x : 0);
                     variable_struct_set(newLayer, "yoffset", sourceLayer.y ? sourceLayer.y : 0);
@@ -211,7 +212,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                 elements[0] = element;
                                 variable_struct_set( element, "visible", sourceLayer.bvisible ? sourceLayer.bvisible : true );
                                 variable_struct_set( element, "foreground", sourceLayer.bforeground ?  sourceLayer.bforeground : false);
-                                variable_struct_set( element, "sprite_index", sourceLayer.bindex ? sourceLayer.bindex : 0 );
+                                variable_struct_set( element, "sprite_index", sourceLayer.bindex ? MAKE_REF(REFID_SPRITE, sourceLayer.bindex) : 0 );
                                 variable_struct_set( element, "htiled", sourceLayer.bhtiled ? sourceLayer.bhtiled : false );
                                 variable_struct_set( element, "vtiled", sourceLayer.bvtiled ? sourceLayer.bvtiled : false );
                                 variable_struct_set( element, "stretch", sourceLayer.bstretch ?  sourceLayer.bstretch : false);
@@ -220,7 +221,6 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                 variable_struct_set( element, "image_speed", sourceLayer.bimage_speed ?  sourceLayer.bimage_speed : 1);
                                 variable_struct_set( element, "image_index", sourceLayer.bimage_index ? sourceLayer.bimage_index : 0 );
                                 variable_struct_set( element, "speed_type", sourceLayer.playbackspeedtype ? sourceLayer.playbackspeedtype : 0 );
-                                eLayerType = eLayerType_Background;
                                 break;
 
                             case YYLayerType_Instance:
@@ -229,10 +229,9 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                     var element = {};
                                     element.__yyIsGMLObject = true;
                                     variable_struct_set( element, "type", sourceLayer.type );
-                                    variable_struct_set( element, "inst_id", sourceLayer.iinstIDs[ii] );
+                                    variable_struct_set( element, "inst_id", MAKE_REF(REFID_INSTANCE, sourceLayer.iinstIDs[ii]) );
                                     elements[ii] = element;
                                 } // end for
-                                eLayerType = eLayerType_Instance;
                                 break;
 
                             case YYLayerType_Tile:
@@ -244,10 +243,9 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                 variable_struct_set( element, "y", 0 );
                                 variable_struct_set( element, "width", sourceLayer.tMapWidth ? sourceLayer.tMapWidth : 0 );
                                 variable_struct_set( element, "height", sourceLayer.tMapHeight ? sourceLayer.tMapHeight : 0 );
-                                variable_struct_set( element, "background_index", sourceLayer.tIndex ? sourceLayer.tIndex : 0 );
+                                variable_struct_set( element, "tileset_index", sourceLayer.tIndex ? MAKE_REF(REFID_TILESET, sourceLayer.tIndex) : 0 );
                                 if (_tilemap_data)
                                     variable_struct_set( element, "tiles", sourceLayer.ttiles ? expandTiles(sourceLayer.ttiles) : [] );
-                                eLayerType = eLayerType_Tilemap;
                                 break;
 
                             case YYLayerType_Asset:
@@ -261,7 +259,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                     variable_struct_set( element, "type", 7 );
                                     variable_struct_set( element, "x", sourceLayer.assets[assetIdx].ax);
                                     variable_struct_set( element, "y", sourceLayer.assets[assetIdx].ay);
-                                    variable_struct_set( element, "sprite_index", sourceLayer.assets[assetIdx].aindex);
+                                    variable_struct_set( element, "sprite_index", MAKE_REF(REFID_SPRITE, sourceLayer.assets[assetIdx].aindex));
                                     variable_struct_set( element, "xo", sourceLayer.assets[assetIdx].aXO);
                                     variable_struct_set( element, "yo", sourceLayer.assets[assetIdx].aYO);
                                     variable_struct_set( element, "width", sourceLayer.assets[assetIdx].aW);
@@ -282,7 +280,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                     element.__yyIsGMLObject = true;
                                     variable_struct_set( element, "type", 4 );
                                     variable_struct_set( element, "id", sourceLayer.sprites[assetIdx].sName);
-                                    variable_struct_set( element, "sprite_index", sourceLayer.sprites[assetIdx].sIndex);
+                                    variable_struct_set( element, "sprite_index", MAKE_REF(REFID_SPRITE, sourceLayer.sprites[assetIdx].sIndex));
                                     variable_struct_set( element, "x", sourceLayer.sprites[assetIdx].sX);
                                     variable_struct_set( element, "y", sourceLayer.sprites[assetIdx].sY);
                                     variable_struct_set( element, "image_xscale", sourceLayer.sprites[assetIdx].sXScale);
@@ -303,7 +301,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                     element.__yyIsGMLObject = true;
                                     variable_struct_set( element, "type", 8 );
                                     variable_struct_set( element, "id", sourceLayer.sequences[assetIdx].sName);
-                                    variable_struct_set( element, "seq_id", sourceLayer.sequences[assetIdx].sIndex);
+                                    variable_struct_set( element, "seq_id", MAKE_REF(REFID_SEQUENCE, sourceLayer.sequences[assetIdx].sIndex));
                                     variable_struct_set( element, "x", sourceLayer.sequences[assetIdx].sX);
                                     variable_struct_set( element, "y", sourceLayer.sequences[assetIdx].sY);
                                     variable_struct_set( element, "image_xscale", sourceLayer.sequences[assetIdx].sXScale);
@@ -315,8 +313,9 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                     variable_struct_set( element, "head_position", sourceLayer.sequences[assetIdx].sHeadPosition);
                                     variable_struct_set( element, "angle", sourceLayer.sequences[assetIdx].sRotation);
                                     elements.push(element);
-                                } // end for
+                                } // end for                                
 
+                                // Particles
                                 for (assetIdx = 0; i < sourceLayer.particles.length; assetIdx++)
                                 {
                                     var srcParticle = sourceLayer.particles[assetIdx];
@@ -324,7 +323,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                     element.__yyIsGMLObject = true;
                                     variable_struct_set( element, "type", 6 );
                                     variable_struct_set( element, "id", srcParticle.sName );
-                                    variable_struct_set( element, "ps", srcParticle.sIndex );
+                                    variable_struct_set( element, "ps", MAKE_REF(REFID_PART_SYSTEM, srcParticle.sIndex) );
                                     variable_struct_set( element, "x", srcParticle.sX);
                                     variable_struct_set( element, "y", srcParticle.sY);
                                     variable_struct_set( element, "xscale", srcParticle.sXScale);
@@ -334,7 +333,35 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                     variable_struct_set( element, "angle", srcParticle.sRotation);
                                     elements.push(element);
                                 } // end for
-                                eLayerType = eLayerType_Sprite;
+
+                                // Text items
+                                for (assetIdx = 0; assetIdx < sourceLayer.textitems.length; assetIdx++)
+                                {
+                                    var element = {};
+                                    element.__yyIsGMLObject = true;
+                                    variable_struct_set( element, "type", 9 );
+                                    variable_struct_set( element, "id", sourceLayer.textitems[assetIdx].sName);
+                                    variable_struct_set( element, "font_id", MAKE_REF(REFID_FONT, sourceLayer.textitems[assetIdx].sFontIndex));
+                                    variable_struct_set( element, "text", sourceLayer.textitems[assetIdx].sText);
+                                    variable_struct_set( element, "x", sourceLayer.textitems[assetIdx].sX);
+                                    variable_struct_set( element, "y", sourceLayer.textitems[assetIdx].sY);
+                                    variable_struct_set( element, "xorigin", sourceLayer.textitems[assetIdx].sXOrigin);
+                                    variable_struct_set( element, "yorigin", sourceLayer.textitems[assetIdx].sYOrigin);
+                                    variable_struct_set( element, "h_align", sourceLayer.textitems[assetIdx].sAlignment & 0xff);
+                                    variable_struct_set( element, "v_align", (sourceLayer.textitems[assetIdx].sAlignment >> 8) & 0xff);
+                                    variable_struct_set( element, "char_spacing", sourceLayer.textitems[assetIdx].sCharSpacing);
+                                    variable_struct_set( element, "line_spacing", sourceLayer.textitems[assetIdx].sLineSpacing);
+                                    variable_struct_set( element, "frame_width", sourceLayer.textitems[assetIdx].sFrameW);
+                                    variable_struct_set( element, "frame_height", sourceLayer.textitems[assetIdx].sFrameH);
+                                    variable_struct_set( element, "wrap", sourceLayer.textitems[assetIdx].sWrap);
+                                    variable_struct_set( element, "xscale", sourceLayer.textitems[assetIdx].sXScale);
+                                    variable_struct_set( element, "yscale", sourceLayer.textitems[assetIdx].sYScale);
+                                    variable_struct_set( element, "blend", sourceLayer.textitems[assetIdx].sBlend & 0x00ffffff );
+                                    variable_struct_set( element, "alpha", (((sourceLayer.textitems[assetIdx].sBlend & 0xff000000)>>24)&0xff)/255);
+                                    variable_struct_set( element, "angle", sourceLayer.textitems[assetIdx].sRotation);
+                                    elements.push(element);
+                                } // end for
+
                                 break;
                             case YYLayerType_Effect:
                                 //newLayer.effectInfo = sourceLayer.m_pInitialEffectInfo;
@@ -352,10 +379,8 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                 //    effectParams[pp] = param;
                                 //} // end for
                                 //variable_struct_set( newLayer, "effectInfo", effectInfo);
-                                eLayerType = YYLayerType_Asset;
                                 break;
                         } // end switch
-                        variable_struct_set(newLayer, "type", eLayerType);
                         variable_struct_set(newLayer, "elements", elements);
                     } // end if
                 } // end if
