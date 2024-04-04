@@ -2113,7 +2113,6 @@ function audio_listener_velocity( _one,_two,_three)
         _three = yyGetReal(_three);
 
         var lis = g_WebAudioContext.listener;
-        lis.setVelocity( _one, _two, _three );
 
     	// AB: Need to check if pos exists - can be undefined on some browsers
         if ( lis.velocity )
