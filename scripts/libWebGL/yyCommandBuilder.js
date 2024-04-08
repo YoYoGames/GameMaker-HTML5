@@ -1292,21 +1292,13 @@ function yyCommandBuilder(_interpolatePixels) {
     }
 
     function SetDepthMask(_value) {
-        if (g_createsurfacedepthbuffers) {
-            gl.depthMask(_value);
-            m_depthMask = _value;
-        } else {
-            m_depthMask = false;
-        }
+        gl.depthMask(_value);
+        m_depthMask = _value;
     }
 
     function SetStencilMask(_value) {
-        if (g_createsurfacedepthbuffers) {
-            gl.stencilMask(_value);
-            m_stencilMask = _value;
-        } else {
-            m_stencilMask = false;
-        }
+        gl.stencilMask(_value);
+        m_stencilMask = _value;
     }
 
     function SetColorMask(_r,_g,_b,_a) {
@@ -1315,21 +1307,11 @@ function yyCommandBuilder(_interpolatePixels) {
     }
 
     function GetDepthMask() {
-        if (g_createsurfacedepthbuffers) {
-            return (m_depthMask !== null && m_depthMask !== undefined) ? m_depthMask : (m_depthMask = gl.getParameter(gl.DEPTH_WRITEMASK));
-        } else {
-            m_depthMask = false;
-            return m_depthMask;
-        }
+        return (m_depthMask !== null && m_depthMask !== undefined) ? m_depthMask : (m_depthMask = gl.getParameter(gl.DEPTH_WRITEMASK));
     }
 
     function GetStencilMask() {
-        if (g_createsurfacedepthbuffers) {
-            return (m_stencilMask !== null && m_stencilMask !== undefined) ? m_stencilMask : (m_stencilMask = gl.getParameter(gl.STENCIL_WRITEMASK));
-        } else {
-            m_stencilMask = false;
-            return m_stencilMask;
-        }
+        return (m_stencilMask !== null && m_stencilMask !== undefined) ? m_stencilMask : (m_stencilMask = gl.getParameter(gl.STENCIL_WRITEMASK));
     }
 
     function GetColorMask() {
