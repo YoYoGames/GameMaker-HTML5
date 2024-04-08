@@ -86,12 +86,14 @@ var g_extTextureFloat = null;
 var g_extTextureFloatLinear = null;
 var g_extColourBufferFloat = null;
 var g_extStandardDerivatives = null;
+var g_extDepthTexture = null;
 
 var g_SupportHalfFloatSurfs = false;
 var g_SupportFloatSurfs = false;
 var g_SupportSubFourChannelHalfFloatSurfs = false;	
 var g_SupportSubFourChannelFloatSurfs = false;
 var g_SupportSubFourChannelIntSurfs = false;
+var g_SupportDepthTexture = false;
 var g_HalfFloatSurfsUseSizedFormats = false;		
 var g_FloatSurfsUseSizedFormats = false;
 var g_IntSurfsUseSizedFormats = false;

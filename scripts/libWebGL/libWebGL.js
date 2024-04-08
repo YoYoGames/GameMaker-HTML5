@@ -23,8 +23,7 @@
 /** @constructor */
 function yyWebGL(_canvas, _options) {        
 
-    var gl = null,
-        extDepthTexture = null;
+    var gl = null;
     
     // Made members of "this" because the fact they're in use is an implementation detail
     // that the Runner/whatever should not need to know about and should be changeable
@@ -105,8 +104,6 @@ function yyWebGL(_canvas, _options) {
     	
         gl = BindWebGL(_canvas, _options);
         if (gl) {
-            extDepthTexture = gl.getExtension("WEBGL_depth_texture");
-        
             // Register the gl object with all other libWebGL classes
             PropagateGL(gl);
 
@@ -227,6 +224,9 @@ function yyWebGL(_canvas, _options) {
                 g_AppendDerivativesExtToShader = true;
             }
         }
+
+        g_extDepthTexture = gl.getExtension('WEBGL_depth_texture');
+        g_SupportDepthTexture = (g_extDepthTexture != null);
     }
             
     // #############################################################################################
@@ -1332,7 +1332,7 @@ function yyWebGL(_canvas, _options) {
             case	eTextureFormat_DXT4:				return texFormatData;
             case	eTextureFormat_DXT5:				return texFormatData;
             case	eTextureFormat_Depth:				return texFormatData;
-            case	eTextureFormat_DepthStencil:		texFormatData.internalFormat = gl.DEPTH_STENCIL; texFormatData.format = gl.DEPTH_STENCIL; texFormatData.type = extDepthTexture.UNSIGNED_INT_24_8_WEBGL; return texFormatData;
+            case	eTextureFormat_DepthStencil:		if (!g_SupportDepthTexture) return texFormatData; texFormatData.internalFormat = gl.DEPTH_STENCIL; texFormatData.format = gl.DEPTH_STENCIL; texFormatData.type = g_extDepthTexture.UNSIGNED_INT_24_8_WEBGL; return texFormatData;
             case	eTextureFormat_Float16:				if (!g_SupportHalfFloatSurfs || !g_SupportSubFourChannelHalfFloatSurfs) return texFormatData; texFormatData.internalFormat = g_HalfFloatSurfsUseSizedFormats ? gl.R16F : gl.RED; texFormatData.format = gl.RED; texFormatData.type = g_HalfFloatSurfsUseSizedFormats ? gl.HALF_FLOAT : gl.HALF_FLOAT_OES; return texFormatData;
             case	eTextureFormat_Float32:				if (!g_SupportFloatSurfs || !g_SupportSubFourChannelFloatSurfs) return texFormatData; texFormatData.internalFormat = g_FloatSurfsUseSizedFormats ? gl.R32F : gl.RED; texFormatData.format = gl.RED; texFormatData.type = gl.FLOAT; return texFormatData;
             case	eTextureFormat_R8:					if (!g_SupportSubFourChannelIntSurfs) return texFormatData; texFormatData.internalFormat = g_IntSurfsUseSizedFormats ? gl.R8 : gl.RED; texFormatData.format = gl.RED; texFormatData.type = gl.UNSIGNED_BYTE; return texFormatData;
@@ -2014,6 +2014,7 @@ function yyWebGL(_canvas, _options) {
         var storedFrameBuffer = gl.getParameter(gl.FRAMEBUFFER_BINDING);        
         var storedRenderBuffer = gl.getParameter(gl.RENDERBUFFER_BINDING);    
         var depthTexture = null;
+        var rttRenderbuffer = null;
         {
             var rttFramebuffer = gl.createFramebuffer();
             rttFramebuffer.width = _w;
@@ -2029,17 +2030,24 @@ function yyWebGL(_canvas, _options) {
             //var textureInternal = new yyGLTexture(rttTexture, _w, _h, isPowerOfTwo(_w) && isPowerOfTwo(_h), null); 
             var textureInternal = new yyGLTexture(undefined, _w, _h, isPowerOfTwo(_w) && isPowerOfTwo(_h), null, 0, 0, _format); 
             this.RecreateTexture(textureInternal);
-            
-            // Create depth/stencil buffer
-            var rttRenderbuffer = gl.createRenderbuffer();
-            gl.bindRenderbuffer(gl.RENDERBUFFER, rttRenderbuffer);            
             //gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rttTexture, 0);
             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, textureInternal.Texture, 0);
-
+            
+            // Create depth/stencil buffer
             if (g_createsurfacedepthbuffers)
             {
-                depthTexture = new yyGLTexture(undefined, _w, _h, isPowerOfTwo(_w) && isPowerOfTwo(_h), null, 0, 0, eTextureFormat_DepthStencil); 
-                this.RecreateTexture(depthTexture);
+                if (g_SupportDepthTexture)
+                {
+                    depthTexture = new yyGLTexture(undefined, _w, _h, isPowerOfTwo(_w) && isPowerOfTwo(_h), null, 0, 0, eTextureFormat_DepthStencil); 
+                    this.RecreateTexture(depthTexture);
+                }
+                else
+                {
+                    rttRenderbuffer = gl.createRenderbuffer();
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, rttRenderbuffer);            
+                    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, rttFramebuffer.width, rttFramebuffer.height);
+                    // gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, rttRenderbuffer); // Note: Not required here since we do this in SetRenderTarget...
+                }
             }
         }        
         gl.bindTexture(gl.TEXTURE_2D, storedTexture);        
@@ -2066,7 +2074,9 @@ function yyWebGL(_canvas, _options) {
         g_webGL.RSMan.ClearTexture(_frameBuffer.Texture);
         
         gl.deleteFramebuffer(_frameBuffer.FrameBuffer);
-        gl.deleteRenderbuffer(_frameBuffer.RenderBuffer);
+        if (_frameBuffer.RenderBuffer != null) {
+            gl.deleteRenderbuffer(_frameBuffer.RenderBuffer);
+        }
         gl.deleteTexture(_frameBuffer.Texture.Texture);
         if (_frameBuffer.textureDepth != null
             && _frameBuffer.textureDepth.webgl_textureid instanceof yyGLTexture) {

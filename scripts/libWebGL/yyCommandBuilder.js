@@ -1495,7 +1495,11 @@ function yyCommandBuilder(_interpolatePixels) {
                         var framebuffer = m_commandList[i + 1];
                         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
                         if (framebuffer != null) {
-                            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, m_commandList[i + 2], 0);
+                            if (g_SupportDepthTexture) {
+                                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, m_commandList[i + 2], 0);
+                            } else {
+                                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, m_commandList[i + 2]);
+                            }
                         }
                         i += 3;
                         break;

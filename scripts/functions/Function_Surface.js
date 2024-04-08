@@ -102,6 +102,9 @@ function surface_has_depth(_id)
     if (g_webGL)
     {
         var pSurf = g_Surfaces.Get(_id);
+        if (!g_SupportDepthTexture) {
+            return (pSurf.FrameBufferData.RenderBuffer != null);
+        }
         return (pSurf.textureDepth != null
             && pSurf.textureDepth.webgl_textureid instanceof yyGLTexture);
     }
@@ -378,7 +381,7 @@ function surface_get_texture(_id)
 function surface_get_texture_depth(_id)
 {
     var pSurf = g_Surfaces.Get(yyGetInt32(_id));
-    if (pSurf != null)
+    if (pSurf != null && g_SupportDepthTexture)
     {
         return { WebGLTexture: pSurf.textureDepth, TPE: pSurf.m_pTPE };
     }
@@ -462,8 +465,10 @@ function surface_set_target_system_RELEASE(_id, _depth_id)
 
         if (g_webGL) {
             g_CurrentFrameBuffer = pSurf.FrameBuffer;
-            g_CurrentDepthBuffer = pSurfDepth.textureDepth.webgl_textureid.Texture;
-            g_webGL.SetRenderTarget(pSurf.FrameBuffer, pSurfDepth.textureDepth.webgl_textureid.Texture);
+            g_CurrentDepthBuffer = g_SupportDepthTexture
+                ? pSurfDepth.textureDepth.webgl_textureid.Texture
+                : pSurfDepth.FrameBufferData.RenderBuffer;
+            g_webGL.SetRenderTarget(g_CurrentFrameBuffer, g_CurrentDepthBuffer);
             g_RenderTargetActive = -1;
         } else {
             g_CurrentGraphics = pSurf.graphics;
@@ -566,8 +571,10 @@ function surface_set_target_RELEASE(_id, _depth_id)
 
     if (g_webGL) {
         g_CurrentFrameBuffer = pSurf.FrameBuffer;
-        g_CurrentDepthBuffer = pSurfDepth.textureDepth.webgl_textureid.Texture;
-        g_webGL.SetRenderTarget(pSurf.FrameBuffer, pSurfDepth.textureDepth.webgl_textureid.Texture);
+        g_CurrentDepthBuffer = g_SupportDepthTexture
+            ? pSurfDepth.textureDepth.webgl_textureid.Texture
+            : pSurfDepth.FrameBufferData.RenderBuffer;
+        g_webGL.SetRenderTarget(g_CurrentFrameBuffer, g_CurrentDepthBuffer);
         g_RenderTargetActive = -1;
     } else {
         g_CurrentGraphics = pSurf.graphics;
