@@ -88,12 +88,14 @@ var g_extTextureFloat = null;
 var g_extTextureFloatLinear = null;
 var g_extColourBufferFloat = null;
 var g_extStandardDerivatives = null;
+var g_extDepthTexture = null;
 
 var g_SupportHalfFloatSurfs = false;
 var g_SupportFloatSurfs = false;
 var g_SupportSubFourChannelHalfFloatSurfs = false;	
 var g_SupportSubFourChannelFloatSurfs = false;
 var g_SupportSubFourChannelIntSurfs = false;
+var g_SupportDepthTexture = false;
 var g_HalfFloatSurfsUseSizedFormats = false;		
 var g_FloatSurfsUseSizedFormats = false;
 var g_IntSurfsUseSizedFormats = false;
@@ -185,7 +187,9 @@ function InitWebGLFunctions() {
     draw_line_width_color = WebGL_draw_line_width_color_RELEASE;
     compile_if_used(draw_line_width_colour = WebGL_draw_line_width_color_RELEASE);
     draw_clear_alpha = WebGL_draw_clear_alpha_RELEASE; // used by yyEffects
-    draw_set_color = WebGL_draw_set_color_RELEASE;
+    compile_if_used(draw_clear_depth = WebGL_draw_clear_depth_RELEASE);
+    compile_if_used(draw_clear_stencil = WebGL_draw_clear_stencil_RELEASE);
+    compile_if_used(draw_clear_ext = WebGL_draw_clear_ext_RELEASE);
     compile_if_used(draw_set_colour = WebGL_draw_set_color_RELEASE);
     draw_set_alpha = WebGL_draw_set_alpha_RELEASE; // used for vkeys
     draw_set_blend_mode_ext = WEBGL_draw_set_blend_mode_ext_RELEASE;
@@ -264,6 +268,8 @@ function InitWebGLFunctions() {
     buffer_set_surface = WEBGL_buffer_set_surface;
     // @endif
     // 
+    compile_if_used(buffer_get_surface_depth = WEBGL_buffer_get_surface_depth);
+    compile_if_used(buffer_set_surface_depth = WEBGL_buffer_set_surface_depth);
     PostInitWebGLFunctions();	    	
 }
 
@@ -734,6 +740,79 @@ function WebGL_draw_clear_alpha_RELEASE(_col, _alpha) {
     if (_alpha < 0)  _alpha = 0;
     var col = ((_alpha * 255.0) << 24) | ConvertGMColour(yyGetInt32(_col));
     g_webGL.ClearScreen(true, true, false, col);	
+}
+
+function WebGL_draw_clear_depth_RELEASE(_depth) {
+    g_webGL.ClearScreen(
+        false,
+        true,
+        false,
+        undefined,
+        yyGetReal(_depth) * 0.5 + 0.5,
+        undefined
+    );
+}
+
+function WebGL_draw_clear_stencil_RELEASE(_stencil) {
+    g_webGL.ClearScreen(
+        false,
+        false,
+        true,
+        undefined,
+        undefined,
+        yyGetInt32(_stencil),
+    );
+}
+
+function WebGL_draw_clear_ext_RELEASE(_color, _alpha, _depth, _stencil) {
+    var hasCol, hasAlpha, hasDepth, hasStencil;
+	hasCol = hasAlpha = hasDepth = hasStencil = false;
+    var col, alpha, depth, stencil;
+
+    if (_color !== undefined)
+    {
+        col = ConvertGMColour(yyGetInt32(_color));
+        hasCol = true;
+    }
+
+    if (_alpha !== undefined)
+    {
+        alpha = yyGetReal(_alpha);
+        hasAlpha = true;
+    }
+
+    if (_depth !== undefined)
+    {
+        depth = yyGetReal(_depth) * 0.5 + 0.5;
+        hasDepth = true;
+    }
+
+    if (_stencil !== undefined)
+    {
+        stencil = yyGetInt32(_stencil);
+        hasStencil = true;
+    }
+
+    if (hasCol && !hasAlpha)
+    {
+        yyError("draw_clear_ext() - argument alpha must be specified if argument col is not undefined");
+        return;
+    }
+
+    if (hasAlpha && !hasCol)
+    {
+        yyError("draw_clear_ext() - argument col must be specified if argument alpha is not undefined");
+        return;
+    }
+
+    g_webGL.ClearScreen(
+        hasCol,
+        hasDepth,
+        hasStencil,
+        ((alpha * 255.0) << 24) | col,
+        depth,
+        stencil,
+    );
 }
 
 // #############################################################################################
@@ -3486,6 +3565,7 @@ function initTextureFramebuffer(_pTPE, _w,_h, _format) {
     
     _pTPE.FrameBuffer = frameBufferData.FrameBuffer;
     _pTPE.texture.webgl_textureid = frameBufferData.Texture;	
+    _pTPE.textureDepth.webgl_textureid = frameBufferData.textureDepth;	
 }
 
 
@@ -3520,12 +3600,16 @@ function WebGL_surface_create_RELEASE(_w, _h, _format, _forceid) {
     var pTPE = new yyTPageEntry();
    
     pTPE.texture = document.createElement("surf");		// we need an image/surface to attach to, so make a small one
-    pTPE.m_Width = _w;
-    pTPE.m_Height = _h;
     pTPE.texture.width = _w;
     pTPE.texture.height = _h;
     pTPE.texture.m_Width = _w;
     pTPE.texture.m_Height = _h;    
+
+    pTPE.textureDepth = document.createElement("surf");
+    pTPE.textureDepth.width = _w;
+    pTPE.textureDepth.height = _h;
+    pTPE.textureDepth.m_Width = _w;
+    pTPE.textureDepth.m_Height = _h;
 
     if( _forceid != undefined )
     {
@@ -3543,6 +3627,8 @@ function WebGL_surface_create_RELEASE(_w, _h, _format, _forceid) {
     pTPE.y = 0;
     pTPE.w = _w;
     pTPE.h = _h;
+    pTPE.m_Width = _w;
+    pTPE.m_Height = _h;
     pTPE.XOffset = 0;
     pTPE.YOffset = 0;
     pTPE.CropWidth = pTPE.w;
@@ -3562,6 +3648,7 @@ function WebGL_surface_create_RELEASE(_w, _h, _format, _forceid) {
 	}
     pTPE.m_pTPE = pTPE;				// Canvas compatability
     pTPE.texture.complete = true;
+    pTPE.textureDepth.complete = true;
 
     // Add cache details	
     pTPE.cache = [];                // clear colour cache
@@ -3605,6 +3692,7 @@ function WebGL_surface_free_RELEASE(_id) {
         
         // Make sure we aren't holding onto an invalid texture id
 	    pSurf.texture.webgl_textureid = undefined;
+	    pSurf.textureDepth.webgl_textureid = undefined;
 	    
 	    g_Surfaces.DeleteIndex(_id);
     } else if (!pSurf) {
@@ -5126,6 +5214,38 @@ function WEBGL_buffer_get_surface(_buffer, _surface, _mode, _offset, _modulo) {
 
 // #############################################################################################
 /// Function:<summary>
+///          	Copy contents of a depth buffer into a regular buffer.
+///          </summary>
+///
+/// In:		<param name="_buffer">The buffer we to copy into.</param>
+///			<param name="_surface">The surface whose depth buffer to copy.</param>
+///			<param name="_offset">An offset (in bytes) within the buffer to start writing at.</param>
+///
+/// Out:	 <returns>
+///				Returns true on success or false on fail.
+///			 </returns>
+// #############################################################################################
+function WEBGL_buffer_get_surface_depth(_buffer, _surface, _offset) {
+    var pBuff = g_BufferStorage.Get(yyGetInt32(_buffer));
+    var pSurf = g_Surfaces.Get(yyGetInt32(_surface));
+    _offset = yyGetInt32(_offset);
+
+    if (!pBuff) {
+        yyError("buffer_get_surface_depth() - illegal buffer index " + yyGetInt32(_buffer));
+        return false;
+    }
+
+    if (!pSurf) {
+        yyError("buffer_get_surface_depth() - surface does not exist " + yyGetInt32(_surface));
+        return false;
+    }
+
+    // Not supported in WebGL...
+    return false;
+}
+
+// #############################################################################################
+/// Function:<summary>
 ///          	Get a surface (CANVAS) into a buffer
 ///          </summary>
 ///
@@ -5153,3 +5273,34 @@ function WEBGL_buffer_set_surface(_buffer, _surface, _mode, _offset, _modulo) {
     data = null;      // free Uint8Array[]
 }
 
+// #############################################################################################
+/// Function:<summary>
+///          	Copy data from a regular buffer into a surface's depth buffer.
+///          </summary>
+///
+/// In:		<param name="_buffer">The buffer to copy from.</param>
+///			<param name="_surface">The surface whose depth buffer to copy into.</param>
+///			<param name="_offset">An offset (in bytes) within the buffer to start reading from.</param>
+///
+/// Out:	 <returns>
+///				Returns true on success or false on fail.
+///			 </returns>
+// #############################################################################################
+function WEBGL_buffer_set_surface_depth(_buffer, _surface, _offset) {
+    var pBuff = g_BufferStorage.Get(yyGetInt32(_buffer));
+    var pSurf = g_Surfaces.Get(yyGetInt32(_surface));
+    _offset = yyGetInt32(_offset);
+
+    if (!pBuff) {
+        yyError("buffer_set_surface_depth() - illegal buffer index " + yyGetInt32(_buffer));
+        return false;
+    }
+
+    if (!pSurf) {
+        yyError("buffer_set_surface_depth() - surface does not exist " + yyGetInt32(_surface));
+        return false;
+    }
+
+    // Not supported in WebGL...
+    return false;
+}
