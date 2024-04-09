@@ -22,17 +22,16 @@ function HTTP_onload(_xmlhttp, _pFile) {
     if ((_xmlhttp.status < 200) || (_xmlhttp.status >= 300))
 	{
 		_pFile.m_Status = ASYNC_WEB_STATUS_ERROR;
-		_pFile.m_Data = "";
-	}
-	else {
+	} else {
 	    _pFile.m_Status = ASYNC_WEB_STATUS_LOADED;
-	    try {
-	        // If the responseType was changed to 'arraybuffer' this assignment will fail and trigger an exception
-	        _pFile.m_Data = _xmlhttp.responseText;
-	    }
-	    catch (e) {
-	        _pFile.m_Data = "";
-	    }
+	}
+
+	try {
+		// If the responseType was changed to 'arraybuffer' this assignment will fail and trigger an exception
+		_pFile.m_Data = _xmlhttp.responseText;
+	}
+	catch (e) {
+		_pFile.m_Data = "";
 	}
 }
 
