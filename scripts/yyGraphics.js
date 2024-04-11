@@ -1783,6 +1783,7 @@ function gif_add_surface(gif, surface, delaytime, xoffset, yoffset, quantquality
 	if (yoffset === undefined) yoffset = 0;
 
 	var pSurf = g_Surfaces.Get(yyGetInt32(surface));
+	
     if (pSurf != null) {
 
 		if (pSurf.FrameBufferData.Texture.Format != eTextureFormat_A8R8G8B8)
@@ -1815,10 +1816,11 @@ function gif_add_surface(gif, surface, delaytime, xoffset, yoffset, quantquality
         var singleimage = document.createElement(g_CanvasName);
         var pGraphics = singleimage.getContext('2d');
         Graphics_AddCanvasFunctions(pGraphics); 			// update for OUR functions.
-
-        var glTexture = g_webGL.CreateTextureFromFramebuffer(singleimage, pSurf.FrameBuffer, yyGetInt32(xoffset), yyGetInt32(yoffset), encoder.getWidth(), encoder.getHeight(), false, false);
-
-        encoder.addFrame(Uint8ClampedArray.from(glTexture.Image), true);
+		console.log(`${encoder.getWidth()}-${encoder.getHeight()}`);
+        var glTexture = g_webGL.CreateTextureFromFramebuffer(singleimage, pSurf.FrameBuffer, yyGetInt32(xoffset), yyGetInt32(yoffset), encoder.getWidth(), encoder.getHeight(), false, false, false);
+		const uint8array = Uint8ClampedArray.from(glTexture.Image);
+		//console.log(glTexture);
+        encoder.addFrame(uint8array, true);
     }
 };
 
