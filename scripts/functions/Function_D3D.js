@@ -30,6 +30,14 @@ function d3d_set_perspective(){}
 function matrix_get(){}
 function matrix_set(){}
 
+function gpu_set_stencil_enable(){}
+function gpu_set_stencil_func(){}
+function gpu_set_stencil_ref(){}
+function gpu_set_stencil_read_mask(){}
+function gpu_set_stencil_write_mask(){}
+function gpu_set_stencil_fail(){}
+function gpu_set_stencil_depth_fail(){}
+function gpu_set_stencil_pass(){}
 function gpu_set_blendenable(){}
 function gpu_set_ztestenable(){}
 function gpu_set_zfunc(){}
@@ -39,6 +47,8 @@ function gpu_set_cullmode(){}
 function gpu_set_blendmode(){}
 function gpu_set_blendmode_ext(){}
 function gpu_set_blendmode_ext_sepalpha(){}
+function gpu_set_blendequation(){}
+function gpu_set_blendequation_sepalpha(){}
 function gpu_set_colorwriteenable(){}
 function gpu_set_colourwriteenable(){}
 function gpu_set_alphatestenable(){}
@@ -65,6 +75,14 @@ function gpu_set_tex_max_aniso_ext(){}
 function gpu_set_tex_mip_enable(){}
 function gpu_set_tex_mip_enable_ext(){}
 
+function gpu_get_stencil_enable(){}
+function gpu_get_stencil_func(){}
+function gpu_get_stencil_ref(){}
+function gpu_get_stencil_read_mask(){}
+function gpu_get_stencil_write_mask(){}
+function gpu_get_stencil_fail(){}
+function gpu_get_stencil_depth_fail(){}
+function gpu_get_stencil_pass(){}
 function gpu_get_blendenable(){}
 function gpu_get_ztestenable(){}
 function gpu_get_zfunc(){}
@@ -78,6 +96,8 @@ function gpu_get_blendmode_src(){}
 function gpu_get_blendmode_dest(){}
 function gpu_get_blendmode_srcalpha(){}
 function gpu_get_blendmode_destalpha(){}
+function gpu_get_blendequation(){}
+function gpu_get_blendequation_sepalpha(){}
 function gpu_get_colorwriteenable(){}
 function gpu_get_colourwriteenable(){}
 function gpu_get_alphatestenable(){}
@@ -131,6 +151,14 @@ function gpu_set_state(){}
     compile_if_used(matrix_get = _stub("matrix_get"));
     compile_if_used(matrix_set = _stub("matrix_set"));
     
+    compile_if_used(gpu_set_stencil_enable = _stub("gpu_set_stencil_enable"));
+    compile_if_used(gpu_set_stencil_func = _stub("gpu_set_stencil_func"));
+    compile_if_used(gpu_set_stencil_ref = _stub("gpu_set_stencil_ref"));
+    compile_if_used(gpu_set_stencil_read_mask = _stub("gpu_set_stencil_read_mask"));
+    compile_if_used(gpu_set_stencil_write_mask = _stub("gpu_set_stencil_write_mask"));
+    compile_if_used(gpu_set_stencil_fail = _stub("gpu_set_stencil_fail"));
+    compile_if_used(gpu_set_stencil_depth_fail = _stub("gpu_set_stencil_depth_fail"));
+    compile_if_used(gpu_set_stencil_pass = _stub("gpu_set_stencil_pass"));
     compile_if_used(gpu_set_blendenable = _stub("gpu_set_blendenable"));
     compile_if_used(gpu_set_ztestenable = _stub("gpu_set_ztestenable"));
     compile_if_used(gpu_set_zfunc = _stub("gpu_set_zfunc"));
@@ -140,6 +168,8 @@ function gpu_set_state(){}
     compile_if_used(gpu_set_blendmode = _stub("gpu_set_blendmode"));
     compile_if_used(gpu_set_blendmode_ext = _stub("gpu_set_blendmode_ext"));
     compile_if_used(gpu_set_blendmode_ext_sepalpha = _stub("gpu_set_blendmode_ext_sepalpha"));
+	compile_if_used(gpu_set_blendequation = _stub("gpu_set_blendequation"));
+	compile_if_used(gpu_set_blendequation_sepalpha = _stub("gpu_set_blendequation_sepalpha"));
     compile_if_used(gpu_set_colorwriteenable = _stub("gpu_set_colorwriteenable"));
     compile_if_used(gpu_set_colourwriteenable = _stub("gpu_set_colourwriteenable"));
     compile_if_used(gpu_set_alphatestenable = _stub("gpu_set_alphatestenable"));
@@ -165,7 +195,15 @@ function gpu_set_state(){}
     compile_if_used(gpu_set_tex_max_aniso_ext = _stub("gpu_set_tex_max_aniso_ext"));
     compile_if_used(gpu_set_tex_mip_enable = _stub("gpu_set_tex_mip_enable"));
     compile_if_used(gpu_set_tex_mip_enable_ext = _stub("gpu_set_tex_mip_enable_ext"));
-    
+
+    compile_if_used(gpu_get_stencil_enable = _stub("gpu_get_stencil_enable"));
+    compile_if_used(gpu_get_stencil_func = _stub("gpu_get_stencil_func"));
+    compile_if_used(gpu_get_stencil_ref = _stub("gpu_get_stencil_ref"));
+    compile_if_used(gpu_get_stencil_read_mask = _stub("gpu_get_stencil_read_mask"));
+    compile_if_used(gpu_get_stencil_write_mask = _stub("gpu_get_stencil_write_mask"));
+    compile_if_used(gpu_get_stencil_fail = _stub("gpu_get_stencil_fail"));
+    compile_if_used(gpu_get_stencil_depth_fail = _stub("gpu_get_stencil_depth_fail"));
+    compile_if_used(gpu_get_stencil_pass = _stub("gpu_get_stencil_pass"));
     compile_if_used(gpu_get_blendenable = _stub("gpu_get_blendenable"));
     gpu_get_ztestenable = _stub("gpu_get_ztestenable"); // used in a few places
     compile_if_used(gpu_get_zfunc = _stub("gpu_get_zfunc"));
@@ -179,6 +217,8 @@ function gpu_set_state(){}
     compile_if_used(gpu_get_blendmode_dest = _stub("gpu_get_blendmode_dest"));
     compile_if_used(gpu_get_blendmode_srcalpha = _stub("gpu_get_blendmode_srcalpha"));
     compile_if_used(gpu_get_blendmode_destalpha = _stub("gpu_get_blendmode_destalpha"));
+	compile_if_used(gpu_get_blendequation = _stub("gpu_get_blendequation"));
+	compile_if_used(gpu_get_blendequation_sepalpha = _stub("gpu_get_blendequation_sepalpha"));
     compile_if_used(gpu_get_colorwriteenable = _stub("gpu_get_colorwriteenable"));
     compile_if_used(gpu_get_colourwriteenable = _stub("gpu_get_colourwriteenable"));
     gpu_get_alphatestenable = _stub("gpu_get_alphatestenable"); // used by application_surface drawer
@@ -273,6 +313,14 @@ function InitD3DFunctions() {
     // rest of the matrix functions are already assigned
 
     // GPU functions
+    compile_if_used(gpu_set_stencil_enable = WebGL_gpu_set_stencil_enable);
+    compile_if_used(gpu_set_stencil_func = WebGL_gpu_set_stencil_func);
+    compile_if_used(gpu_set_stencil_ref = WebGL_gpu_set_stencil_ref);
+    compile_if_used(gpu_set_stencil_read_mask = WebGL_gpu_set_stencil_read_mask);
+    compile_if_used(gpu_set_stencil_write_mask = WebGL_gpu_set_stencil_write_mask);
+    compile_if_used(gpu_set_stencil_fail = WebGL_gpu_set_stencil_fail);
+    compile_if_used(gpu_set_stencil_depth_fail = WebGL_gpu_set_stencil_depth_fail);
+    compile_if_used(gpu_set_stencil_pass = WebGL_gpu_set_stencil_pass);
     compile_if_used(gpu_set_blendmode = WebGL_gpu_set_blendmode);
     compile_if_used(gpu_set_blendenable = WebGL_gpu_set_blendenable);
     compile_if_used(gpu_set_ztestenable = WebGL_gpu_set_ztestenable);
@@ -284,6 +332,8 @@ function InitD3DFunctions() {
     compile_if_used(gpu_set_blendmode = WebGL_gpu_set_blendmode);
     compile_if_used(gpu_set_blendmode_ext = WebGL_gpu_set_blendmode_ext);
     compile_if_used(gpu_set_blendmode_ext_sepalpha = WebGL_gpu_set_blendmode_ext_sepalpha);
+	compile_if_used(gpu_set_blendequation = WebGL_gpu_set_blendequation);
+	compile_if_used(gpu_set_blendequation_sepalpha = WebGL_gpu_set_blendequation_sepalpha);
     compile_if_used(gpu_set_colorwriteenable = WebGL_gpu_set_colorwriteenable);
     compile_if_used(gpu_set_colourwriteenable = WebGL_gpu_set_colourwriteenable);
     compile_if_used(gpu_set_alphatestenable = WebGL_gpu_set_alphatestenable);
@@ -310,6 +360,14 @@ function InitD3DFunctions() {
     compile_if_used(gpu_set_tex_mip_enable = WebGL_gpu_set_tex_mip_enable);
     compile_if_used(gpu_set_tex_mip_enable_ext = WebGL_gpu_set_tex_mip_enable_ext);
 
+    compile_if_used(gpu_get_stencil_enable = WebGL_gpu_get_stencil_enable);
+    compile_if_used(gpu_get_stencil_func = WebGL_gpu_get_stencil_func);
+    compile_if_used(gpu_get_stencil_ref = WebGL_gpu_get_stencil_ref);
+    compile_if_used(gpu_get_stencil_read_mask = WebGL_gpu_get_stencil_read_mask);
+    compile_if_used(gpu_get_stencil_write_mask = WebGL_gpu_get_stencil_write_mask);
+    compile_if_used(gpu_get_stencil_fail = WebGL_gpu_get_stencil_fail);
+    compile_if_used(gpu_get_stencil_depth_fail = WebGL_gpu_get_stencil_depth_fail);
+    compile_if_used(gpu_get_stencil_pass = WebGL_gpu_get_stencil_pass);
     compile_if_used(gpu_get_blendenable = WebGL_gpu_get_blendenable);
     gpu_get_ztestenable = WebGL_gpu_get_ztestenable;
     compile_if_used(gpu_get_depth = WebGL_gpu_get_depth);
@@ -914,6 +972,46 @@ function WebGL_matrix_stack_is_empty()
         return false;
 }
 
+function WebGL_gpu_set_stencil_enable(_enable)
+{
+    g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilEnable, yyGetInt32(_enable) >= 0.5);
+}
+
+function WebGL_gpu_set_stencil_func(_cmp_func)
+{
+    g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilFunc, yyGetInt32(_cmp_func));
+}
+
+function WebGL_gpu_set_stencil_ref(_ref)
+{
+    g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilRef, yyGetInt32(_ref));
+}
+
+function WebGL_gpu_set_stencil_read_mask(_mask)
+{
+    g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilMask, yyGetInt32(_mask));
+}
+
+function WebGL_gpu_set_stencil_write_mask(_mask)
+{
+    g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilWriteMask, yyGetInt32(_mask));
+}
+
+function WebGL_gpu_set_stencil_fail(_stencil_op)
+{
+    g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilFail, yyGetInt32(_stencil_op));
+}
+
+function WebGL_gpu_set_stencil_depth_fail(_stencil_op)
+{
+    g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilZFail, yyGetInt32(_stencil_op));
+}
+
+function WebGL_gpu_set_stencil_pass(_stencil_op)
+{
+    g_webGL.RSMan.SetRenderState(yyGL.RenderState_StencilPass, yyGetInt32(_stencil_op));
+}
+
 function WebGL_gpu_set_blendenable(_enable)
 { 
     g_webGL.RSMan.SetRenderState(yyGL.RenderState_AlphaBlendEnable, yyGetInt32(_enable) >= 0.5);
@@ -987,33 +1085,66 @@ function WebGL_gpu_set_blendmode(_mode)
 	{
 		case 1:	g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_SrcAlpha); 
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_One); // add blend
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquation, yyGL.BlendEquation_Add);
 				
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_SrcAlpha); 
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.Blend_One); // add blend
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquationAlpha, yyGL.BlendEquation_Add);
+				
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, false);
 				break;
 
-		case 2:	g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_SrcAlpha);
-				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_InvSrcColour); // color blend				
+		case 2:	g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_One);
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_One); // max blend				
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquation, yyGL.BlendEquation_Max);
+				
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_One); 
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.Blend_One); // max blend				
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquationAlpha, yyGL.BlendEquation_Max);
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, false);
+				break;
 
+		case 3: g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_SrcAlpha);
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_One); // subtract blend
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquation, yyGL.BlendEquation_Subtract);
+				
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_SrcAlpha); 
-				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.Blend_InvSrcColour); // color blend
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.Blend_One); // subtract blend
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquationAlpha, yyGL.BlendEquation_Subtract);
+				
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, false);
 				break;
-
-		case 3: g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_Zero);
-				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_InvSrcColour); // subtract blend
-
-				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_Zero); 
-				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.Blend_InvSrcColour); // subtract blend
+				
+		case 4: g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_One);
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_One); // min blend
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquation, yyGL.BlendEquation_Min);
+				
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_One);
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.Blend_One); // min blend
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquationAlpha, yyGL.BlendEquation_Min);
+				
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, false);
+				break;
+				
+		case 5: g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_SrcAlpha);
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_One); // reverse subtract
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquation, yyGL.BlendEquation_InvSubtract);
+				
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_SrcAlpha);
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.BlendOne); // reverse subtract
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquationAlpha, yyGL.BlendEquation_InvSubtract);
+				
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, false);
 				break;
 
 		default:g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_SrcAlpha);
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_InvSrcAlpha);
-
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquation, yyGL.BlendEquation_Add);
+				
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_SrcAlpha); 
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.Blend_InvSrcAlpha); 
+				g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquationAlpha, yyGL.BlendEquation_Add);
+				
 				g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, false);
 				break;
 	}
@@ -1069,6 +1200,35 @@ function WebGL_gpu_set_blendmode_ext_sepalpha(_src,_dest,_srcalpha,_destalpha)
     g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, srcblendalpha); 
     g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, destblendalpha); 
     g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, true);
+}
+
+function WebGL_gpu_set_blendequation(_equation)
+{
+	var blendequation = yyGetInt32(_equation);
+	
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquation, blendequation);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquationAlpha, blendequation);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, false);
+}
+
+function WebGL_gpu_set_blendequation_sepalpha(_equation, _equation_alpha)
+{
+	var blendequation, blendequationalpha;
+	
+	if(Array.isArray(_equation))
+	{
+		blendequation = yyGetInt32(_equation[0]);
+		blendequationalpha = yyGetInt32(_equation[1]);
+	}
+	else
+	{
+		blendequation = yyGetInt32(_equation);
+		blendequationalpha = yyGetInt32(_equation_alpha);
+	}
+	
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquation, blendequation);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_BlendEquationAlpha, blendequationalpha);
+	g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, true);	
 }
 
 function WebGL_gpu_set_colorwriteenable(_red,_green,_blue,_alpha)
@@ -1356,6 +1516,46 @@ function WebGL_gpu_set_tex_mip_enable_ext(_sampler_index, _enable)
     g_webGL.RSMan.SetSamplerState(stage, yyGL.SamplerState_MipEnable, enable);
 }
 
+function WebGL_gpu_get_stencil_enable()
+{
+    return g_webGL.RSMan.GetRenderState(yyGL.RenderState_StencilEnable) ? 1.0 : 0.0;
+}
+
+function WebGL_gpu_get_stencil_func()
+{
+    return g_webGL.RSMan.GetRenderState(yyGL.RenderState_StencilFunc);
+}
+
+function WebGL_gpu_get_stencil_ref()
+{
+    return g_webGL.RSMan.GetRenderState(yyGL.RenderState_StencilRef);
+}
+
+function WebGL_gpu_get_stencil_read_mask()
+{
+    return g_webGL.RSMan.GetRenderState(yyGL.RenderState_StencilMask);
+}
+
+function WebGL_gpu_get_stencil_write_mask()
+{
+    return g_webGL.RSMan.GetRenderState(yyGL.RenderState_StencilWriteMask);
+}
+
+function WebGL_gpu_get_stencil_fail()
+{
+    return g_webGL.RSMan.GetRenderState(yyGL.RenderState_StencilFail);
+}
+
+function WebGL_gpu_get_stencil_depth_fail()
+{
+    return g_webGL.RSMan.GetRenderState(yyGL.RenderState_StencilZFail);
+}
+
+function WebGL_gpu_get_stencil_pass()
+{
+    return g_webGL.RSMan.GetRenderState(yyGL.RenderState_StencilPass);
+}
+
 function WebGL_gpu_get_blendenable()
 {
     return g_webGL.RSMan.GetRenderState(yyGL.RenderState_AlphaBlendEnable) ? 1.0 : 0.0;
@@ -1479,6 +1679,19 @@ function WebGL_gpu_get_blendmode_srcalpha()
 function WebGL_gpu_get_blendmode_destalpha()
 {
     return g_webGL.RSMan.GetRenderState(yyGL.RenderState_DestBlendAlpha);
+}
+
+function WebGL_gpu_get_blendequation()
+{
+	return g_webGL.RSMan.GetRenderState(yyGL.RenderState_BlendEquation);
+}
+
+function WebGL_gpu_get_blendequation_sepalpha()
+{
+	var params = new Array();
+	params[0] = g_webGL.RSMan.GetRenderState(yyGL.RenderState_BlendEquation);
+	params[1] = g_webGL.RSMan.GetRenderState(yyGL.RenderState_BlendEquationAlpha);
+	return params;
 }
 
 function WebGL_gpu_get_colorwriteenable()
@@ -1660,7 +1873,15 @@ function InitSaveRenderStates()
             "colorwriteenable", yyGL.RenderState_ColourWriteEnable,
             "alphatestenable", yyGL.RenderState_AlphaTestEnable,	
             "alphatestref", yyGL.RenderState_AlphaRef,
-            "alphatestfunc", yyGL.RenderState_AlphaFunc    
+            "alphatestfunc", yyGL.RenderState_AlphaFunc,
+            "stencilenable", yyGL.RenderState_StencilEnable,
+            "stencilfunc", yyGL.RenderState_StencilFunc,
+            "stencilref", yyGL.RenderState_StencilRef,
+            "stencilreadmask", yyGL.RenderState_StencilMask,
+            "stencilwritemask", yyGL.RenderState_StencilWriteMask,
+            "stencilfail", yyGL.RenderState_StencilFail,
+            "stencilzfail", yyGL.RenderState_StencilZFail,
+            "stencilpass", yyGL.RenderState_StencilPass,
         ];
     }
 }

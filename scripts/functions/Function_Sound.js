@@ -441,6 +441,8 @@ audioSound.prototype.play = function() {
     if (g_WebAudioContext === null)
         return;
 
+    this.bActive = true;
+
     const asset = Audio_GetSound(this.soundid);
 
     if (asset.state !== AudioSampleState.READY ) {
@@ -495,8 +497,6 @@ audioSound.prototype.play = function() {
             this.start(asset.buffer);
         }
     }
-
-    this.bActive = true;
 };
 
 audioSound.prototype.stop = function() {
@@ -2113,7 +2113,6 @@ function audio_listener_velocity( _one,_two,_three)
         _three = yyGetReal(_three);
 
         var lis = g_WebAudioContext.listener;
-        lis.setVelocity( _one, _two, _three );
 
     	// AB: Need to check if pos exists - can be undefined on some browsers
         if ( lis.velocity )

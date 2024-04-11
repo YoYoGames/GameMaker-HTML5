@@ -512,8 +512,8 @@ function yyRenderStateManager(_numTextureStages,_stackSize,_commandBuilder,_inte
         m_current.m_renderStates[yyGL.RenderState_StencilPass]=yyGL.StencilOp_Keep; 
         m_current.m_renderStates[yyGL.RenderState_StencilFunc]=yyGL.CmpFunc_CmpAlways; 
         m_current.m_renderStates[yyGL.RenderState_StencilRef]=0; 
-        m_current.m_renderStates[yyGL.RenderState_StencilMask]=0xffffffff; 
-        m_current.m_renderStates[yyGL.RenderState_StencilWriteMask]=0xffffffff; 
+        m_current.m_renderStates[yyGL.RenderState_StencilMask]=0xff; 
+        m_current.m_renderStates[yyGL.RenderState_StencilWriteMask]=0xff; 
         m_current.m_renderStates[yyGL.RenderState_SeparateAlphaBlendEnable]=false; 
         m_current.m_renderStates[yyGL.RenderState_SrcBlendAlpha]=yyGL.Blend_SrcAlpha; 
         m_current.m_renderStates[yyGL.RenderState_DestBlendAlpha]=yyGL.Blend_InvSrcAlpha; 
