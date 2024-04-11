@@ -1818,9 +1818,7 @@ function gif_add_surface(gif, surface, delaytime, xoffset, yoffset, quantquality
         Graphics_AddCanvasFunctions(pGraphics); 			// update for OUR functions.
 		console.log(`${encoder.getWidth()}-${encoder.getHeight()}`);
         var glTexture = g_webGL.CreateTextureFromFramebuffer(singleimage, pSurf.FrameBuffer, yyGetInt32(xoffset), yyGetInt32(yoffset), encoder.getWidth(), encoder.getHeight(), false, false, false);
-		const uint8array = Uint8ClampedArray.from(glTexture.Image);
-		//console.log(glTexture);
-        encoder.addFrame(uint8array, true);
+        encoder.addFrame(Uint8ClampedArray.from(glTexture.Image), true);
     }
 };
 
