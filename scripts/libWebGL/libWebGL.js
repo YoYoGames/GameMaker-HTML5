@@ -1552,7 +1552,7 @@ function yyWebGL(_canvas, _options) {
     ///          </summary>
     // #############################################################################################
     /** @this {yyWebGL} */
-    this.CreateTextureFromFramebuffer = function (_image, _frameBuffer, _x, _y, _w, _h, _removeback, _smooth) {
+    this.CreateTextureFromFramebuffer = function (_image, _frameBuffer, _x, _y, _w, _h, _removeback, _smooth, _scale_to_power=true) {
 
         // Execute current list to ensure what we grab is actually what should've been drawn now
 	    this.FlushAll();
@@ -1573,9 +1573,13 @@ function yyWebGL(_canvas, _options) {
 	        RemoveBackground(new Int32Array(pixelData), _w, _h);
 	    }
 				
-	    // Get the power of 2 size for the texture creation
-        var w = GetPOW2Alignment(_w);
-        var h = GetPOW2Alignment(_h);
+	    // Get the power of 2 size for the texture creation (but avoid this )
+        var w = _w;
+        var h = _h;
+        if (_scale_to_power) {
+            w = GetPOW2Alignment(_w);
+            h = GetPOW2Alignment(_h);
+        }
         
         // Store the current texture before rebinding the texture unit
         var storedTexture = gl.getParameter(gl.TEXTURE_BINDING_2D);
