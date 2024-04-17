@@ -383,7 +383,7 @@ function surface_get_texture_depth(_id)
     var pSurf = g_Surfaces.Get(yyGetInt32(_id));
     if (pSurf != null && g_SupportDepthTexture)
     {
-        return { WebGLTexture: pSurf.textureDepth, TPE: pSurf.m_pTPE };
+        return ({ WebGLTexture: pSurf.textureDepth, TPE: pSurf.m_pTPE });
     }
     return -1;
 }
