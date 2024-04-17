@@ -1551,7 +1551,7 @@ function sprite_get_uvs(_spriteIndex, _frameIndex)
 	    
 	    var arrayData = [];
 	    arrayData.push(pTPE.x*oneTexelW, pTPE.y*oneTexelH, (pTPE.x+pTPE.CropWidth)*oneTexelW, (pTPE.y+pTPE.CropHeight)*oneTexelH);
-	    arrayData.push(pTPE.XOffset, pTPE.YOffset, pTPE.CropWidth/pTPE.ow,pTPE.CropHeight/pTPE.ow );
+	    arrayData.push(pTPE.XOffset, pTPE.YOffset, pTPE.CropWidth/pTPE.ow,pTPE.CropHeight/pTPE.oh );
 
 	    return arrayData;
     }

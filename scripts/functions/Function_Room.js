@@ -1,4 +1,4 @@
-﻿﻿
+﻿// Removed zero width no break space
 // **********************************************************************************************************************
 // 
 // Copyright (c)2011, YoYo Games Ltd. All Rights reserved.

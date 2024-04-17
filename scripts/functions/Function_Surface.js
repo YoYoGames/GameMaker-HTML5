@@ -89,6 +89,28 @@ function surface_get_depth_disable()
     return g_createsurfacedepthbuffers ? false : true;
 }
 
+function surface_has_depth(_id)
+{
+    _id = yyGetInt32(_id);
+
+    if (!surface_exists(_id))
+    {
+        yyError("surface_has_depth() - surface does not exist!");
+        return false;
+    }
+
+    if (g_webGL)
+    {
+        var pSurf = g_Surfaces.Get(_id);
+        if (!g_SupportDepthTexture) {
+            return (pSurf.FrameBufferData.RenderBuffer != null);
+        }
+        return (pSurf.textureDepth != null
+            && pSurf.textureDepth.webgl_textureid instanceof yyGLTexture);
+    }
+
+    return false;
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -356,6 +378,16 @@ function surface_get_texture(_id)
     return -1;
 }
 
+function surface_get_texture_depth(_id)
+{
+    var pSurf = g_Surfaces.Get(yyGetInt32(_id));
+    if (pSurf != null && g_SupportDepthTexture)
+    {
+        return ({ WebGLTexture: pSurf.textureDepth, TPE: pSurf.m_pTPE });
+    }
+    return -1;
+}
+
 // #############################################################################################
 /// Function:<summary>
 ///             Search for a surface ID in the current surface stack list
@@ -368,11 +400,18 @@ function CheckForSurface(_id)
 {
     _id = yyGetInt32(_id);
 
-    if (g_CurrentSurfaceId == _id) return true;
-    var len = g_CurrentSurfaceIdStack.length;
-    for (var i = 0; i < len; i++) {
-        if (g_CurrentSurfaceIdStack[i] == _id) return true;
+    if (g_CurrentSurfaceId == _id
+        || g_CurrentDepthId == _id) {
+        return true;
     }
+
+    for (var i = g_CurrentSurfaceIdStack.length - 1; i >= 0; --i) {
+        if (g_CurrentSurfaceIdStack[i] == _id
+        || g_CurrentDepthIdStack[i] == _id) {
+            return true;
+        }
+    }
+
     return false;
 }
 
@@ -389,18 +428,23 @@ function CheckForSurface(_id)
 ///			</returns>
 // #############################################################################################
 var surface_set_target_system = surface_set_target_system_RELEASE;
-function surface_set_target_system_RELEASE(_id) 
+function surface_set_target_system_RELEASE(_id, _depth_id) 
 {
     _id = yyGetInt32(_id);
+    _depth_id = (_depth_id !== undefined && yyGetInt32(_depth_id) >= 0)
+        ? yyGetInt32(_depth_id) : _id;
 
     var pSurf = g_Surfaces.Get(_id);
-    if (pSurf != null) {
+    var pSurfDepth = g_Surfaces.Get(_depth_id);
+
+    if (pSurf != null && pSurfDepth != null) {
 
         if (!g_webGL) Graphics_Save();
 
         // Store the current settings on the stack
         g_SurfaceStack.push({
             FrameBuffer: g_CurrentFrameBuffer,
+            DepthBuffer: g_CurrentDepthBuffer,
             RenderTargetActive: g_RenderTargetActive,
             cannvas_graphics: graphics,
             worldx: g_worldx,
@@ -415,11 +459,16 @@ function surface_set_target_system_RELEASE(_id)
         });
 
         g_CurrentSurfaceIdStack.push(g_CurrentSurfaceId);
+        g_CurrentDepthIdStack.push(g_CurrentDepthId);
         g_CurrentSurfaceId = _id;
+        g_CurrentDepthId = _depth_id;
 
         if (g_webGL) {
             g_CurrentFrameBuffer = pSurf.FrameBuffer;
-            g_webGL.SetRenderTarget(pSurf.FrameBuffer);
+            g_CurrentDepthBuffer = g_SupportDepthTexture
+                ? pSurfDepth.textureDepth.webgl_textureid.Texture
+                : pSurfDepth.FrameBufferData.RenderBuffer;
+            g_webGL.SetRenderTarget(g_CurrentFrameBuffer, g_CurrentDepthBuffer);
             g_RenderTargetActive = -1;
         } else {
             g_CurrentGraphics = pSurf.graphics;
@@ -436,18 +485,22 @@ function surface_set_target_system_RELEASE(_id)
 ///          </summary>
 ///
 /// In:		<param name="_id"></param>
+///         <param name="_depth_id"></param>
 /// Out:	<returns>
 ///				return true;
 ///			</returns>
 // #############################################################################################
 var surface_set_target = surface_set_target_RELEASE;
-function surface_set_target_RELEASE(_id) 
+function surface_set_target_RELEASE(_id, _depth_id) 
 {
     _id = yyGetInt32(_id);
+    _depth_id = (_depth_id !== undefined && yyGetInt32(_depth_id) >= 0)
+        ? yyGetInt32(_depth_id) : _id;
 
     var pSurf = g_Surfaces.Get(_id);
+    var pSurfDepth = g_Surfaces.Get(_depth_id);
 
-    if (pSurf == null)
+    if (pSurf == null || pSurfDepth == null)
     {
         return false;
     }
@@ -460,6 +513,7 @@ function surface_set_target_RELEASE(_id)
     {
         g_SurfaceStack.push({
             FrameBuffer: g_CurrentFrameBuffer,
+            DepthBuffer: g_CurrentDepthBuffer,
             RenderTargetActive: g_RenderTargetActive,                
 
             viewportx: g_clipx,
@@ -491,6 +545,7 @@ function surface_set_target_RELEASE(_id)
     {
         g_SurfaceStack.push({
             FrameBuffer: g_CurrentFrameBuffer,
+            DepthBuffer: g_CurrentDepthBuffer,
             RenderTargetActive: g_RenderTargetActive,                
 
             viewportx: g_clipx,
@@ -509,12 +564,17 @@ function surface_set_target_RELEASE(_id)
         });
     }
     g_CurrentSurfaceIdStack.push(g_CurrentSurfaceId);
+    g_CurrentDepthIdStack.push(g_CurrentDepthId);
     g_CurrentSurfaceId = _id;
+    g_CurrentDepthId = _depth_id;
 
 
     if (g_webGL) {
         g_CurrentFrameBuffer = pSurf.FrameBuffer;
-        g_webGL.SetRenderTarget(pSurf.FrameBuffer);
+        g_CurrentDepthBuffer = g_SupportDepthTexture
+            ? pSurfDepth.textureDepth.webgl_textureid.Texture
+            : pSurfDepth.FrameBufferData.RenderBuffer;
+        g_webGL.SetRenderTarget(g_CurrentFrameBuffer, g_CurrentDepthBuffer);
         g_RenderTargetActive = -1;
     } else {
         g_CurrentGraphics = pSurf.graphics;
@@ -544,7 +604,9 @@ function surface_get_target() {
 
 }
 
-
+function surface_get_target_depth() {
+    return g_CurrentDepthId;
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -592,6 +654,7 @@ function surface_reset_target_RELEASE()
         } else {
             g_RenderTargetActive = storedState.RenderTargetActive;
             g_CurrentFrameBuffer = storedState.FrameBuffer;
+            g_CurrentDepthBuffer = storedState.DepthBuffer;
         }
 
         if (g_InGUI_Zone && g_SurfaceStack.length == 0) {
@@ -618,9 +681,12 @@ function surface_reset_target_RELEASE()
     else {
         yyError("surface_reset_target : Surface stacking error detected");
     }
-    if (g_webGL) g_webGL.SetRenderTarget(g_CurrentFrameBuffer);
+    if (g_webGL) g_webGL.SetRenderTarget(g_CurrentFrameBuffer, g_CurrentDepthBuffer);
     g_CurrentSurfaceId = g_CurrentSurfaceIdStack.pop();
     if (g_CurrentSurfaceId == null) g_CurrentSurfaceId = -1;
+
+    g_CurrentDepthId = g_CurrentDepthIdStack.pop();
+    if (g_CurrentDepthId == null) g_CurrentDepthId = -1;
 
     if (!g_webGL) Graphics_SetInterpolation_Auto(graphics);
     DirtyRoomExtents();

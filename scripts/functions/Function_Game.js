@@ -373,7 +373,7 @@ function event_perform_async(_pInst, _pOther, _event, _ds_map)
     _event = yyGetInt32(_event);
     _ds_map = yyGetInt32(_ds_map);
     g_pBuiltIn.async_load = _ds_map;
-    g_pObjectManager.ThrowEvent(EVENT_OTHER,_event);
+    g_pObjectManager.ThrowEvent(EVENT_OTHER | _event,0,true);
 	
 	ds_map_destroy(_ds_map);
 	

@@ -203,7 +203,7 @@ function is_callable( _v )
     }
 
     // Check if a script was found
-    return _v != undefined;
+    return is_method(_v);
 }
 
 function is_handle( _v )

@@ -219,8 +219,10 @@ function move_snap(_pInst,_hsnap,_vsnap)
     _hsnap = yyGetReal(_hsnap);
     _vsnap = yyGetReal(_vsnap);
 
-    _pInst.x = Round(_pInst.x/_hsnap) * _hsnap;
-    _pInst.y = Round(_pInst.y/_vsnap) * _vsnap;
+	if(_hsnap>0)
+    	_pInst.x = Round(_pInst.x/_hsnap) * _hsnap;
+	if(_vsnap>0)
+    	_pInst.y = Round(_pInst.y/_vsnap) * _vsnap;
     _pInst.bbox_dirty = true;
 }
 

@@ -15,6 +15,14 @@
 // 
 // **********************************************************************************************************************
 
+
+function GetIndexFromImageIndex(image_index, i_numb)
+{
+	var int_ind = Math.floor(image_index) % i_numb;
+	if (int_ind < 0) int_ind = int_ind + i_numb;
+	return int_ind;
+}
+
 // #############################################################################################
 /// Function:<summary>
 ///             
@@ -35,8 +43,9 @@ function draw_self( _inst )
     {
     	var spr = g_pSpriteManager.Get(index);
     	if( spr != null ){
-    	    //spr.Draw( Math.floor(_inst.image_index ),
-    	    var image_index = _inst.image_index + _inst.frame_overflow;
+
+    	    var image_index = GetIndexFromImageIndex(_inst.image_index + _inst.frame_overflow,spr.numb);
+
     	    _inst.frame_overflow = 0;
 
     	    spr.Draw(image_index,
@@ -54,13 +63,18 @@ function draw_self( _inst )
 // #############################################################################################
 function    draw_sprite_ext( _pInst, _sprite, _sub_index, _x,_y, _xscale, _yscale, _rot, _col, _alpha )
 {
-	_sub_index = yyGetInt32(_sub_index);
+	_sub_index = yyGetReal(_sub_index);
 	_alpha = yyGetReal(_alpha);
-    if( _sub_index<0  ) _sub_index = ~~_pInst.image_index;
+
+    if( _sub_index<0  ) 
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
+
     var pSpr = g_pSpriteManager.Get(_sprite);
     if( pSpr!=null ){
         _alpha = min(1.0, _alpha);
-        pSpr.Draw( _sub_index, yyGetReal(_x), yyGetReal(_y), yyGetReal(_xscale), yyGetReal(_yscale), yyGetReal(_rot), ConvertGMColour(yyGetInt32(_col)), _alpha );
+		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);
+        pSpr.Draw( image_index, yyGetReal(_x), yyGetReal(_y), yyGetReal(_xscale), yyGetReal(_yscale), yyGetReal(_rot), ConvertGMColour(yyGetInt32(_col)), _alpha );
     }
 }
 
@@ -71,11 +85,16 @@ function    draw_sprite_ext( _pInst, _sprite, _sub_index, _x,_y, _xscale, _yscal
 // #############################################################################################
 function    draw_sprite( _pInst, _sprite, _sub_index, _x,_y )
 {
-	_sub_index = yyGetInt32(_sub_index);
-    if( _sub_index<0  ) _sub_index = ~~_pInst.image_index;
+	_sub_index = yyGetReal(_sub_index);
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
+
     var pSpr = g_pSpriteManager.Get(_sprite);
     if( pSpr!=null ){
-    	pSpr.DrawSimple(_sub_index, yyGetReal(_x), yyGetReal(_y), g_GlobalAlpha);
+		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);
+    	pSpr.DrawSimple(image_index, yyGetReal(_x), yyGetReal(_y), g_GlobalAlpha);
     }
 }
 
@@ -86,14 +105,19 @@ function    draw_sprite( _pInst, _sprite, _sub_index, _x,_y )
 // #############################################################################################
 function draw_sprite_pos(_pInst, _sprite, _sub_index, _x1, _y1, _x2,_y2, _x3,_y3, _x4,_y4, _alpha) {
 
-	_sub_index = yyGetInt32(_sub_index);
+	_sub_index = yyGetReal(_sub_index);
 	_alpha = yyGetReal(_alpha);
-    if( _sub_index<0  ) _sub_index = ~~_pInst.image_index;
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
+
 	var pSpr = g_pSpriteManager.Get(_sprite);
 	if (pSpr != null)
 	{
+		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);
         _alpha = min(1.0, _alpha);
-        pSpr.Sprite_DrawSimplePos(_sub_index, yyGetReal(_x1), yyGetReal(_y1), yyGetReal(_x2), yyGetReal(_y2), yyGetReal(_x3), yyGetReal(_y3), yyGetReal(_x4), yyGetReal(_y4), _alpha);
+        pSpr.Sprite_DrawSimplePos(image_index, yyGetReal(_x1), yyGetReal(_y1), yyGetReal(_x2), yyGetReal(_y2), yyGetReal(_x3), yyGetReal(_y3), yyGetReal(_x4), yyGetReal(_y4), _alpha);
 	}
 }
 
@@ -114,23 +138,26 @@ function draw_sprite_pos(_pInst, _sprite, _sub_index, _x1, _y1, _x2,_y2, _x3,_y3
 // #############################################################################################
 function draw_sprite_stretched(_pInst, _sprite, _sub_index, _x, _y, _w,_h) 
 {
-	_sub_index = yyGetInt32(_sub_index);
-    if( _sub_index<0  ) _sub_index = ~~_pInst.image_index;
+	_sub_index = yyGetReal(_sub_index);
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
+
 	var pSpr = g_pSpriteManager.Get(_sprite);
 	if (pSpr != null)
 	{
     	if (pSpr.numb <= 0) return;
-	    _sub_index = (~ ~_sub_index) % pSpr.numb;
-	    if (_sub_index < 0) _sub_index = _sub_index + pSpr.numb;	
+		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);	
 		
 	    // @if feature("nineslice")
 		if ((pSpr.nineslicedata != null) && (pSpr.nineslicedata.enabled == true))
 	    {
-	        pSpr.nineslicedata.Draw(yyGetReal(_x), yyGetReal(_y), yyGetReal(_w), yyGetReal(_h), 0, 0xffffff, g_GlobalAlpha, _sub_index, pSpr, true);
+	        pSpr.nineslicedata.Draw(yyGetReal(_x), yyGetReal(_y), yyGetReal(_w), yyGetReal(_h), 0, 0xffffff, g_GlobalAlpha, image_index, pSpr, true);
 	    } else // ->
 		// @endif
 	    {
-	        Graphics_DrawStretchedExt(pSpr.ppTPE[_sub_index], yyGetReal(_x), yyGetReal(_y), yyGetReal(_w), yyGetReal(_h), 0xffffff, g_GlobalAlpha);
+	        Graphics_DrawStretchedExt(pSpr.ppTPE[image_index], yyGetReal(_x), yyGetReal(_y), yyGetReal(_w), yyGetReal(_h), 0xffffff, g_GlobalAlpha);
 	    }
 	}
 
@@ -155,23 +182,26 @@ function draw_sprite_stretched(_pInst, _sprite, _sub_index, _x, _y, _w,_h)
 // #############################################################################################
 function    draw_sprite_stretched_ext( _pInst, _sprite, _sub_index, _x,_y, _w, _h, _colour, _alpha )
 {
-	_sub_index = yyGetInt32(_sub_index);
-    if( _sub_index<0  ) _sub_index = ~~_pInst.image_index;
+	_sub_index = yyGetReal(_sub_index);
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
+
 	var pSpr = g_pSpriteManager.Get(_sprite);
 	if (pSpr != null)
 	{
     	if (pSpr.numb <= 0) return;
-	    _sub_index = (~ ~_sub_index) % pSpr.numb;
-	    if (_sub_index < 0) _sub_index = _sub_index + pSpr.numb;	
-		
+	
+		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);	
 	    // @if feature("nineslice")
 		if ((pSpr.nineslicedata != null) && (pSpr.nineslicedata.enabled == true))
 	    {
-	        pSpr.nineslicedata.Draw(yyGetReal(_x), yyGetReal(_y), yyGetReal(_w), yyGetReal(_h), 0, ConvertGMColour(yyGetInt32(_colour)), yyGetReal(_alpha), _sub_index, pSpr, true);
+	        pSpr.nineslicedata.Draw(yyGetReal(_x), yyGetReal(_y), yyGetReal(_w), yyGetReal(_h), 0, ConvertGMColour(yyGetInt32(_colour)), yyGetReal(_alpha), image_index, pSpr, true);
 	    } else // ->
 		// @endif
 	    {
-	        Graphics_DrawStretchedExt(pSpr.ppTPE[_sub_index], yyGetReal(_x), yyGetReal(_y), yyGetReal(_w), yyGetReal(_h), ConvertGMColour(yyGetInt32(_colour)), yyGetReal(_alpha));
+	        Graphics_DrawStretchedExt(pSpr.ppTPE[image_index], yyGetReal(_x), yyGetReal(_y), yyGetReal(_w), yyGetReal(_h), ConvertGMColour(yyGetInt32(_colour)), yyGetReal(_alpha));
 	    }
 	}
     //draw_sprite_ext(_sprite,_sub_index,_x,_y,_xscale,_yscale,0,_colour, _alpha);
@@ -195,17 +225,20 @@ function    draw_sprite_stretched_ext( _pInst, _sprite, _sub_index, _x,_y, _w, _
 // #############################################################################################
 function draw_sprite_part(_pInst, _sprite, _sub_index, _left, _top, _width, _height, _x, _y) 
 {
-	_sub_index = yyGetInt32(_sub_index);
-    if( _sub_index<0  ) _sub_index = ~~_pInst.image_index;
+	_sub_index = yyGetReal(_sub_index);
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
+
 	var pSpr = g_pSpriteManager.Get(_sprite);
 	if (pSpr != null)
 	{
     	if (pSpr.numb <= 0) return;
-	    _sub_index = (~ ~_sub_index) % pSpr.numb;
-	    if (_sub_index < 0) _sub_index = _sub_index + pSpr.numb;
 
+		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);	
 
-	    Graphics_DrawPart(pSpr.ppTPE[_sub_index], yyGetReal(_left), yyGetReal(_top), yyGetReal(_width), yyGetReal(_height), yyGetReal(_x), yyGetReal(_y), 1, 1, 0xffffff, g_GlobalAlpha);
+	    Graphics_DrawPart(pSpr.ppTPE[image_index], yyGetReal(_left), yyGetReal(_top), yyGetReal(_width), yyGetReal(_height), yyGetReal(_x), yyGetReal(_y), 1, 1, 0xffffff, g_GlobalAlpha);
 	}
 }
 
@@ -234,18 +267,22 @@ function draw_sprite_part(_pInst, _sprite, _sub_index, _left, _top, _width, _hei
 // #############################################################################################
 function draw_sprite_part_ext(_pInst, _sprite, _sub_index, _left, _top, _width, _height, _x, _y, _xscale, _yscale, _color, _alpha)
 {
-	_sub_index = yyGetInt32(_sub_index);
-    if( _sub_index<0  ) _sub_index = ~~_pInst.image_index;
+	_sub_index = yyGetReal(_sub_index);
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
+
 	var pSpr = g_pSpriteManager.Get(_sprite);
 	if (pSpr != null)
 	{
     	if (pSpr.numb <= 0) return;
-	    _sub_index = (~ ~_sub_index) % pSpr.numb;
-	    if (_sub_index < 0) _sub_index = _sub_index + pSpr.numb;	
+
+		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);		
 
 
         _color = ConvertGMColour(yyGetInt32(_color));
-        Graphics_DrawPart(pSpr.ppTPE[_sub_index], yyGetReal(_left), yyGetReal(_top), yyGetReal(_width), yyGetReal(_height), yyGetReal(_x), yyGetReal(_y), yyGetReal(_xscale), yyGetReal(_yscale), _color, yyGetReal(_alpha));
+        Graphics_DrawPart(pSpr.ppTPE[image_index], yyGetReal(_left), yyGetReal(_top), yyGetReal(_width), yyGetReal(_height), yyGetReal(_x), yyGetReal(_y), yyGetReal(_xscale), yyGetReal(_yscale), _color, yyGetReal(_alpha));
         //Graphics_DrawGeneral(pSpr.ppTPE[_sub_index], _left, _top, _width, _height, _x, _y, _xscale, _yscale, 0, _color, _color, _color, _color, _alpha);
 	}
 }
@@ -267,17 +304,20 @@ function draw_sprite_part_ext(_pInst, _sprite, _sub_index, _left, _top, _width, 
 // #############################################################################################
 function draw_sprite_tiled(_pInst, _sprite, _sub_index, _x, _y) {
 
-	_sub_index = yyGetInt32(_sub_index);
-    if( _sub_index<0  ) _sub_index = ~~_pInst.image_index;
+	_sub_index = yyGetReal(_sub_index);
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
     
 	var pSpr = g_pSpriteManager.Get(_sprite);
 	if (pSpr != null)
 	{
     	if (pSpr.numb <= 0) return;
-	    _sub_index = (~~_sub_index) % pSpr.numb;
-	    if (_sub_index < 0) _sub_index = _sub_index + pSpr.numb;	
+
+		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);	
     
-        Graphics_TextureDrawTiled( pSpr.ppTPE[_sub_index], yyGetReal(_x), yyGetReal(_y), 1,1, true, true, 0xffffff, g_GlobalAlpha);
+        Graphics_TextureDrawTiled( pSpr.ppTPE[image_index], yyGetReal(_x), yyGetReal(_y), 1,1, true, true, 0xffffff, g_GlobalAlpha);
     }
 }
 
@@ -303,18 +343,20 @@ function draw_sprite_tiled(_pInst, _sprite, _sub_index, _x, _y) {
 // #############################################################################################
 function draw_sprite_tiled_ext(_pInst, _sprite,_sub_index,_x,_y,_xscale,_yscale,_color,_alpha) 
 {
-	_sub_index = yyGetInt32(_sub_index);
-    if( _sub_index<0  ) _sub_index = ~~_pInst.image_index;
+	_sub_index = yyGetReal(_sub_index);
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
     
 	var pSpr = g_pSpriteManager.Get(_sprite);
 	if (pSpr != null)
 	{
     	if (pSpr.numb <= 0) return;
-	    _sub_index = (~~_sub_index) % pSpr.numb;
-	    if (_sub_index < 0) _sub_index = _sub_index + pSpr.numb;	
+		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);	
     
         _color = ConvertGMColour(yyGetInt32(_color));
-        Graphics_TextureDrawTiled( pSpr.ppTPE[_sub_index], yyGetReal(_x), yyGetReal(_y), yyGetReal(_xscale), yyGetReal(_yscale), true, true, _color, _alpha);
+        Graphics_TextureDrawTiled( pSpr.ppTPE[image_index], yyGetReal(_x), yyGetReal(_y), yyGetReal(_xscale), yyGetReal(_yscale), true, true, _color, _alpha);
     }
 }
 
@@ -350,8 +392,11 @@ function draw_sprite_tiled_ext(_pInst, _sprite,_sub_index,_x,_y,_xscale,_yscale,
 // #############################################################################################
 function draw_sprite_general(_pInst, _sprite, _sub_index, _left, _top, _width, _height, _x, _y, _xscale, _yscale, _rot, _c1, _c2, _c3, _c4, _alpha) 
 {
-	_sub_index = yyGetInt32(_sub_index);
-    if( _sub_index<0  ) _sub_index = ~~_pInst.image_index;
+	_sub_index = yyGetReal(_sub_index);
+
+    if( _sub_index<0  )
+		if (_pInst instanceof yyInstance)
+			_sub_index = _pInst.image_index;
 	var pSpr = g_pSpriteManager.Get(_sprite);
 	if (pSpr != null)
 	{
@@ -360,15 +405,14 @@ function draw_sprite_general(_pInst, _sprite, _sub_index, _left, _top, _width, _
 		    UpdateTransRoomExtents();
 	    }
     	if (pSpr.numb <= 0) return;
-	    _sub_index = (~~_sub_index) % pSpr.numb;
-	    if (_sub_index < 0) _sub_index = _sub_index + pSpr.numb;	
+		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);	
 
 
         _c1 = ConvertGMColour(yyGetInt32(_c1));
         _c2 = ConvertGMColour(yyGetInt32(_c2));
         _c3 = ConvertGMColour(yyGetInt32(_c3));
         _c4 = ConvertGMColour(yyGetInt32(_c4));
-        Graphics_DrawGeneral(pSpr.ppTPE[_sub_index], yyGetReal(_left),yyGetReal(_top),yyGetReal(_width),yyGetReal(_height),    yyGetReal(_x),yyGetReal(_y),yyGetReal(_xscale),yyGetReal(_yscale),  yyGetReal(_rot) * Math.PI / 180.0,  _c1,_c2,_c3,_c4,  yyGetReal(_alpha));
+        Graphics_DrawGeneral(pSpr.ppTPE[image_index], yyGetReal(_left),yyGetReal(_top),yyGetReal(_width),yyGetReal(_height),    yyGetReal(_x),yyGetReal(_y),yyGetReal(_xscale),yyGetReal(_yscale),  yyGetReal(_rot) * Math.PI / 180.0,  _c1,_c2,_c3,_c4,  yyGetReal(_alpha));
 	}
 }
 
