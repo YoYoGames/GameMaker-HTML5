@@ -1988,7 +1988,7 @@ yyFontManager.prototype.Split_TextBlock_IDEstyle = function (_pStr, _boundsWidth
 	var lineHeight = this.thefont.max_glyph_height;
 	var totalW = 0.0;
 
-	var spaceWidth = this.thefont.GetShift(32);
+	var spaceWidth = this.thefont.GetShift(32) * this.thefont.scalex;
 	for(var p = 0; p < textLines.length; p++)
 	{
 		var str = textLines[p];
@@ -2031,7 +2031,8 @@ yyFontManager.prototype.Split_TextBlock_IDEstyle = function (_pStr, _boundsWidth
 
 					// Okay we've found a word or reached the end of the line
 					var wordWidth = this.thefont.TextWidthN(str, wordStart, curr - wordStart, _charSpacing);
-					if ((lineWidth + wordWidth) > _boundsWidth)
+					var extrawidthforspace = (lineWords > 0) ? spaceWidth : 0.0;
+					if ((lineWidth + wordWidth + extrawidthforspace) > _boundsWidth)
 					{
 						// Add what we've got
 						if (lineWords == 0)
@@ -2086,11 +2087,7 @@ yyFontManager.prototype.Split_TextBlock_IDEstyle = function (_pStr, _boundsWidth
 					{
 						wordEnd = curr;
 
-						if (lineWords > 0)
-						{
-							lineWidth += spaceWidth;
-						}
-
+						lineWidth += extrawidthforspace;
 						lineWidth += wordWidth;
 						lineWords++;
 					}
@@ -2422,7 +2419,7 @@ yyFontManager.prototype.GR_Text_Draw = function (_str, x, y, linesep, linewidth,
 ///				
 ///			 </returns>
 // #############################################################################################
-yyFontManager.prototype.GR_StringList_Draw_IDEstyle = function (_sl, _x, _y, _charSpacing, _clipLeft, _clipRight, _pFontParams)
+yyFontManager.prototype.GR_StringList_Draw_IDEstyle = function (_sl, _x, _y, _charSpacing, _clipLeft, _clipRight, _pFontParams, _seqYOffset)
 {
 	if (_sl == null)
 		return;
@@ -2477,16 +2474,19 @@ yyFontManager.prototype.GR_StringList_Draw_IDEstyle = function (_sl, _x, _y, _ch
 	else
 	{
 		var basey = _y;
-		basey += thefont.max_glyph_height;
-
-		if(thefont.ascenderOffset != undefined)
+		if (_seqYOffset)
 		{
-			basey -= thefont.ascenderOffset;
-		}
+			basey += thefont.max_glyph_height;
 
-		if(thefont.ascender != undefined)
-		{
-			basey -= thefont.ascender;
+			if(thefont.ascenderOffset != undefined)
+			{
+				basey -= thefont.ascenderOffset;
+			}
+
+			if(thefont.ascender != undefined)
+			{
+				basey -= thefont.ascender;
+			}
 		}
 
 		var hasDropShadow = false; 

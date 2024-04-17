@@ -466,6 +466,36 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
 							};
 						}
 
+						// Text items
+						newLayer.tcount = sourceLayer.tcount;
+						newLayer.textitems = new Array(sourceLayer.textitems.length);
+
+						for (assetIdx = 0; i < sourceLayer.textitems.length; assetIdx++)
+						{
+							var srcTextitem = sourceLayer.textitems[assetIdx];
+
+							newLayer.textitems[assetIdx] =
+							{
+								sX: srcTextitem.sX,
+								sY: srcTextitem.sY,
+								sFontIndex: srcTextitem.sFontIndex,
+								sXScale: srcTextitem.sXScale,
+								sYScale: srcTextitem.sYScale,
+								sRotation: srcTextitem.sRotation,
+								sBlend: srcTextitem.sBlend,
+								sXOrigin: srcTextitem.sXOrigin,
+								sYOrigin: srcTextitem.sYOrigin,
+								sText: srcTextitem.sText,
+								sAlignment: srcTextitem.sAlignment,
+								sCharSpacing: srcTextitem.sCharSpacing,
+								sLineSpacing: srcTextitem.sLineSpacing,
+								sFrameW: srcTextitem.sFrameW,
+								sFrameH: srcTextitem.sFrameH,
+								sWrap: srcTextitem.sWrap,
+								sName: srcTextitem.sName,								
+							};
+						}
+
         				break;
 					case YYLayerType_Effect:
 						newLayer.m_pInitialEffectInfo = sourceLayer.m_pInitialEffectInfo;
@@ -1201,6 +1231,97 @@ yyRoom.prototype.DrawLayerSpriteElement = function(_rect,_layer,_el)
 		}
 	}
 	// @endif sprites
+};
+
+yyRoom.prototype.DrawLayerTextElement = function(_rect,_layer,_el)
+{	
+	var pText = _el.m_text;
+	if (pText == "")
+		return;	// empty string so nothing to draw
+
+	var wrap = _el.m_wrap;
+	var alignment = _el.m_alignment;
+	var fontID = _el.m_fontIndex;
+
+	var frameWidth = _el.m_frameW;
+	var frameHeight = _el.m_frameH;
+	var charSpacing = _el.m_charSpacing;
+	var lineSpacing = _el.m_lineSpacing;
+	var paraSpacing = 0.0;
+
+	var drawcol = _el.m_blend;
+	var a = _el.m_alpha;
+
+	var pFontParams = null;
+
+	var x = _el.m_x;
+	var y = _el.m_y;
+	var scaleX = _el.m_scaleX;
+	var scaleY = _el.m_scaleY;
+	var angle = _el.m_angle;
+	var originX = _el.m_originX;
+	var originY = _el.m_originY;
+
+	var mats = [];	
+	var currmat = 0;	
+	
+	if ((originX != 0.0) || (originY != 0.0))
+	{			
+		mats[currmat] = new Matrix();
+		mats[currmat].SetTranslation(-originX, -originY, 0);		// offset by origin
+		currmat++;
+	}	
+
+	if ((scaleX != 1.0) || (scaleY != 1.0))
+	{		
+		mats[currmat] = new Matrix();
+		mats[currmat].SetScale(scaleX, scaleY, 1.0);
+		currmat++;
+	}
+
+	if (angle != 0.0)
+	{
+		mats[currmat] = new Matrix();
+		mats[currmat].SetZRotation(angle);		
+		currmat++;
+	}
+
+	if ((x != 0.0) || (y != 0.0))
+	{
+		mats[currmat] = new Matrix();
+		mats[currmat].SetTranslation(x, y, 0.0);
+		currmat++;
+	}
+
+	var oldWorldMat = null;
+	var compoundmat = [];
+	compoundmat[0] = new Matrix();
+	compoundmat[1] = new Matrix();
+
+	var currcompoundmat = 0;
+	if (currmat > 0)
+	{
+		compoundmat[0] = mats[0];
+		for (var i = 1; i < currmat; i++)
+		{
+			currcompoundmat = currcompoundmat ^ 1;
+			compoundmat[currcompoundmat].Multiply(compoundmat[currcompoundmat ^ 1], mats[i]);			
+		}
+		
+		oldWorldMat = WebGL_GetMatrix(MATRIX_WORLD);
+
+		var newWorldMat = new Matrix();
+		newWorldMat.Multiply(compoundmat[currcompoundmat], oldWorldMat);
+
+		WebGL_SetMatrix(MATRIX_WORLD, newWorldMat);		
+	}
+
+	this.DrawTextItem(pText, fontID, drawcol, a, frameWidth, frameHeight, alignment, wrap, charSpacing, lineSpacing, paraSpacing, pFontParams, false);
+
+	if (currmat > 0)
+	{
+		WebGL_SetMatrix(MATRIX_WORLD, oldWorldMat);		
+	}
 };
 
 var g_DefaultCameraID = -1;
@@ -2877,74 +2998,21 @@ yyRoom.prototype.HandleSequenceParticle = function (_rect, _layer, _pSequenceEl,
 	_pInst.m_trackIDToLastKeyframe[_track.id] = keyframeCurrent;
 };
 
-yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _node, _track, _headPosition, _lastHeadPosition, _headDirection, _sequence) {
+yyRoom.prototype.DrawTextItem = function (_pText, _fontID, _drawcol, _drawalpha, _frameWidth, _frameHeight, _alignment, _wrap, _charSpacing, _lineSpacing, _paraSpacing, _pFontParams, _seqYOffset)
+{
 	// @if feature("fonts")
-    var keyframeStore = _track.m_keyframeStore;
-
-    var keyframeIndex = keyframeStore.GetKeyframeIndexAtFrame(_headPosition, _sequence.m_length);
-    if (keyframeIndex == -1) return;
-
-    var pTextKey = keyframeStore.keyframes[keyframeIndex];
-
-	var text = pTextKey.m_channels[0].text;
-	if (text == null)
-		return;
-
-	var wrap = pTextKey.m_channels[0].wrap;
-	var alignment = pTextKey.m_channels[0].alignment;
-	var fontID = pTextKey.m_channels[0].fontIndex;
-
 	var oldFontID = draw_get_font();
 	var oldCol = draw_get_color();
 	var oldAlpha = draw_get_alpha();
 
-    // Color transform
-    var mul = _node.value.colorMultiply;
-    var add = _node.value.colorAdd;
-    var r = Math.min(255, ((mul[0] + add[0]) * (_pSequenceEl.m_imageBlend & 0xff)));
-    var g = Math.min(255, ((mul[1] + add[1]) * ((_pSequenceEl.m_imageBlend >> 8) & 0xff)));
-    var b = Math.min(255, ((mul[2] + add[2]) * ((_pSequenceEl.m_imageBlend >> 16) & 0xff)));
-    var drawcol = (Math.max(0, r))
-				| (Math.max(0, g) << 8)
-                | (Math.max(0, b) << 16);
-    var a = Math.min(1, (mul[3] + add[3]) * _pSequenceEl.m_imageAlpha);
-
-	draw_set_font(fontID);
-	draw_set_color(drawcol);
-	draw_set_alpha(a);
-
-	var frameWidth = -1;
-	var frameHeight = -1;
-	if (_node.value.paramset.GetBit(eT_FrameSize))
-	{
-		frameWidth = _node.value.FrameSizeX;
-		frameHeight = _node.value.FrameSizeY;
-	}	
-
-	var charSpacing = 0.0;
-	if (_node.value.paramset.GetBit(eT_CharacterSpacing))
-	{
-		charSpacing = _node.value.CharacterSpacing;
-	}
-
-	var lineSpacing = 0.0;
-	if (_node.value.paramset.GetBit(eT_LineSpacing))
-	{
-		lineSpacing = _node.value.LineSpacing;
-	}
-
-	var paraSpacing = 0.0;
-	if (_node.value.paramset.GetBit(eT_ParagraphSpacing))
-	{
-		paraSpacing = _node.value.ParagraphSpacing;
-	}
-
-	var pFontParams = _node.value.pFontEffectParams;
+	draw_set_font(_fontID);
+	draw_set_color(_drawcol);
+	draw_set_alpha(_drawalpha);
 
 	g_pFontManager.SetFont();
-	var sldata = g_pFontManager.Split_TextBlock_IDEstyle(text, frameWidth, frameHeight, alignment, wrap, charSpacing, lineSpacing, paraSpacing);
+	var sldata = g_pFontManager.Split_TextBlock_IDEstyle(_pText, _frameWidth, _frameHeight, _alignment, _wrap, _charSpacing, _lineSpacing, _paraSpacing);
 
-	var mask = wrap && ((sldata.totalW > frameWidth + 2) || (sldata.totalH > frameHeight + 2));
+	var mask = _wrap && ((sldata.totalW > _frameWidth + 2) || (sldata.totalH > _frameHeight + 2));
 	if (mask)
 	{
 		if (g_webGL)
@@ -2996,19 +3064,19 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 			currVert += stride;	
 
 			pCoords[currVert + 0] = 0.0;
-			pCoords[currVert + 1] = frameHeight;// + 1;
+			pCoords[currVert + 1] = _frameHeight;// + 1;
 			pCoords[currVert + 2] = GR_Depth;
 			pColours[currVert] = 0xffffffff;
 			currVert += stride;	
 
-			pCoords[currVert + 0] = frameWidth;// + 1;
+			pCoords[currVert + 0] = _frameWidth;// + 1;
 			pCoords[currVert + 1] = 0.0;
 			pCoords[currVert + 2] = GR_Depth;
 			pColours[currVert] = 0xffffffff;
 			currVert += stride;	
 
-			pCoords[currVert + 0] = frameWidth;// + 1;
-			pCoords[currVert + 1] = frameHeight;// + 1;
+			pCoords[currVert + 0] = _frameWidth;// + 1;
+			pCoords[currVert + 1] = _frameHeight;// + 1;
 			pCoords[currVert + 2] = GR_Depth;
 			pColours[currVert] = 0xffffffff;												
 
@@ -3035,9 +3103,9 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 			graphics.save();
 
 			var posvec0 = new Vector3(0, 0, 0);
-			var posvec1 = new Vector3(0, frameHeight, 0);
-			var posvec2 = new Vector3(frameWidth, frameHeight, 0);
-			var posvec3 = new Vector3(frameWidth, 0, 0);
+			var posvec1 = new Vector3(0, _frameHeight, 0);
+			var posvec2 = new Vector3(_frameWidth, _frameHeight, 0);
+			var posvec3 = new Vector3(_frameWidth, 0, 0);
 
 			var transposvec0 = worldMatrix.TransformVec3(posvec0);
 			var transposvec1 = worldMatrix.TransformVec3(posvec1);
@@ -3056,7 +3124,7 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 		}
 	}
 	
-	g_pFontManager.GR_StringList_Draw_IDEstyle(sldata.sl, 0.0, 0.0, charSpacing, 0.0, sldata.totalW, pFontParams);
+	g_pFontManager.GR_StringList_Draw_IDEstyle(sldata.sl, 0.0, 0.0, _charSpacing, 0.0, sldata.totalW, _pFontParams, _seqYOffset);
 
 	if (mask)
 	{
@@ -3094,19 +3162,19 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 			currVert += stride;	
 
 			pCoords[currVert + 0] = 0.0;
-			pCoords[currVert + 1] = frameHeight + 1;
+			pCoords[currVert + 1] = _frameHeight + 1;
 			pCoords[currVert + 2] = GR_Depth;
 			pColours[currVert] = 0xffffffff;
 			currVert += stride;	
 
-			pCoords[currVert + 0] = frameWidth + 1;
+			pCoords[currVert + 0] = _frameWidth + 1;
 			pCoords[currVert + 1] = 0.0;
 			pCoords[currVert + 2] = GR_Depth;
 			pColours[currVert] = 0xffffffff;
 			currVert += stride;	
 
-			pCoords[currVert + 0] = frameWidth + 1;
-			pCoords[currVert + 1] = frameHeight + 1;
+			pCoords[currVert + 0] = _frameWidth + 1;
+			pCoords[currVert + 1] = _frameHeight + 1;
 			pCoords[currVert + 2] = GR_Depth;
 			pColours[currVert] = 0xffffffff;		
 
@@ -3133,6 +3201,64 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 	draw_set_color(oldCol);
 	draw_set_alpha(oldAlpha);
 	// @endif fonts
+};
+
+yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _node, _track, _headPosition, _lastHeadPosition, _headDirection, _sequence) {
+    var keyframeStore = _track.m_keyframeStore;
+
+    var keyframeIndex = keyframeStore.GetKeyframeIndexAtFrame(_headPosition, _sequence.m_length);
+    if (keyframeIndex == -1) return;
+
+    var pTextKey = keyframeStore.keyframes[keyframeIndex];
+
+	var text = pTextKey.m_channels[0].text;
+	if (text == null)
+		return;
+
+	var wrap = pTextKey.m_channels[0].wrap;
+	var alignment = pTextKey.m_channels[0].alignment;
+	var fontID = pTextKey.m_channels[0].fontIndex;
+
+    // Color transform
+    var mul = _node.value.colorMultiply;
+    var add = _node.value.colorAdd;
+    var r = Math.min(255, ((mul[0] + add[0]) * (_pSequenceEl.m_imageBlend & 0xff)));
+    var g = Math.min(255, ((mul[1] + add[1]) * ((_pSequenceEl.m_imageBlend >> 8) & 0xff)));
+    var b = Math.min(255, ((mul[2] + add[2]) * ((_pSequenceEl.m_imageBlend >> 16) & 0xff)));
+    var drawcol = (Math.max(0, r))
+				| (Math.max(0, g) << 8)
+                | (Math.max(0, b) << 16);
+    var a = Math.min(1, (mul[3] + add[3]) * _pSequenceEl.m_imageAlpha);
+
+	var frameWidth = -1;
+	var frameHeight = -1;
+	if (_node.value.paramset.GetBit(eT_FrameSize))
+	{
+		frameWidth = _node.value.FrameSizeX;
+		frameHeight = _node.value.FrameSizeY;
+	}	
+
+	var charSpacing = 0.0;
+	if (_node.value.paramset.GetBit(eT_CharacterSpacing))
+	{
+		charSpacing = _node.value.CharacterSpacing;
+	}
+
+	var lineSpacing = 0.0;
+	if (_node.value.paramset.GetBit(eT_LineSpacing))
+	{
+		lineSpacing = _node.value.LineSpacing;
+	}
+
+	var paraSpacing = 0.0;
+	if (_node.value.paramset.GetBit(eT_ParagraphSpacing))
+	{
+		paraSpacing = _node.value.ParagraphSpacing;
+	}
+
+	var pFontParams = _node.value.pFontEffectParams;
+
+	this.DrawTextItem(text, fontID, drawcol, a, frameWidth, frameHeight, alignment, wrap, charSpacing, lineSpacing, paraSpacing, pFontParams, true);	
 };
 // @endif sequences
 
@@ -3216,6 +3342,10 @@ yyRoom.prototype.DrawRoomLayers = function(_rect){
 					    this.DrawLayerSequenceElement(_rect, player, el);
 					}
 					// @endif
+					else if (el.m_type === eLayerElementType_Text)
+					{
+					    this.DrawLayerTextElement(_rect, player, el);
+					}
 	            }
 	        }
 
