@@ -3079,6 +3079,7 @@ function audio_create_stream(_filename)
     sampleData.duration = -1; //unknown
     sampleData.groupId = 0;
     sampleData.fromFile = yyGetString(_filename);
+    sampleData.state = AudioSampleState.READY;
 
     //append to end of audio_sampledata array (or fill in empty slots created by audio_destroy_stream)
     var index = audio_sampledata.length;
@@ -3090,6 +3091,19 @@ function audio_create_stream(_filename)
     }
 
     audio_sampledata[index] = sampleData;
+
+    // Kick off a request to populate the asset duration
+    const request = new XMLHttpRequest();
+    request.open("GET", getUrlForSound(index), true);
+    request.responseType = "arraybuffer";
+    request.onload = () => {
+        g_WebAudioContext.decodeAudioData(request.response)
+        .then((_buffer) => {
+            sampleData.duration = _buffer.duration;
+        });
+    };
+    request.send();
+
     return index;
 }
 
