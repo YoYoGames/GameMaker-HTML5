@@ -1302,3 +1302,115 @@ function physics_particle_group_get_angle(group) {
 
     return g_RunRoom.m_pPhysicsWorld.GetParticleGroupAngle(yyGetInt32(group));
 }
+
+function do_physics_raycast( xStart, yStart, xEnd, yEnd, _obj, allHits, maxFraction)
+{
+    var ret = undefined;
+    if (_obj == OBJECT_SELF) {
+        _obj = _inst.id;
+    }
+    
+    if (_obj == OBJECT_ALL) 
+    {
+        var pool = g_pInstanceManager.GetPool();
+        for (var inst = 0; inst < pool.length; inst++)
+        {
+            var pInst = pool[inst];         
+            if (pInst.marked) continue;
+            
+            if (pInst.m_physicsObject) {
+                if (pInst.m_physicsObject.raycast( xStart, yStart, xEnd, yEnd, maxFraction)) {
+
+                } // end if
+            }
+        }
+    }
+    else if(_obj < 100000)
+    {
+        // Get the object we want to collide with
+        var pObj = g_pObjectManager.Get(_obj);
+        if (pObj !== null)  {
+
+            var currFraction = Number.MAX_VALUE;
+            var currHit = undefined;
+        
+            // Now get all the objects instances, including inherited.
+            var pool = pObj.GetRPool();
+            for (var inst = 0; inst < pool.length;inst++ )
+            {
+                var pInst = pool[inst];         
+                if (pInst.marked) continue;
+                
+                if (pInst.m_physicsObject) {
+                    var hit = pInst.m_physicsObject.raycast( xStart, yStart, xEnd, yEnd, maxFraction);
+                    if (hit != undefined) {
+                        if (allHits) {
+                            if (ret == undefined) ret = [];
+                            ret.concat( hit );
+                        } // end if
+                        else
+                        if (hit.fraction < currFraction) {
+                            currHit = hit;
+                            currFraction = hit.fraction;
+                        } // end if
+                    } // end if
+                } // end if
+            } // end for
+
+            if (currHit != undefined) {
+                ret = [ currHit ];
+            } // end if
+        } // end if
+    }
+    else
+    {
+        var pInst = g_pInstanceManager.Get(_obj);        
+        if (pInst.m_physicsObject) {
+            var hit = pInst.m_physicsObject.raycast( xStart, yStart, xEnd, yEnd, maxFraction);
+            if (hit != undefined) {
+                if (ret == undefined) ret = [];
+                ret.concat( hit );
+            } // end if
+        }
+    }
+    return ret;
+}
+
+function physics_raycast( xStart, yStart, xEnd, yEnd, ids, allHits, maxFraction)
+{
+    allHits ??= false;
+    maxFraction ??= 1.0;
+
+    if (Array.isArray(ids)) {
+        var currFraction = Number.MAX_VALUE;
+        var currHit = undefined;
+        var ret = undefined;
+        for( i in ids) {
+            var r = do_physics_raycast( xStart, yStart, xEnd, ids[i], allHits, maxFraction);
+            if (r != undefined) {
+                if (allHits) {
+                    if (ret == undefined) ret = [];
+                    ret.concat( r );
+                } // end if
+                else {
+                    // go through all the hits we have had
+                    for( h in r) {
+                        if (h.fraction < currFraction) {
+                            currFraction = h.fraction;
+                            currHit = h;
+                        } // endif
+                    } // end for
+                } // end else
+            } // end if
+        } // end for
+
+        if (currHit != undefined)  {
+            ret = [ currHit ];
+        } // endif
+
+        return ret;
+    }
+    else {
+        return do_physics_raycast( xStart, yStart, xEnd, ids, allHits, maxFraction);
+    } // end else
+}

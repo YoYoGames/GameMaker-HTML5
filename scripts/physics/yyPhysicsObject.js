@@ -457,4 +457,11 @@ yyPhysicsObject.prototype.SetRestitution = function(_fixtureIndex, _val) {
         this.m_fixtures[_fixtureIndex].SetRestitution(_val);
     }    
 };
+
+yyPhiscsObject.prototyp.raycast = function( xStart, yStart, xEnd, yEnd, maxFraction )
+{
+	var ret = undefined;
+	return ret;
+};
+
 // @endif
