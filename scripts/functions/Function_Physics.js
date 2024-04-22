@@ -1323,7 +1323,7 @@ function do_physics_raycast( xStart, yStart, xEnd, yEnd, _obj, allHits, maxFract
                 if (hit != undefined) {
                     if (allHits) {
                         if (ret == undefined) ret = [];
-                        ret.concat( hit );
+                        ret = ret.concat( hit );
                     } // end if
                     else
                     if (hit.fraction < currFraction) {
@@ -1359,7 +1359,7 @@ function do_physics_raycast( xStart, yStart, xEnd, yEnd, _obj, allHits, maxFract
                     if (hit != undefined) {
                         if (allHits) {
                             if (ret == undefined) ret = [];
-                            ret.concat( hit );
+                            ret = ret.concat( hit );
                         } // end if
                         else
                         if (hit.fraction < currFraction) {
@@ -1382,7 +1382,7 @@ function do_physics_raycast( xStart, yStart, xEnd, yEnd, _obj, allHits, maxFract
             var hit = pInst.m_physicsObject.raycast( xStart, yStart, xEnd, yEnd, maxFraction);
             if (hit != undefined) {
                 if (ret == undefined) ret = [];
-                ret.concat( hit );
+                ret = ret.concat( hit );
             } // end if
         }
     }
@@ -1399,11 +1399,11 @@ function physics_raycast( xStart, yStart, xEnd, yEnd, ids, allHits, maxFraction)
         var currHit = undefined;
         var ret = undefined;
         for( i in ids) {
-            var r = do_physics_raycast( xStart, yStart, xEnd, ids[i], allHits, maxFraction);
+            var r = do_physics_raycast( xStart, yStart, xEnd, yEnd, yyGetInt32(ids[i]), allHits, maxFraction);
             if (r != undefined) {
                 if (allHits) {
                     if (ret == undefined) ret = [];
-                    ret.concat( r );
+                    ret = ret.concat( r );
                 } // end if
                 else {
                     // go through all the hits we have had
@@ -1424,6 +1424,6 @@ function physics_raycast( xStart, yStart, xEnd, yEnd, ids, allHits, maxFraction)
         return ret;
     }
     else {
-        return do_physics_raycast( xStart, yStart, xEnd, ids, allHits, maxFraction);
+        return do_physics_raycast( xStart, yStart, xEnd, yEnd, yyGetInt32(ids), allHits, maxFraction);
     } // end else
 }
