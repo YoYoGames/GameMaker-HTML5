@@ -457,4 +457,50 @@ yyPhysicsObject.prototype.SetRestitution = function(_fixtureIndex, _val) {
         this.m_fixtures[_fixtureIndex].SetRestitution(_val);
     }    
 };
+
+
+yyPhysicsObject.prototype.raycast = function( xStart, yStart, xEnd, yEnd, maxFraction )
+{
+	var ret = undefined;
+	var pixelToMetreScale = g_RunRoom.m_pPhysicsWorld.m_pixelToMetreScale;
+
+	var input = new yyBox2D.RayCastInput();
+	input.p1.x = xStart * pixelToMetreScale;
+	input.p1.y = yStart * pixelToMetreScale;
+	input.p2.x = xEnd * pixelToMetreScale;
+	input.p2.y = yEnd * pixelToMetreScale;
+	input.maxFraction = maxFraction;
+
+	var fHit = false;
+	var _fraction = Number.MAX_VALUE;
+	var _normalX = -1;
+	var _normalY = -1;
+	var output = new yyBox2D.RayCastOutput();
+
+	for (var f = this.m_physicsBody.GetFixtureList(); f; f = f.m_next)
+	{
+		if (f.RayCast(output, input, 0)) {
+			if (output.fraction < _fraction) {
+				_fraction = output.fraction;
+				_normalX = output.normal.x;
+				_normalY = output.normal.y;
+				fHit = true;
+			} // end if
+		} // end if
+	} // end for
+
+	if (fHit) {
+		ret = { };
+	    ret.__yyIsGMLObject = true;
+		variable_struct_set( ret, "normalX", _normalX);
+		variable_struct_set( ret, "normalY", _normalY);
+		variable_struct_set( ret, "fraction", _fraction);
+		variable_struct_set( ret, "hitpointX", xStart + _fraction * (xEnd - xStart));
+		variable_struct_set( ret, "hitpointY", yStart + _fraction * (yEnd - yStart));
+	} // end if
+
+	return ret;
+};
+
+
 // @endif

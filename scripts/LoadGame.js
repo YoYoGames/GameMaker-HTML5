@@ -704,6 +704,7 @@ function CreateCollisionArrays() {
 	for (var ID1 = 0; ID1 < pool.length; ID1++)
 	{
 		var pObj = pool[ID1];
+		if (pObj === undefined) continue;
 		if (pObj.pParent !== null){
 			AddCollision(pObj.pParent.ID, pObj.pParent);
 		}
@@ -748,7 +749,7 @@ function LoadGame(_GameFile)
     for (var index = 0; index < _GameFile.GMObjects.length; index++)
     {
         var pObjStorage = _GameFile.GMObjects[index];        
-        if( pObjStorage!==null ){
+        if (( pObjStorage!==null ) && (pObjStorage !== undefined)) {
             var pObject = CreateObjectFromStorage( id,pObjStorage );
 	        g_pObjectManager.Add( pObject );
 	    }

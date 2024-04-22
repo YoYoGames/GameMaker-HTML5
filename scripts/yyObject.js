@@ -1513,10 +1513,12 @@ yyObjectManager.prototype.ThrowEvent = function(_event, _index, _is_async) {
 		// get the object
 		var pObj = g_pObjectManager.objidlist[o];
 		// IF this object wants the event... then perform the event on ALL its instances.
-		if (pObj.Event[_event | _index])
-		{
-			pObj.PerformInstanceEvent(_event, _index, _is_async);
-		}
+        if (pObj !== undefined) {
+    		if (pObj.Event[_event | _index])
+    		{
+    			pObj.PerformInstanceEvent(_event, _index, _is_async);
+    		}
+        } // end if
 	}
 };
 
@@ -1533,6 +1535,8 @@ yyObjectManager.prototype.PatchParents = function () {
 	for (var index = 0; index < pool.length; index++)
 	{
 		var pObj = pool[index];
+        if (pObj === undefined) continue;
+
 		pObj.pParent = g_pObjectManager.Get(pObj.ParentID);
 		if (!pObj.pParent) pObj.pParent = null;
 
@@ -1554,6 +1558,7 @@ yyObjectManager.prototype.PatchParents = function () {
 	for (var index = 0; index < pool.length; index++)
 	{
 		var pMasterObject = pool[index];
+        if (pMasterObject === undefined) continue;
 		var pObj = pMasterObject.pParent;
 
 		while (pObj != null)
