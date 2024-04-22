@@ -1319,11 +1319,24 @@ function do_physics_raycast( xStart, yStart, xEnd, yEnd, _obj, allHits, maxFract
             if (pInst.marked) continue;
             
             if (pInst.m_physicsObject) {
-                if (pInst.m_physicsObject.raycast( xStart, yStart, xEnd, yEnd, maxFraction)) {
-
+                var hit = pInst.m_physicsObject.raycast( xStart, yStart, xEnd, yEnd, maxFraction);
+                if (hit != undefined) {
+                    if (allHits) {
+                        if (ret == undefined) ret = [];
+                        ret.concat( hit );
+                    } // end if
+                    else
+                    if (hit.fraction < currFraction) {
+                        currHit = hit;
+                        currFraction = hit.fraction;
+                    } // end if
                 } // end if
-            }
-        }
+            } // end if
+        } // end for
+        
+        if (currHit != undefined) {
+            ret = [ currHit ];
+        } // end if
     }
     else if(_obj < 100000)
     {
