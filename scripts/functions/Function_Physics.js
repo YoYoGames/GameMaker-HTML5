@@ -1312,6 +1312,9 @@ function do_physics_raycast( xStart, yStart, xEnd, yEnd, _obj, allHits, maxFract
     
     if (_obj == OBJECT_ALL) 
     {
+        var currFraction = Number.MAX_VALUE;
+        var currHit = undefined;
+        
         var pool = g_pInstanceManager.GetPool();
         for (var inst = 0; inst < pool.length; inst++)
         {
