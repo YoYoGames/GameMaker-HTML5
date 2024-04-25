@@ -789,7 +789,7 @@ const shuffleArray = (_array, _offset, _length) => {
 function array_shuffle( _array, _offset, _length )
 {
     // Check raw offset and length
-    _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
 
     var ret = undefined;
@@ -820,7 +820,7 @@ function array_shuffle( _array, _offset, _length )
 function array_shuffle_ext(_array, _offset, _length)
 {
     // Check raw offset and length
-    _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
 
     var ret = undefined;
@@ -895,7 +895,7 @@ function array_find_index(_array, _func, _offset, _length) {
     _obj = "boundObject" in _func ? _func.boundObject : {};
 
     // Check raw offset and length
-    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
@@ -925,7 +925,7 @@ function array_get_index(_array, _value, _offset, _length) {
     if (!Array.isArray(_array)) yyError("array_get_index : argument0 is not an array");
 
     // Check raw offset and length
-    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
@@ -956,7 +956,7 @@ function array_contains(_array, _value, _offset, _length) {
     if (!Array.isArray(_array)) yyError("array_contains : argument0 is not an array");
 
     // Check raw offset and length
-    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
+    _offset = _offset != ? yyGetReal(_offset) : 0;
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
@@ -995,8 +995,8 @@ function array_contains_ext(_array, _values, _matchAll, _offset, _length) {
     if (subArrayLength == 0) return true;
 
     // Check raw offset and length
-    _matchAll = _offset = arguments.length > 2 ? yyGetBool(_matchAll) : false;
-    _offset = arguments.length > 3 ? yyGetReal(_offset) : 0;
+    _matchAll = _matchAll != undefined ? yyGetBool(_matchAll) : false;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 4 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
@@ -1051,7 +1051,7 @@ function array_any(_array, _func, _offset, _length) {
     _obj = "boundObject" in _func ? _func.boundObject : {};
 
     // Check raw offset and length
-    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
@@ -1087,7 +1087,7 @@ function array_all(_array, _func, _offset, _length) {
     _obj = "boundObject" in _func ? _func.boundObject : {};
 
     // Check raw offset and length
-    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
@@ -1123,7 +1123,7 @@ function array_foreach(_array, _func, _offset, _length) {
     _obj = "boundObject" in _func ? _func.boundObject : {};
 
     // Check raw offset and length
-    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
@@ -1154,7 +1154,7 @@ function array_reduce(_array, _func, _init, _offset, _length) {
     _obj = "boundObject" in _func ? _func.boundObject : {};
 
     // Check raw offset and length
-    _offset = arguments.length > 3 ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 4 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
@@ -1195,7 +1195,7 @@ function array_filter(_array, _func, _offset, _length) {
     _obj = "boundObject" in _func ? _func.boundObject : {};
 
     // Check raw offset and length
-    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
@@ -1234,7 +1234,7 @@ function array_filter_ext(_array, _func, _offset, _length) {
     _obj = "boundObject" in _func ? _func.boundObject : {};
 
     // Check raw offset and length
-    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
@@ -1274,7 +1274,7 @@ function array_map(_array, _func, _offset, _length) {
     _obj = "boundObject" in _func ? _func.boundObject : {};
 
     // Check raw offset and length
-    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
@@ -1311,7 +1311,7 @@ function array_map_ext(_array, _func, _offset, _length) {
     _obj = "boundObject" in _func ? _func.boundObject : {};
 
     // Check raw offset and length
-    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
@@ -1348,7 +1348,7 @@ function array_copy_while(_array, _func, _offset, _length) {
     _obj = "boundObject" in _func ? _func.boundObject : {};
 
     // Check raw offset and length
-    _offset = arguments.length > 2 ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
@@ -1384,7 +1384,7 @@ function array_unique(_array, _offset, _length) {
     if (!Array.isArray(_array)) yyError("array_unique : argument0 is not an array");
 
     // Check raw offset and length
-    _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
@@ -1418,7 +1418,7 @@ function array_unique_ext(_array, _offset, _length) {
     if (!Array.isArray(_array)) yyError("array_unique_ext : argument0 is not an array");
 
     // Check raw offset and length
-    _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
@@ -1454,7 +1454,7 @@ function array_reverse(_array, _offset, _length) {
     if (!Array.isArray(_array)) yyError("array_reverse : argument0 is not an array");
 
     // Check raw offset and length
-    _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
@@ -1487,7 +1487,7 @@ function array_reverse_ext(_array, _offset, _length) {
     if (!Array.isArray(_array)) yyError("array_reverse_ext : argument0 is not an array");
 
     // Check raw offset and length
-    _offset = arguments.length > 1 ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 2 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
