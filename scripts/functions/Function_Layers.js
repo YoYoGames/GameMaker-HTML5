@@ -5046,8 +5046,8 @@ function layer_sequence_create(layer_id, posx, posy, sequence_id)
     newSeqEl.m_blend = -1;
     newSeqEl.m_scaleX = 1;
     newSeqEl.m_scaleY = 1;
-    newSeqEl.m_x = posx;
-    newSeqEl.m_y = posy;
+    newSeqEl.m_x = yyGetReal(posx);
+    newSeqEl.m_y = yyGetReal(posy);
     newSeqEl.m_angle = 0;
     newSeqEl.m_name = sequence.name;
 
