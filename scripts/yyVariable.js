@@ -956,7 +956,7 @@ function array_contains(_array, _value, _offset, _length) {
     if (!Array.isArray(_array)) yyError("array_contains : argument0 is not an array");
 
     // Check raw offset and length
-    _offset = _offset != ? yyGetReal(_offset) : 0;
+    _offset = _offset != undefined ? yyGetReal(_offset) : 0;
     _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
