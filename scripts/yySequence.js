@@ -5682,7 +5682,7 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
                         if (pAudioInfo.soundindex != -1)
                         {
                             // See if we need to stop and restart this sound
-                            if (((pAudioInfo.playdir * _headDir) <= 0) || (((_headPos - _lastHeadPos) * pAudioInfo.playdir) <= 0))
+                            if (((pAudioInfo.playdir * _headDir) < 0) || (((_headPos - _lastHeadPos) * pAudioInfo.playdir) < 0))
                             {
                                 audio_stop_sound(pAudioInfo.soundindex);
                                 pAudioInfo.soundindex = -1;
