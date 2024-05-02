@@ -2784,6 +2784,18 @@ function struct_set_from_hash(_id, _hash, _val) {
     return variable_instance_set( _id, _hash, _val);
 } // end struct_set_from_hash
 
+// struct_remove_from_hash(id,name)
+function struct_remove_from_hash( _id, _var)
+{
+    return variable_struct_remove( _id, _var );
+} // end struct_remove
+
+// struct_exists_from_hash(id,name)
+function struct_exists_from_hash( _id, _var)
+{
+    return variable_struct_exists( _id, _var );
+} // end struct_remove
+
 // variable_get_hash(name) : pass through
 function variable_get_hash(_name) {
     return _name;
