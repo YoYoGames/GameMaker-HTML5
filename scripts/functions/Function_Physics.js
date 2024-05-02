@@ -1401,7 +1401,7 @@ function physics_raycast( xStart, yStart, xEnd, yEnd, ids, allHits, maxFraction)
         var currFraction = Number.MAX_VALUE;
         var currHit = undefined;
         var ret = undefined;
-        for( i in ids) {
+        for( var i=0; i<ids.length; ++i) {
             var r = do_physics_raycast( xStart, yStart, xEnd, yEnd, yyGetInt32(ids[i]), allHits, maxFraction);
             if (r != undefined) {
                 if (allHits) {
