@@ -5682,7 +5682,7 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
                         if (pAudioInfo.soundindex != -1)
                         {
                             // See if we need to stop and restart this sound
-                            if (((pAudioInfo.playdir * _headDir) <= 0) || (((_headPos - _lastHeadPos) * pAudioInfo.playdir) <= 0))
+                            if (((pAudioInfo.playdir * _headDir) < 0) || (((_headPos - _lastHeadPos) * pAudioInfo.playdir) < 0))
                             {
                                 audio_stop_sound(pAudioInfo.soundindex);
                                 pAudioInfo.soundindex = -1;
@@ -5702,8 +5702,7 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
 							}
 
                             pAudioInfo.playdir = _headDir;
-                            pAudioInfo.soundindex = audio_play_sound_on(pAudioInfo.emitterindex, ppChanKey.m_soundIndex, (ppChanKey.m_mode == eSM_Loop) ? true : false, 1.0);
-
+                            
                             // Seek to the correct spot in the sample (this matches the IDE logic)
                             var timefromstart;
                             if (pAudioInfo.playdir > 0)
@@ -5721,7 +5720,16 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
                             {
                                 timefromstart /= (_pSeq.m_playbackSpeed * _pInst.m_speedScale);
                             }
-                            audio_sound_set_track_position(pAudioInfo.soundindex, timefromstart);
+
+                            const props = {
+                                "sound": ppChanKey.m_soundIndex,
+                                "loop": (ppChanKey.m_mode == eSM_Loop),
+                                "priority": 1,
+                                "emitter": pAudioInfo.emitterindex,
+                                "offset": timefromstart
+                            };
+                            audio_emitter_position(pAudioInfo.emitterindex, emitterPosX, emitterPosY, 0.0);
+                            pAudioInfo.soundindex = audio_play_sound_ext(props);
                         }
 
                         if (pAudioInfo.soundindex != -1 && audio_emitter_exists(pAudioInfo.emitterindex) === true)
