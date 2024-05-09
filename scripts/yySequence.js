@@ -5640,8 +5640,8 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
     var gain = _srcVars.gain * _pInst.m_volume * _pSeq.m_volume;
     var pitch = _srcVars.pitch;
     var falloffRef = _srcVars.falloffRef;
-	var falloffMax = _srcVars.falloffMax;
-	var falloffFac = _srcVars.falloffFactor;
+    var falloffMax = _srcVars.falloffMax;
+    var falloffFac = _srcVars.falloffFactor;
 
     // Scan through all the keyframes so we can handle unexpected seeks etc. without having to track changes
 
