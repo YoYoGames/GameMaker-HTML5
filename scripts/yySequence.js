@@ -2102,7 +2102,9 @@ function yySequenceBaseTrack(_pStorage) {
                     case eT_Falloff:
                         if (!isCreationTrack || !(_result.paramset.GetBit(eT_Falloff)))
                         {
-                            _result.falloff = track.evaluate(0, _head, _length);
+                            _result.falloffRef = track.evaluate(0, _head, _length);
+                            _result.falloffMax = track.evaluate(1, _head, _length);
+                            _result.falloffFactor = track.evaluate(2, _head, _length);
                             _result.paramset.SetBit(eT_Falloff);
                         }
                         break;
@@ -5285,11 +5287,15 @@ yySequenceManager.prototype.HandleUpdateTracks = function (_el, _sequence, _inst
                     {
                         if (paramset_parentonly.GetBit(eT_Falloff))
                         {
-                            node.value.falloff = node.m_parent.value.falloff;
+                            node.value.falloffRef = node.m_parent.value.falloffRef;
+                            node.value.falloffMax = node.m_parent.value.falloffMax;
+                            node.value.falloffFactor = node.m_parent.value.falloffFactor;
                         }
                         else
                         {
-                            node.value.falloff *= node.m_parent.value.falloff;
+                            node.value.falloffRef *= node.m_parent.value.falloffRef;
+                            node.value.falloffMax *= node.m_parent.value.falloffMax;
+                            node.value.falloffFactor *= node.m_parent.value.falloffFactor;
                         }
                     }
                     if (node.value.paramset.GetBit(eT_ImageSpeed)) 
@@ -5633,7 +5639,9 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
     // Evaluate gain and pitch with inheritance
     var gain = _srcVars.gain * _pInst.m_volume * _pSeq.m_volume;
     var pitch = _srcVars.pitch;
-    var falloff = _srcVars.falloff;
+    var falloffRef = _srcVars.falloffRef;
+    var falloffMax = _srcVars.falloffMax;
+    var falloffFac = _srcVars.falloffFactor;
 
     // Scan through all the keyframes so we can handle unexpected seeks etc. without having to track changes
 
@@ -5736,7 +5744,7 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
                         {
                             audio_emitter_gain(pAudioInfo.emitterindex, gain);
                             audio_emitter_pitch(pAudioInfo.emitterindex, pitch);
-                            //audio_emitter_falloff(pInfo.emitterindex, )
+                            audio_emitter_falloff(pAudioInfo.emitterindex, falloffRef, falloffMax, falloffFac);
 
                             audio_emitter_position(pAudioInfo.emitterindex, emitterPosX, emitterPosY, 0.0);
 
@@ -6794,7 +6802,9 @@ function TrackEval() {
     this.yOrigin = 0;
     this.gain = 1;
     this.pitch = 1;
-    this.falloff = 0;
+    this.falloffRef = 100;
+    this.falloffMax = 10000;
+    this.falloffFactor = 1;
     //this.width = 0;
     //this.height = 0;
     this.imageIndex = 0;
@@ -6851,7 +6861,9 @@ TrackEval.prototype.ResetVariables = function ()
     this.yOrigin = 0;
     this.gain = 1;
     this.pitch = 1;
-    this.falloff = 0;
+    this.falloffRef = 100;
+    this.falloffMax = 10000;
+    this.falloffFactor = 1;
     this.imageIndex = 0;
     this.imageSpeed = 1;
     this.imageDistance = -1;
@@ -7105,19 +7117,45 @@ function TrackEvalNode(_parent)
                 this.value.paramset.SetBit(eT_Pitch);
             }
         },
-        gmlfalloff: {
+        gmlfalloffRef: {
             enumerable: true,
             get: function ()
             {
-                return this.value.falloff;
+                return this.value.falloffRef;
             },
             set: function (_val)
             {
-                this.value.falloff = yyGetInt32(_val);
+                this.value.falloffRef = yyGetInt32(_val);
 
                 this.value.paramset.SetBit(eT_Falloff);
             }
-        },        
+        },
+        gmlfalloffMax: {
+            enumerable: true,
+            get: function ()
+            {
+                return this.value.falloffMax;
+            },
+            set: function (_val)
+            {
+                this.value.falloffMax = yyGetInt32(_val);
+
+                this.value.paramset.SetBit(eT_Falloff);
+            }
+        },
+        gmlfalloffFactor: {
+            enumerable: true,
+            get: function ()
+            {
+                return this.value.falloffFactor;
+            },
+            set: function (_val)
+            {
+                this.value.falloffFactor = yyGetInt32(_val);
+
+                this.value.paramset.SetBit(eT_Falloff);
+            }
+        },    
         gmlimageindex: {
             enumerable: true,
             get: function ()
