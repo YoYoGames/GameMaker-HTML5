@@ -1131,7 +1131,7 @@ yyInstance.prototype.Compute_Speed1 = function () {
 			{
 				this.__direction = 90;
 			}
-			else { this.__direction = 0; }
+			//else { this.__direction = 0; }
 		}
 		else
 		{
