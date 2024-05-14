@@ -20,6 +20,20 @@ var ePlaybackSpeedType_FramesPerSecond = 0,
 
 var SKELETON_FRAMECOUNT = 2147483647;
 
+var g_IgnoreCull = false;
+
+
+function gpu_set_sprite_cull(_enable)
+{
+	g_IgnoreCull=yyGetBool(_enable)?false:true;
+}
+
+function gpu_get_sprite_cull()
+{
+	
+	return g_IgnoreCull ? false:true;
+}
+
 /**
  * Type of collision check used for this sprite.
  * Keep in sync with GMSprite::CollisionType in GMAssetCompiler.
@@ -1044,7 +1058,7 @@ yySprite.prototype.DrawSimple = function (_sub_image, _x, _y, _alpha) {
 
 	var cullRadius  = this.cullRadius;
 
-	if (SphereIsVisible(new Vector3(_x, _y, GR_Depth), cullRadius))
+	if (g_IgnoreCull || SphereIsVisible(new Vector3(_x, _y, GR_Depth), cullRadius))
 	{
 		_sub_image = (~ ~_sub_image) % this.numb;
 		if (_sub_image < 0) _sub_image = _sub_image + this.numb;
@@ -1123,7 +1137,7 @@ yySprite.prototype.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _col
 		cullRadius = ycullRadius;
 	}
 
-	if (SphereIsVisible(new Vector3(_x, _y, GR_Depth), cullRadius))
+	if (g_IgnoreCull || SphereIsVisible(new Vector3(_x, _y, GR_Depth), cullRadius))
 	{
 		// Index wraps..
 		_ind = (~ ~_ind) % this.numb;
