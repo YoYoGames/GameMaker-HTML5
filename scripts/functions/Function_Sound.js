@@ -401,13 +401,22 @@ audioSound.prototype.start = function(_buffer) {
 
     const shouldLoop = (this.loop === true) && (startOffset < trueLoopEnd);
 
-    this.pbuffersource = new AudioBufferSourceNode(g_WebAudioContext, {
+    const options = {
         buffer: _buffer,
         loop: shouldLoop,
         loopStart: this.loopStart,
         loopEnd: this.loopEnd,
         playbackRate: AudioPropsCalc.CalcPitch(this)
-    });
+    };
+
+    if (typeof AudioBufferSourceNode !== "undefined") {
+        this.pbuffersource = new AudioBufferSourceNode(g_WebAudioContext, options);
+    } else {
+        this.pbuffersource = g_WebAudioContext.createBufferSource();
+        for (const k in options) {
+            this.pbuffersource[k] = options[k];
+        }
+    }
 
     this.pbuffersource.onended = (_event) => {
         this.bActive = false;
