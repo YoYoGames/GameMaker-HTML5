@@ -15,7 +15,7 @@ class AudioEmitter {
 }
 
 AudioEmitter.createPannerNode = function() {
-    if (typeof PannerNode === undefined) {
+    if (typeof PannerNode === "undefined") {
         return g_WebAudioContext.createPanner();
     }
 
