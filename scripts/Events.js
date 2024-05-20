@@ -321,29 +321,31 @@ function    HandleCollision()
         						pInst1.PerformEvent( EVENT_COLLISION, pInst2.pObject.ID, pInst1, pInst2);
                                 pInst2.PerformEvent( EVENT_COLLISION, pInst1.pObject.ID, pInst2, pInst1);
         						
+								if (g_Collision_Compatibility_Mode)
+								{
+									if ((pInst1.solid) || (pInst2.solid))
+									{
+										pInst1.Adapt_Path();         // We do not call the end-of-path event again
+										pInst2.Adapt_Path();
+										pInst1.SetPosition(pInst1.x + pInst1.hspeed, pInst1.y + pInst1.vspeed);
+										pInst2.SetPosition(pInst2.x + pInst2.hspeed, pInst2.y + pInst2.vspeed);
 
-        						if ((pInst1.solid) || (pInst2.solid))
-        						{
-        							pInst1.Adapt_Path();         // We do not call the end-of-path event again
-        							pInst2.Adapt_Path();
-        							pInst1.SetPosition(pInst1.x + pInst1.hspeed, pInst1.y + pInst1.vspeed);
-        							pInst2.SetPosition(pInst2.x + pInst2.hspeed, pInst2.y + pInst2.vspeed);
 
+										// If collision is not resolved then set to previous position
+										if (pInst1.Collision_Instance(pInst2, true))
+										{
+											pInst1.x = pInst1.xprevious;
+											pInst1.y = pInst1.yprevious;
+											pInst1.bbox_dirty = true;
+											pInst1.path_position = pInst1.path_positionprevious;
 
-        							// If collision is not resolved then set to previous position
-        							if (pInst1.Collision_Instance(pInst2, true))
-        							{
-        								pInst1.x = pInst1.xprevious;
-        								pInst1.y = pInst1.yprevious;
-        								pInst1.bbox_dirty = true;
-        								pInst1.path_position = pInst1.path_positionprevious;
-
-        								pInst2.x = pInst2.xprevious;
-        								pInst2.y = pInst2.yprevious;
-        								pInst2.bbox_dirty = true;
-        								pInst2.path_position = pInst2.path_positionprevious;
-        							}
-        						}
+											pInst2.x = pInst2.xprevious;
+											pInst2.y = pInst2.yprevious;
+											pInst2.bbox_dirty = true;
+											pInst2.path_position = pInst2.path_positionprevious;
+										}
+									}
+								}
         					}
         				}
         			}
