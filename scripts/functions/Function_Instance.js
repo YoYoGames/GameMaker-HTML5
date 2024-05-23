@@ -497,7 +497,7 @@ function Tilemap_CollisionRectangle(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 						GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata);
 						
 						
-						if (spr.PreciseCollisionTilemapRect(tmaskdata, CVert, CTVert, x1, y1, x2, y2, spr.GetWidth()))
+						if (spr.PreciseCollisionTilemapRect(tmaskdata, CVert, CTVert, x1, y1, x2, y2))
 						{
 							if(instlist!=null)
 								instlist.push(tilemapind);
@@ -979,7 +979,7 @@ function Tilemap_PointPlace( _x, _y, tilemapind, instlist,prec)
 				if ((ui < 0) || (ui >= spr.GetWidth())) return false;
 				if ((vi < 0) || (vi >= spr.GetHeight())) return false;
 
-				if(_ColMaskSet(ui,vi,tmaskdata,spr.GetWidth()))
+				if(spr.ColMaskSet(ui,vi,tmaskdata))
 				{
 					if (instlist != null)
 					{
@@ -1177,7 +1177,7 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 						GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata);
 						
 
-						if (spr2.PreciseCollisionTilemap(inst.image_index, bb1, inst.x, inst.y, inst.image_xscale, inst.image_yscale, inst.image_angle, CVert,  CTVert, tmaskdata,sprwidth))
+						if (spr2.PreciseCollisionTilemap(inst.image_index, bb1, inst.x, inst.y, inst.image_xscale, inst.image_yscale, inst.image_angle, CVert,  CTVert, tmaskdata,spr))
 						{
 
 							inst.SetPosition(xx, yy);
