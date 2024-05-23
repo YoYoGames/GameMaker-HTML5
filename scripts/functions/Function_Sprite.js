@@ -304,10 +304,26 @@ function    sprite_set_bbox( _index, _left, _top, _right, _bottom )
 {
     var pSpr = g_pSpriteManager.Get(yyGetInt32(_index));
     if( pSpr===null) return;
-    pSpr.bbox.left = yyGetInt32(_left);
-    pSpr.bbox.top  = yyGetInt32(_top);
-    pSpr.bbox.right = yyGetInt32(_right);
-    pSpr.bbox.bottom = yyGetInt32(_bottom);
+
+	var left = yyGetInt32(_left);
+	var right = yyGetInt32(_right);
+	var top = yyGetInt32(_top);
+	var bottom = yyGetInt32(_bottom);
+
+	var maskupdate_needed = false;
+
+	if(pSpr.bbox.left != left || pSpr.bbox.right!=right || pSpr.bbox.top!=top || pSpr.bbox.bottom!=bottom)
+		maskupdate_needed = true;
+
+    pSpr.bbox.left = left;
+    pSpr.bbox.top  = top;
+    pSpr.bbox.right = right;
+    pSpr.bbox.bottom = bottom;
+
+	if(maskupdate_needed)
+		pSpr.CreateMask();
+
+
 }
 
 // #############################################################################################
@@ -1167,6 +1183,8 @@ function sprite_collision_mask( _ind, _sepmasks, _bbmode,_bbleft,_bbtop,_bbright
     _kind = yyGetInt32(_kind);
     _tolerance = yyGetInt32(_tolerance);
 
+
+	
     pSpr.bboxmode = _bbmode;
 
 	// Create the bounding box
@@ -1234,37 +1252,65 @@ function sprite_collision_mask( _ind, _sepmasks, _bbmode,_bbleft,_bbtop,_bbright
 		pSpr.bbox.right = yyGetInt32(_bbright);
 		pSpr.bbox.top = yyGetInt32(_bbtop);
 		pSpr.bbox.bottom = yyGetInt32(_bbbottom); 	
+
+		if (pSpr.bbox.top > pSpr.bbox.bottom)
+		{
+			var tmp = pSpr.bbox.bottom;
+			pSpr.bbox.bottom = pSpr.bbox.top;
+			pSpr.bbox.top = tmp;
+		}
+
+		if (pSpr.bbox.left > pSpr.bbox.right)
+		{
+			var tmp = pSpr.bbox.right;
+			pSpr.bbox.right = pSpr.bbox.left;
+			pSpr.bbox.left = tmp;
+		}
+
 	}
 
 
     // if bounding box mode, then don't assign sprites, just fill in the bounding box.
-    //if( _kind==1 ){
-    //}
 
 
-    // Compute the mask(s)
-    var ppTPE = pSpr.ppTPE;
-    pSpr.colmask = [];
-    if(pSpr.sepmasks)
-    {
-    	for (var i = 0; i < pSpr.numb; i++)
-    	{
-    		pSpr.colmask[i] = TMaskCreate(null, pSpr.ppTPE[i], _bbmode, pSpr.bbox, _kind, _tolerance);
-        }
-    }
-    else
-    {
-        // If not separate masks, then OR them altogether. 
-    	pSpr.colmask[0] = TMaskCreate(pSpr.colmask[0], pSpr.ppTPE[0], _bbmode, pSpr.bbox, _kind, _tolerance);
-    
-        for (var i=1;i < pSpr.numb; i++){
-        	pSpr.colmask[0] = TMaskCreate(pSpr.colmask[0], pSpr.ppTPE[i], _bbmode, pSpr.bbox, _kind, _tolerance);
-        }
-    }
-    pSpr.maskcreated = true;   	    
+	if (_kind != MASK_RECTANGLE)
+	{
+		// Compute the mask(s)
+		var ppTPE = pSpr.ppTPE;
+		pSpr.colmask = [];
+		if(pSpr.sepmasks)
+		{
+			for (var i = 0; i < pSpr.numb; i++)
+			{
+				pSpr.colmask[i] = TMaskCreate(null, pSpr.ppTPE[i], _bbmode, pSpr.bbox, _kind, _tolerance);
+			}
+		}
+		else
+		{
+			// If not separate masks, then OR them altogether. 
+			pSpr.colmask[0] = TMaskCreate(pSpr.colmask[0], pSpr.ppTPE[0], _bbmode, pSpr.bbox, _kind, _tolerance);
+		
+			for (var i=1;i < pSpr.numb; i++){
+				pSpr.colmask[0] = TMaskCreate(pSpr.colmask[0], pSpr.ppTPE[i], _bbmode, pSpr.bbox, _kind, _tolerance);
+			}
+		}
+		pSpr.maskcreated = true;   
+	}	    
 }
      
+function SetColMaskBit(u, v, mwidth,pMaskData,length)
+{
 
+	var byteindex = u >> 3;
+	var bitindex = u & 0x7;
+	var finalindex = mwidth * v + byteindex;
+
+
+	if(finalindex<length) //Just a bit of protection in case the ellipse or diamond try to write outside the size of the array
+		pMaskData[finalindex] |= 1 << (7 - bitindex);
+
+
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -1286,8 +1332,12 @@ function TMaskCreate(_merge, _pTPE, _bbmode, _bbox, _kind, _tolerance)
 	var w = _pTPE.ow;
 	var h = _pTPE.oh;
 
+	var bwidth = _bbox.right - _bbox.left + 1; 
+	var mwidth = (bwidth + 7) >> 3; 
+	var ht = _bbox.bottom - _bbox.top + 1; 
+
 	// get the image bytes
-	var wh = h * w;
+	var wh = ht * mwidth;
 	var pData = new Uint8Array(wh);
 	for(var j=0;j<wh;j++) pData[j] = false;	// clear the array
 
@@ -1296,29 +1346,33 @@ function TMaskCreate(_merge, _pTPE, _bbmode, _bbox, _kind, _tolerance)
 	{
 		var pByteData = Graphics_ExtractImageBytes(_pTPE);
 		var index = 0;
-		for (var i = 0; i < pByteData.length; i+=4)
+
+
+		var validlength = pByteData.length ;
+		
+		for (var k = 0; k <= ht - 1; k++)
 		{
-			if (pByteData[i + 3] > _tolerance) {
-			    pData[index] = true; 
+			for (var j = 0; j < mwidth; j++)
+			{
+				var targ = 0;
+				var baseindex = 4*(((k + _bbox.top) * w) + _bbox.left+(j  ) * 8)+3;
+				if ((baseindex + 0 < validlength) && (pByteData[baseindex + 0*4] )>_tolerance )targ |= (1 << 7);
+				if ((baseindex + 1 < validlength) && (pByteData[baseindex + 1*4] )>_tolerance )targ |= (1 << 6);
+				if ((baseindex + 2 < validlength) && (pByteData[baseindex + 2*4] )>_tolerance )targ |= (1 << 5);
+				if ((baseindex + 3 < validlength) && (pByteData[baseindex + 3*4] )>_tolerance )targ |= (1 << 4);
+				if ((baseindex + 4 < validlength) && (pByteData[baseindex + 4*4] )>_tolerance )targ |= (1 << 3);
+				if ((baseindex + 5 < validlength) && (pByteData[baseindex + 5*4] )>_tolerance )targ |= (1 << 2);
+				if ((baseindex + 6 < validlength) && (pByteData[baseindex + 6*4] )>_tolerance )targ |= (1 << 1);
+				if ((baseindex + 7 < validlength) && (pByteData[baseindex + 7*4] )>_tolerance )targ |= (1 << 0);
+
+				pData[j + (k * mwidth)] = targ;
 			}
-			else {
-			    pData[index] = false;
-			}
-			index++;
 		}
 	}
 	else {
 		// Create the mask 
 		switch (_kind)
 		{
-			case MASK_RECTANGLE:		{
-											for(var y=_bbox.top;y<=_bbox.bottom;y++){
-												for(var x=_bbox.left;x<=_bbox.right;x++){
-													pData[x+(y*w)] = true;
-												}
-											}
-											break;
-										}
 
 			case MASK_ELLIPSE:		{
 											var mx = (_bbox.left + _bbox.right) / 2;
@@ -1329,7 +1383,8 @@ function TMaskCreate(_merge, _pTPE, _bbmode, _bbox, _kind, _tolerance)
 											for(var y=_bbox.top;y<=_bbox.bottom;y++){
 												for(var x=_bbox.left;x<=_bbox.right;x++){
 													if( (dx > 0) && (dy > 0) ) {
-														pData[x+(y*w)] = sqr( (x-mx)/dx) + sqr( (y-my)/dy ) < 1;
+														if(sqr( (x-mx)/dx) + sqr( (y-my)/dy ) < 1)
+															SetColMaskBit(x-_bbox.left, y-_bbox.top, mwidth, pData, wh);
 													}
 												}
 											}
@@ -1345,7 +1400,8 @@ function TMaskCreate(_merge, _pTPE, _bbmode, _bbox, _kind, _tolerance)
 											for(var y=_bbox.top;y<=_bbox.bottom;y++){
 												for(var x=_bbox.left;x<=_bbox.right;x++){
 													if( (dx > 0) && (dy > 0) ) {
-														pData[x+(y*w)] = Math.abs((x-mx)/dx) + Math.abs((y-my)/dy) < 1;
+														if(Math.abs((x-mx)/dx) + Math.abs((y-my)/dy) < 1)
+															SetColMaskBit(x-_bbox.left, y-_bbox.top, mwidth, pData, wh);
 													}
 												}
 											}
