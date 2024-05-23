@@ -3077,6 +3077,15 @@ function audio_sound_get_audio_group(_soundIndex)
     return asset.groupId;
 }
 
+function audio_sound_get_asset(_voiceIndex)
+{
+    const voice = GetAudioSoundFromHandle(_voiceIndex);
+    if (voice === null || voice.bActive === false) {
+        return undefined;
+    }
+    return voice.soundid;
+}
+
 function audio_create_stream(_filename)
 {
     var sampleData = new audioSampleData();
