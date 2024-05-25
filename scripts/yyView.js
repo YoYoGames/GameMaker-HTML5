@@ -98,19 +98,25 @@ yyView.prototype.Copy = function (_src) {
 ///          </summary>
 // #############################################################################################
 yyView.prototype.GetMouseCoord = function(_x,_y,_horizontal) {
-    var pRect = g_CanvasRect;
-
-    _x = (_x - pRect.left - this.scaledportx) / (pRect.scaleX || 1);
-    _y = (_y - pRect.top - this.scaledporty) / (pRect.scaleY || 1);
-
 	var cam = g_pCameraManager.GetCamera(this.cameraID);
 	if (cam == null) return 0;
+
+	var pRect = g_CanvasRect;
+	_x = (_x - pRect.left - this.scaledportx) / (pRect.scaleX || 1);
+	_y = (_y - pRect.top - this.scaledporty) / (pRect.scaleY || 1);
+
+	if (this.cameraID == g_DefaultCameraID) {
+		_x = (_x / this.WorldViewScaleX) + this.worldx;
+		_y = (_y / this.WorldViewScaleY) + this.worldy;
+		return Math.floor((_horizontal ? _x : _y));
+	}
+
 	//
 	var clipX = _x / this.scaledportw;
 	var clipY = _y / this.scaledporth;
 	clipX = clipX * 2.0 - 1.0;
 	clipY = clipY * 2.0 - 1.0;
-	
+
 	// Now backtransform into room space
 	var invViewProj = cam.GetInvViewProjMat();
 
