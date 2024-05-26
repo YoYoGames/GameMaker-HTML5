@@ -88,41 +88,39 @@ TagManager.prototype.FindTagIds = function( _tags , _addNewTags )
 };
 
 
-///returns: true if all/any of input tags match (depending on _allTags)
-TagManager.prototype.AssetHasTags = function(_assetId, _assetType, _pTags, _allTags )
+//returns: true if all/any of input tags match (depending on _allTags)
+TagManager.prototype.AssetHasTags = function( _assetId, _assetType, _pTags, _allTags )
 {
     var resTags = this.GetTagIds(_assetId, _assetType);
     if( resTags == null )
         return false;
 
-    //!_pTags may be string or array of string
+    //_pTags may be string or array of string
+    var pTagsLength = Array.isArray(_pTags) ? _pTags.length : 1;
     var testTags = this.FindTagIds( _pTags, false );
 
-    //prevents this function from returning true when _allTags is enabled and there are no tag results in testTags
-    if(testTags.length == 0)
+    //no tags found
+    if( testTags.length === 0 )
+        return false;
+
+    //some tags not found, and _allTags is true
+    if( _allTags && testTags.length !== pTagsLength )
         return false;
 
     //check each input tag ptr against assets tag list
     for( var t=0; t < testTags.length; ++t )
     {
-        var bAssetHasTag = false;
         var tag = testTags[t];
-        for( var i=0; i < resTags.length; ++i )
-        {
-            if( resTags[i] === tag ) 
-                bAssetHasTag = true;
-        }
+        var bAssetHasTag = resTags.indexOf(tag) > -1;
 
         if (!_allTags && bAssetHasTag)
 			return true; //any tag matched
 		if (_allTags && !bAssetHasTag)
 			return false; //all tags must match
     }
-    
+
     //result after checking all testTags, all tags match or no tags match
-    var result = (_allTags) ? true : false;
-    
-    return result;
+    return (_allTags ? true : false);
 };
 
 //returns: true if any tags added
@@ -263,13 +261,18 @@ TagManager.prototype.FindAssetIds = function( _pTags, _assetType )
 function GetTypeIdParams( _assetNameId, _assetType, _fnName )
 {
     var typeId = { type:-1, id:-1 };
-    if( typeof _assetNameId === "string" )
+    if ( _assetNameId instanceof YYRef )
+    {
+        if ( _assetType === undefined || _assetType === MakeTypeId(_assetNameId.type, _assetNameId.value) )
+            typeId = { type:_assetNameId.type, id:_assetNameId.value };
+    }
+    else if( typeof _assetNameId === "string" )
     {
         typeId = ResourceGetTypeIndex( _assetNameId );
     }
     else
     {
-        if( _assetType === undefined ) 
+        if( _assetType === undefined )
             yyError( _fnName + "() - asset type argument is required");
         else
             typeId = { type:_assetType, id:_assetNameId };
