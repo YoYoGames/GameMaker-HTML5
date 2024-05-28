@@ -3226,8 +3226,8 @@ function audio_create_buffer_sound(_bufferId, _bufferFormat, _sampleRate, _offse
 
     _sampleRate = Math.min(Math.max(_sampleRate, 8000), 48000);
 
-    buffer_seek( _bufferId, eBuffer_Start, 0 );
     var bufferSize = _length;
+    buffer_seek(_bufferId, eBuffer_Start, _offset);
 
     /* Here we prevent the Web Audio context from cleanly resampling the buffer
        to the rate of the audio context by aligning the audio buffer rate with
