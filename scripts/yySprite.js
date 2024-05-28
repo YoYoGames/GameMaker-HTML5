@@ -1100,14 +1100,8 @@ yySprite.prototype.CreateMask = function(){
 			pSpr.colmask[0] = TMaskCreate(pSpr.colmask[0], pSpr.ppTPE[i], 0, pSpr.bbox, MASK_PRECISE, 0);
 		}
 	}
-	pSpr.maskcreated = true;   
-
-
-
-
-
-
-}
+	pSpr.maskcreated = true;
+};
 
 
 // #############################################################################################
@@ -1310,7 +1304,7 @@ yySprite.prototype.ColMaskSet=function(u,v,pMaskBase)
 	}
 
 	return true;
-}
+};
 
 yySprite.prototype.CollisionTilemapLine= function (bb2,xl,yl,xr,yr)
 {
