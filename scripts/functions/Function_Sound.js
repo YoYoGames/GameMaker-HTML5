@@ -3226,56 +3226,25 @@ function audio_create_buffer_sound(_bufferId, _bufferFormat, _sampleRate, _offse
 
     _sampleRate = Math.min(Math.max(_sampleRate, 8000), 48000);
 
-    var bufferSize = _length;
     buffer_seek(_bufferId, eBuffer_Start, _offset);
-
-    /* Here we prevent the Web Audio context from cleanly resampling the buffer
-       to the rate of the audio context by aligning the audio buffer rate with
-       that of the audio context and then crudely resampling the signal ourselves.
-       This is done to emulate the resampling that happens on other platforms
-       and maintain consistency of the perceived sound. */
-
-    // Find the new/old sample rate ratio
-    const sr_ratio = g_WebAudioContext.sampleRate / _sampleRate;
-
-    // And its inverse
-    const increment = 1.0 / sr_ratio;
 
     // Calculate the divisor needed to convert from u8/s16 to f32
     const divisor = Math.pow(2, bitsPerSample - 1);
 
     // Create the audio buffer
     const bufferOptions = {
-        length: _length / (numChannels * bitsPerSample / 8) * sr_ratio,
+        length: _length / (numChannels * bitsPerSample / 8),
         numberOfChannels: numChannels,
-        sampleRate: g_WebAudioContext.sampleRate
+        sampleRate: _sampleRate
     };
 
     const audioBuffer = new AudioBuffer(bufferOptions);
 
-    // Used for counting samples using the inverse of sr_ratio
-    let frac_pos = 0.0;
-
-    for (let f = 0; f < audioBuffer.length; ++f)
-    {
-        for (let ch = 0; ch < audioBuffer.numberOfChannels; ++ch)
-        {
+    for (let f = 0; f < audioBuffer.length; ++f) {
+        for (let ch = 0; ch < audioBuffer.numberOfChannels; ++ch) {
             const channelData = audioBuffer.getChannelData(ch);
-
-            if (frac_pos - 1.0 >= 0.0)
-            {
-                // Take a new sample from the signal
-                channelData[f] = (buffer_read(_bufferId, _bufferFormat) / divisor) - 1.0;
-                frac_pos -= 1.0;
-            }
-            else
-            {
-                // Copy the previous sample
-                channelData[f] = channelData[f - 1];
-            }
-
-            frac_pos += increment;
-        }  
+            channelData[f] = (buffer_read(_bufferId, _bufferFormat) / divisor) - 1.0;
+        }
     }
 
     var sampleData = new audioSampleData();
@@ -3283,7 +3252,7 @@ function audio_create_buffer_sound(_bufferId, _bufferFormat, _sampleRate, _offse
     sampleData.configGain = 1.0;
     sampleData.pitch = 1.0;
     sampleData.kind = AudioStreamType.UNSTREAMED;
-    sampleData.duration = bufferSize / ( _sampleRate * numChannels * bitsPerSample / 8 );
+    sampleData.duration = audioBuffer.duration;
     sampleData.groupId = 0;
     sampleData.commands = [];
     sampleData.state = AudioSampleState.READY;
