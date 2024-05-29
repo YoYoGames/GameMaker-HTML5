@@ -44,7 +44,7 @@ function draw_self( _inst )
     	var spr = g_pSpriteManager.Get(index);
     	if( spr != null ){
 
-    	    var image_index = GetIndexFromImageIndex(_inst.image_index + _inst.frame_overflow,spr.numb);
+    	    var image_index = GetIndexFromImageIndex(_inst.image_index + _inst.frame_overflow, _inst.GetImageNumber());
 
     	    _inst.frame_overflow = 0;
 
@@ -73,7 +73,8 @@ function    draw_sprite_ext( _pInst, _sprite, _sub_index, _x,_y, _xscale, _yscal
     var pSpr = g_pSpriteManager.Get(_sprite);
     if( pSpr!=null ){
         _alpha = min(1.0, _alpha);
-		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);
+		var sprite_frames = g_pSpriteManager.GetImageCount(_sprite);
+		var image_index = GetIndexFromImageIndex(_sub_index, sprite_frames);
         pSpr.Draw( image_index, yyGetReal(_x), yyGetReal(_y), yyGetReal(_xscale), yyGetReal(_yscale), yyGetReal(_rot), ConvertGMColour(yyGetInt32(_col)), _alpha );
     }
 }
@@ -93,7 +94,8 @@ function    draw_sprite( _pInst, _sprite, _sub_index, _x,_y )
 
     var pSpr = g_pSpriteManager.Get(_sprite);
     if( pSpr!=null ){
-		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);
+		var sprite_frames = g_pSpriteManager.GetImageCount(_sprite);
+		var image_index = GetIndexFromImageIndex(_sub_index, sprite_frames);
     	pSpr.DrawSimple(image_index, yyGetReal(_x), yyGetReal(_y), g_GlobalAlpha);
     }
 }
@@ -115,7 +117,8 @@ function draw_sprite_pos(_pInst, _sprite, _sub_index, _x1, _y1, _x2,_y2, _x3,_y3
 	var pSpr = g_pSpriteManager.Get(_sprite);
 	if (pSpr != null)
 	{
-		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);
+		var sprite_frames = g_pSpriteManager.GetImageCount(_sprite);
+		var image_index = GetIndexFromImageIndex(_sub_index, sprite_frames);
         _alpha = min(1.0, _alpha);
         pSpr.Sprite_DrawSimplePos(image_index, yyGetReal(_x1), yyGetReal(_y1), yyGetReal(_x2), yyGetReal(_y2), yyGetReal(_x3), yyGetReal(_y3), yyGetReal(_x4), yyGetReal(_y4), _alpha);
 	}
@@ -148,7 +151,8 @@ function draw_sprite_stretched(_pInst, _sprite, _sub_index, _x, _y, _w,_h)
 	if (pSpr != null)
 	{
     	if (pSpr.numb <= 0) return;
-		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);	
+		var sprite_frames = g_pSpriteManager.GetImageCount(_sprite);
+		var image_index = GetIndexFromImageIndex(_sub_index, sprite_frames);
 		
 	    // @if feature("nineslice")
 		if ((pSpr.nineslicedata != null) && (pSpr.nineslicedata.enabled == true))
@@ -193,7 +197,8 @@ function    draw_sprite_stretched_ext( _pInst, _sprite, _sub_index, _x,_y, _w, _
 	{
     	if (pSpr.numb <= 0) return;
 	
-		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);	
+		var sprite_frames = g_pSpriteManager.GetImageCount(_sprite);
+		var image_index = GetIndexFromImageIndex(_sub_index, sprite_frames);
 	    // @if feature("nineslice")
 		if ((pSpr.nineslicedata != null) && (pSpr.nineslicedata.enabled == true))
 	    {
@@ -236,7 +241,8 @@ function draw_sprite_part(_pInst, _sprite, _sub_index, _left, _top, _width, _hei
 	{
     	if (pSpr.numb <= 0) return;
 
-		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);	
+		var sprite_frames = g_pSpriteManager.GetImageCount(_sprite);
+		var image_index = GetIndexFromImageIndex(_sub_index, sprite_frames);
 
 	    Graphics_DrawPart(pSpr.ppTPE[image_index], yyGetReal(_left), yyGetReal(_top), yyGetReal(_width), yyGetReal(_height), yyGetReal(_x), yyGetReal(_y), 1, 1, 0xffffff, g_GlobalAlpha);
 	}
@@ -278,7 +284,8 @@ function draw_sprite_part_ext(_pInst, _sprite, _sub_index, _left, _top, _width, 
 	{
     	if (pSpr.numb <= 0) return;
 
-		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);		
+		var sprite_frames = g_pSpriteManager.GetImageCount(_sprite);
+		var image_index = GetIndexFromImageIndex(_sub_index, sprite_frames);
 
 
         _color = ConvertGMColour(yyGetInt32(_color));
@@ -315,7 +322,8 @@ function draw_sprite_tiled(_pInst, _sprite, _sub_index, _x, _y) {
 	{
     	if (pSpr.numb <= 0) return;
 
-		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);	
+		var sprite_frames = g_pSpriteManager.GetImageCount(_sprite);
+		var image_index = GetIndexFromImageIndex(_sub_index, sprite_frames);
     
         Graphics_TextureDrawTiled( pSpr.ppTPE[image_index], yyGetReal(_x), yyGetReal(_y), 1,1, true, true, 0xffffff, g_GlobalAlpha);
     }
@@ -353,7 +361,8 @@ function draw_sprite_tiled_ext(_pInst, _sprite,_sub_index,_x,_y,_xscale,_yscale,
 	if (pSpr != null)
 	{
     	if (pSpr.numb <= 0) return;
-		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);	
+		var sprite_frames = g_pSpriteManager.GetImageCount(_sprite);
+		var image_index = GetIndexFromImageIndex(_sub_index, sprite_frames);
     
         _color = ConvertGMColour(yyGetInt32(_color));
         Graphics_TextureDrawTiled( pSpr.ppTPE[image_index], yyGetReal(_x), yyGetReal(_y), yyGetReal(_xscale), yyGetReal(_yscale), true, true, _color, _alpha);
@@ -405,7 +414,8 @@ function draw_sprite_general(_pInst, _sprite, _sub_index, _left, _top, _width, _
 		    UpdateTransRoomExtents();
 	    }
     	if (pSpr.numb <= 0) return;
-		var image_index = GetIndexFromImageIndex(_sub_index ,pSpr.numb);	
+		var sprite_frames = g_pSpriteManager.GetImageCount(_sprite);
+		var image_index = GetIndexFromImageIndex(_sub_index, sprite_frames);
 
 
         _c1 = ConvertGMColour(yyGetInt32(_c1));
