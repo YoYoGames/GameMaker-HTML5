@@ -214,6 +214,7 @@ function yyParticle()
 	this.dir=0;					// direction
 	this.ang=0;					// angle
 	this.color=0xffffff;		// the current color
+	this.colorOverride=false;	// if true then the color overrides color defined in part. type
 	this.alpha=1.0;				// current alpha
 	this.xsize=0;				// the size of the particle
 	this.ysize=0;				// the size of the particle
@@ -611,6 +612,12 @@ function Direction_To_Vector_v(_dir, _sp )
 // #############################################################################################
 function Compute_Color(_pParticle)
 {
+	if (_pParticle.colorOverride)
+	{
+		// _pParticle.color is the final color!
+		return;
+	}
+
 	var pPartType = g_ParticleTypes[_pParticle.parttype];
 	{
 		if (_pParticle.age <= 0 || _pParticle.lifetime <= 0)
@@ -703,6 +710,7 @@ function CreateParticle(_system, _x, _y, _parttype)
 	Result.lifetime =   MyRandom( pParType.lifemin, pParType.lifemax, 0);
 	Result.age = 0;
 	Result.color = 0xffffff;	
+	Result.colorOverride = false;	
 		
 	Compute_Color(Result);
 		
@@ -1679,14 +1687,14 @@ function	ParticleSystem_Emitter_Region(_ps, _ind, _xmin, _xmax, _ymin, _ymax, _s
 	pEmitter.posdistr = yyGetInt32(_posdistr);
 }
 
-function EmitParticles(_system, _emitter, _x, _y, _parttype, _numb, _applyColor, _col)
+function EmitParticles(_system, _emitter, _x, _y, _parttype, _numb, _overrideColor, _col)
 {
 	var particles = _emitter.particles;
 
-	_applyColor = (_applyColor === undefined) ? false : _applyColor;
+	_overrideColor = (_overrideColor === undefined) ? false : _overrideColor;
 	_col = (_col === undefined) ? 0xFFFFFF : _col;
 
-	if (_applyColor)
+	if (_overrideColor)
 	{
 		_col = ConvertGMColour(yyGetInt32(_col));
 	}
@@ -1699,9 +1707,10 @@ function EmitParticles(_system, _emitter, _x, _y, _parttype, _numb, _applyColor,
 		var index = particles.length;
 		particles[index] = CreateParticle(_system, yyGetReal(_x), yyGetReal(_y), _parttype);
 
-		if (_applyColor)
+		if (_overrideColor)
 		{
 			particles[index].color = _col;
+			particles[index].colorOverride = true;
 		}
 	}
 }
