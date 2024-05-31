@@ -368,7 +368,7 @@ function event_perform(_pInst, _pOther, _event, _subevent)
 // #############################################################################################
 function event_perform_async(_pInst, _pOther, _event, _ds_map)
 {
-	var current_async_map = g_pBuiltIn.async_load
+	var current_async_map = g_pBuiltIn.async_load;
 	
     _event = yyGetInt32(_event);
     _ds_map = yyGetInt32(_ds_map);
@@ -425,20 +425,21 @@ function event_perform_timeline(_pInst, _other, _timelineInd, _eventInd)
 // #############################################################################################
 function event_perform_object(_pInst, _pOther, _obj, _event, _subevent) 
 {
-    _obj = yyGetInt32(_obj);
-    _event = yyGetInt32(_event);
-    _subevent = yyGetInt32(_subevent);
+	_obj = yyGetInt32(_obj);
+	_event = yyGetInt32(_event);
+	_subevent = yyGetInt32(_subevent);
+
+	if(YYInstanceof(_pInst) != "instance")
+	{
+		yyError("Attempt to dispatch event on non-instance object");
+	}
 
 	var event = event_lookup(_event, _subevent);
 	var index = event_array_index_lookup(_event, _subevent);
 
 	var pObject = g_pObjectManager.Get(_obj);
-	
-	if(!pObject )
-	{
-	    yyError("Error: undefined object id passed to event_perform_object: " + _obj);
-	}
-	else
+
+	if (pObject)
 	{
 	    var oldobj = Current_Object;
 	    var oldtype = Current_Event_Type;
@@ -449,7 +450,7 @@ function event_perform_object(_pInst, _pOther, _obj, _event, _subevent)
 	    Current_Event_Number = index;
 
         var pCurrObj = pObject;
-        while(pCurrObj != null)
+        while (pCurrObj != null)
         {
             // Check whether the object has the current event and if not
             // check the object's parent until the event is found.
@@ -483,14 +484,13 @@ function event_user(_pInst, _pOther, _subevent) {
 
     _subevent = yyGetInt32(_subevent);
 
-	if (_subevent < 0 || _subevent > 15)
+	if (_subevent >= 0 && _subevent <= 15)
 	{
-		yyError("Error: illegal user event ID: " + _subevent);
+		// @if event("UserEvent*")
+		_subevent += GML_EVENT_OTHER_USER0;
+		event_perform(_pInst, _pOther, GML_EVENT_OTHER, _subevent);
+		// @endif
 	}
-	// @if event("UserEvent*")
-	_subevent += GML_EVENT_OTHER_USER0;
-	event_perform(_pInst, _pOther, GML_EVENT_OTHER, _subevent);
-	// @endif
 }
 
 
@@ -506,7 +506,10 @@ function event_user(_pInst, _pOther, _subevent) {
 ///			</returns>
 // #############################################################################################
 function event_inherited(_pInst, _pOther) {
-
+    if(YYInstanceof(_pInst) != "instance")
+    {
+        yyError("Attempt to dispatch event on non-instance object");
+    }
     _pInst.PerformEventInherited(g_LastEvent, g_LastEventArrayIndex, _pOther);
 }
 
