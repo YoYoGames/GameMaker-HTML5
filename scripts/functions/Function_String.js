@@ -122,7 +122,13 @@ function real(_v) {
     }
     else if (typeof (_v) == "string")
 	{
-        var stringAsNumber = parseFloat(_v);
+        
+        var stringAsNumber;
+        if (_v.startsWith('0x')) {
+            stringAsNumber =  parseInt(_v);
+        } else {
+            stringAsNumber =  parseFloat(_v);
+        }
         if (isNaN(stringAsNumber))
         {
 	        yyError("unable to convert string " + _v + " to real");
