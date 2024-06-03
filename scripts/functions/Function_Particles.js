@@ -501,8 +501,28 @@ function part_system_update(_ind)
 // #############################################################################################
 function part_system_drawit(_ind)
 {
-    _ind = GetParticleSystemInstanceIndex(_ind);
-    return ParticleSystem_Draw(_ind);
+    ps = GetParticleSystemInstanceIndex(_ind);
+
+    if (!ParticleSystem_Exists(ps)) return;
+
+	var pSystem = g_ParticleSystems[ps];
+
+	var matWorldOld = WebGL_GetMatrix(MATRIX_WORLD);
+
+	var matRot = new Matrix();
+	matRot.SetZRotation(pSystem.angle);
+
+	var matPos = new Matrix();
+	matPos.SetTranslation(-pSystem.xdraw, -pSystem.ydraw, 0.0);
+	
+	var matWorldNew = new Matrix();
+	matWorldNew.Multiply(matPos, matRot);
+	matWorldNew.Translation(pSystem.xdraw, pSystem.ydraw, 0.0);
+
+	WebGL_SetMatrix(MATRIX_WORLD, matWorldNew);
+	ParticleSystem_SetMatrix(ps, matWorldNew);
+	ParticleSystem_Draw(ps);
+	WebGL_SetMatrix(MATRIX_WORLD, matWorldOld);
 }
 
 
