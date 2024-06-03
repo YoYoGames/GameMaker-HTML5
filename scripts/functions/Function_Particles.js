@@ -99,7 +99,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
             variable_struct_set(pPSI, "oldtonew", pPS.oldtonew ? true : false);
             variable_struct_set(pPSI, "global_space", pPS.globalSpaceParticles);
 
-            for (var i = 0; i < pPS.emitters.length; ++i)
+            for (var i = pPS.emitters.length - 1; i >= 0; --i)
             {
                 var emitter = pPS.emitters[i];
                 if (emitter)
@@ -146,6 +146,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
         var emitter = emitters[i];
         var pEmitterI = new GMLObject();
 
+        variable_struct_set(pEmitterI, "ind", i);
         variable_struct_set(pEmitterI, "name", emitter.name);
         variable_struct_set(pEmitterI, "mode", emitter.mode);
         variable_struct_set(pEmitterI, "number", emitter.number);
@@ -234,7 +235,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
 // #############################################################################################
 function particle_get_info(_ind)
 {
-    var isInstance = ((_ind instanceof YYRef) && _(ind.type == REFID_PART_SYSTEM));
+    var isInstance = ((_ind instanceof YYRef) && (_ind.type == REFID_PART_SYSTEM));
     return ParticleSystemGetInfoImpl(_ind, isInstance);
 }
 
