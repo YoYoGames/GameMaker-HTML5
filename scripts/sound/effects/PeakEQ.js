@@ -24,7 +24,7 @@ function PeakEQEffectStruct(_params) {
         gmlq: {
             enumerable: true,
             get: () => {
-                return this.params[PeakEQEffectStruct.Index.Freq];
+                return this.params[PeakEQEffectStruct.Index.Q];
             },
             set: (_q) => {
                 const val = this.setParam(PeakEQEffectStruct.Index.Q, _q);
@@ -38,7 +38,7 @@ function PeakEQEffectStruct(_params) {
         gmlgain: {
             enumerable: true,
             get: () => {
-                return this.params[PeakEQEffectStruct.Index.Freq];
+                return this.params[PeakEQEffectStruct.Index.Gain];
             },
             set: (_gain) => {
                 const val = this.setParam(PeakEQEffectStruct.Index.Gain, _gain);
