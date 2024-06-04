@@ -50,7 +50,7 @@ WorkletNodeManager.prototype.createEffect = function(_struct) {
 		numberOfInputs: 1,
 		numberOfOutputs: 1, 
 		outputChannelCount: [maxChannels],
-		parameterData: _struct.params,
+		parameterData: _struct.getParamMap(),
 		channelCount: maxChannels,
 		channelCountMode: "explicit"
 	});

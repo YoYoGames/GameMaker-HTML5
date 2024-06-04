@@ -186,4 +186,15 @@ AudioEffectStruct.prototype.isFilter = function() {
             return false;
     }
 };
+
+AudioEffectStruct.prototype.getParamMap = function() {
+    const map = {};
+
+    const descriptors = this.getParamDescriptors();
+    descriptors.forEach((_desc, _idx) => {
+        map[_desc.name] = this.params[_idx]
+    });
+
+    return map;
+};
 // @endif
