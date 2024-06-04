@@ -2193,14 +2193,19 @@ function variable_instance_get(_id, _var) {
             var pInst = pObj[inst];			
             if (pInst.__yyIsGMLObject || (!pInst.marked && pInst.active)) {               
                 var settings = undefined;
-                if ((typeof g_var2obf !== "undefined") && (g_var2obf[_var] != undefined)) {
-                    ret = g_instance_names[ g_var2obf[_var] ];
+                if ((typeof g_var2obf !== "undefined") && g_var2obf.hasOwnProperty(_var) && (g_var2obf[_var] != undefined)) {
+                    var nm = g_var2obf[_var];
+                    if (g_instance_names.hasOwnProperty(nm)) {
+                        settings = g_instance_names[ nm ];
+                    } // end if
                 } else {
-                    settings = g_instance_names[ _var ];
+                    if (g_instance_names.hasOwnProperty(_var)) {
+                        settings = g_instance_names[ _var ];
+                    } // end if
                 } // end else
                 if (settings == undefined) {
                     var nm;
-                    if ((typeof g_var2obf !== "undefined") && (g_var2obf[_var] != undefined)) {
+                    if ((typeof g_var2obf !== "undefined") && g_var2obf.hasOwnProperty(_var) && (g_var2obf[_var] != undefined)) {
                         nm = g_var2obf[_var];
                         if (pInst[ nm ] == undefined) {
                             nm = "gml"+_var;
@@ -2276,14 +2281,19 @@ function variable_instance_set(_id, _var, _val) {
 			var pInst = pObj[inst];			
 			if (pInst.__yyIsGMLObject || (!pInst.marked && pInst.active)) {
                 var settings = undefined;
-                if ((typeof g_var2obf !== "undefined") && (g_var2obf[_var] != undefined)) {
-                    settings = g_instance_names[g_var2obf[_var]];
+                if ((typeof g_var2obf !== "undefined") && g_var2obf.hasOwnProperty(_var)&& (g_var2obf[_var] != undefined)) {
+                    var nm = g_var2obf[_var];
+                    if (g_instance_names.hasOwnProperty(nm)) {
+                        settings = g_instance_names[ nm ];
+                    } // end if
                 } else {
-                    settings = g_instance_names[ _var ];
+                    if (g_instance_names.hasOwnProperty(_var)) {
+                        settings = g_instance_names[ _var ];
+                    } // end if
                 } // end else
                 if (settings == undefined) {
 
-                    if ((typeof g_var2obf !== "undefined") && (g_var2obf[_var] != undefined)) {
+                    if ((typeof g_var2obf !== "undefined") && g_var2obf.hasOwnProperty(_var) && (g_var2obf[_var] != undefined)) {
                         pInst[ g_var2obf[_var] ] = _val;
                     }
                     else {
@@ -2342,14 +2352,19 @@ function variable_instance_set_post(_id, _var, _val) {
             var pInst = pObj[inst];         
             if (pInst.__yyIsGMLObject || (!pInst.marked && pInst.active)) {
                 var settings = undefined;
-                if ((typeof g_var2obf !== "undefined") && (g_var2obf[_var] != undefined)) {
-                    ret = g_instance_names[g_var2obf[_var]]; //doesn't do anything with ret - not sure what this is supposed to be doing but looks wrong
+                if ((typeof g_var2obf !== "undefined") && g_var2obf.hasOwnProperty(_var) && (g_var2obf[_var] != undefined)) {
+                    var nm = g_var2obf[_var];
+                    if (g_instance_names.hasOwnProperty(nm)) {
+                        settings = g_instance_names[ nm ];
+                    } // end if
                 } else {
-                    settings = g_instance_names[ _var ];
+                    if (g_instance_names.hasOwnProperty(_var)) {
+                        settings = g_instance_names[ _var ];
+                    } // end if
                 } // end else
                 if (settings == undefined) {
 
-                    if ((typeof g_var2obf !== "undefined") && (g_var2obf[_var] != undefined)) {
+                    if ((typeof g_var2obf !== "undefined") && g_var2obf.hasOwnProperty(_var)&& (g_var2obf[_var] != undefined)) {
                         ret = pInst[ g_var2obf[_var] ];
                         pInst[ g_var2obf[_var] ] = _val;
                     }
@@ -2434,9 +2449,15 @@ function variable_instance_exists(_id, _var) {
             if (pInst.__yyIsGMLObject || (!pInst.marked && pInst.active)) {
                 var settings = undefined;
                 if ((typeof g_var2obf !== "undefined") && (g_var2obf[_var] != undefined)) {
-                    settings = g_instance_names[ g_var2obf[_var] ];
+                    var nm = g_var2obf[_var];
+                    if (g_instance_names.hasOwnProperty(nm)) {
+                        settings = g_instance_names[ nm ];
+                    } // end if
                 } else {
                     settings = g_instance_names[ _var ];
+                    if (g_instance_names.hasOwnProperty(_var)) {
+                        settings = g_instance_names[ _var ];
+                    } // end if
                 } // end else
                 if (settings == undefined) {
                     if ((typeof g_var2obf !== "undefined") && (g_var2obf[_var] != undefined)) {
