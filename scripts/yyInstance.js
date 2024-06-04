@@ -1446,7 +1446,7 @@ yyInstance.prototype.Compute_BoundingBox = function() {
     var collisionSkel = this.GetCollisionSkeleton();
 
 	// @if feature("spine")
-    if(maskCollisionSkel !== null && g_pSpriteManager.Sprites[this.mask_index].bboxmode == 0 /* "Automatic" */) {
+    if(maskCollisionSkel !== null && g_pSpriteManager.Sprites[this.mask_index].colcheck == yySprite_CollisionType.SPINE_MESH) {
         if (!this.bbox) {
             this.bbox = new YYRECT(0, 0, 0, 0);
         }
@@ -1467,7 +1467,7 @@ yyInstance.prototype.Compute_BoundingBox = function() {
         this.bbox_dirty = false;
         return;
     }
-    if(collisionSkel !== null && g_pSpriteManager.Sprites[this.sprite_index].bboxmode == 0 /* "Automatic" */) {
+    if(collisionSkel !== null && g_pSpriteManager.Sprites[this.sprite_index].colcheck == yySprite_CollisionType.SPINE_MESH) {
         if (!this.bbox) {
             this.bbox = new YYRECT(0, 0, 0, 0);
         }
