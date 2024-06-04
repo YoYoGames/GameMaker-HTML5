@@ -2,7 +2,7 @@ class LoShelfProcessor extends AudioWorkletProcessor
 {
     static get parameterDescriptors() 
     {
-        const maxFreq = Math.min(sampleRate / 2.0, 20000.0);
+        const maxFreq = sampleRate * 0.45;
 
         return [
             { name: "bypass", automationRate: "a-rate", defaultValue: 0,                         minValue: 0,    maxValue: 1 },

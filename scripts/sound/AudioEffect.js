@@ -168,8 +168,7 @@ AudioEffectStruct.prototype.updateFreqDesc = function(_desc) {
         return _desc;
     }
 
-    _desc.maxValue = g_WebAudioContext ? Math.min(g_WebAudioContext.sampleRate / 2, _desc.maxValue)
-                                       : _desc.maxValue;
+    _desc.maxValue = g_WebAudioContext ? g_WebAudioContext.sampleRate * 0.45 : _desc.maxValue;
     _desc.defaultValue = Math.min(_desc.defaultValue, _desc.maxValue);
     return _desc;
 };
