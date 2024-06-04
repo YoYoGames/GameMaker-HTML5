@@ -191,6 +191,33 @@ yySprite.prototype.GetSkeletonSpriteSize = function (_skeleton)
 	return null;
 };
 
+yySprite.prototype.GetSkeletonSpriteBounds = function (_skeleton)
+{
+	// @if feature("spine")
+	var bounds = new YYRECT();
+
+	_skeleton.updateWorldTransform();
+
+	if (this.GetSkeletonBounds(_skeleton, bounds))
+	{
+		return bounds;
+	}
+
+	var skins = _skeleton.data.skins;
+	for (var i = 0; i < skins.length; ++i)
+	{
+		_skeleton.setSkin(skins[i]);
+		_skeleton.updateWorldTransform();
+
+		if (this.GetSkeletonBounds(_skeleton, bounds))
+		{
+			return bounds;
+		}
+	}
+	// @endif
+	return null;
+};
+
 /**
  * @param {spine.Skeleton} _skeleton
  * @param {YYRECT} _bounds
@@ -258,6 +285,117 @@ yySprite.prototype.GetSkeletonBounds = function (_skeleton, _bounds)
 	}
 	// @endif spine
 	return retval;
+};
+
+yySprite.prototype.SetBoundingBoxMode = function(bboxmode)
+{
+	if(bboxmode < 0 || bboxmode > 3)
+	{
+		return;
+	}
+
+	if(bboxmode == this.bboxmode)
+	{
+		return;
+	}
+
+	this.bboxmode = bboxmode;
+	this.ComputeBoundingBox();
+	this.MarkInstancesAsDirty();
+};
+
+yySprite.prototype.SetBoundingBox = function(bbox)
+{
+	if (this.bboxmode != 2 /* bboxmode_manual */)
+	{
+		return;
+	}
+
+	if (bbox.left != this.bbox.left || bbox.right != this.bbox.right || bbox.top != this.bbox.top || bbox.bottom != this.bbox.bottom)
+	{
+		this.bbox.left   = bbox.left;
+		this.bbox.right  = bbox.right;
+		this.bbox.top    = bbox.top;
+		this.bbox.bottom = bbox.bottom;
+
+		this.MarkInstancesAsDirty();
+	}
+};
+
+yySprite.prototype.ComputeBoundingBox = function()
+{
+	if (this.bboxmode == 0 /* bboxmode_automatic */)
+	{
+		// precise mode (should really look at the mask and get the bounds...)
+		var lleft = 100000;
+		var rright = -100000;
+		var ttop = 100000;
+		var bbottom  = -100000;
+
+
+		for (var i = 0; i < this.numb; i++)
+		{
+			var _pTPE = this.ppTPE[i];
+			var pByteData = Graphics_ExtractImageBytes(_pTPE);
+			var index = 0;
+			for (var k = 0; k < _pTPE.oh; k++)
+			{
+				for (var j = 0; j < _pTPE.ow; j++)
+				{
+					var index =((k*_pTPE.ow +j)*4)+3;
+					if(index<pByteData.length)
+					{
+						if (pByteData[index] > _tolerance)
+						{
+							if(j<lleft)
+								lleft = j;
+							if(j>rright)
+								rright = j;
+							if(k<ttop)
+								ttop = k;
+							if(k>bbottom)
+								bbottom = k;
+						}
+					}
+				}
+			}
+		}
+		if(lleft==0x7FFFFFFF) //No valid pixels
+		{
+			this.bbox.left = 0;
+			this.bbox.right =0;
+			this.bbox.top = 0;
+			this.bbox.bottom = 0;
+		}
+		else
+		{
+			this.bbox.left = lleft;
+			this.bbox.right =rright;
+			this.bbox.top = ttop;
+			this.bbox.bottom = bbottom;
+		}
+	}
+	else if (this.bboxmode == 1 /* bboxmode_fullimage */)
+	{
+		if (this.m_skeletonSprite)
+		{
+			var bounds = this.GetSkeletonSpriteBounds((new yySkeletonInstance(this.m_skeletonSprite)).m_skeleton);
+			if(bounds)
+			{
+				this.bbox = bounds;
+
+				/* Flip bounding box around origin on Y axis to match our co-ordinate space. */
+				this.bbox.top *= -1.0;
+				this.bbox.bottom *= -1.0;
+			}
+		}
+		else{
+			this.bbox.left = 0;
+			this.bbox.right = this.width;
+			this.bbox.top = 0;
+			this.bbox.bottom = this.height;
+		}
+	}
 };
 
 yySprite.prototype.GetScaledBoundingBox = function(_xscale, _yscale)
@@ -831,6 +969,20 @@ yySprite.prototype.LoadFromSpineAsync = function (_filename, _callback) {
 			{
 				sprite.width = size[0];
 				sprite.height = size[1];
+			}
+
+			var bounds = sprite.GetSkeletonSpriteBounds((new yySkeletonInstance(sprite.m_skeletonSprite)).m_skeleton);
+			if(bounds)
+			{
+				sprite.bboxmode = 1;
+				sprite.colcheck = yySprite_CollisionType.AXIS_ALIGNED_RECT;
+
+				sprite.bbox = bounds;
+
+				sprite.bbox.top *= -1.0;
+				sprite.bbox.bottom *= -1.0;
+
+				sprite.MarkInstancesAsDirty();
 			}
 
 			// Trigger async callback
@@ -2479,11 +2631,33 @@ yySprite.prototype.GetTPE = function(_ind) {
 	return null;
 };
 
+yySprite.prototype.MarkInstancesAsDirty = function()
+{
+	var self = this; /* 'this' gets reset to 'window' inside process_instances... */
 
+	var process_instances = function(list)
+	{
+		var pool = list.pool;
+		for (var i = 0; i < pool.length; i++) {
+			var pInst = pool[i];
 
+			var pInstCollisionSprite;
+			if (pInst.mask_index >= 0) {
+				pInstCollisionSprite = g_pSpriteManager.Get(pInst.mask_index);
+			}
+			else{
+				pInstCollisionSprite = g_pSpriteManager.Get(pInst.sprite_index);
+			}
 
+			if(pInstCollisionSprite === self) {
+				pInst.bbox_dirty = true;
+			}
+		}
+	};
 
-
+	process_instances(g_RunRoom.m_Active);
+	process_instances(g_RunRoom.m_Deactive);
+};
 
 // #############################################################################################
 /// Function:<summary>
