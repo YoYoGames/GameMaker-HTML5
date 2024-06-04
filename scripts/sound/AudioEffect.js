@@ -130,7 +130,7 @@ AudioEffectStruct.prototype.initParams = function(_params) {
 
 AudioEffectStruct.prototype.setParam = function(_idx, _val) {
     const structType = AudioEffectStruct.GetStructType(this.type);
-    const desc = structType.ParamDescriptors[_idx];
+    const desc = this.updateFreqDesc(structType.ParamDescriptors[_idx]);
 
     _val = clamp(_val, desc.minValue, desc.maxValue);
 
