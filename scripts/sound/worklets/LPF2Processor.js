@@ -2,7 +2,7 @@ class LPF2Processor extends AudioWorkletProcessor
 {
     static get parameterDescriptors() 
     {
-        const maxCutoff = Math.min(sampleRate / 2.0, 20000.0);
+        const maxCutoff = sampleRate * 0.45;
 
         return [
             { name: "bypass", automationRate: "a-rate", defaultValue: 0,                          minValue: 0,    maxValue: 1 },

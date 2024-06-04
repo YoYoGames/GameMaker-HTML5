@@ -130,7 +130,7 @@ AudioEffectStruct.prototype.initParams = function(_params) {
 
 AudioEffectStruct.prototype.setParam = function(_idx, _val) {
     const structType = AudioEffectStruct.GetStructType(this.type);
-    const desc = structType.ParamDescriptors[_idx];
+    const desc = this.updateFreqDesc(structType.ParamDescriptors[_idx]);
 
     _val = clamp(_val, desc.minValue, desc.maxValue);
 
@@ -168,8 +168,7 @@ AudioEffectStruct.prototype.updateFreqDesc = function(_desc) {
         return _desc;
     }
 
-    _desc.maxValue = g_WebAudioContext ? Math.min(g_WebAudioContext.sampleRate / 2, _desc.maxValue)
-                                       : _desc.maxValue;
+    _desc.maxValue = g_WebAudioContext ? g_WebAudioContext.sampleRate * 0.45 : _desc.maxValue;
     _desc.defaultValue = Math.min(_desc.defaultValue, _desc.maxValue);
     return _desc;
 };
@@ -185,5 +184,16 @@ AudioEffectStruct.prototype.isFilter = function() {
         default:
             return false;
     }
+};
+
+AudioEffectStruct.prototype.getParamMap = function() {
+    const map = {};
+
+    const descriptors = this.getParamDescriptors();
+    descriptors.forEach((_desc, _idx) => {
+        map[_desc.name] = this.params[_idx]
+    });
+
+    return map;
 };
 // @endif

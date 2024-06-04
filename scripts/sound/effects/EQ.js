@@ -143,7 +143,6 @@ function EQEffectStruct(_params) {
             numberOfInputs: 2,
             numberOfOutputs: 1, 
             outputChannelCount: [maxChannels],
-            parameterData: this.params,
             channelCount: maxChannels,
             channelCountMode: "explicit"
         });
