@@ -213,6 +213,11 @@ function yyParticle()
 	this.speed=0;				// speed
 	this.dir=0;					// direction
 	this.ang=0;					// angle
+	this.colmode = COLMODE_ONE;	// color mechanism used
+	this.colpar = [];			// (6) color parameters, depending on mode
+    this.colpar[0] = clWhite;
+    this.colpar[1] = clWhite;
+    this.colpar[2] = clWhite;
 	this.color=0xffffff;		// the current color
 	this.colorOverride=false;	// if true then the color overrides color defined in part. type
 	this.alpha=1.0;				// current alpha
@@ -612,69 +617,62 @@ function Direction_To_Vector_v(_dir, _sp )
 // #############################################################################################
 function Compute_Color(_pParticle)
 {
-	if (_pParticle.colorOverride)
+	if (_pParticle.age <= 0 || _pParticle.lifetime <= 0)
 	{
-		// _pParticle.color is the final color!
-		return;
-	}
-
-	var pPartType = g_ParticleTypes[_pParticle.parttype];
-	{
-		if (_pParticle.age <= 0 || _pParticle.lifetime <= 0)
+		// Create a new color
+		switch( _pParticle.colmode )
 		{
-			// Create a new color
-			switch( pPartType.colmode )
-			{
-				case COLMODE_ONE: _pParticle.color = pPartType.colpar[0];
-									break;
-				case COLMODE_TWO: _pParticle.color = pPartType.colpar[0];
-									break;
-				case COLMODE_THREE: _pParticle.color = pPartType.colpar[0];
-									break;
-				case COLMODE_RGB:		{
-											var r = ~~(MyRandom( pPartType.colpar[0], pPartType.colpar[1], PART_EDISTR_LINEAR));
-											var g = ~~(MyRandom( pPartType.colpar[2], pPartType.colpar[3], PART_EDISTR_LINEAR));
-											var b = ~~(MyRandom( pPartType.colpar[4], pPartType.colpar[5], PART_EDISTR_LINEAR));
-											_pParticle.color =   (r<<16) + (g<<8) + b;
+			case COLMODE_ONE: _pParticle.color = _pParticle.colpar[0];
+								break;
+			case COLMODE_TWO: _pParticle.color = _pParticle.colpar[0];
+								break;
+			case COLMODE_THREE: _pParticle.color = _pParticle.colpar[0];
+								break;
+			case COLMODE_RGB:		{
+										var r = ~~(MyRandom( _pParticle.colpar[0], _pParticle.colpar[1], PART_EDISTR_LINEAR));
+										var g = ~~(MyRandom( _pParticle.colpar[2], _pParticle.colpar[3], PART_EDISTR_LINEAR));
+										var b = ~~(MyRandom( _pParticle.colpar[4], _pParticle.colpar[5], PART_EDISTR_LINEAR));
+										_pParticle.color =   (r<<16) + (g<<8) + b;
 
-										}
-										break;					
-				case COLMODE_HSV:		{
-											 var h = ~~(MyRandom( pPartType.colpar[0], pPartType.colpar[1], PART_EDISTR_LINEAR));
-											 var s = ~~(MyRandom( pPartType.colpar[2], pPartType.colpar[3], PART_EDISTR_LINEAR));
-											 var v = ~~(MyRandom( pPartType.colpar[4], pPartType.colpar[5], PART_EDISTR_LINEAR));
-											 _pParticle.color = make_color_hsv(h, s, v);
-										}
-										break;
-									case COLMODE_MIX: _pParticle.color = ConvertGMColour( Color_Merge(pPartType.colpar[0], pPartType.colpar[1], YYRandom(1)) );
-				                        break;
-			}
+									}
+									break;					
+			case COLMODE_HSV:		{
+											var h = ~~(MyRandom( _pParticle.colpar[0], _pParticle.colpar[1], PART_EDISTR_LINEAR));
+											var s = ~~(MyRandom( _pParticle.colpar[2], _pParticle.colpar[3], PART_EDISTR_LINEAR));
+											var v = ~~(MyRandom( _pParticle.colpar[4], _pParticle.colpar[5], PART_EDISTR_LINEAR));
+											_pParticle.color = make_color_hsv(h, s, v);
+									}
+									break;
+								case COLMODE_MIX: _pParticle.color = ConvertGMColour( Color_Merge(_pParticle.colpar[0], _pParticle.colpar[1], YYRandom(1)) );
+									break;
 		}
-		else
+	}
+	else
+	{
+		// Adapt the color
+		switch ( _pParticle.colmode )
 		{
-			// Adapt the color
-			switch ( pPartType.colmode )
-			{
-				case COLMODE_TWO:		{
-											var val = _pParticle.age/_pParticle.lifetime;
-											if ( val > 1 ) val = 1;
-											_pParticle.color =  Color_Merge((pPartType.colpar[0]), (pPartType.colpar[1]), val);
+			case COLMODE_ONE: _pParticle.color = _pParticle.colpar[0];
+								break;
+			case COLMODE_TWO:		{
+										var val = _pParticle.age/_pParticle.lifetime;
+										if ( val > 1 ) val = 1;
+										_pParticle.color =  Color_Merge((_pParticle.colpar[0]), (_pParticle.colpar[1]), val);
+									}
+									break;
+			case COLMODE_THREE:		{
+										var val = 2.0*_pParticle.age/_pParticle.lifetime;
+										if (val > 2) val = 2;
+										if (val < 1)
+										{
+											_pParticle.color = Color_Merge(_pParticle.colpar[0], _pParticle.colpar[1], val);
 										}
-										break;
-				case COLMODE_THREE:		{
-											var val = 2.0*_pParticle.age/_pParticle.lifetime;
-											if (val > 2) val = 2;
-											if (val < 1)
-											{
-												_pParticle.color = Color_Merge(pPartType.colpar[0], pPartType.colpar[1], val);
-											}
-											else
-											{
-												_pParticle.color = Color_Merge(pPartType.colpar[1], pPartType.colpar[2], val - 1);
-											}
+										else
+										{
+											_pParticle.color = Color_Merge(_pParticle.colpar[1], _pParticle.colpar[2], val - 1);
 										}
-										break;
-			}
+									}
+									break;
 		}
 	}
 }
@@ -710,8 +708,12 @@ function CreateParticle(_system, _x, _y, _parttype)
 	Result.lifetime =   MyRandom( pParType.lifemin, pParType.lifemax, 0);
 	Result.age = 0;
 	Result.color = 0xffffff;	
-	Result.colorOverride = false;	
-		
+	Result.colmode = pParType.colmode;
+	Result.colpar = [];
+	for (var i = 0; i < pParType.colpar.length; ++i)
+	{
+		Result.colpar.push(pParType.colpar[i]);
+	}
 	Compute_Color(Result);
 		
 	Result.alpha = pParType.alphastart;
@@ -1709,8 +1711,8 @@ function EmitParticles(_system, _emitter, _x, _y, _parttype, _numb, _overrideCol
 
 		if (_overrideColor)
 		{
-			particles[index].color = _col;
-			particles[index].colorOverride = true;
+			particles[index].colmode = COLMODE_ONE;
+			particles[index].colpar[0] = _col;
 		}
 	}
 }
