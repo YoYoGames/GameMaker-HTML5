@@ -1324,6 +1324,7 @@ function do_physics_raycast( xStart, yStart, xEnd, yEnd, _obj, allHits, maxFract
             if (pInst.m_physicsObject) {
                 var hit = pInst.m_physicsObject.raycast( xStart, yStart, xEnd, yEnd, maxFraction);
                 if (hit != undefined) {
+                    variable_struct_set( hit, "instance", pInst.id);
                     if (allHits) {
                         if (ret == undefined) ret = [];
                         ret = ret.concat( hit );
@@ -1360,6 +1361,7 @@ function do_physics_raycast( xStart, yStart, xEnd, yEnd, _obj, allHits, maxFract
                 if (pInst.m_physicsObject) {
                     var hit = pInst.m_physicsObject.raycast( xStart, yStart, xEnd, yEnd, maxFraction);
                     if (hit != undefined) {
+                        variable_struct_set( hit, "instance", pInst.id);
                         if (allHits) {
                             if (ret == undefined) ret = [];
                             ret = ret.concat( hit );
@@ -1384,6 +1386,7 @@ function do_physics_raycast( xStart, yStart, xEnd, yEnd, _obj, allHits, maxFract
         if (pInst.m_physicsObject) {
             var hit = pInst.m_physicsObject.raycast( xStart, yStart, xEnd, yEnd, maxFraction);
             if (hit != undefined) {
+                variable_struct_set( hit, "instance", pInst.id);
                 if (ret == undefined) ret = [];
                 ret = ret.concat( hit );
             } // end if
