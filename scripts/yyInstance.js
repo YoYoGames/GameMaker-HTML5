@@ -124,7 +124,7 @@ function    yyInstance( _xx, _yy, _id, _objectind, _AddObjectLink, _create_dummy
 	this.fOutsideRoom = false;
 	this.fInSequence = false;
 	this.fOwnedBySequence = false;
-	this.m_pControllingSeqInst = null;
+	this.m_pControllingSeqInst = undefined;
 	this.fControlledBySequence = false;
 	this.fDrawnBySequence = true;
 

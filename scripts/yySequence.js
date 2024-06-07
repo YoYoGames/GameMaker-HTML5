@@ -6681,7 +6681,7 @@ CSequenceInstance.prototype.CleanupInstances = function ()
 				{
                     pInst.SetInSequence(false);
                     pInst.SetControlledBySequence(false);
-                    pInst.SetControllingSeqInst(null);
+                    pInst.SetControllingSeqInst(undefined);
 
                     if (pInstInfo.ownedBySequence == true)
                     {
@@ -6753,7 +6753,7 @@ CSequenceInstance.prototype.SetInstanceInSequenceStatus = function (_inSequence)
                     }
                     else
                     {
-                        pInst.SetControllingSeqInst(null);
+                        pInst.SetControllingSeqInst(undefined);
                     }                    
 				}
 			}
