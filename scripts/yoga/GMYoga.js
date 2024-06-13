@@ -187,6 +187,7 @@ function FLEXPANEL_Init_From_Struct(_node, _struct)
 		{
 		case "nodes":
 			// TODO : need to remove all the children
+			flexpanel_node_remove_all_children(_node);
 			for( var n=0; n<value.length; ++n) {
 
 				var child = g_yoga.Node.createDefault();
@@ -332,6 +333,7 @@ function FLEXPANEL_Init_From_Struct(_node, _struct)
 		case "borderVertical":
 			_node.setBorder( YGEdgeVertical, yyGetReal(value));
 			break;
+		case "borderWidth":
 		case "border":
 			_node.setBorder( YGEdgeAll, yyGetReal(value));
 			break;
@@ -427,16 +429,21 @@ function flexpanel_delete_node( _node )
 // #######################################################################################
 function flexpanel_node_insert_child( _node, _child, _index)
 {	
+	_node.insertChild( _child, _index );
 }
 
 // #######################################################################################
 function flexpanel_node_remove_child( _node, _child )
 {
+	_node.removeChild(_child);
 }
 
 // #######################################################################################
 function flexpanel_node_remove_all_children( _node )
 {	
+	while( _node.getChildCount() ) {
+		_node.removeChild( _node.getChild(0) );
+	} // end while
 }
 
 // #######################################################################################
@@ -513,6 +520,7 @@ function flexpanel_node_set_data( _node, _data )
 	context.data = _data;
 }
 
+// #######################################################################################
 function FLEXPANEL_EnumToString(_enum, _value)
 {
 	var ret = undefined;
@@ -528,6 +536,7 @@ function FLEXPANEL_EnumToString(_enum, _value)
 	return ret;
 }
 
+// #######################################################################################
 function FLEXPANEL_SetIfNotDefault( _ret, _name, _value, _default, _enum)
 {
 	if (_default != "isnan" ? (_value != _default) : !isNaN(_value)) {
@@ -538,6 +547,8 @@ function FLEXPANEL_SetIfNotDefault( _ret, _name, _value, _default, _enum)
 	    variable_struct_set(_ret, _name, _value);
 	}
 }
+
+// #######################################################################################
 function FLEXPANEL_SetIfNotDefaultV( _ret, _name, _value, _default)
 {
 	if (_value == undefined) return;
@@ -673,280 +684,394 @@ function flexpanel_node_layout_get_position( _node, _relative )
 	return ret;
 }
 
+// #######################################################################################
+function FLEXPANEL_CreateValueResult( _v )
+{
+	var ret = {};
+    ret.__yyIsGMLObject = true;	
+    variable_struct_set(ret, "unit", _v.unit);
+    variable_struct_set(ret, "value", _v.value);
+}
+
 
 // #######################################################################################
 function flexpanel_node_style_get_align_content(_node) 
 {
-
+	return _node.getAlignContent();
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_align_items( _node )
 {
-
+	return _node.getAlignItems();
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_align_self(_node )
 {
-
+	return _node.getAlignSelf();
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_aspect_ratio( _node )
 {
-
+	return _node.getAspecRatio();
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_display( _node )
 {
-
+	return _node.getDisplay();
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_flex( _node )
 {
-
+	var context = g_contextYoga.get( _node.M.O );
+	return context.flex;
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_flex_grow( _node )
 {
-
+	return _node.getFlexGrow();
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_flex_shrink( _node )
 {
-
+	return _node.getFlexShrink();
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_flex_basis( _node )
 {
-
+	return FLEXPANEL_CreateValueResult(_node.getFlexBasis());
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_flex_direction( _node )
 {
-
+	return _node.getFlexDirection();
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_flex_wrap( _node )
 {
-
+	return _node.getFlexWrap();
 }
 
 // #######################################################################################
-function flexpanel_node_style_get_gap( _node )
+function flexpanel_node_style_get_gap( _node, _gutter )
 {
-
+	return _node.getGap( _gutter );
 }
 
 // #######################################################################################
-function flexpanel_node_style_get_position( _node )
+function flexpanel_node_style_get_position( _node, _edge )
 {
-
+	return FLEXPANEL_CreateValueResult(_node.getPosition(_edge));
 }
 
 // #######################################################################################
-function flexpanel_node_style_get_justify_content( _node )
+function flexpanel_node_style_get_justify_content( _node, _justify )
 {
-
+	return _node.getJustifyContent( _justify );
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_direction( _node )
 {
-
+	var context = g_contextYoga.get( _node.M.O );
+	return context.direction;
 }
 
 // #######################################################################################
-function flexpanel_node_style_get_margin( _node )
+function flexpanel_node_style_get_margin( _node, _edge )
 {
-
+	return FLEXPANEL_CreateValueResult(_node.getMargin(_edge));
 }
 
 // #######################################################################################
-function flexpanel_node_style_get_padding( _node )
+function flexpanel_node_style_get_padding( _node, _edge )
 {
-
+	return FLEXPANEL_CreateValueResult(_node.getPadding(_edge));
 }
 
 // #######################################################################################
-function flexpanel_node_style_get_border( _node )
+function flexpanel_node_style_get_border( _node, _edge )
 {
-
+	return _node.getBorder(_edge);
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_position_type( _node )
 {
-
+	return _node.getPositionType();
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_min_width( _node )
 {
-
+	return FLEXPANEL_CreateValueResult(_node.getMinWidth());
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_max_width( _node )
 {
-
+	return FLEXPANEL_CreateValueResult(_node.getMaxWidth());
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_min_height( _node )
 {
-
+	return FLEXPANEL_CreateValueResult(_node.getMinHeight());
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_max_height( _node )
 {
-
+	return FLEXPANEL_CreateValueResult(_node.getMaxHeight());
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_width( _node )
 {
-
+	return FLEXPANEL_CreateValueResult(_node.getWidth());
 }
 
 // #######################################################################################
 function flexpanel_node_style_get_height( _node )
 {
-
+	return FLEXPANEL_CreateValueResult(_node.getHeight());
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_align_content(_node, _value)
-{	
+{
+	_node.setAlignContent( yyGetInt32(_value) )	;
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_align_items(_node, _value)
 {	
+	_node.setAlignItems( yyGetInt32(_value) );
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_align_self(_node, _value)
 {	
+	_node.setAlignSelf( yyGetInt32(_value) );
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_aspect_ratio(_node, _value)
 {	
+	_node.setAspectRatio(yyGetReal(_value));
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_display(_node, _value)
 {	
+	_node.setDisplay( yyGetInt32(_value) );
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_flex(_node, _value)
-{	
+{
+	var context = g_contextYoga.get( _node.M.O );
+	_value = yyGetReal(_value);
+	_node.setFlex( _value );
+	context.flex = _value;
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_flex_grow(_node, _value)
 {	
+	_node.setFlexGrow( yyGetReal(_value) );
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_flex_shrink(_node, _value)
 {	
+	_node.setFlexShrink( yyGetReal(_value) );
 }
 
 // #######################################################################################
-function flexpanel_node_style_set_flex_basis(_node, _value)
+function flexpanel_node_style_set_flex_basis(_node, _unit, _value)
 {	
+	switch( _unit )
+	{
+	case YGUnitAuto:
+		_node.setFlexBasisAuto();
+		break;
+	case YGUnitPoint:
+		_node.setFlexBasis( yyGetReal(_value) );
+		break;
+	case YGUnitPercent:
+		_node.setFlexBasisPercent( yyGetReal(_value) );
+		break;
+	} // end switch
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_flex_direction(_node, _value)
-{	
+{
+	_node.setFlexDirection( yyGetInt32(_value) );
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_flex_wrap(_node, _value)
 {	
+	_node.setFlexWrap( yyGetInt32(_value) );
 }
 
 // #######################################################################################
-function flexpanel_node_style_set_gap(_node, _value)
-{	
+function flexpanel_node_style_set_gap(_node, _gutter, _value)
+{
+	_node.setGap( _gutter, yyGetReal(_value) );
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_position(_node, _value)
 {	
+	switch( _unit )
+	{
+	case YGUnitPoint:
+		_node.setPosition( yyGetReal(_value) );
+		break;
+	case YGUnitPercent:
+		_node.setPositionPercent( yyGetReal(_value) );
+		break;
+	} // end switch
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_justify_content(_node, _value)
-{	
+{
+	_node.setJustifyContent( yyGetInt32(_value) );
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_direction(_node, _value)
 {	
+	var context = g_contextYoga.get( _node.M.O );
+	context.direction = yyGetInt32(_value);	
 }
 
 // #######################################################################################
-function flexpanel_node_style_set_margin(_node, _value)
+function flexpanel_node_style_set_margin(_node, _edge, _value)
 {	
+	_node.setMargin( yyGetInt32(_edge), yyGetReal(_value));
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_padding(_node, _value)
 {	
+	_node.setPadding( yyGetInt32(_edge), yyGetReal(_value));
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_border(_node, _value)
 {	
+	_node.setBorder( yyGetInt32(_edge), yyGetReal(_value));
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_position_type(_node, _value)
 {	
+	_node.setPositionType(yyGetInt32(_value));
+
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_min_width(_node, _value)
 {	
+	switch( _unit )
+	{
+	case YGUnitPoint:
+		_node.setMinWidth( yyGetReal(_value) );
+		break;
+	case YGUnitPercent:
+		_node.setMinWidthPercent( yyGetReal(_value) );
+		break;
+	} // end switch
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_max_width(_node, _value)
 {	
+	switch( _unit )
+	{
+	case YGUnitPoint:
+		_node.setMaxWidth( yyGetReal(_value) );
+		break;
+	case YGUnitPercent:
+		_node.setMaxWidthPercent( yyGetReal(_value) );
+		break;
+	} // end switch
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_min_height(_node, _value)
 {	
+	switch( _unit )
+	{
+	case YGUnitPoint:
+		_node.setMinHeight( yyGetReal(_value) );
+		break;
+	case YGUnitPercent:
+		_node.setMinHeightPercent( yyGetReal(_value) );
+		break;
+	} // end switch
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_max_height(_node, _value)
 {	
+	switch( _unit )
+	{
+	case YGUnitPoint:
+		_node.setMaxHeight( yyGetReal(_value) );
+		break;
+	case YGUnitPercent:
+		_node.setMaxHeightPercent( yyGetReal(_value) );
+		break;
+	} // end switch
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_width(_node, _value)
 {	
+	switch( _unit )
+	{
+	case YGUnitAuto:
+		_node.setWidthAuto();
+		break;
+	case YGUnitPoint:
+		_node.setWidth( yyGetReal(_value) );
+		break;
+	case YGUnitPercent:
+		_node.setWidthPercent( yyGetReal(_value) );
+		break;
+	} // end switch
 }
 
 // #######################################################################################
 function flexpanel_node_style_set_height(_node, _value)
 {	
+	switch( _unit )
+	{
+	case YGUnitAuto:
+		_node.setHeightAuto();
+		break;
+	case YGUnitPoint:
+		_node.setHeight( yyGetReal(_value) );
+		break;
+	case YGUnitPercent:
+		_node.setHeightPercent( yyGetReal(_value) );
+		break;
+	} // end switch
 }
 
 
