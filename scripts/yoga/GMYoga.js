@@ -58,56 +58,56 @@ const YGEdgeAll = 8;
 
 
 var g_positionType = {
-	"static" : 0,
-	"relative" : 1,
-	"absolute" : 2,
+	"static" : YGPositionTypeStatic,
+	"relative" : YGPositionTypeRelative,
+	"absolute" : YGPositionTypeAbsolute,
 };
 
 var g_alignType = {
-	"auto" : 0,
-	"flex-start" : 1,
-	"center" : 2,
-	"flex-end" : 3,
-	"stretch" : 4,
-	"baseline" : 5,
-	"space-between" : 6,
-	"space-around" : 7,
-	"space-evenly" : 8,
-	"initial" : 4,
+	"auto" : YGAlignAuto,
+	"flex-start" : YGAlignFlexStart,
+	"center" : YGAlignCenter,
+	"flex-end" : YGAlignFlexEnd,
+	"stretch" : YGAlignStretch,
+	"baseline" : YGAlignBaseline,
+	"space-between" : YGAlignSpaceBetween,
+	"space-around" : YGAlignSpaceAround,
+	"space-evenly" : YGAlignSpaceEvenly,
+	"initial" : YGAlignStretch,
 };
 
 var g_wrapType = {
-	"initial" : 0,
-	"no-wrap" : 0,
-	"wrap" : 1,
-	"wrap-reverse" : 2,
+	"initial" : YGWrapNoWrap,
+	"no-wrap" : YGWrapNoWrap,
+	"wrap" : YGWrapWrap,
+	"wrap-reverse" : YGWrapWrapReverse,
 };
 
 var g_displayType = {
-	"flex" : 0,
-	"none" : 1,
+	"flex" : YGDisplayFlex,
+	"none" : YGDisplayNone,
 };
 
 var g_flexDirectionType = {
-	"column" : 0,
-	"column-reverse" : 1,
-	"row" : 2,
-	"row-reverse" : 3,
+	"column" : YGFlexDirectionColumn,
+	"column-reverse" : YGFlexDirectionColumnReverse,
+	"row" : YGFlexDirectionRow,
+	"row-reverse" : YGFlexDirectionRowReverse,
 };
 
 var g_justifyType = {
-	"flex-start" : 0,
-	"center" : 1,
-	"flex-end" : 2,
-	"space-between" : 3,
-	"space-around" : 4,
-	"space-evenly" : 5,
+	"flex-start" : YGJustifyFlexStart,
+	"center" : YGJustifyCenter,
+	"flex-end" : YGJustifyFlexEnd,
+	"space-between" : YGJustifySpaceBetween,
+	"space-around" : YGJustifySpaceAround,
+	"space-evenly" : YGJustifySpaceEvenly,
 };
 
 var g_directionType = {
-	"ltr" : 1,
-	"rtl" : 2,
-	"inherit" : 0,
+	"ltr" : YGDirectionLTR,
+	"rtl" : YGDirectionRTL,
+	"inherit" : YGDirectionInherit,
 };
 
 var g_contextYoga = new Map();
