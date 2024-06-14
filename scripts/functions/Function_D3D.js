@@ -74,6 +74,7 @@ function gpu_set_tex_max_aniso(){}
 function gpu_set_tex_max_aniso_ext(){}
 function gpu_set_tex_mip_enable(){}
 function gpu_set_tex_mip_enable_ext(){}
+function gpu_set_scissor(){}
 
 function gpu_get_stencil_enable(){}
 function gpu_get_stencil_func(){}
@@ -110,6 +111,7 @@ function gpu_get_tex_filter(){}
 function gpu_get_tex_filter_ext(){}
 function gpu_get_tex_repeat(){}
 function gpu_get_tex_repeat_ext(){}
+function gpu_get_scissor(){}
 
 function gpu_get_tex_mip_filter(){}
 function gpu_get_tex_mip_filter_ext(){}
@@ -249,6 +251,9 @@ function gpu_set_state(){}
     compile_if_used(gpu_pop_state = _stub("gpu_pop_state"));
     compile_if_used(gpu_get_state = _stub("gpu_get_state"));
     compile_if_used(gpu_set_state = _stub("gpu_set_state"));
+
+    compile_if_used(gpu_get_scissor = _stub("gpu_get_scissor"));
+    compile_if_used(gpu_set_scissor = _stub("gpu_set_scissor"));
 })();
 // @endif
 
@@ -413,6 +418,9 @@ function InitD3DFunctions() {
 
     compile_if_used(gpu_get_state = WebGL_gpu_get_state);
     compile_if_used(gpu_set_state = WebGL_gpu_set_state);
+
+    compile_if_used(gpu_get_scissor = WebGL_gpu_get_scissor);
+    compile_if_used(gpu_set_scissor = WebGL_gpu_set_scissor);
 
     g_matstack[0] = new Matrix();   // this should create a unit matrix
 }
@@ -1992,7 +2000,29 @@ function WebGL_gpu_set_state(_map)
     }    
 }
 
+function WebGL_gpu_get_scissor()
+{
+    var ret = {};
+    ret.__yyIsGMLObject = true; 
+
+    variable_struct_set(ret, "x", g_webGL.m_CommandBuilder.m_scissor.x );
+    variable_struct_set(ret, "y", g_webGL.m_CommandBuilder.m_scissor.y );
+    variable_struct_set(ret, "w", g_webGL.m_CommandBuilder.m_scissor.w );
+    variable_struct_set(ret, "h", g_webGL.m_CommandBuilder.m_scissor.h );
+
+    return ret;
+}
+
+function WebGL_gpu_set_scissor( _x, _y, _w, _h)
+{
+    if (typeof _x == "object") {
+        g_webGL.SetScissor( _x.x, _x.y, _x.w, _x.h);        
+    } // end if
+    else {
+        g_webGL.SetScissor( _x, _y, _w, _h);
+    } // end else
+}
+
 function WebGL_Generic_Stub()
 {
-
 }

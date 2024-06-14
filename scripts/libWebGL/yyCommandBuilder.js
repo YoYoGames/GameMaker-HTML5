@@ -65,7 +65,8 @@ function yyCommandBuilder(_interpolatePixels) {
         CMD_SETFOG = 24,
         CMD_SETLIGHTENABLE = 25,
         CMD_SETALPHATEST = 26,
-        CMD_UPDATE_TEXTURE = 27;
+        CMD_UPDATE_TEXTURE = 27,
+        CMD_SETSCISSOR = 28;
         
     // Shader constant setup for m_matrices
     var CMD_MATRIX_VIEW = 0,
@@ -164,6 +165,7 @@ function yyCommandBuilder(_interpolatePixels) {
         for (var i = 0; i < CMD_MATRIX_MAX; i++) {
 	        m_matrices[i] = new Matrix();
 	    }
+        gl.enable(gl.SCISSOR_TEST);
 	    
 	    // Set default GL states 
 	    /*gl.disable(gl.CULL_FACE);	    
@@ -189,6 +191,7 @@ function yyCommandBuilder(_interpolatePixels) {
 	    m_lastTexture = [];
 	    m_lastVBuffer = undefined;
 	    m_lastShader = undefined;
+        m_scissor = { x : 0, y : 0, w : 0, h : 0 };
 	    
 	    m_lastTexture[0] = 1; 	// can't be NULL as thats a FLAT texture
 	    m_lastTexture[1] = 1;
@@ -419,6 +422,21 @@ function yyCommandBuilder(_interpolatePixels) {
 	    m_commandList.push(_y);
 	    m_commandList.push(_w);
 	    m_commandList.push(_h);
+    };
+
+    // #############################################################################################
+    /// Property: <summary>
+    ///             
+    ///           </summary>
+    // #############################################################################################
+    /** @this {yyCommandBuilder} */
+    this.SetScissor = function (_x, _y, _w, _h) {
+
+        m_commandList.push(CMD_SETSCISSOR);
+        m_commandList.push(_x);
+        m_commandList.push(_y);
+        m_commandList.push(_w);
+        m_commandList.push(_h);
     };
 
     // #############################################################################################
@@ -1405,6 +1423,19 @@ function yyCommandBuilder(_interpolatePixels) {
                     {
                         gl.viewport(m_commandList[i + 1], m_commandList[i + 2], m_commandList[i + 3], m_commandList[i + 4]);
                         gl.scissor(m_commandList[i + 1], m_commandList[i + 2], m_commandList[i + 3], m_commandList[i + 4]);
+                        i += 5;
+                        break;
+                    }
+
+                case CMD_SETSCISSOR:
+                    {
+                        gl.scissor(m_commandList[i + 1], m_commandList[i + 2], m_commandList[i + 3], m_commandList[i + 4]);
+                        m_scissor = { 
+                            x : m_commandList[i + 1], 
+                            y : m_commandList[i + 2],
+                            w : m_commandList[i + 3], 
+                            h : m_commandList[i + 4] 
+                        };
                         i += 5;
                         break;
                     }
