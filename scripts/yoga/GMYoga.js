@@ -1,4 +1,4 @@
-const Yoga = require('/yoga-wasm-base64-csm.js')
+const Yoga = require('/yoga-wasm-base64-csm.js');
 var g_yoga = null;
 
 
@@ -168,7 +168,7 @@ function FLEXPANEL_SetCSSValueEdge( _node, _value, _edge, _set, _setPercent )
 // #######################################################################################
 function FLEXPANEL_Init_From_Struct(_node, _struct)
 {
-	var context = g_contextYoga.get( _node.M.O );
+	var context = g_contextYoga.get( _node["M"]["O"] );
 	for( var key in _struct) {
 		if (!_struct.hasOwnProperty(key)) continue;
 
@@ -190,8 +190,8 @@ function FLEXPANEL_Init_From_Struct(_node, _struct)
 			flexpanel_node_remove_all_children(_node);
 			for( var n=0; n<value.length; ++n) {
 
-				var child = g_yoga.Node.createDefault();
-				g_contextYoga.set( child.M.O, {} )
+				var child = g_yoga["Node"]["createDefault"]();
+				g_contextYoga.set( child["M"]["O"], {} );
 				_node.insertChild( child, n );
 
 				FLEXPANEL_Init_From_Struct( child, value[n] );
@@ -234,14 +234,14 @@ function FLEXPANEL_Init_From_Struct(_node, _struct)
 			_node.setFlexWrap( FLEXPANEL_StringToEnum(g_wrapType, value) );
 			break;
 		case "gapColumn":
-			_node.setGap( YGGutterColumn, yyGetReal(value) )
+			_node.setGap( YGGutterColumn, yyGetReal(value) );
 			break;
 		case "gapRow":
 		case "rowGap":
-			_node.setGap( YGGutterRow, yyGetReal(value) )
+			_node.setGap( YGGutterRow, yyGetReal(value) );
 			break;
 		case "gap":
-			_node.setGap( YGGutterAll, yyGetReal(value) )
+			_node.setGap( YGGutterAll, yyGetReal(value) );
 			break;
 		case "justifyContent":
 			_node.setJustifyContent( FLEXPANEL_StringToEnum(g_justifyType, value) );
@@ -384,15 +384,15 @@ function FLEXPANEL_Init_From_Struct(_node, _struct)
 			FLEXPANEL_SetCSSValue( _node, value, function( n, v ) { n.setHeight(v) }, function( n, v ) { n.setHeightPercent(v) }, function( n, v ) { n.setHeightAuto() } );
 			break;
 		case "name":
-			g_contextYoga.get( _node.M.O ).name = value;
+			g_contextYoga.get( _node["M"]["O"] ).name = value;
 			break;
 		case "data":
-			g_contextYoga.get( _node.M.O ).data = value;
+			g_contextYoga.get( _node["M"]["O"] ).data = value;
 			break;
 		case "__yyIsGMLObject":
 		case "__type": break;
 		default:
-			console.log( "flexpanel_create_node : unknown struct key " + key );
+			//console.log( "flexpanel_create_node : unknown struct key " + key );
 			break;
 		}
 
@@ -414,8 +414,8 @@ function FLEXPANEL_Handle_Struct( _node, _struct)
 // #######################################################################################
 function flexpanel_create_node( _struct )
 {	
-	var ret = g_yoga.Node.createDefault();
-	g_contextYoga.set( ret.M.O, {} )
+	var ret = g_yoga[ "Node" ]["createDefault"]();
+	g_contextYoga.set( ret["M"]["O"], {} );
 	FLEXPANEL_Handle_Struct( ret, _struct);
 	return ret;
 }
@@ -423,7 +423,7 @@ function flexpanel_create_node( _struct )
 // #######################################################################################
 function flexpanel_delete_node( _node )
 {	
-	g_yoga.Node.destroy(_node);
+	g_yoga["Node"]["destroy"](_node);
 }
 
 // #######################################################################################
@@ -456,7 +456,7 @@ function flexpanel_node_get_num_children( _node )
 function FLEXPANEL_Find_Child(_node, _name)
 {
 	var ret = undefined;
-	var context = g_contextYoga.get( _node.M.O );
+	var context = g_contextYoga.get( _node["M"]["O"] );
 	if (context.name == _name) {
 		ret = _node;
 	}
@@ -495,28 +495,28 @@ function flexpanel_node_get_parent( _node )
 // #######################################################################################
 function flexpanel_node_get_name( _node )
 {	
-	var context = g_contextYoga.get( _node.M.O );
+	var context = g_contextYoga.get( _node["M"]["O"] );
 	return context.name;
 }
 
 // #######################################################################################
 function flexpanel_node_set_name( _node, _name )
 {	
-	var context = g_contextYoga.get( _node.M.O );
+	var context = g_contextYoga.get( _node["M"]["O"] );
 	context.name = _name;
 }
 
 // #######################################################################################
 function flexpanel_node_get_data( _node )
 {	
-	var context = g_contextYoga.get( _node.M.O );
+	var context = g_contextYoga.get( _node["M"]["O"] );
 	return context.data;
 }
 
 // #######################################################################################
 function flexpanel_node_set_data( _node, _data )
 {	
-	var context = g_contextYoga.get( _node.M.O );
+	var context = g_contextYoga.get( _node["M"]["O"] );
 	context.data = _data;
 }
 
@@ -573,7 +573,7 @@ function flexpanel_node_get_struct( _node )
 {
 	var ret = {};
     ret.__yyIsGMLObject = true;	
-	var context = g_contextYoga.get( _node.M.O );
+	var context = g_contextYoga.get( _node["M"]["O"] );
     FLEXPANEL_SetIfNotDefault( ret, "alignContent", _node.getAlignContent(), YGAlignFlexStart );
     FLEXPANEL_SetIfNotDefault( ret, "alignItems", _node.getAlignItems(), YGAlignStretch );
     FLEXPANEL_SetIfNotDefault( ret, "alignSelf", _node.getAlignSelf(), YGAlignAuto );
@@ -727,7 +727,7 @@ function flexpanel_node_style_get_display( _node )
 // #######################################################################################
 function flexpanel_node_style_get_flex( _node )
 {
-	var context = g_contextYoga.get( _node.M.O );
+	var context = g_contextYoga.get( _node["M"]["O"] );
 	return context.flex;
 }
 
@@ -782,7 +782,7 @@ function flexpanel_node_style_get_justify_content( _node, _justify )
 // #######################################################################################
 function flexpanel_node_style_get_direction( _node )
 {
-	var context = g_contextYoga.get( _node.M.O );
+	var context = g_contextYoga.get( _node["M"]["O"] );
 	return context.direction;
 }
 
@@ -879,7 +879,7 @@ function flexpanel_node_style_set_display(_node, _value)
 // #######################################################################################
 function flexpanel_node_style_set_flex(_node, _value)
 {
-	var context = g_contextYoga.get( _node.M.O );
+	var context = g_contextYoga.get( _node["M"]["O"] );
 	_value = yyGetReal(_value);
 	_node.setFlex( _value );
 	context.flex = _value;
@@ -955,7 +955,7 @@ function flexpanel_node_style_set_justify_content(_node, _value)
 // #######################################################################################
 function flexpanel_node_style_set_direction(_node, _value)
 {	
-	var context = g_contextYoga.get( _node.M.O );
+	var context = g_contextYoga.get( _node["M"]["O"] );
 	context.direction = yyGetInt32(_value);	
 }
 
