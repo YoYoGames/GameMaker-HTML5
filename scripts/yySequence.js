@@ -72,8 +72,8 @@ eTT_Invisible = 1;
 eTT_Disable = 2;
 eTT_Count = 3;
 
-eSM_Loop = 0;
-eSM_Single = 1;
+eSM_Single = 0;
+eSM_Loop = 1;
 
 sRM_DirectAssign = 0;
 sRM_Lerp = 1;
