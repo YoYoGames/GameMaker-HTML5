@@ -321,9 +321,10 @@ function    sprite_set_bbox( _index, _left, _top, _right, _bottom )
     pSpr.bbox.bottom = bottom;
 
 	if(maskupdate_needed)
+	{
 		pSpr.CreateMask();
-
-
+		pSpr.MarkInstancesAsDirty();
+	}
 }
 
 // #############################################################################################
@@ -348,6 +349,7 @@ function sprite_set_bbox_mode( _index, _mode )
 	if ( _mode == pSpr.bboxmode ) return;
 
 	pSpr.bboxmode = _mode;
+	pSpr.MarkInstancesAsDirty();
 }
 
 
@@ -1168,134 +1170,98 @@ function sprite_collision_mask( _ind, _sepmasks, _bbmode,_bbleft,_bbtop,_bbright
     if( pSpr===null) { return false; }
     pSpr.colcheck = yySprite_CollisionType.PRECISE;
 
-    // Clean up if required
-    pSpr.colmask = [];
-    pSpr.sepmasks = yyGetInt32(_sepmasks);
+	_sepmasks   = yyGetInt32(_sepmasks);
+	_bbmode     = yyGetInt32(_bbmode);
+	_bbleft     = yyGetInt32(_bbleft);
+	_bbright    = yyGetInt32(_bbright);
+	_bbtop      = yyGetInt32(_bbtop);
+	_bbbottom   = yyGetInt32(_bbbottom);
+	_kind       = yyGetInt32(_kind);
+	_tolerance  = yyGetInt32(_tolerance);
 
-    // Check whether there are any images
-    pSpr.bbox = new YYRECT();
-    if (pSpr.numb == 0)
-    { 
-        return;
-    }
+	var bbox = new YYRECT();
+	bbox.left    = _bbleft;
+	bbox.right   = _bbright;
+	bbox.top     = _bbtop;
+	bbox.bottom  = _bbbottom;
 
-    _bbmode = yyGetInt32(_bbmode);
-    _kind = yyGetInt32(_kind);
-    _tolerance = yyGetInt32(_tolerance);
-
-
-	
-    pSpr.bboxmode = _bbmode;
-
-	// Create the bounding box
-    if (_bbmode == 0)
-    {
-		// precise mode (should really look at the mask and get the bounds...)
-		var lleft = 100000;
-		var rright = -100000;
-		var ttop = 100000;
-		var bbottom  = -100000; 
-		
-		
-		for (var i = 0; i < pSpr.numb; i++)
-  		{
-  		    var _pTPE = pSpr.ppTPE[i];
-  		    var pByteData = Graphics_ExtractImageBytes(_pTPE);
-		    var index = 0;
-		    for (var k = 0; k < _pTPE.oh; k++)
-		    {
-		        for (var j = 0; j < _pTPE.ow; j++)
-		        {
-		            var index =((k*_pTPE.ow +j)*4)+3;
-		            if(index<pByteData.length)
-		            {
-			            if (pByteData[index] > _tolerance) 
-			            {
-			                if(j<lleft)
-			                    lleft = j;
-			                if(j>rright)
-			                    rright = j;
-			                if(k<ttop)
-			                    ttop = k;
-			                if(k>bbottom)
-			                    bbottom = k;
-			            }
-			        }
-			    }		    
-		    }
-  		}
-  		if(lleft==0x7FFFFFFF) //No valid pixels
-  		{
-  		    pSpr.bbox.left = 0;
-		    pSpr.bbox.right =0;
-		    pSpr.bbox.top = 0;
-		    pSpr.bbox.bottom = 0;
-  		}
-  		else
-  		{
-  		    pSpr.bbox.left = lleft;
-		    pSpr.bbox.right =rright;
-		    pSpr.bbox.top = ttop;
-		    pSpr.bbox.bottom = bbottom;
-  		}	
-	} else if (_bbmode == 1)
+	if(pSpr.m_skeletonSprite)
 	{
-		// full image
-		pSpr.bbox.left = 0;
-		pSpr.bbox.right = pSpr.width;
-		pSpr.bbox.top = 0;
-		pSpr.bbox.bottom = pSpr.height;
-	} else
-	{
-		// user defined mode
-		pSpr.bbox.left = yyGetInt32(_bbleft);
-		pSpr.bbox.right = yyGetInt32(_bbright);
-		pSpr.bbox.top = yyGetInt32(_bbtop);
-		pSpr.bbox.bottom = yyGetInt32(_bbbottom); 	
-
-		if (pSpr.bbox.top > pSpr.bbox.bottom)
+		if(_bbmode != 1 && _bbmode != 2)
 		{
-			var tmp = pSpr.bbox.bottom;
-			pSpr.bbox.bottom = pSpr.bbox.top;
-			pSpr.bbox.top = tmp;
+			yyError("sprite_collision_mask: bboxmode must be bboxmode_fullimage or bboxmode_manual for Spine sprites");
+			return;
 		}
 
-		if (pSpr.bbox.left > pSpr.bbox.right)
+		if (_kind != 1 && _kind != 4)
 		{
-			var tmp = pSpr.bbox.right;
-			pSpr.bbox.right = pSpr.bbox.left;
-			pSpr.bbox.left = tmp;
+			yyError("sprite_collision_mask: kind must be bboxkind_rectangular or bboxkind_spine for Spine sprites");
+			return;
 		}
 
+		pSpr.SetBoundingBoxMode(_bbmode);
+		pSpr.SetBoundingBox(bbox);  /* will no-op if _bbmode != bboxmode_manual */
+		pSpr.ComputeBoundingBox();  /* will no-ip if _bbmode == bboxmode_manual */
+
+		if (_kind == 1)
+		{
+			/* bboxkind_rectangular */
+			pSpr.colcheck = yySprite_CollisionType.AXIS_ALIGNED_RECT;
+		}
+		else if (_kind == 4)
+		{
+			/* bboxkind_spine */
+			pSpr.colcheck = yySprite_CollisionType.SPINE_MESH;
+		}
+
+		pSpr.MarkInstancesAsDirty();
 	}
+	else{
+		if(_kind == 4)
+		{
+			yyError("sprite_collision_mask: kind cannot be bboxkind_spine for bitmap sprites");
+		}
 
-
-    // if bounding box mode, then don't assign sprites, just fill in the bounding box.
-
-
-	if (_kind != MASK_RECTANGLE)
-	{
-		// Compute the mask(s)
-		var ppTPE = pSpr.ppTPE;
+		// Clean up if required
 		pSpr.colmask = [];
-		if(pSpr.sepmasks)
+		pSpr.sepmasks = _sepmasks;
+
+		// Check whether there are any images
+		pSpr.bbox = new YYRECT();
+		if (pSpr.numb == 0)
 		{
-			for (var i = 0; i < pSpr.numb; i++)
+			return;
+		}
+
+		pSpr.SetBoundingBoxMode(_bbmode);
+		pSpr.SetBoundingBox(bbox); /* will no-op if _bbmode != bboxmode_manual */
+
+		// if bounding box mode, then don't assign sprites, just fill in the bounding box.
+
+		if (_kind != MASK_RECTANGLE)
+		{
+			// Compute the mask(s)
+			var ppTPE = pSpr.ppTPE;
+			pSpr.colmask = [];
+			if(pSpr.sepmasks)
 			{
-				pSpr.colmask[i] = TMaskCreate(null, pSpr.ppTPE[i], _bbmode, pSpr.bbox, _kind, _tolerance);
+				for (var i = 0; i < pSpr.numb; i++)
+				{
+					pSpr.colmask[i] = TMaskCreate(null, pSpr.ppTPE[i], _bbmode, pSpr.bbox, _kind, _tolerance);
+				}
 			}
-		}
-		else
-		{
-			// If not separate masks, then OR them altogether. 
-			pSpr.colmask[0] = TMaskCreate(pSpr.colmask[0], pSpr.ppTPE[0], _bbmode, pSpr.bbox, _kind, _tolerance);
-		
-			for (var i=1;i < pSpr.numb; i++){
-				pSpr.colmask[0] = TMaskCreate(pSpr.colmask[0], pSpr.ppTPE[i], _bbmode, pSpr.bbox, _kind, _tolerance);
+			else
+			{
+				// If not separate masks, then OR them altogether.
+				pSpr.colmask[0] = TMaskCreate(pSpr.colmask[0], pSpr.ppTPE[0], _bbmode, pSpr.bbox, _kind, _tolerance);
+
+				for (var i=1;i < pSpr.numb; i++){
+					pSpr.colmask[0] = TMaskCreate(pSpr.colmask[0], pSpr.ppTPE[i], _bbmode, pSpr.bbox, _kind, _tolerance);
+				}
 			}
+			pSpr.maskcreated = true;
 		}
-		pSpr.maskcreated = true;   
-	}	    
+	}
 }
      
 function SetColMaskBit(u, v, mwidth,pMaskData,length)
