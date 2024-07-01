@@ -99,7 +99,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
             variable_struct_set(pPSI, "oldtonew", pPS.oldtonew ? true : false);
             variable_struct_set(pPSI, "global_space", pPS.globalSpaceParticles);
 
-            for (var i = 0; i < pPS.emitters.length; ++i)
+            for (var i = pPS.emitters.length - 1; i >= 0; --i)
             {
                 var emitter = pPS.emitters[i];
                 if (emitter)
@@ -146,6 +146,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
         var emitter = emitters[i];
         var pEmitterI = new GMLObject();
 
+        variable_struct_set(pEmitterI, "ind", i);
         variable_struct_set(pEmitterI, "name", emitter.name);
         variable_struct_set(pEmitterI, "mode", emitter.mode);
         variable_struct_set(pEmitterI, "number", emitter.number);
@@ -234,7 +235,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
 // #############################################################################################
 function particle_get_info(_ind)
 {
-    var isInstance = ((_ind instanceof YYRef) && _(ind.type == REFID_PART_SYSTEM));
+    var isInstance = ((_ind instanceof YYRef) && (_ind.type == REFID_PART_SYSTEM));
     return ParticleSystemGetInfoImpl(_ind, isInstance);
 }
 
@@ -500,8 +501,28 @@ function part_system_update(_ind)
 // #############################################################################################
 function part_system_drawit(_ind)
 {
-    _ind = GetParticleSystemInstanceIndex(_ind);
-    return ParticleSystem_Draw(_ind);
+    ps = GetParticleSystemInstanceIndex(_ind);
+
+    if (!ParticleSystem_Exists(ps)) return;
+
+	var pSystem = g_ParticleSystems[ps];
+
+	var matWorldOld = WebGL_GetMatrix(MATRIX_WORLD);
+
+	var matRot = new Matrix();
+	matRot.SetZRotation(pSystem.angle);
+
+	var matPos = new Matrix();
+	matPos.SetTranslation(-pSystem.xdraw, -pSystem.ydraw, 0.0);
+	
+	var matWorldNew = new Matrix();
+	matWorldNew.Multiply(matPos, matRot);
+	matWorldNew.Translation(pSystem.xdraw, pSystem.ydraw, 0.0);
+
+	WebGL_SetMatrix(MATRIX_WORLD, matWorldNew);
+	ParticleSystem_SetMatrix(ps, matWorldNew);
+	ParticleSystem_Draw(ps);
+	WebGL_SetMatrix(MATRIX_WORLD, matWorldOld);
 }
 
 
