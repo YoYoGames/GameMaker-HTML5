@@ -365,7 +365,7 @@ function positionHandler(e)
         
             switch (type) 
             {
-                case "start":  
+                case "start":
                 case "move":   
                     {
                         g_ButtonButton = 0;
@@ -373,21 +373,35 @@ function positionHandler(e)
                             g_ButtonButton = button;
                         } // end if
 
-                        if(button != -1)
+                        // There was a change in the buttons
+                        if (button != -1)
                         {
                             // Swap middle and RIGHT button, so middle is button 3.   
                             if (g_ButtonButton == 2) g_ButtonButton = 1;
                             else if (g_ButtonButton == 1) g_ButtonButton = 2;
 
-                            g_EventLastButtonDown = g_ButtonButton;
-                            g_EventButtonDown = g_ButtonButton;
-                            g_EventButtons = buttons;
+                            // There are less buttons pressed now (there was a release)
+                            if (buttons < g_EventButtons) {
+                                // Set the g_EventButtonDown to -1 (mouse_button == 0)
+                                g_EventButtonDown = -1;
+                            } 
+                            // There was a button press
+                            else {
+                                g_EventLastButtonDown = g_ButtonButton;
+                                g_EventButtonDown = g_ButtonButton;
+                            }
                         }
                     } // end block
                     break;
 
-                case "end":    g_EventButtons = 0; break;                
+                case "end":
+                    // There was a release, set the g_EventButtonDown to -1 (mouse_button == 0)
+                    g_EventButtonDown = -1;
+                    break;                
             }
+
+            // Always update the buttons cache
+            g_EventButtons = buttons;
             //console.log( "x - " + eventX + ", y - " + eventY + " buttons - " + buttons);
         }
         
