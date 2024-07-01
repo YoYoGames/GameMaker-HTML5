@@ -1423,6 +1423,12 @@ function yyCommandBuilder(_interpolatePixels) {
                     {
                         gl.viewport(m_commandList[i + 1], m_commandList[i + 2], m_commandList[i + 3], m_commandList[i + 4]);
                         gl.scissor(m_commandList[i + 1], m_commandList[i + 2], m_commandList[i + 3], m_commandList[i + 4]);
+                        m_scissor = { 
+                            x : m_commandList[i + 1], 
+                            y : m_commandList[i + 2],
+                            w : m_commandList[i + 3], 
+                            h : m_commandList[i + 4] 
+                        };
                         i += 5;
                         break;
                     }
