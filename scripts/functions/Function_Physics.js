@@ -1325,14 +1325,15 @@ function do_physics_raycast( xStart, yStart, xEnd, yEnd, _obj, allHits, maxFract
                 var hit = pInst.m_physicsObject.raycast( xStart, yStart, xEnd, yEnd, maxFraction);
                 if (hit != undefined) {
                     variable_struct_set( hit, "instance", pInst.id);
+                    let hit_fraction = yyGetReal(variable_struct_get(hit, "fraction"));
                     if (allHits) {
                         if (ret == undefined) ret = [];
                         ret = ret.concat( hit );
                     } // end if
                     else
-                    if (hit.fraction < currFraction) {
+                    if (hit_fraction < currFraction) {
                         currHit = hit;
-                        currFraction = hit.fraction;
+                        currFraction = hit_fraction;
                     } // end if
                 } // end if
             } // end if
@@ -1362,14 +1363,15 @@ function do_physics_raycast( xStart, yStart, xEnd, yEnd, _obj, allHits, maxFract
                     var hit = pInst.m_physicsObject.raycast( xStart, yStart, xEnd, yEnd, maxFraction);
                     if (hit != undefined) {
                         variable_struct_set( hit, "instance", pInst.id);
+                        let hit_fraction = yyGetReal(variable_struct_get(hit, "fraction"));
                         if (allHits) {
                             if (ret == undefined) ret = [];
                             ret = ret.concat( hit );
                         } // end if
                         else
-                        if (hit.fraction < currFraction) {
+                        if (hit_fraction < currFraction) {
                             currHit = hit;
-                            currFraction = hit.fraction;
+                            currFraction = hit_fraction;
                         } // end if
                     } // end if
                 } // end if

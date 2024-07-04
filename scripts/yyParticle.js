@@ -2691,39 +2691,45 @@ function HandleLife( _ps, _em )
 	while (i < pParticles.length)
 	{
 		var pParticle = pParticles[i];
-		var pParType = g_ParticleTypes[ pParticle.parttype ];
-		
-		// Update the age and create death particles
-		pParticle.age++;
-			
-		if ( pParticle.age >= pParticle.lifetime )			// change this to a check with 0... and count age down.
+		if(pParticle!==null)
 		{
-			if (pParType !== null)
+			var pParType = g_ParticleTypes[ pParticle.parttype ];
+			
+			// Update the age and create death particles
+			pParticle.age++;
+				
+			if ( pParticle.age >= pParticle.lifetime )			// change this to a check with 0... and count age down.
 			{
-				numb = pParType.deathnumber;
-				if ( numb<0 ){
-					if ( ~~YYRandom(-numb) == 0 ) numb = 1;
+				if (pParType !== null)
+				{
+					numb = pParType.deathnumber;
+					if ( numb<0 ){
+						if ( ~~YYRandom(-numb) == 0 ) numb = 1;
+					}
+					if  ( numb > 0 ){
+						EmitParticles(pPartSys, pEmitter, pParticle.x, pParticle.y, pParType.deathtype, numb);
+					}
 				}
-				if  ( numb > 0 ){
-					EmitParticles(pPartSys, pEmitter, pParticle.x, pParticle.y, pParType.deathtype, numb);
+				pParticles.splice(i,1);	// remove particle
+			} else {
+				if (pParType !== null)
+				{
+					// Create step particles
+					numb = pParType.stepnumber;
+					if ( numb<0 ){
+						if ( ~~YYRandom(-numb) == 0 ) numb = 1;
+					}
+					if ( numb > 0 ){
+						EmitParticles(pPartSys, pEmitter, pParticle.x, pParticle.y, pParType.steptype, numb);
+					}
 				}
+			
+				i++;		// next particle. Dont do if we deleted one, because SPLICE moves them all down...
 			}
-			pParticles.splice(i,1);	// remove particle
-		} else {
-			if (pParType !== null)
-			{
-				// Create step particles
-				numb = pParType.stepnumber;
-				if ( numb<0 ){
-					if ( ~~YYRandom(-numb) == 0 ) numb = 1;
-				}
-				if ( numb > 0 ){
-					EmitParticles(pPartSys, pEmitter, pParticle.x, pParticle.y, pParType.steptype, numb);
-				}
-			}
-		
-			i++;		// next particle. Dont do if we deleted one, because SPLICE moves them all down...
+			
 		}
+		else
+			i++;
 	}
 }
 
@@ -2759,53 +2765,56 @@ function HandleMotion( _ps, _em )
 	for( i=0; i<pParticles.length; i++)
 	{
 		var pParticle = pParticles[i];
-		var pParType = g_ParticleTypes[ pParticle.parttype ];
-		
-		// Fix for null particle HTML5 crash - happens when particle type is destroyed but emitter is still alive
-		if (pParType === null) continue;
-		
-		// adapt speed and direction and angle
-		pParticle.speed = pParticle.speed + pParType.spincr;
-		if ( pParticle.speed < 0 ) pParticle.speed = 0;
-		pParticle.dir = pParticle.dir + pParType.dirincr;
-		pParticle.ang = pParticle.ang + pParType.angincr;
-		hspeedtemp = 0;
-		vspeedtemp = 0;
-
-
-		if ( (pParType.grav != 0) || (pPartSys.acount > 0) )
+		if(pParticle!==null)
 		{
-			hspeed = Direction_To_Vector_h( pParticle.dir,pParticle.speed );
-			vspeed = Direction_To_Vector_v( pParticle.dir,pParticle.speed );
+			var pParType = g_ParticleTypes[ pParticle.parttype ];
+			
+			// Fix for null particle HTML5 crash - happens when particle type is destroyed but emitter is still alive
+			if (pParType === null) continue;
+			
+			// adapt speed and direction and angle
+			pParticle.speed = pParticle.speed + pParType.spincr;
+			if ( pParticle.speed < 0 ) pParticle.speed = 0;
+			pParticle.dir = pParticle.dir + pParType.dirincr;
+			pParticle.ang = pParticle.ang + pParType.angincr;
+			hspeedtemp = 0;
+			vspeedtemp = 0;
 
-			// apply gravity
-			if (pParType.grav != 0)
+
+			if ( (pParType.grav != 0) || (pPartSys.acount > 0) )
 			{
-				h2 = Direction_To_Vector_h( pParType.gravdir,pParType.grav );
-				v2 = Direction_To_Vector_v( pParType.gravdir,pParType.grav );
-				hspeed = hspeed + h2;
-				vspeed = vspeed + v2;
+				hspeed = Direction_To_Vector_h( pParticle.dir,pParticle.speed );
+				vspeed = Direction_To_Vector_v( pParticle.dir,pParticle.speed );
+
+				// apply gravity
+				if (pParType.grav != 0)
+				{
+					h2 = Direction_To_Vector_h( pParType.gravdir,pParType.grav );
+					v2 = Direction_To_Vector_v( pParType.gravdir,pParType.grav );
+					hspeed = hspeed + h2;
+					vspeed = vspeed + v2;
+				}
+
+				// adapt the speed and direction
+				pParticle.dir = Vector_To_Direction(hspeed,vspeed ); 
+				pParticle.speed = Math.sqrt(hspeed*hspeed + vspeed*vspeed);
 			}
 
-			// adapt the speed and direction
-			pParticle.dir = Vector_To_Direction(hspeed,vspeed ); 
-			pParticle.speed = Math.sqrt(hspeed*hspeed + vspeed*vspeed);
+
+			// deal with random additions
+			rd = ((pParticle.age+3*pParticle.ran) % 24)/6.0;
+			if (rd > 2.0) { rd = 4.0 - rd; }
+			rd = rd-1.0;
+
+			rs = ((pParticle.age+4*pParticle.ran) % 20)/5.0;
+			if ( rs > 2.0 ) { rs = 4.0-rs; }
+			rs = rs-1.0;
+
+			hspeed = Direction_To_Vector_h(pParticle.dir+rd * pParType.dirrand,pParticle.speed+rs * pParType.sprand);
+			vspeed = Direction_To_Vector_v(pParticle.dir+rd * pParType.dirrand,pParticle.speed+rs * pParType.sprand);
+			pParticle.x = pParticle.x + hspeed + hspeedtemp;
+			pParticle.y = pParticle.y + vspeed + vspeedtemp;
 		}
-
-
-		// deal with random additions
-		rd = ((pParticle.age+3*pParticle.ran) % 24)/6.0;
-		if (rd > 2.0) { rd = 4.0 - rd; }
-		rd = rd-1.0;
-
-		rs = ((pParticle.age+4*pParticle.ran) % 20)/5.0;
-		if ( rs > 2.0 ) { rs = 4.0-rs; }
-		rs = rs-1.0;
-
-		hspeed = Direction_To_Vector_h(pParticle.dir+rd * pParType.dirrand,pParticle.speed+rs * pParType.sprand);
-		vspeed = Direction_To_Vector_v(pParticle.dir+rd * pParType.dirrand,pParticle.speed+rs * pParType.sprand);
-		pParticle.x = pParticle.x + hspeed + hspeedtemp;
-		pParticle.y = pParticle.y + vspeed + vspeedtemp;
 	}
 }
 
@@ -2829,35 +2838,38 @@ function  HandleShape(_ps, _em)
 	for(var i=0 ; i<pParticles.length; i++ )
 	{
 		var pParticle = pParticles[i];
-		var pParType = g_ParticleTypes[ pParticle.parttype ];
-		
-		// Fix for null particle HTML5 crash - happens when particle type is destroyed but emitter is still alive
-		if (pParType === null) continue;
-		
-		// adapt the size
-		pParticle.xsize = pParticle.xsize + pParType.sizeIncrX;
-		if ( pParticle.xsize < 0 ) { pParticle.xsize = 0; }
-		
-		pParticle.ysize = pParticle.ysize + pParType.sizeIncrY;
-		if ( pParticle.ysize < 0 ) { pParticle.ysize = 0; }
-		
-		
-		// adapt the color
-		Compute_Color( pParticle );
-		
-		
-		// handle alpha blending
-		var passed;
-		if ( pParticle.lifetime > 0 ) { 
-			passed = 2.0 * pParticle.age/pParticle.lifetime; 
-		} else { 
-			passed = 1; 
-		}
-		
-		if ( passed < 1 ){
-			pParticle.alpha = pParType.alphastart*(1.0-passed) + pParType.alphamiddle*passed;
-		}else{
-			pParticle.alpha = pParType.alphamiddle*(2.0-passed) + pParType.alphaend*(passed-1);
+		if(pParticle!==null)
+		{
+			var pParType = g_ParticleTypes[ pParticle.parttype ];
+			
+			// Fix for null particle HTML5 crash - happens when particle type is destroyed but emitter is still alive
+			if (pParType === null) continue;
+			
+			// adapt the size
+			pParticle.xsize = pParticle.xsize + pParType.sizeIncrX;
+			if ( pParticle.xsize < 0 ) { pParticle.xsize = 0; }
+			
+			pParticle.ysize = pParticle.ysize + pParType.sizeIncrY;
+			if ( pParticle.ysize < 0 ) { pParticle.ysize = 0; }
+			
+			
+			// adapt the color
+			Compute_Color( pParticle );
+			
+			
+			// handle alpha blending
+			var passed;
+			if ( pParticle.lifetime > 0 ) { 
+				passed = 2.0 * pParticle.age/pParticle.lifetime; 
+			} else { 
+				passed = 1; 
+			}
+			
+			if ( passed < 1 ){
+				pParticle.alpha = pParType.alphastart*(1.0-passed) + pParType.alphamiddle*passed;
+			}else{
+				pParticle.alpha = pParType.alphamiddle*(2.0-passed) + pParType.alphaend*(passed-1);
+			}
 		}
 	}
 }
@@ -3177,8 +3189,11 @@ function ParticleSystem_Draw( _ps, _color, _alpha )
 			for (var i = 0; i < pParticles.length; i++)
 			{
 				var pParticle = pParticles[i];
-				setAdditiveBlend(pParticle.additiveblend);
-				DrawParticle(pPartSys, pParticle, xoff, yoff, _color, _alpha );
+				if(pParticle!== null)
+				{
+					setAdditiveBlend(pParticle.additiveblend);
+					DrawParticle(pPartSys, pParticle, xoff, yoff, _color, _alpha );
+				}
 			}
 		}
 		else
@@ -3186,8 +3201,11 @@ function ParticleSystem_Draw( _ps, _color, _alpha )
 			for(var i = pParticles.length - 1; i >= 0; i--)
 			{
 				var pParticle = pParticles[i];
-				setAdditiveBlend(pParticle.additiveblend);
-				DrawParticle(pPartSys, pParticle, xoff, yoff, _color, _alpha );
+				if(pParticle!==null)
+				{
+					setAdditiveBlend(pParticle.additiveblend);
+					DrawParticle(pPartSys, pParticle, xoff, yoff, _color, _alpha );
+				}
 			}
 		}
 	}
