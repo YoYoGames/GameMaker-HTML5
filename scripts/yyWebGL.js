@@ -239,7 +239,7 @@ function InitWebGLFunctions() {
     fn_shader_set_uniform_f_array = WebGL_shader_set_uniform_f_array_RELEASE;
     fn_shader_set_uniform_f_buffer = WebGL_shader_set_uniform_f_buffer_RELEASE;
     fn_shader_set_uniform_matrix_array = WebGL_shader_set_uniform_matrix_array_RELEASE;
-    WebGL_shaders_are_supported_RELEASE;
+    shaders_are_supported = WebGL_shaders_are_supported_RELEASE;
     fn_shader_get_name = WebGL_shader_get_name_RELEASE;
     // @endif
     
