@@ -405,6 +405,7 @@ function HandleMouse()
         for (var o = 0; o < ObjPool.length; o++)
         {
             var pObj = ObjPool[o];
+            if (pObj == undefined) continue;
             var pREvent = pObj.REvent;
             if (pREvent[EVENT_MOUSE_LBUTTON_DOWN] || pREvent[EVENT_MOUSE_MBUTTON_DOWN] || pREvent[EVENT_MOUSE_RBUTTON_DOWN] ||
                     pREvent[EVENT_MOUSE_LBUTTON_PRESSED] || pREvent[EVENT_MOUSE_MBUTTON_PRESSED] || pREvent[EVENT_MOUSE_RBUTTON_PRESSED] ||

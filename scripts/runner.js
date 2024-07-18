@@ -177,7 +177,7 @@ document.write('<script type="text/javascript" src="scripts/jsgif/GIFEncoder.js"
 document.write('<script type="text/javascript" src="scripts/long/long.js"></script>');
 document.write('<script type="text/javascript" src="scripts/utils/TimeRampedParamLinear.js"></script>');
 //document.write('<script type="module" src="scripts/yoga/yoga-wasm-base64-esm.js"></script>');
-document.write('<script type="text/javascript" src="scripts/yoga/yoga.js"></script>');
+document.write('<script type="text/javascript" src="scripts/yoga/AAyoga.js"></script>');
 document.write('<script type="text/javascript" src="scripts/yoga/GMyoga.js"></script>');
 
 /*jshint evil:false*/

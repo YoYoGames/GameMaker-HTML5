@@ -1,3 +1,4 @@
+// @if feature("flexpanel")
 const Yoga = require('/yoga-wasm-base64-csm.js');
 var g_yoga = null;
 
@@ -1073,6 +1074,4 @@ function flexpanel_node_style_set_height(_node, _value)
 		break;
 	} // end switch
 }
-
-
-
+// @endif
