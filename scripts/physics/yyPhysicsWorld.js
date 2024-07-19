@@ -761,7 +761,7 @@ yyPhysicsWorld.prototype.CreateBody = function (_pFixture, _pInst, _xoffs, _yoff
 		yyError(err, true);
 	}
 	else {
-		var collisionCategory = this.BuildCollisionBits(_pInst.object_index);
+		var collisionCategory = this.BuildCollisionBits(yyGetRef(_pInst.object_index,REFID_OBJECT,undefined,undefined,true));
 		if (collisionCategory != -1) {
 		
 			fixtureDef.filter.categoryBits = this.m_objectToCollisionCategory[collisionCategory].categoryBits;
