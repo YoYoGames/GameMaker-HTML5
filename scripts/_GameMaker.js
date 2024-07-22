@@ -45,6 +45,7 @@ var g_StartDateTime = Date.now();
 var g_CurrentTime = g_StartDateTime;
 var g_FrameStartTime = g_StartDateTime;
 var g_HttpRequestCrossOriginType = "anonymous";
+var g_HttpConnectTimeoutMs = 60000;
 
 //application surface...
 var g_ApplicationSurface =-1;
