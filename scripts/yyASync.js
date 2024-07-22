@@ -358,7 +358,10 @@ yyASyncManager.prototype.Process = function () {
 				else if (pFile.m_Type == ASYNC_SYSTEM_EVENT) g_pObjectManager.ThrowEvent(EVENT_OTHER_SYSTEM_EVENT, 0, true);
 
 				// Done load, so delete handle.
-				this.queue[i] = null;
+				//this.queue[i] = null;
+				this.queue.splice(i,1);
+				i--;
+				this.queueLength--;
 
                 // Web specifically needs to kill the ds_map used for response headers
 				if (pFile.m_Type == ASYNC_WEB) {
@@ -372,7 +375,7 @@ yyASyncManager.prototype.Process = function () {
 		}
 	}
 
-	this.queueLength = 0;
+	//this.queueLength = 0;
 
 	ds_map_destroy(map);
 	g_pBuiltIn.async_load = -1;
