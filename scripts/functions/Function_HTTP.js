@@ -1,3 +1,15 @@
+// **********************************************************************************************************************
+//
+// Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
+//
+// File:            Function_HTTP.js
+// Created:         16/02/2011
+// Author:          Mike
+// Project:         HTML5
+// Description:
+//
+// **********************************************************************************************************************
+
 // ASYNC_WEB_STATUS_LOADING=1,
 
 // #############################################################################################
@@ -10,17 +22,16 @@ function HTTP_onload(_xmlhttp, _pFile) {
     if ((_xmlhttp.status < 200) || (_xmlhttp.status >= 300))
 	{
 		_pFile.m_Status = ASYNC_WEB_STATUS_ERROR;
-		_pFile.m_Data = "";
-	}
-	else {
+	} else {
 	    _pFile.m_Status = ASYNC_WEB_STATUS_LOADED;
-	    try {
-	        // If the responseType was changed to 'arraybuffer' this assignment will fail and trigger an exception
-	        _pFile.m_Data = _xmlhttp.responseText;
-	    }
-	    catch (e) {
-	        _pFile.m_Data = "";
-	    }
+	}
+
+	try {
+		// If the responseType was changed to 'arraybuffer' this assignment will fail and trigger an exception
+		_pFile.m_Data = _xmlhttp.responseText;
+	}
+	catch (e) {
+		_pFile.m_Data = "";
 	}
 }
 
@@ -186,6 +197,19 @@ function GetHTTPRequestSettings(_url, _headers) {
 			{
 				requestSettings.xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
 			}
+		}
+		
+		/* Enable credentials (i.e. cookies) for requests when enabled using the GML
+		 * http_set_request_crossorigin() function.
+		 *
+		 * This has to be an opt-in because if you enable credentials for a request and the
+		 * response doesn't include *exactly* the right blend of CORS headers the browser wants,
+		 * the browser will tell us the request failed and not give us the payload, probably
+		 * breaking things for lots of people who don't need cookies.
+		*/
+		if(g_HttpRequestCrossOriginType === "use-credentials")
+		{
+			requestSettings.xmlhttp.withCredentials = true;
 		}
 	}
 	return requestSettings;
@@ -405,15 +429,14 @@ function http_request(_url, _method, _headerMap, _body)
 
     // Turn the supplied header ds_map into a set of key-value pairs
     var headers = [];
-    var pMap = g_ActiveMaps.Get(_headerMap);    
+    var pMap = g_ActiveMaps.Get(_headerMap);
     if (pMap !== null) {
-        for (var key in pMap) {
+         for (var key in pMap) {
             if (pMap.hasOwnProperty(key)) {
                 headers.push({ key: key, value: pMap[key] });
             }
         }
     }
-
     // If the "_body" is a number then it's an index to a binary buffer
     if (typeof(_body) === 'number') {
         return http_request_buffer(_url, _method, headers, _body);
