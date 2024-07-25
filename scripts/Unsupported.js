@@ -441,6 +441,8 @@ function draw_get_alpha_test_ref_value()        { ErrorFunction("draw_get_alpha_
 
 function zip_unzip()                                { ErrorFunction("zip_unzip()"); }
 
+function game_change()                              { ErrorFunction("game_change()"); }
+
 function winphone_license_trial_version()           { ErrorFunction("winphone_license_trial_version()"); }
 function winphone_tile_title()                      { ErrorFunction("winphone_tile_title()"); }
 function winphone_tile_count()                      { ErrorFunction("winphone_tile_count()"); }
