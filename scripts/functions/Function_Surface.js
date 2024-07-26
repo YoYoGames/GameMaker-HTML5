@@ -40,9 +40,13 @@ function surface_resize(_id, _w, _h)
 	// it'll happen at the start of the NEXT frame.
     if( _id == g_ApplicationSurface )
     {
-        g_NewApplicationSize = true;
-        g_NewApplicationWidth = _w;
-        g_NewApplicationHeight = _h;
+        if (g_ApplicationWidth != g_NewApplicationWidth
+            || g_NewApplicationHeight != g_NewApplicationHeight)
+        {
+            g_NewApplicationSize = true;
+            g_NewApplicationWidth = _w;
+            g_NewApplicationHeight = _h;
+        }
         return 1;
     }
 
@@ -60,15 +64,17 @@ function surface_resize(_id, _w, _h)
 
     //resize...
     var pSurf = g_Surfaces.Get(_id);
-    var format = eTextureFormat_A8R8G8B8;
-
-    if (g_webGL)
+    if (pSurf.m_Width != _w || pSurf.m_Height != _h)
     {
-        format = pSurf.texture.webgl_textureid.format;
-    }
-    
-    surface_create( _w,_h, format, _id );   //create new surface and replace existing in _id slot
+        var format = eTextureFormat_A8R8G8B8;
 
+        if (g_webGL)
+        {
+            format = pSurf.texture.webgl_textureid.format;
+        }
+
+        surface_create( _w,_h, format, _id );   //create new surface and replace existing in _id slot
+    }
     return 0;
 }
 

@@ -2094,8 +2094,8 @@ function yyWebGL(_canvas, _options) {
         }
         gl.deleteTexture(_frameBuffer.Texture.Texture);
         if (_frameBuffer.textureDepth != null
-            && _frameBuffer.textureDepth.webgl_textureid instanceof yyGLTexture) {
-            gl.deleteTexture(_frameBuffer.textureDepth.webgl_textureid.Texture);
+            && _frameBuffer.textureDepth instanceof yyGLTexture) {
+            gl.deleteTexture(_frameBuffer.textureDepth.Texture);
         }
         
         // Make sure we ditch the reference to the wrapper to give the GC every chance to clean it up
