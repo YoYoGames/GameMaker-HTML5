@@ -481,6 +481,12 @@ audioSound.prototype.play = function() {
         request.responseType = "arraybuffer";
         request.onload = () => {
             const audioData = request.response;
+            
+            if (request.status < 200 || request.status >= 300) {
+                console.log("Request for " + srcUrl + " failed - sound will not play.");
+                this.stop();
+                return;
+            }
 
             g_WebAudioContext.decodeAudioData(audioData)
             .then((_buffer) => {
@@ -3115,6 +3121,11 @@ function audio_create_stream(_filename)
     request.open("GET", getUrlForSound(index), true);
     request.responseType = "arraybuffer";
     request.onload = () => {
+        if (request.status < 200 || request.status >= 300) {
+            console.log("Request for " + srcUrl + " failed.");
+            return;
+        }
+
         g_WebAudioContext.decodeAudioData(request.response)
         .then((_buffer) => {
             sampleData.duration = _buffer.duration;
