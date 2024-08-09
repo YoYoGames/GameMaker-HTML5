@@ -1718,7 +1718,7 @@ yySpriteManager.prototype.Delete = function(_id) {
 			}
 			
 			// Update state manager here 
-			g_webGL.RSMan.ClearTexture(_texture); 
+			g_webGL.RSMan.ClearTexture(pTexture.webgl_textureid); 
 
 			g_webGL.DeleteTexture(pTexture.webgl_textureid.Texture);
 			pTexture.webgl_textureid = null;

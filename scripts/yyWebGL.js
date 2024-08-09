@@ -4963,7 +4963,7 @@ function WebGL_draw_set_color_RELEASE( _colour )
 // #############################################################################################
 function WebGL_BindTexture( _pTPE )
 {
-    if (!_pTPE.webgl_textureid) 
+    if (!_pTPE.texture.webgl_textureid) 
     {
         var glTexture = g_webGL.CreateTexture(_pTPE.texture);        
         _pTPE.texture.webgl_textureid = glTexture;
