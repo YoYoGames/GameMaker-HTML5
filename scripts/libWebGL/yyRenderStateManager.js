@@ -383,7 +383,7 @@ function yyRenderStateManager(_numTextureStages,_stackSize,_commandBuilder,_inte
 
     this.ClearTexture = function(_texture)
     {
-        if (_texture > 0)
+        if (_texture !=null)
         {
             for(var i = 0; i < _numTextureStages; i++)
             {
