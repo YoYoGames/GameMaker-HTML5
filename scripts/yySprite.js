@@ -2421,7 +2421,7 @@ yySprite.prototype.OrigPreciseCollision = function (_img1, _bb1, _x1, _y1, _scal
                 if ((yy < 0) || (yy >= _pSpr.height)) continue;
                 if (_pSpr.maskcreated) {
                     
-					if(!pSpr.ColMaskSet(xx,  yy,pSpr.colmask[_img2]))
+					if(!_pSpr.ColMaskSet(xx,  yy,_pSpr.colmask[_img2]))
 						continue;
                 }
                 return true;
@@ -2446,7 +2446,7 @@ yySprite.prototype.OrigPreciseCollision = function (_img1, _bb1, _x1, _y1, _scal
                 if ((xx < 0) || (xx >= _pSpr.width)) continue;
                 if ((yy < 0) || (yy >= _pSpr.height)) continue;
                 if (_pSpr.maskcreated) {
-					if(!pSpr.ColMaskSet(xx,  yy,pSpr.colmask[_img2]))
+					if(!_pSpr.ColMaskSet(xx,  yy,_pSpr.colmask[_img2]))
 						continue;
                 }
                 return true;
@@ -2480,7 +2480,7 @@ yySprite.prototype.OrigPreciseCollision = function (_img1, _bb1, _x1, _y1, _scal
                 if ((yy < 0) || (yy >= _pSpr.height)) continue;
 
                 if (_pSpr.maskcreated) {
-					if(!pSpr.ColMaskSet(xx,  yy,pSpr.colmask[_img2]))
+					if(!_pSpr.ColMaskSet(xx,  yy,_pSpr.colmask[_img2]))
 						continue;
                 }
                 return true;
