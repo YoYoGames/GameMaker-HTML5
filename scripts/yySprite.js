@@ -1,4 +1,4 @@
-// **********************************************************************************************************************
+﻿// **********************************************************************************************************************
 // 
 // Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
 // 
@@ -2421,7 +2421,7 @@ yySprite.prototype.OrigPreciseCollision = function (_img1, _bb1, _x1, _y1, _scal
                 if ((yy < 0) || (yy >= _pSpr.height)) continue;
                 if (_pSpr.maskcreated) {
                     
-					if(!pSpr.ColMaskSet(xx,  yy,pSpr.colmask[_img2]))
+					if(!_pSpr.ColMaskSet(xx,  yy,_pSpr.colmask[_img2]))
 						continue;
                 }
                 return true;
@@ -2446,7 +2446,7 @@ yySprite.prototype.OrigPreciseCollision = function (_img1, _bb1, _x1, _y1, _scal
                 if ((xx < 0) || (xx >= _pSpr.width)) continue;
                 if ((yy < 0) || (yy >= _pSpr.height)) continue;
                 if (_pSpr.maskcreated) {
-					if(!pSpr.ColMaskSet(xx,  yy,pSpr.colmask[_img2]))
+					if(!_pSpr.ColMaskSet(xx,  yy,_pSpr.colmask[_img2]))
 						continue;
                 }
                 return true;
@@ -2480,7 +2480,7 @@ yySprite.prototype.OrigPreciseCollision = function (_img1, _bb1, _x1, _y1, _scal
                 if ((yy < 0) || (yy >= _pSpr.height)) continue;
 
                 if (_pSpr.maskcreated) {
-					if(!pSpr.ColMaskSet(xx,  yy,pSpr.colmask[_img2]))
+					if(!_pSpr.ColMaskSet(xx,  yy,_pSpr.colmask[_img2]))
 						continue;
                 }
                 return true;
@@ -2781,17 +2781,28 @@ yySpriteManager.prototype.Delete = function(_id) {
 			var pTPE = pSprite.ppTPE[i];
 			if (!pTPE || !pTPE.texture) continue;
 			var pTexture = pTPE.texture;
-			if (!pTexture || !pTexture.webgl_textureid) continue;
-			if (flush) {
-				g_webGL.FlushAll();
-				flush = false;
-			}
-			
-			// Update state manager here 
-			g_webGL.RSMan.ClearTexture(pTexture.webgl_textureid); 
 
-			g_webGL.DeleteTexture(pTexture.webgl_textureid.Texture);
-			pTexture.webgl_textureid = null;
+			if ((g_pGMFile.Options.WebGL) && (g_pGMFile.Options.WebGL != 0))
+			{
+
+				if (!pTexture || !pTexture.webgl_textureid) continue;
+				if (flush) {
+					g_webGL.FlushAll();
+					flush = false;
+				}
+				
+				// Update state manager here 
+				g_webGL.RSMan.ClearTexture(pTexture.webgl_textureid); 
+
+				g_webGL.DeleteTexture(pTexture.webgl_textureid.Texture);
+				pTexture.webgl_textureid = null;
+			}
+			else
+			{
+				g_Textures[pTPE.texture]=null;
+				pTPE.texture = null;
+					 
+			}
 		}
 		this.Sprites[_id] = undefined;
 	}
