@@ -2678,11 +2678,17 @@ yyInstance.prototype.Assign_Path = function (_ind, _speed, _scale, _orient, _abs
 		{
 			this.SetPosition(pPath.XPosition(1), pPath.YPosition(1));
 		}
+
+		this.path_xstart = pPath.XPosition(0);
+		this.path_ystart = pPath.YPosition(0);
 	}
+	else
+	{
 
 
-	this.path_xstart = this.x;
-	this.path_ystart = this.y;
+		this.path_xstart = this.x;
+		this.path_ystart = this.y;
+	}
 };
 // @endif
 
