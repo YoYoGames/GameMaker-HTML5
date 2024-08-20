@@ -2799,8 +2799,11 @@ yySpriteManager.prototype.Delete = function(_id) {
 			}
 			else
 			{
-				g_Textures[pTPE.texture]=null;
-				pTPE.texture = null;
+				if(pTPE.tp>=0 && pTPE.tp<g_Textures.length)
+				{
+					g_Textures[pTPE.tp]=null;
+					pTPE.tp = -1;
+				}
 					 
 			}
 		}
