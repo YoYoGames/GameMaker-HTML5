@@ -1843,8 +1843,8 @@ function ProcessVirtualKeys()
 
     var w = g_GUIWidth;
     var h = g_GUIHeight;
-	var ww = window_get_width();
-	var wh = window_get_height();
+	var ww = g_AppSurfaceRect.w;
+	var wh = g_AppSurfaceRect.h;
 	if (w < 0) w = ww;
 	if (h < 0) h = wh;
 	
@@ -1859,8 +1859,8 @@ function ProcessVirtualKeys()
                 var vkey = g_VirtualKeys[vkeyIndex];
                 if ((vkey.flags & VIRTUALKEY_ACTIVE) != 0)
                 {
-                	var x = (w * (inputEvent.x - g_CanvasRect.left)) / ww;
-                	var y = (h * (inputEvent.y - g_CanvasRect.top)) / wh;
+                	var x = (w * (inputEvent.x - g_CanvasRect.left - g_AppSurfaceRect.x)) / ww;
+                	var y = (h * (inputEvent.y - g_CanvasRect.top - g_AppSurfaceRect.y)) / wh;
                     
                     if((x >= vkey.x) && (x < vkey.x2) && (y >= vkey.y) && (y < vkey.y2))
 					{					    
