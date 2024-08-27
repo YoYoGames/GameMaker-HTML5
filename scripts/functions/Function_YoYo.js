@@ -871,12 +871,15 @@ function device_mouse_x_to_gui(_dev) {
         x = g_InputEvents[_dev].x;
     } 
     CalcCanvasLocation(canvas, g_CanvasRect);
-    x  -= g_CanvasRect.left;
+    x -= g_CanvasRect.left;
+
+    // Offset within canvas when page is full-screen
+    x -= g_AppSurfaceRect.x;
 
 	var gui_width = g_GUIWidth;
 	if( gui_width<0.0 )  gui_width = window_get_width();
 
-	return ~~(x * (gui_width/window_get_width() ));
+	return ~~(x * (gui_width/g_AppSurfaceRect.w ));
 }
 
 // #############################################################################################
@@ -904,10 +907,13 @@ function device_mouse_y_to_gui(_dev) {
     CalcCanvasLocation(canvas, g_CanvasRect);
     y -= g_CanvasRect.top;
 
+    // Offset within canvas when page is full-screen
+    y -= g_AppSurfaceRect.y;
+
     var gui_height = g_GUIHeight;
     if (gui_height < 0.0) gui_height = window_get_height();
 
-    return ~ ~(y * (gui_height / window_get_height()));
+    return ~ ~(y * (gui_height / g_AppSurfaceRect.h));
 }
 
 
