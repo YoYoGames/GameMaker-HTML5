@@ -307,7 +307,7 @@ function method( _inst, _func )
                     // delete the other
                     newArgs.splice(1,1);
                     return this.func.apply(null, newArgs);
-                };              __yy_gml_object_create  
+                };
             }
             else {
                 newfunc = function() {
