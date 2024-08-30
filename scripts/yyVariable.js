@@ -165,7 +165,7 @@ function __yy_gml_object_create( _self, _a )
     var r = new GMLObject();
     var args = [];
     args[0] = r;
-    args[1] = _self;
+    args[1] = _a.boundObject ? _a.boundObject : _self;
     for( var n=2; n<arguments.length; ++n) {
         args[n] = arguments[n];
     } // end for
@@ -212,7 +212,7 @@ function is_handle( _v )
 }
 
 
-function __yyg_call_method( _func )
+function __yyg_call_method( _func, _self, _other )
 {
     switch( typeof(_func) )
     {
@@ -244,7 +244,8 @@ function __yy_method( _inst, _func )
     } else {
         var a = { func : _func, inst : _inst };
         var newfunc = function() {
-            var newArgs = Array.prototype.slice.call(arguments);        
+            var newArgs = Array.prototype.slice.call(arguments);    
+            newArgs[1] = newArgs[0];   
             newArgs[0] = this.inst;
             return this.func.apply(null, newArgs);
         };
@@ -279,6 +280,7 @@ function method( _inst, _func )
             var a = { func : _func, inst : _inst };
             var newfunc = function() {
                 var newArgs = Array.prototype.slice.call(arguments);
+                newArgs[1] = newArgs[0];   
                 newArgs[0] = this.inst;
                 return this.func.apply(null, newArgs);
             };        
@@ -305,7 +307,7 @@ function method( _inst, _func )
                     // delete the other
                     newArgs.splice(1,1);
                     return this.func.apply(null, newArgs);
-                };                
+                };
             }
             else {
                 newfunc = function() {
