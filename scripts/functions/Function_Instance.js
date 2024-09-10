@@ -1230,7 +1230,7 @@ function PerformColTest(_selfinst,_x,_y,_obj)
 			{
 				return _obj;
 			}
-			return -1;
+			return OBJECT_NOONE;
 		}
 		else
 		{
