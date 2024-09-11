@@ -765,7 +765,7 @@ function GameMaker_Init()
 
         LoadGame_PreLoadAssets(g_pGMFile);
         g_StartUpState = 0;
-		
+
 	}
 
     /* Focus our window (or iframe) now... */
