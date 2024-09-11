@@ -763,8 +763,8 @@ function GameMaker_Init()
 		g_CustomLoadingBarCallback = "";
 		g_LoadingCompleteCallback = function () { };
 
-        LoadGame_PreLoadAssets(g_pGMFile);
-        g_StartUpState = 0;
+		LoadGame_PreLoadAssets(g_pGMFile);
+		g_StartUpState = 0;
 
 	}
 
