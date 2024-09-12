@@ -87,6 +87,7 @@ this.m_endScript=null;
 this.m_shaderId=-1;
 this.m_timer=null;
 this.m_elements = new yyList();
+this.m_elements.packing = true;
 this.m_effectEnabled = true;
 this.m_effectToBeEnabled = true;
 this.m_effect = null; // yyEffectInstanceRef
