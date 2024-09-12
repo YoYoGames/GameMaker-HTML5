@@ -430,18 +430,8 @@ function LoadGame_PreLoadAssets(_GameFile)
 
     g_LoadingScreen = document.getElementById('GM4HTML5_loadingscreen');
 
-    //if (g_LoadingBarCallback === "")
-    //{
-    	PreLoadExtensions(_GameFile);
-    	g_LoadingBarCallback = yyRenderStandardLoadingBar;
-    //} else
-    //{
-	//	try{
-   // 		g_LoadingBarCallback = eval(g_LoadingBarCallback);
-	//	}catch(e){
-   // 		g_LoadingBarCallback = yyRenderStandardLoadingBar;
-	//	}
-    //}
+	PreLoadExtensions(_GameFile);
+	g_LoadingBarCallback = yyRenderStandardLoadingBar;
 
     g_LoadingCount=0;
 	// Load texture pages

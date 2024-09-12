@@ -762,34 +762,11 @@ function GameMaker_Init()
 		g_LoadingBarCallback = "";
 		g_CustomLoadingBarCallback = "";
 		g_LoadingCompleteCallback = function () { };
-		//if (g_pGMFile.Options)
-		//{
-			/*if (g_pGMFile.Options.debugMode)
-			{
-				g_DebugMode = true; 	// if in DEBUG mode, allow console output.
-				g_pBuiltIn.debug_mode = g_pGMFile.Options.debugMode;
-				hideshow(document.getElementById('debug_console'));
-			}*/
-		//	if (g_pGMFile.Options.loadingBarCallback)
-		//	{
-		//		g_LoadingBarCallback = g_pGMFile.Options.loadingBarCallback;
-		//	}
-		//}
 
+		LoadGame_PreLoadAssets(g_pGMFile);
+		g_StartUpState = 0;
 
-
-		// if we have a loading bar callback, then we need to load extensions first.... 
-		//if (g_LoadingBarCallback != "")
-		//{
-		//	PreLoadExtensions(g_pGMFile);
-		//	g_StartUpState = -1;
-		//} else
-		{
-			LoadGame_PreLoadAssets(g_pGMFile);
-			g_StartUpState = 0;
-		}
 	}
-    //CheckParams();
 
     /* Focus our window (or iframe) now... */
 	window.focus();
@@ -843,86 +820,104 @@ function animate() {
         load.style.left = g_CanvasRect.left+"px";
         load.style.top = g_CanvasRect.top + "px";
     }
+
     var done = false;
     while(!done)
     {
         done=true;
         switch (g_StartUpState)
         {
+            // Handle error case
             case -2:
                 {
                     if (g_LoadingCanvasCreated) DeleteLoadingCanvas();
                     // @if feature("gl")
                     yyWebGLRequiredError(graphics, DISPLAY_WIDTH, DISPLAY_HEIGHT);
-                    // @endif gl
-                    break;
+                    // @endif gl  
                 }
-
-                // This is used for custom loading bars, we need to load extensions FIRST before everything else.
-            case -1:	if (g_ExtensionTotal == g_ExtensionCount)
-            {
-                //ALl extensions should have loaded by now
-                LoadGame_PreLoadAssets(g_pGMFile);
-                //g_LoadingTotal = 100;
-                g_StartUpState = 0;
-                if (!g_LoadingCanvasCreated) {
-                    CreateLoadingCanvas();
-                    g_LoadingCanvasCreated = true;
-                }
-                ProcessFileLoading();
-                g_LoadingBarCallback(g_LoadGraphics, DISPLAY_WIDTH, DISPLAY_HEIGHT, g_LoadingTotal, g_LoadingCount, g_LoadingScreen);
-            }
                 break;
 
-            case 0:     
-                if(!g_LoadingCanvasCreated)
+            // Handle loading screen (default or custom)
+            case 0:
                 {
-                    CreateLoadingCanvas();
-                    g_LoadingCanvasCreated=true;
-                }
-                if (g_LoadingCount >= g_LoadingTotal) {
-                    g_LoadingCount = g_LoadingTotal; 
-                    g_StartUpState = 1;
-                    done = false;
-                }
-                ProcessFileLoading();
-                var _loadingBarCallback = g_LoadingBarCallback;
-                if(g_pGMFile.Options.loadingBarCallback)
-                {
-                    if (g_ExtensionTotal == g_ExtensionCount)
+                    if (g_LoadingCount >= g_LoadingTotal) {
+                        g_LoadingCount = g_LoadingTotal; 
+                        g_StartUpState = 1;
+                        done = false;
+                    }
+
+                    ProcessFileLoading();
+
+                    // If there is a custom loading bar callback
+                    if (g_pGMFile.Options.loadingBarCallback)
                     {
-                        try
+                        // Wait until the extension is actually loaded (needs a game tick)
+                        if (g_ExtensionCount >= g_ExtensionTotal)
                         {
-                            _loadingBarCallback = eval(g_pGMFile.Options.loadingBarCallback);
-                            g_CustomLoadingBarCallback = _loadingBarCallback;
-                        }
-                        catch (_err)
-                        {
-                            console.error('Invalid loading bar extension "' + g_pGMFile.Options.loadingBarCallback + '", using default!');
-                            console.dir(_err);
+                            // If it is loaded create the canvas (if it doesn't exist) and evaluate the callback
+                            if (!g_LoadingCanvasCreated)
+                            {
+                                CreateLoadingCanvas();
+                                g_LoadingCanvasCreated=true;
+
+                                // Evaluate the callback
+                                try
+                                {
+                                    var _loadingBarCallback = eval(g_pGMFile.Options.loadingBarCallback);
+                                    // Update the loading bar global callback
+                                    g_LoadingBarCallback = _loadingBarCallback;
+                                }
+                                catch (_err)
+                                {
+                                    // Wval failed fallback to using the default one.
+                                    console.error('Invalid loading bar extension "' + g_pGMFile.Options.loadingBarCallback + '", using default!');
+                                    console.dir(_err);
+                                }
+                            }
+                            // This will either be the custom bar or the default if the eval failed (call the update callback)
+                            g_LoadingBarCallback(g_LoadGraphics, DISPLAY_WIDTH, DISPLAY_HEIGHT, g_LoadingTotal, g_LoadingCount, g_LoadingScreen);  
                         }
                     }
+                    // Default loading screen
+                    else {
+                        // Create the loading canvas right away
+                        if(!g_LoadingCanvasCreated)
+                        {
+                            CreateLoadingCanvas();
+                            g_LoadingCanvasCreated=true;
+                        }
+                        // This will be the default loading bar callback (see: yyRenderStandardLoadingBar)
+                        g_LoadingBarCallback(g_LoadGraphics, DISPLAY_WIDTH, DISPLAY_HEIGHT, g_LoadingTotal, g_LoadingCount, g_LoadingScreen);  
+                    }                
                 }
-                _loadingBarCallback(g_LoadGraphics, DISPLAY_WIDTH, DISPLAY_HEIGHT, g_LoadingTotal, g_LoadingCount, g_LoadingScreen);
-                //g_LoadingCount++;
                 break;
 
+            // Handle loading screen disposal (start load game)
             case 1:
-                if (g_ExtensionTotal == g_ExtensionCount)
                 {
-                    DeleteLoadingCanvas();
-                    LoadGame(g_pGMFile);
-                    g_StartUpState = 2;
+                    // We finished loading and extensions should also have loaded (if not wait)
+                    if (g_ExtensionCount >= g_ExtensionTotal)
+                    {
+                        // Delete lading canvas and load the actual game
+                        DeleteLoadingCanvas();
+                        LoadGame(g_pGMFile);
+                        g_StartUpState = 2;
+                        done = false;
+                    }
+                }
+                break;
+            
+            // Handle game loop start
+            case 2:
+                {
+                    // Start game loop
+                    g_LoadingCompleteCallback();
+                    debug("Entering main loop...");
+                    StartGame();
+                    g_StartUpState = 3;
+                    g_pBuiltIn.last_time = new Date().getTime();
                     done = false;
                 }
-                break;
-
-            case 2:     g_LoadingCompleteCallback();
-                debug("Entering main loop...");
-                StartGame();
-                g_StartUpState = 3;
-                g_pBuiltIn.last_time = new Date().getTime();
-                done = false;
                 break;
 
             case 3:
@@ -930,8 +925,6 @@ function animate() {
                 break;	
         }
     }
-
-
 }
 
 // #############################################################################################
