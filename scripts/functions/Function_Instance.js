@@ -920,15 +920,19 @@ function Tilemap_PointPlace( _x, _y, tilemapind, instlist,prec)
 
 		t *= rcpTileHeight;
 	
+		l=~~l;
+		t=~~t;
+
+		if ((l < 0) || (t < 0) || (l >= el.m_mapWidth) || (t >= el.m_mapHeight))
+		{
+			//The point is outside the tilemap therefore can't collide
+			return false;
+		}
 
 		var tiledatamask = g_pLayerManager.GetTiledataMask();
 		tiledatamask &= el.m_tiledataMask;
 		
-		l = ~~yymax(l, 0);
-		t = ~~yymax(t, 0);
 
-		l = ~~yymin(l, el.m_mapWidth - 1);
-		t = ~~yymin(t, el.m_mapHeight - 1);
 
 		var index = (t * el.m_mapWidth) + l;
 		//int tmapindex = pTilemapEl->m_pTiles[index];
