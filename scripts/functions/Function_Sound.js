@@ -2443,7 +2443,6 @@ function audio_get_listener_info(index)
     }
     return -1;
 }
-function audio_debug(trueFalse)                             {}
 
 // @if feature("audio")
 //loading -------------------------
