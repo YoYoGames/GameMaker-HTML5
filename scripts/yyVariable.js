@@ -163,6 +163,7 @@ GMLObject.prototype.SetImageIndexGML = function(_frame)
 function __yy_gml_object_create( _self, _a )
 {
     var r = new GMLObject();
+    r.__yyCreatedByNew = 1;
     var args = [];
     args[0] = r;
     args[1] = _a.boundObject ? _a.boundObject : _self;
