@@ -2561,11 +2561,16 @@ function  ParticleSystem_Destroy( _ps )
 function ParticleSystem_DestroyAll()
 {
 	var count = g_ParticleSystemManager.Count();
+	var index = 0;
 	for (var i = 0; i < count; i++)
 	{
-		var particleSystem = g_ParticleSystemManager.At(i);
-		if (particleSystem != null)
-			ParticleSystem_Destroy(particleSystem.id);
+		var particleSystem = g_ParticleSystemManager.At(index);
+		if (!particleSystem)
+		{
+			++index;
+			continue;
+		}
+		ParticleSystem_Destroy(particleSystem.id);
 	}
 	g_ParticleSystemManager.RemoveAll();
 }
@@ -3517,11 +3522,17 @@ function ParticleSystem_RemoveAllFromLayers()
 	var pscount = g_ParticleSystemManager.Count();
 	persistentsystemlayernames = new Array(pscount).fill(null);
 
+	var index = 0;
+
 	for (var i = 0; i < pscount; ++i)
 	{
-		var pSystem = g_ParticleSystemManager.At(i);
+		var pSystem = g_ParticleSystemManager.At(index);
 
-		if (!pSystem) continue;
+		if (!pSystem)
+		{
+			++index;
+			continue;
+		}
 
 		// Get layer and element that the particle system is on
 		var pLayer = null;
