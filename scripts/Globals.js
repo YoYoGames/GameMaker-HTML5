@@ -858,7 +858,7 @@ Audio_WebAudio=1,
 	g_CurrentView =null,
 	g_ParticleTextures =null,
 	g_ParticleTypes =null,
-	g_ParticleSystems =null,
+	g_ParticleSystemManager =null,
 	g_ActiveGrids =null,
 	g_ActivePriorityQueues =null,
 	g_BufferStorage = null,
@@ -1166,7 +1166,7 @@ function    InitAboyneGlobals() {
 	g_ParticleChanges = []; // When a particle system changes depth
     g_ParticleTextures = [];
     g_ParticleTypes = [];
-    g_ParticleSystems = [];
+    g_ParticleSystemManager = new yyParticleSystemManager();
 	// @if function("ds_grid_*")
     g_ActiveGrids = new yyAllocate(5);
 	// @endif

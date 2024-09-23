@@ -2110,9 +2110,9 @@ yyRoom.prototype.DrawLayerParticleSystem = function(_rect,_layer,_el)
 	// @if feature("particles")
 	var ps = _el.m_systemID;
 
-	if (!ParticleSystem_Exists(ps)) return;
+	var pSystem = g_ParticleSystemManager.Get(ps);
 
-	var pSystem = g_ParticleSystems[ps];
+	if (pSystem == null) return;
 
 	if (!pSystem.automaticdraw) return;
 

@@ -15,6 +15,11 @@
 // 
 // **********************************************************************************************************************
 
+function PartSystemInstanceExists(_id)
+{
+    return (g_ParticleSystemManager.Get(yyGetInt32(_id)) != null);
+}
+
 function GetParticleSystemResourceIndex(_arg, _optional)
 {
     return yyGetRef(_arg, REFID_PARTICLESYSTEM, CParticleSystem.instances.length, CParticleSystem.instances, _optional);
@@ -22,7 +27,7 @@ function GetParticleSystemResourceIndex(_arg, _optional)
 
 function GetParticleSystemInstanceIndex(_arg, _optional)
 {
-    return yyGetRef(_arg, REFID_PART_SYSTEM, g_ParticleSystems.length, g_ParticleSystems, _optional);
+    return yyGetRefFn(_arg, REFID_PART_SYSTEM, PartSystemInstanceExists, _optional);
 }
 
 function GetParticleEmitterIndex(_ps, _arg, _optional)
@@ -31,7 +36,7 @@ function GetParticleEmitterIndex(_ps, _arg, _optional)
     var arr = null;
     if (!_optional)
     {
-        arr = g_ParticleSystems[_ps].emitters;
+        arr = g_ParticleSystemManager.Get(_ps).emitters;
         count = arr.length;
     }
     return yyGetRef(_arg, REFID_PART_EMITTER, count, arr, _optional);
@@ -86,7 +91,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
     {
         // Particle system INSTANCE
         _ind = GetParticleSystemInstanceIndex(_ind);
-        var pPS = g_ParticleSystems[_ind];
+        var pPS = g_ParticleSystemManager.Get(_ind);
         if (pPS != null)
         {
             pPSI = new GMLObject();
@@ -508,9 +513,9 @@ function part_system_drawit(_ind)
 {
     ps = GetParticleSystemInstanceIndex(_ind);
 
-    if (!ParticleSystem_Exists(ps)) return;
+    var pSystem = g_ParticleSystemManager.Get(ps);
 
-	var pSystem = g_ParticleSystems[ps];
+    if (pSystem == null) return;
 
 	var matWorldOld = WebGL_GetMatrix(MATRIX_WORLD);
 

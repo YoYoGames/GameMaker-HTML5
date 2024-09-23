@@ -1572,7 +1572,7 @@ function    StartGame()
 function Run_EndGame(_reset) {
 
 	g_ParticleTypes = [];
-	g_ParticleSystems = [];
+	g_ParticleSystemManager.RemoveAll();
 	types_created = 0;
 
 	// Clear all instances - including persistant ones.

@@ -672,9 +672,11 @@ LayerManager.prototype.BuildTilemapElementRuntimeData = function( _room ,_layer,
 LayerManager.prototype.BuildParticleElementRuntimeData = function( _room ,_layer,_element)
 {
     // @if feature("particles")
-    if (_element.m_ps != -1 && _element.m_systemID == -1)
+    if (_element.m_ps != -1)
     {
-        CParticleSystem.Get(_element.m_ps).MakeInstance(_layer.m_id, false, _element);
+        var particleSystem = g_ParticleSystemManager.Get(_element.m_systemID);
+        if (!particleSystem)
+            CParticleSystem.Get(_element.m_ps).MakeInstance(_layer.m_id, false, _element, _element.m_systemID);
     }
     // @endif
     _element.m_bRuntimeDataInitialised=true;
@@ -2028,7 +2030,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                         var pParticle = pLayer.particles[i];
                         var NewParticle = new CLayerParticleElement();
 
-                        NewParticle.m_systemID = -1;
+                        NewParticle.m_systemID = pParticle.sId;
                         NewParticle.m_ps = pParticle.sIndex;
                         NewParticle.m_imageScaleX = pParticle.sXScale;
                         NewParticle.m_imageScaleY = pParticle.sYScale;

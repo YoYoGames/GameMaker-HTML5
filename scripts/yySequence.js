@@ -6003,7 +6003,7 @@ yySequenceManager.prototype.HandleParticleTrackUpdate = function (_pEl, _pSeq, _
             // Re-burst emitters when the sequence loops
 			if (_pInst.m_wrapped)
 			{
-                var pPartSys = g_ParticleSystems[ps];
+                var pPartSys = g_ParticleSystemManager.Get(ps);
                 var pEmitters = pPartSys.emitters;
                 if (pEmitters)
                 {

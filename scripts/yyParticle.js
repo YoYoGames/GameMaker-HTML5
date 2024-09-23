@@ -256,6 +256,7 @@ function yyParticleSystem()
 /**@constructor*/
 function ParticleSystem_ClearClass()
 {
+	this.id = -1;
 	this.m_resourceID = -1;					// the id of the particle system resource that this system was created from
 
 	this.created = false;					// whether created
@@ -391,16 +392,18 @@ CParticleSystem.prototype.GetIndex = function ()
 /// <param name="_layerID"></param>
 /// <param name="_pParticleEl">The layer to use. A new one is created if not defined.</param>
 /// <param name="_persistent"></param>
+/// <param name="_systemID"></param>
 /// <returns>The index of the created instance.</returns>
-CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pParticleEl)
+CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pParticleEl, _systemID)
 {
 	if (_layerID === undefined) _layerID = -1;
 	if (_persistent === undefined) _persistent = true;
 	if (_pParticleEl === undefined) _pParticleEl = null;
+	if (_systemID === undefined) _systemID = -1;
 
 	var ps = (_pParticleEl == null)
-		? ParticleSystem_Create(_layerID, _persistent)
-		: ParticleSystem_Create_OnLayer(_layerID, _persistent, _pParticleEl);
+		? ParticleSystem_Create(_layerID, _persistent, _systemID)
+		: ParticleSystem_Create_OnLayer(_layerID, _persistent, _pParticleEl, _systemID);
 
 	if (ps == -1)
 	{
@@ -408,7 +411,7 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 		return ps;
 	}
 
-	var system = g_ParticleSystems[ps];
+	var system = g_ParticleSystemManager.Get(ps);
 	system.m_resourceID = this.index;
 	system.oldtonew = (this.drawOrder == 0);
 	system.globalSpaceParticles = this.globalSpaceParticles;
@@ -454,6 +457,195 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 	}
 
 	return ps;
+};
+
+PARTICLE_ID_ROOM_MIN = 0x00800000;
+
+function yyParticleSystemManager()
+{
+	this.particlesRoom = []; // Array of particle system instances placed into a room from the IDE
+	this.partsystems = [];   // Particle system instances created on runtime
+}
+
+// For user particle systems!
+yyParticleSystemManager.prototype.GetNext = function ()
+{
+	var id = 0;
+	while ((id < this.partsystems.length) && (this.partsystems[id] != null)) { id = id + 1; }
+	if (id == this.partsystems.length)
+	{
+		this.partsystems.length = id + 1;
+		this.partsystems.push(null);
+	}
+
+	// assert(id < PARTICLE_ID_ROOM_MIN); // Run out of user particle system IDs!
+
+	this.partsystems[id] = new yyParticleSystem();
+	this.partsystems[id].id = id;
+
+	return id;
+};
+
+// Only for room particle systems!
+yyParticleSystemManager.prototype.Insert = function (id)
+{
+	// assert(id >= PARTICLE_ID_ROOM_MIN);
+	// assert(!this.Find(id));
+
+	var pos;
+	if (false)
+	{
+		// Linear search insert position
+		pos = 0;
+		while (pos < this.particlesRoom.length && this.particlesRoom[pos].id < id)
+		{
+			++pos;
+		}
+	}
+	else
+	{
+		// Binary search insert position
+		var left = 0;
+		var right = this.particlesRoom.length;
+		while (left < right)
+		{
+			var mid = ~~(left + (right - left) / 2);
+			if (this.particlesRoom[mid].id < id)
+			{
+				left = mid + 1;
+			}
+			else
+			{
+				right = mid;
+			}
+		}
+		pos = left;
+	}
+
+	this.particlesRoom.splice(pos, 0, new yyParticleSystem());
+	this.particlesRoom[pos].id = id;
+};
+
+yyParticleSystemManager.prototype.Remove = function (id)
+{
+	// We don't have negative IDs
+	if (id < 0)
+	{
+		return;
+	}
+
+	// Is a runtime created particle system instance
+	if (id < PARTICLE_ID_ROOM_MIN)
+	{
+		if (id >= this.partsystems.length)
+		{
+			// Outside of range of indices
+			return;
+		}
+		this.partsystems[id] = null;
+		return;
+	}
+
+	// Is a IDE-placed particle system instance
+	var outData = { system: null, position: 0 };
+
+	if (!this.Find(id, outData))
+	{
+		return;
+	}
+
+	this.particlesRoom.splice(outData.position, 1);
+};
+
+yyParticleSystemManager.prototype.RemoveAll = function ()
+{
+	this.particlesRoom = [];
+	this.partsystems = [];
+};
+
+// Returns a particle system instance with given ID or NULL if it doesn't exist.
+yyParticleSystemManager.prototype.Get = function (id)
+{
+	// We don't have negative indices
+	if (id < 0)
+	{
+		return null;
+	}
+
+	// Is a particle system instance created on runtime
+	if (id < PARTICLE_ID_ROOM_MIN)
+	{
+		if (id >= this.partsystems.length)
+		{
+			// Outside of range of indices
+			return null;
+		}
+		return this.partsystems[id];
+	}
+
+	// Is a IDE-placed particle system instance
+	var outData = { system: null, position: 0 };
+	this.Find(id, outData);
+	return outData.system;
+};
+
+// Returns total number of existing particles
+yyParticleSystemManager.prototype.Count = function ()
+{
+	return (this.particlesRoom.length + this.partsystems.length);
+};
+
+// Returns a particle system instance at given index. Can be NULL, even when not outside of range of indices!
+yyParticleSystemManager.prototype.At = function (index)
+{
+	if (index >= this.Count())
+	{
+		return null;
+	}
+
+	if (index >= this.particlesRoom.length)
+	{
+		return this.partsystems[index - this.particlesRoom.length];
+	}
+
+	return this.particlesRoom[index];
+};
+
+yyParticleSystemManager.prototype.Find = function (id, outData)
+{
+	if (id < PARTICLE_ID_ROOM_MIN
+		|| this.particlesRoom.length == 0)
+	{
+		return false;
+	}
+
+	var left = 0;
+	var right = this.particlesRoom.length;
+
+	while (left < right)
+	{
+		var mid = ~~(left + (right - left) / 2);
+
+		if (this.particlesRoom[mid].id == id)
+		{
+			if (outData !== undefined)
+			{
+				outData.system = this.particlesRoom[mid];
+				outData.position = mid;
+			}
+			return true;
+		}
+		else if (this.particlesRoom[mid].id < id)
+		{
+			left = mid + 1;
+		}
+		else
+		{
+			right = mid;
+		}
+	}
+
+	return false;
 };
 // @endif particles
 
@@ -1503,9 +1695,10 @@ function	ParticleSystem_Emitter_Create(_ps)
 {
 	_ps = yyGetInt32(_ps);
 
-	if (!ParticleSystem_Exists(_ps)) return -1;
+	var pPartSys = g_ParticleSystemManager.Get(_ps);
+	if (pPartSys == null)
+		return -1;
 
-	var pPartSys = g_ParticleSystems[_ps];
 	var ind = 0;
 	var emitter = null;
 
@@ -1553,7 +1746,7 @@ function ParticleSystem_Emitter_Destroy(_ps, _ind)
 
 	if (!ParticleSystem_Emitter_Exists(_ps, _ind)) return false;
 
-	var emitter = g_ParticleSystems[_ps].emitters[_ind];
+	var emitter = g_ParticleSystemManager.Get(_ps).emitters[_ind];
 	emitter.created = false;
 	emitter.zombie = true;
 
@@ -1574,10 +1767,13 @@ function ParticleSystem_Emitter_Destroy(_ps, _ind)
 function ParticleSystem_Emitter_DestroyAll(_ps)
 {
 	_ps = yyGetInt32(_ps);
-	if (!ParticleSystem_Exists(_ps)) return false;
-	for (var i = g_ParticleSystems[_ps].emitters.length - 1; i >= 0; --i)
+	var particleSystem = g_ParticleSystemManager.Get(_ps);
+	if (particleSystem != null)
 	{
-		ParticleSystem_Emitter_Destroy(_ps, i);
+		for (var i = particleSystem.emitters.length - 1; i >= 0; --i)
+		{
+			ParticleSystem_Emitter_Destroy(_ps, i);
+		}
 	}
 	return true;
 }
@@ -1598,10 +1794,11 @@ function	ParticleSystem_Emitter_Enable(_ps, _ind, _enable)
 	_ps = yyGetInt32(_ps);
 	_ind = yyGetInt32(_ind);
 
-	if (!ParticleSystem_Exists(_ps)) return;
+	var particleSystem = g_ParticleSystemManager.Get(_ps);
+	if (particleSystem == null) return;
 	if (!ParticleSystem_Emitter_Exists(_ps, _ind)) return;
 
-	g_ParticleSystems[_ps].emitters[_ind].enabled = yyGetBool(_enable);
+	particleSystem.emitters[_ind].enabled = yyGetBool(_enable);
 }
 
 // #############################################################################################
@@ -1620,9 +1817,9 @@ function	ParticleSystem_Emitter_Exists(_ps, _ind)
 	_ps = yyGetInt32(_ps);
 	_ind = yyGetInt32(_ind);
 
-	if (!ParticleSystem_Exists(_ps)) return false;
+	var pPartSys = g_ParticleSystemManager.Get(_ps);
+	if (pPartSys == null) return false;
 
-	var pPartSys = g_ParticleSystems[_ps];
 	if (_ind < 0 || _ind >= pPartSys.emitters.length) return false;
 
 	var pEmitter = pPartSys.emitters[_ind];
@@ -1650,7 +1847,7 @@ function	ParticleSystem_Emitter_Clear(_ps, _ind)
 
 	if (!ParticleSystem_Emitter_Exists(_ps, _ind)) return false;
 
-	g_ParticleSystems[_ps].emitters[_ind].Reset();
+	g_ParticleSystemManager.Get(_ps).emitters[_ind].Reset();
 }
 
 
@@ -1679,7 +1876,7 @@ function	ParticleSystem_Emitter_Region(_ps, _ind, _xmin, _xmax, _ymin, _ymax, _s
 
 	if (!ParticleSystem_Emitter_Exists(_ps, _ind)) return;
 
-	var pEmitter = g_ParticleSystems[_ps].emitters[_ind];
+	var pEmitter = g_ParticleSystemManager.Get(_ps).emitters[_ind];
 
 	pEmitter.xmin = yyGetReal(_xmin);
 	pEmitter.xmax = yyGetReal(_xmax);
@@ -1865,7 +2062,7 @@ function	ParticleSystem_Emitter_Burst(_ps, _ind, _ptype, _numb)
 
 	if (!ParticleSystem_Emitter_Exists(_ps, _ind)) return;
 
-	var system = g_ParticleSystems[_ps];
+	var system = g_ParticleSystemManager.Get(_ps);
 	var emitter = system.emitters[_ind];
 
 	if (!emitter.enabled) return;
@@ -1900,7 +2097,7 @@ function	ParticleSystem_Emitter_Stream( _ps, _ind, _ptype, _numb)
 
 	if (!ParticleSystem_Emitter_Exists(_ps, _ind)) return;
 
-	var pEmitter = g_ParticleSystems[_ps].emitters[_ind];
+	var pEmitter = g_ParticleSystemManager.Get(_ps).emitters[_ind];
 
 	pEmitter.parttype = yyGetInt32(_ptype);
 	pEmitter.number = yyGetReal(_numb);
@@ -1934,7 +2131,7 @@ function EmitterRandomizeDelay(_emitter)
 function	ParticleSystem_Emitter_Delay( _ps, _ind, _delay_min, _delay_max, _delay_unit)
 {
 	if (!ParticleSystem_Emitter_Exists(_ps, _ind)) return;
-	var pEmitter = g_ParticleSystems[_ps].emitters[_ind];
+	var pEmitter = g_ParticleSystemManager.Get(_ps).emitters[_ind];
 	pEmitter.delayMin = yyGetInt32(_delay_min);
 	pEmitter.delayMax = yyGetReal(_delay_max);
 	pEmitter.delayUnit = yyGetReal(_delay_unit);
@@ -1969,7 +2166,7 @@ function EmitterRandomizeInterval(_emitter)
 function	ParticleSystem_Emitter_Interval( _ps, _ind, _interval_min, _interval_max, _interval_unit)
 {
 	if (!ParticleSystem_Emitter_Exists(_ps, _ind)) return;
-	var pEmitter = g_ParticleSystems[_ps].emitters[_ind];
+	var pEmitter = g_ParticleSystemManager.Get(_ps).emitters[_ind];
 	pEmitter.intervalMin = yyGetInt32(_interval_min);
 	pEmitter.intervalMax = yyGetReal(_interval_max);
 	pEmitter.intervalUnit = yyGetReal(_interval_unit);
@@ -1989,7 +2186,7 @@ function	ParticleSystem_Emitter_Relative(_ps, _ind, _enable)
 
 	if (!ParticleSystem_Emitter_Exists(_ps, _ind)) return;
 
-	g_ParticleSystems[_ps].emitters[_ind].relative = yyGetBool(_enable);
+	g_ParticleSystemManager.Get(_ps).emitters[_ind].relative = yyGetBool(_enable);
 }
 
 
@@ -2009,7 +2206,7 @@ function	ParticleSystem_Emitter_Relative(_ps, _ind, _enable)
 // #############################################################################################
 function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 {
-	var system = g_ParticleSystems[_ps];
+	var system = g_ParticleSystemManager.Get(_ps);
 
 	var em = -1;
 	for (var i = 0; i < system.emitters.length; ++i)
@@ -2046,7 +2243,9 @@ function ParticleSystem_Particles_Create(_ps, _x, _y, _parttype, _numb)
 // #############################################################################################
 function	ParticleSystem_Particles_Create_Color( _ps, _x, _y, _parttype, _col, _numb)
 {
-	if ( !ParticleSystem_Exists(_ps) ) {
+	var system = g_ParticleSystemManager.Get(_ps);
+
+	if (system == null) {
 		console.log( "part_particles_create :: particle system does not exist!" );
 		return;
 	} // end if
@@ -2054,8 +2253,6 @@ function	ParticleSystem_Particles_Create_Color( _ps, _x, _y, _parttype, _col, _n
 		console.log( "part_particles_create :: particle type does not exist!" );
 		return;
 	} // end if
-
-	var system = g_ParticleSystems[_ps];
 
 	var em = -1;
 	for (var i = 0; i < system.emitters.length; ++i)
@@ -2094,7 +2291,9 @@ function	ParticleSystem_Particles_Create_Color( _ps, _x, _y, _parttype, _col, _n
 // #############################################################################################
 function ParticleSystem_Particles_Burst(_ps, _x, _y, _partsys)
 {
-	if (!ParticleSystem_Exists(_ps)) {
+	var system = g_ParticleSystemManager.Get(_ps);
+
+	if (system == null) {
 		console.log("part_particles_burst :: particle system does not exist!");
 		return;
 	} // end if
@@ -2106,7 +2305,6 @@ function ParticleSystem_Particles_Burst(_ps, _x, _y, _partsys)
 		return;
 	} // end if
 
-	var system = g_ParticleSystems[_ps];
 	var emitterCount = asset.emitters.length;
 	var emittersEnabled = [];
 
@@ -2144,8 +2342,10 @@ function ParticleSystem_Particles_Burst(_ps, _x, _y, _partsys)
 // #############################################################################################
 function	ParticleSystem_Particles_Clear(_ps)
 {
-	var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
-	if( pPartSys ==null || pPartSys==undefined ) return false;
+	_ps = yyGetInt32(_ps);
+
+	var pPartSys = g_ParticleSystemManager.Get(_ps);
+	if(pPartSys == null) return false;
 
 	for (var i = pPartSys.emitters.length - 1; i >= 0; --i)
 	{
@@ -2184,8 +2384,9 @@ function	ParticleSystem_Particles_Delete(_pParticles, _index)
 // #############################################################################################
 function	ParticleSystem_Particles_Count( _ps )
 {
-	var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
-	if( pPartSys ==null || pPartSys==undefined ) return 0 ;
+	_ps = yyGetInt32(_ps);
+	var pPartSys = g_ParticleSystemManager.Get(_ps);
+	if(pPartSys == null) return 0 ;
 
 	var count = 0;
 	for (var i = pPartSys.emitters.length - 1; i >= 0; --i)
@@ -2241,28 +2442,32 @@ function ParticleSystem_Create_GetLayer(_layerID)
 	return pPartEl;
 }
 
-function ParticleSystem_Create_OnLayer(_layerID, _persistent, _pPartEl)
+function ParticleSystem_Create_OnLayer(_layerID, _persistent, _pPartEl, _systemID)
 {
-	var index;
-	for (index = 0; index < g_ParticleSystems.length; ++index)
+	if (_systemID === undefined) _systemID = -1;
+
+	var index = -1;
+	if (_systemID == -1)
 	{
-		if (g_ParticleSystems[index] == null)
-		{
-			break;
-		}
+		index = g_ParticleSystemManager.GetNext();
 	}
-	g_ParticleSystems[index] = new yyParticleSystem();
-	g_ParticleSystems[index].id = index;                    // remember the ID
-	g_ParticleSystems[index].m_elementID = -1;
+	else
+	{
+		index = _systemID;
+		g_ParticleSystemManager.Insert(index);
+	}
+
+	var particleSystem = g_ParticleSystemManager.Get(index);
+	particleSystem.m_elementID = -1;
 	ParticleSystem_Clear(index, false);
 	_pPartEl.m_systemID = index;
-	g_ParticleSystems[index].m_elementID = _pPartEl.m_id;
-	g_ParticleSystems[index].m_volatile = !_persistent;
+	particleSystem.m_elementID = _pPartEl.m_id;
+	particleSystem.m_volatile = !_persistent;
 
 	if (_layerID != -1)
 	{
-		//g_ParticleSystems[index].m_origLayerID = _layerID;
-		g_ParticleSystems[index].depth = _pPartEl.m_layer.depth;
+		//particleSystem.m_origLayerID = _layerID;
+		particleSystem.depth = _pPartEl.m_layer.depth;
 	}
 
 	return index;
@@ -2277,25 +2482,27 @@ function ParticleSystem_Create_OnLayer(_layerID, _persistent, _pPartEl)
 ///				ID of the new particle system
 ///			</returns>
 // #############################################################################################
-function	ParticleSystem_Create(_layerID,_persistent)
+function	ParticleSystem_Create(_layerID, _persistent, _systemID)
 {
     if (_layerID == undefined)
         _layerID = -1;
     else
         _layerID = yyGetInt32(_layerID);
 
-
     if (_persistent == undefined)
         _persistent = true;
     else
         _persistent = yyGetBool(_persistent);
+	
+	if (_systemID === undefined)
+		_systemID = -1;
 
 	var pPartEl = ParticleSystem_Create_GetLayer(_layerID);
 
 	if (pPartEl == null)
 		return -1;
 	
-	return ParticleSystem_Create_OnLayer(_layerID, _persistent, pPartEl);
+	return ParticleSystem_Create_OnLayer(_layerID, _persistent, pPartEl, _systemID);
 }
 
 // #############################################################################################
@@ -2310,9 +2517,7 @@ function	ParticleSystem_Create(_layerID,_persistent)
 // #############################################################################################
 function	ParticleSystem_Exists( _ps )
 {
-	var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
-	if( pPartSys ==null || pPartSys==undefined ) return false;
-	return true;
+	return (g_ParticleSystemManager.Get(yyGetInt32(_ps)) != null);
 }
 
 
@@ -2331,18 +2536,19 @@ function  ParticleSystem_Destroy( _ps )
 {
 	_ps = yyGetInt32(_ps);
 
-	var pPartSys = g_ParticleSystems[_ps];
-	if (pPartSys == null || pPartSys == undefined) return;
+	var pPartSys = g_ParticleSystemManager.Get(_ps);
+	if (pPartSys == null) return;
 
 	ParticleSystem_Clear(_ps, false);
 
 	if (g_isZeus)
 	{
 		// Remove this from any layer it happens to be on
-		g_pLayerManager.RemoveElementById(g_RunRoom, g_ParticleSystems[_ps].m_elementID, true);
+		g_pLayerManager.RemoveElementById(g_RunRoom, pPartSys.m_elementID, true);
 	}
 
-	g_ParticleSystems[_ps] = null;
+	g_ParticleSystemManager.Remove(_ps);
+
 	return true;
 }
 
@@ -2354,12 +2560,14 @@ function  ParticleSystem_Destroy( _ps )
 // #############################################################################################
 function ParticleSystem_DestroyAll()
 {
-    for (var i = 0; i < g_ParticleSystems.length; i++)
-    {
-		ParticleSystem_Destroy(i);
-    }
-
-	g_ParticleSystems = [];
+	var count = g_ParticleSystemManager.Count();
+	for (var i = 0; i < count; i++)
+	{
+		var particleSystem = g_ParticleSystemManager.Get(i);
+		if (particleSystem != null)
+			ParticleSystem_Destroy(particleSystem.id);
+	}
+	g_ParticleSystemManager.RemoveAll();
 }
 
 
@@ -2377,8 +2585,8 @@ function ParticleSystem_Clear(_ps, _reset_element_depth)
 {
 	_ps = yyGetInt32(_ps);
 
-	var pPartSys = g_ParticleSystems[_ps];
-	if (pPartSys == null || pPartSys == undefined) return;
+	var pPartSys = g_ParticleSystemManager.Get(_ps);
+	if (pPartSys == null) return;
 
 	pPartSys.emitters = [];
 
@@ -2417,11 +2625,12 @@ function ParticleSystem_Clear(_ps, _reset_element_depth)
 
 function ParticleSystem_GetLayer(_ps)
 {
-    if (!ParticleSystem_Exists(_ps))
-        return -1;
+	var particleSystem = g_ParticleSystemManager.Get(_ps);
+	if (particleSystem == null)
+		return -1;
 
     var pLayer = null;
-    var elandlay = g_pLayerManager.GetElementAndLayerFromID(g_RunRoom, g_ParticleSystems[_ps].m_elementID);
+    var elandlay = g_pLayerManager.GetElementAndLayerFromID(g_RunRoom, particleSystem.m_elementID);
     if (elandlay == null)
         return -1;
     pLayer = elandlay.layer;
@@ -2435,16 +2644,17 @@ function ParticleSystem_GetLayer(_ps)
 
 function ParticleSystem_Layer(_ps,_layerID)
 {
-    if (!ParticleSystem_Exists(_ps))
+	var particleSystem = g_ParticleSystemManager.Get(_ps);
+    if (particleSystem == null)
         return;
 
     if (g_isZeus)
     {
         // Remove this from any layer it happens to be on and re-add it again
-        g_pLayerManager.RemoveElementById(g_RunRoom, g_ParticleSystems[_ps].m_elementID, true);
+        g_pLayerManager.RemoveElementById(g_RunRoom, particleSystem.m_elementID, true);
         var pPartEl = new CLayerParticleElement();
         pPartEl.m_systemID = _ps;
-        //g_ParticleSystems[_ps].m_origLayerID = _layerID;    // reset the associated layer id
+        //particleSystem.m_origLayerID = _layerID;    // reset the associated layer id
 
         var room = g_pLayerManager.GetTargetRoomObj();
         if (room != null)
@@ -2456,18 +2666,18 @@ function ParticleSystem_Layer(_ps,_layerID)
 
                 if (room == g_RunRoom)
                 {
-                    g_ParticleSystems[_ps].m_elementID = g_pLayerManager.AddNewElement(g_RunRoom, layer, pPartEl, true);
-                    g_ParticleSystems[_ps].depth = layer.depth;	// reset depth
-                    if (g_ParticleSystems[_ps].m_elementID == -1)
+                    particleSystem.m_elementID = g_pLayerManager.AddNewElement(g_RunRoom, layer, pPartEl, true);
+                    particleSystem.depth = layer.depth;	// reset depth
+                    if (particleSystem.m_elementID == -1)
                     {
                         g_pLayerManager.RemoveElementById(g_RunRoom, pPartEl.m_id, true);                        
                     }
                 }
             }
 
-            if (g_ParticleSystems[_ps].m_elementID == -1)
+            if (particleSystem.m_elementID == -1)
             {
-                g_ParticleSystems[_ps].m_elementID = g_pLayerManager.AddNewElementAtDepth(g_RunRoom, g_ParticleSystems[_ps].depth, pPartEl, true, true);
+                particleSystem.m_elementID = g_pLayerManager.AddNewElementAtDepth(g_RunRoom, particleSystem.depth, pPartEl, true, true);
             }
         }
     }
@@ -2486,8 +2696,9 @@ function ParticleSystem_Layer(_ps,_layerID)
 // #############################################################################################
 function ParticleSystem_GlobalSpace(_ps, _enable)
 {
-	if (!ParticleSystem_Exists(_ps)) return;
-	g_ParticleSystems[_ps].globalSpaceParticles = _enable;
+	var particleSystem = g_ParticleSystemManager.Get(_ps);
+	if (particleSystem == null) return;
+	particleSystem.globalSpaceParticles = _enable;
 }
 
 // #############################################################################################
@@ -2501,16 +2712,15 @@ function ParticleSystem_GlobalSpace(_ps, _enable)
 ///			</returns>
 // #############################################################################################
 function ParticleSystem_ClearParticles()
-{    
-    for (var ps = 0; ps < g_ParticleSystems.length; ps++) 
-    {
-        if (!g_ParticleSystems.hasOwnProperty(ps)) continue;
-    
-        var pPartSys = g_ParticleSystems[ps];
-	    if (pPartSys) {	    
-            pPartSys.particles = [];
-        }
-    }
+{
+	var count = g_ParticleSystemManager.Count();
+	for (var ps = 0; ps < count; ++ps) 
+	{
+		var pPartSys = g_ParticleSystemManager.At(ps);
+		if (pPartSys) {
+			pPartSys.particles = [];
+		}
+	}
 }
 
 
@@ -2527,9 +2737,8 @@ function ParticleSystem_ClearParticles()
 // #############################################################################################
 function ParticleSystem_DrawOrder(_ps, _oldtonew) 
 {
-	var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
-	if( pPartSys ==null || pPartSys==undefined ) return;
-
+	var pPartSys = g_ParticleSystemManager.Get(yyGetInt32(_ps));
+	if (pPartSys == null) return;
 	pPartSys.oldtonew = _oldtonew;
 }
 
@@ -2546,8 +2755,8 @@ function ParticleSystem_Depth(_ps, _depth)
 {
     _ps = yyGetInt32(_ps);
 
-	var pPartSys = g_ParticleSystems[_ps];
-	if( pPartSys ==null || pPartSys==undefined ) return;
+	var pPartSys = g_ParticleSystemManager.Get(_ps);
+	if (pPartSys == null) return;
 
 	pPartSys.id = _ps;
 	pPartSys.depth = yyGetReal(_depth);
@@ -2561,8 +2770,8 @@ function ParticleSystem_Depth(_ps, _depth)
 	    g_pLayerManager.RemoveElementById(g_RunRoom, pPartSys.m_elementID, true);
 	    var pPartEl = new CLayerParticleElement();
 	    pPartEl.m_systemID = _ps;
-	    g_ParticleSystems[_ps].m_origLayerID = -1;  // scrub any associated layer ID if we're manually changing depth
-	    g_ParticleSystems[_ps].m_elementID = g_pLayerManager.AddNewElementAtDepth(g_RunRoom, g_ParticleSystems[_ps].depth, pPartEl, true, true);
+	    g_ParticleSystemManager.m_origLayerID = -1;  // scrub any associated layer ID if we're manually changing depth
+	    g_ParticleSystemManager.m_elementID = g_pLayerManager.AddNewElementAtDepth(g_RunRoom, g_ParticleSystemManager.depth, pPartEl, true, true);
 	}*/
 }
 
@@ -2580,8 +2789,8 @@ function ParticleSystem_Depth(_ps, _depth)
 // #############################################################################################
 function	ParticleSystem_Color(_ps, _color, _alpha)
 {
-	var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
-	if( pPartSys ==null || pPartSys==undefined ) return;
+	var pPartSys = g_ParticleSystemManager.Get(yyGetInt32(_ps));
+	if (pPartSys == null) return;
 
 	pPartSys.color = yyGetInt32(_color);
 	pPartSys.alpha = yyGetReal(_alpha);
@@ -2601,8 +2810,8 @@ function	ParticleSystem_Color(_ps, _color, _alpha)
 // #############################################################################################
 function	ParticleSystem_Position(_ps, _x, _y)
 {
-	var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
-	if( pPartSys ==null || pPartSys==undefined ) return;
+	var pPartSys = g_ParticleSystemManager.Get(yyGetInt32(_ps));
+	if (pPartSys == null) return;
 
 	pPartSys.xdraw = yyGetReal(_x);
 	pPartSys.ydraw = yyGetReal(_y);
@@ -2621,8 +2830,8 @@ function	ParticleSystem_Position(_ps, _x, _y)
 // #############################################################################################
 function	ParticleSystem_Angle(_ps, _angle)
 {
-	var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
-	if( pPartSys ==null || pPartSys==undefined ) return;
+	var pPartSys = g_ParticleSystemManager.Get(yyGetInt32(_ps));
+	if (pPartSys == null) return;
 
 	pPartSys.angle = yyGetReal(_angle);
 }
@@ -2640,8 +2849,8 @@ function	ParticleSystem_Angle(_ps, _angle)
 // #############################################################################################
 function ParticleSystem_AutomaticUpdate( _ps, _automatic)
 {
-	var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
-	if( pPartSys ==null || pPartSys==undefined ) return;
+	var pPartSys = g_ParticleSystemManager.Get(yyGetInt32(_ps));
+	if (pPartSys == null) return;
 
 	pPartSys.automaticupdate = yyGetBool(_automatic);
 }
@@ -2659,9 +2868,8 @@ function ParticleSystem_AutomaticUpdate( _ps, _automatic)
 // #############################################################################################
 function ParticleSystem_AutomaticDraw(_ps, _automatic)
 {
-	var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
-	if( pPartSys ==null || pPartSys==undefined ) return;
-
+	var pPartSys = g_ParticleSystemManager.Get(yyGetInt32(_ps));
+	if (pPartSys == null) return;
 	pPartSys.automaticdraw = yyGetBool(_automatic);
 }
 
@@ -2684,7 +2892,7 @@ function HandleLife( _ps, _em )
 	var i = 0;
 	var numb = 0;
 
-	var pPartSys = g_ParticleSystems[_ps];
+	var pPartSys = g_ParticleSystemManager.Get(_ps);
 	var pEmitter = pPartSys.emitters[_em];
 	var pParticles = pEmitter.particles;
 
@@ -2760,7 +2968,7 @@ function HandleMotion( _ps, _em )
 	var rd = 0.0;
 	var rs = 0.0;
 
-	var pPartSys = g_ParticleSystems[_ps];
+	var pPartSys = g_ParticleSystemManager.Get(_ps);
 	var pParticles = pPartSys.emitters[_em].particles;	
 	for( i=0; i<pParticles.length; i++)
 	{
@@ -2832,7 +3040,7 @@ function HandleMotion( _ps, _em )
 // #############################################################################################
 function  HandleShape(_ps, _em)
 {
-	var pPartSys = g_ParticleSystems[_ps];
+	var pPartSys = g_ParticleSystemManager.Get(_ps);
 	var pParticles = pPartSys.emitters[_em].particles;	
 	
 	for(var i=0 ; i<pParticles.length; i++ )
@@ -2890,8 +3098,8 @@ function ParticleSystem_Update(_ps)
 {
     _ps = yyGetReal(_ps);
 
-	var pPartSys = g_ParticleSystems[_ps];
-	if( pPartSys ==null || pPartSys==undefined ) return 0 ;
+	var pPartSys = g_ParticleSystemManager.Get(_ps);
+	if (pPartSys == null) return 0;
 
 	var pEmitters = pPartSys.emitters;
 	if (pEmitters)
@@ -2952,14 +3160,15 @@ function ParticleSystem_Update(_ps)
 // #############################################################################################
 function  ParticleSystem_UpdateAll()
 {
-	for (var i=0; i<g_ParticleSystems.length; i++ )
+	var count = g_ParticleSystemManager.Count();
+	for (var i = 0; i < count; ++i)
 	{
-		var pPartSys = g_ParticleSystems[i];
+		var pPartSys = g_ParticleSystemManager.At(i);
 		if (pPartSys != null)
 		{
 			if (pPartSys.automaticupdate)
 			{
-				ParticleSystem_Update(i);
+				ParticleSystem_Update(pPartSys.id);
 			}
 		}
 	}
@@ -2967,8 +3176,9 @@ function  ParticleSystem_UpdateAll()
 
 function ParticleSystem_SetMatrix(_ps, _matrix)
 {
-	if (!ParticleSystem_Exists(_ps)) return;
-	g_ParticleSystems[_ps].matrix = new Matrix(_matrix);
+	var particleSystem = g_ParticleSystemManager.Get(_ps);
+	if (particleSystem == null) return;
+	particleSystem.matrix = new Matrix(_matrix);
 }
 
 // #############################################################################################
@@ -3137,8 +3347,8 @@ function ParticleSystem_Draw( _ps, _color, _alpha )
 	_color = (_color === undefined) ? 0xffffff : _color;
 	_alpha = (_alpha === undefined) ? 1.0 : _alpha;
 
-    var pPartSys = g_ParticleSystems[yyGetInt32(_ps)];
-	if (pPartSys == null || pPartSys == undefined) return;
+    var pPartSys = g_ParticleSystemManager.Get(yyGetInt32(_ps));
+	if (pPartSys == null) return;
 
 	var src, dest;
 	if (g_webGL != null)
@@ -3233,15 +3443,15 @@ function ParticleSystem_Draw( _ps, _color, _alpha )
 // #############################################################################################
 function ParticleSystem_DrawDepth(_d)
 {
-	for(var i=0 ; i<g_ParticleSystems.length; i++)
+	var count = g_ParticleSystemManager.Count();
+	for (var i = 0; i < count; ++i)
 	{
-		var pPartSys = g_ParticleSystems[i];
-
+		var pPartSys = g_ParticleSystemManager.At(i);
 		if (pPartSys != null)
 		{
 			if (pPartSys.automaticdraw)
 			{
-				if (Math.abs(pPartSys.depth - _d) < 0.01) ParticleSystem_Draw(i);
+				if (Math.abs(pPartSys.depth - _d) < 0.01) ParticleSystem_Draw(pPartSys.id);
 			}
 		}
 	}
@@ -3251,18 +3461,20 @@ function ParticleSystem_DrawDepth(_d)
 function ParticleSystem_AddAllToLayers() {
 	if (!g_isZeus) return;
 
-	if (persistentsystemlayernames.length < g_ParticleSystems.length)
+	var pscount = g_ParticleSystemManager.Count();
+
+	if (persistentsystemlayernames.length < pscount)
 	{
 		var oldlength = persistentsystemlayernames.length;
-		for(var i = oldlength; i < g_ParticleSystems.length; i++)
+		for(var i = oldlength; i < pscount; i++)
 		{
 			persistentsystemlayernames[i] = null;
 		}
 	}
 
-	for(var i = 0; i < g_ParticleSystems.length; i++)
+	for (var i = 0; i < pscount; ++i)
 	{
-		var pSystem = g_ParticleSystems[i];
+		var pSystem = g_ParticleSystemManager.At(i);
 
 		if (!pSystem || pSystem.m_elementID != -1) continue;
 
@@ -3302,11 +3514,12 @@ function ParticleSystem_RemoveAllFromLayers()
 {
 	if (!g_isZeus) return;
 
-	persistentsystemlayernames = new Array(g_ParticleSystems.length).fill(null);
+	var pscount = g_ParticleSystemManager.Count();
+	persistentsystemlayernames = new Array(pscount).fill(null);
 
-	for (var i = 0; i < g_ParticleSystems.length; ++i)
+	for (var i = 0; i < pscount; ++i)
 	{
-		var pSystem = g_ParticleSystems[i];
+		var pSystem = g_ParticleSystemManager.At(i);
 
 		if (!pSystem) continue;
 
@@ -3357,17 +3570,13 @@ function ParticleSystem_RemoveAllFromLayers()
 
 function ParticleSystem_AutoDraw(_ps) {
 
-    _ps = yyGetInt32(_ps);
-
-    if (true == ParticleSystem_Exists(_ps)) {
-        var pPartSys = g_ParticleSystems[_ps];
-
-        if (pPartSys != null) {
-            if (pPartSys.automaticdraw) {
-                ParticleSystem_Draw(_ps);
-            }
-        }
-    }
+	_ps = yyGetInt32(_ps);
+	var pPartSys = g_ParticleSystemManager.Get(_ps);
+	if (pPartSys != null) {
+		if (pPartSys.automaticdraw) {
+			ParticleSystem_Draw(_ps);
+		}
+	}
 };
 
 
@@ -3385,10 +3594,10 @@ function ParticleSystem_AutoDraw(_ps) {
 function  ParticleSystem_LargestDepth()
 {
 	var	Result = -1000000000;
-
-	for(var i=0 ; i<g_ParticleSystems.length; i++ )
+	var count = g_ParticleSystemManager.Count();
+	for (var i = 0; i < count; ++i)
 	{
-		var pPartSys = g_ParticleSystems[i];
+		var pPartSys = g_ParticleSystemManager.At(i);
 		if (pPartSys != null && pPartSys.particles.length>0)
 		{
 			if (pPartSys.automaticdraw) 
@@ -3415,10 +3624,10 @@ function  ParticleSystem_LargestDepth()
 function ParticleSystem_NextDepth(_d)
 {
 	var Result = -1000000000;
-
-	for(var i=0 ; i<g_ParticleSystems.length; i++ )
+	var count = g_ParticleSystemManager.Count();
+	for(var i = 0; i < count; ++i)
 	{
-		var pPartSys = g_ParticleSystems[i];
+		var pPartSys = g_ParticleSystemManager.At(i);
 		if (pPartSys != null && pPartSys.particles.length>0)
 		{
 			if (pPartSys.automaticdraw)

@@ -389,6 +389,16 @@ function yyGetRef(_value, _ref, _maxNum, _array, _allowOutOfRange) {
     return ret;
 }
 
+function yyGetRefFn(_value, _ref, _fnExists, _allowOutOfRange) {
+    var ret = yyGetRef(_value, _ref, 0, 0, true);
+    if (!_allowOutOfRange) {
+        if (_fnExists && !_fnExists(ret)) {
+            yyError("invalid reference to (" + RefName(_ref) + ")");
+        }
+    }
+    return ret;
+}
+
 // #############################################################################################
 /// Function:<summary>
 ///				Converts the given type to a string if required and returns the result.
