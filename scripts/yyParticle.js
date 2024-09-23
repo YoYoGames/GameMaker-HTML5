@@ -2563,7 +2563,7 @@ function ParticleSystem_DestroyAll()
 	var count = g_ParticleSystemManager.Count();
 	for (var i = 0; i < count; i++)
 	{
-		var particleSystem = g_ParticleSystemManager.Get(i);
+		var particleSystem = g_ParticleSystemManager.At(i);
 		if (particleSystem != null)
 			ParticleSystem_Destroy(particleSystem.id);
 	}
@@ -3548,7 +3548,7 @@ function ParticleSystem_RemoveAllFromLayers()
 				pSystem.m_elementID = -1;
 			}
 
-			ParticleSystem_Destroy(i);
+			ParticleSystem_Destroy(pSystem.id);
 			persistentsystemlayernames[i] = null;
 			continue;
 		}
