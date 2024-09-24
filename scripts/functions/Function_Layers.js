@@ -2039,7 +2039,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                         NewParticle.m_imageAlpha = ((pParticle.sBlend>>24)&0xff) / 255.0;
                         NewParticle.m_x = pParticle.sX;
                         NewParticle.m_y = pParticle.sY;
-                        NewParticle.m_pName = pParticle.sName;
+                        NewParticle.m_name = pParticle.sName;
 
                         this.AddNewElement(_room, NewLayer, NewParticle, false);
                     }
@@ -3196,6 +3196,24 @@ function layer_particle_y(_paricle_element_id, _y)
     {
         el.m_y = yyGetReal(_y);
     }
+}
+
+function layer_particle_get_id(_layerid, _particlename)
+{
+    var room = g_pLayerManager.GetTargetRoomObj();
+    if (room === null) return -1;
+
+    var layer = layerGetObj(room, _layerid);
+
+    if (layer != null)
+    {
+        var element = g_pLayerManager.GetElementFromName(layer, yyGetString(_particlename));
+        if (element != null && element.m_type == eLayerElementType_ParticleSystem)
+        {
+            return element.m_id;
+        }
+    }
+    return -1;
 }
 
 function layer_particle_get_system(_paricle_element_id)
