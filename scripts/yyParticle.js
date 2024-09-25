@@ -942,7 +942,7 @@ function CreateParticle(_system, _x, _y, _parttype)
 
 	if (_system.globalSpaceParticles)
 	{
-		Result.dir += RAD(Math.atan2(_system.matrix.m[_21], _system.matrix.m[_11]));
+		Result.dir += (180/Pi) * (Math.atan2(_system.matrix.m[_21], _system.matrix.m[_11]));
 	}
 
 	Result.ran = YYRandom(100000);
