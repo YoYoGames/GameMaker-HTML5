@@ -598,17 +598,17 @@ yyParticleSystemManager.prototype.Count = function ()
 // Returns a particle system instance at given index. Can be NULL, even when not outside of range of indices!
 yyParticleSystemManager.prototype.At = function (index)
 {
-	if (index >= this.Count())
+	if (index < 0 || index >= this.Count())
 	{
 		return null;
 	}
 
-	if (index >= this.particlesRoom.length)
+	if (index >= this.partsystems.length)
 	{
-		return this.partsystems[index - this.particlesRoom.length];
+		return this.particlesRoom[index - this.partsystems.length];
 	}
 
-	return this.particlesRoom[index];
+	return this.partsystems[index];
 };
 
 yyParticleSystemManager.prototype.Find = function (id, outData)
@@ -3526,13 +3526,9 @@ function ParticleSystem_RemoveAllFromLayers()
 
 	for (var i = 0; i < pscount; ++i)
 	{
-		var pSystem = g_ParticleSystemManager.At(index);
+		var pSystem = g_ParticleSystemManager.At(index++);
 
-		if (!pSystem)
-		{
-			++index;
-			continue;
-		}
+		if (!pSystem) continue;
 
 		// Get layer and element that the particle system is on
 		var pLayer = null;
@@ -3558,6 +3554,10 @@ function ParticleSystem_RemoveAllFromLayers()
 				pLayerElement.m_systemID = -1;
 				pSystem.m_elementID = -1;
 			}
+
+			// TODO: Add particle system instance iterator???
+			if (pSystem.id >= PARTICLE_ID_ROOM_MIN)
+				--index;
 
 			ParticleSystem_Destroy(pSystem.id);
 			persistentsystemlayernames[i] = null;
