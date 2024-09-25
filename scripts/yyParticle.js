@@ -463,25 +463,26 @@ PARTICLE_ID_ROOM_MIN = 0x00800000;
 
 function yyParticleSystemManager()
 {
-	this.particlesRoom = []; // Array of particle system instances placed into a room from the IDE
-	this.partsystems = [];   // Particle system instances created on runtime
+	this.particlesRoom = [];    // Array of particle system instances placed into a room from the IDE
+	this.cached = null;         // Last particle system looked up with Find in Get
+	this.particlesRuntime = []; // Particle system instances created on runtime
 }
 
 // For user particle systems!
 yyParticleSystemManager.prototype.GetNext = function ()
 {
 	var id = 0;
-	while ((id < this.partsystems.length) && (this.partsystems[id] != null)) { id = id + 1; }
-	if (id == this.partsystems.length)
+	while ((id < this.particlesRuntime.length) && (this.particlesRuntime[id] != null)) { id = id + 1; }
+	if (id == this.particlesRuntime.length)
 	{
-		this.partsystems.length = id + 1;
-		this.partsystems.push(null);
+		this.particlesRuntime.length = id + 1;
+		this.particlesRuntime.push(null);
 	}
 
 	// assert(id < PARTICLE_ID_ROOM_MIN); // Run out of user particle system IDs!
 
-	this.partsystems[id] = new yyParticleSystem();
-	this.partsystems[id].id = id;
+	this.particlesRuntime[id] = new yyParticleSystem();
+	this.particlesRuntime[id].id = id;
 
 	return id;
 };
@@ -537,16 +538,21 @@ yyParticleSystemManager.prototype.Remove = function (id)
 	// Is a runtime created particle system instance
 	if (id < PARTICLE_ID_ROOM_MIN)
 	{
-		if (id >= this.partsystems.length)
+		if (id >= this.particlesRuntime.length)
 		{
 			// Outside of range of indices
 			return;
 		}
-		this.partsystems[id] = null;
+		this.particlesRuntime[id] = null;
 		return;
 	}
 
 	// Is a IDE-placed particle system instance
+	if (this.cached && this.cached.id == id)
+	{
+		this.cached = null;
+	}
+
 	var outData = { system: null, position: 0 };
 
 	if (!this.Find(id, outData))
@@ -560,7 +566,8 @@ yyParticleSystemManager.prototype.Remove = function (id)
 yyParticleSystemManager.prototype.RemoveAll = function ()
 {
 	this.particlesRoom = [];
-	this.partsystems = [];
+	this.cached = null;
+	this.particlesRuntime = [];
 };
 
 // Returns a particle system instance with given ID or NULL if it doesn't exist.
@@ -575,24 +582,32 @@ yyParticleSystemManager.prototype.Get = function (id)
 	// Is a particle system instance created on runtime
 	if (id < PARTICLE_ID_ROOM_MIN)
 	{
-		if (id >= this.partsystems.length)
+		if (id >= this.particlesRuntime.length)
 		{
 			// Outside of range of indices
 			return null;
 		}
-		return this.partsystems[id];
+		return this.particlesRuntime[id];
 	}
 
 	// Is a IDE-placed particle system instance
+	if (this.cached && this.cached.id == id)
+	{
+		return this.cached;
+	}
+
 	var outData = { system: null, position: 0 };
-	this.Find(id, outData);
+	if (this.Find(id, outData))
+	{
+		this.cached = outData.system;
+	}
 	return outData.system;
 };
 
 // Returns total number of existing particles
 yyParticleSystemManager.prototype.Count = function ()
 {
-	return (this.particlesRoom.length + this.partsystems.length);
+	return (this.particlesRoom.length + this.particlesRuntime.length);
 };
 
 // Returns a particle system instance at given index. Can be NULL, even when not outside of range of indices!
@@ -603,12 +618,12 @@ yyParticleSystemManager.prototype.At = function (index)
 		return null;
 	}
 
-	if (index >= this.partsystems.length)
+	if (index >= this.particlesRuntime.length)
 	{
-		return this.particlesRoom[index - this.partsystems.length];
+		return this.particlesRoom[index - this.particlesRuntime.length];
 	}
 
-	return this.partsystems[index];
+	return this.particlesRuntime[index];
 };
 
 yyParticleSystemManager.prototype.Find = function (id, outData)
