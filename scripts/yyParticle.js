@@ -2579,12 +2579,9 @@ function ParticleSystem_DestroyAll()
 	var index = 0;
 	for (var i = 0; i < count; i++)
 	{
-		var particleSystem = g_ParticleSystemManager.At(index);
-		if (!particleSystem)
-		{
-			++index;
-			continue;
-		}
+		var particleSystem = g_ParticleSystemManager.At(index++);
+		if (!particleSystem) continue;
+		if (particleSystem.id >= PARTICLE_ID_ROOM_MIN) --index;
 		ParticleSystem_Destroy(particleSystem.id);
 	}
 	g_ParticleSystemManager.RemoveAll();
