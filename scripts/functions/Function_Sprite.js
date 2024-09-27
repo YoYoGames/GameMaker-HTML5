@@ -651,7 +651,7 @@ compile_if_used(sprite_add_from_surface = sprite_add_from_surface_RELEASE);
 ///			 </returns>
 // #############################################################################################
 function sprite_delete( _ind ) {
-	g_pSpriteManager.Delete(yyGetInt32(_ind));
+	return g_pSpriteManager.Delete(yyGetInt32(_ind));
 }
 
 
