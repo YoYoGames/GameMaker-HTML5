@@ -2774,6 +2774,7 @@ yySpriteManager.prototype.List = function () {
 ///				
 // #############################################################################################
 yySpriteManager.prototype.Delete = function(_id) {
+	var res = false;
 	var pSprite = this.Sprites[_id];
 	if (pSprite != undefined) {
 		var flush = true;
@@ -2808,7 +2809,9 @@ yySpriteManager.prototype.Delete = function(_id) {
 			}
 		}
 		this.Sprites[_id] = undefined;
+		res = true;
 	}
+	return res;
 };
 
 
