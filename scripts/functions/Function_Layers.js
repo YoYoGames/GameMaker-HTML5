@@ -3216,7 +3216,7 @@ function layer_particle_get_id(_layerid, _particlename)
     return -1;
 }
 
-function layer_particle_get_system(_paricle_element_id)
+function layer_particle_get_instance(_paricle_element_id)
 {
     var el = layerParticleGetElement(_paricle_element_id);
     var id = -1;
