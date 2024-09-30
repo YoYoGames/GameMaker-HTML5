@@ -3227,6 +3227,17 @@ function layer_particle_get_instance(_paricle_element_id)
     return MAKE_REF(REFID_PART_SYSTEM, (id != -1) ? id : 0xffffffff);
 }
 
+function layer_particle_get_system(_paricle_element_id)
+{
+    var el = layerParticleGetElement(_paricle_element_id);
+    var id = -1;
+    if (el != null)
+    {
+        id = el.m_ps;
+    }
+    return MAKE_REF(REFID_PARTICLESYSTEM, (id != -1) ? id : 0xffffffff);
+}
+
 function layer_particle_get_xscale(_paricle_element_id)
 {
     var el = layerParticleGetElement(_paricle_element_id);
