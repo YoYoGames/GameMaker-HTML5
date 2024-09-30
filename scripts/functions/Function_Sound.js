@@ -673,8 +673,8 @@ audioSound.prototype.setLoopEnd = function(_offsetSecs) {
         return;
 
     const samplePeriod = 1.0 / g_WebAudioContext.sampleRate;
-    const duration = this.pbuffersource.buffer.duration;
-    const loopStart = this.pbuffersource.loopStart;
+    const duration = audio_sound_length(this.soundid);
+    const loopStart = this.loopStart;
 
     const minLoopEnd = (_offsetSecs <= 0.0) ? 0.0 : (loopStart + samplePeriod);
 
@@ -3115,9 +3115,11 @@ function audio_create_stream(_filename)
 
     audio_sampledata[index] = sampleData;
 
+    const srcUrl = getUrlForSound(this.soundid);
+
     // Kick off a request to populate the asset duration
     const request = new XMLHttpRequest();
-    request.open("GET", getUrlForSound(index), true);
+    request.open("GET", srcUrl, true);
     request.responseType = "arraybuffer";
     request.onload = () => {
         if (request.status < 200 || request.status >= 300) {
