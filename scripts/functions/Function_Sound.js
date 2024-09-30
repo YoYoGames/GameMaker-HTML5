@@ -673,8 +673,8 @@ audioSound.prototype.setLoopEnd = function(_offsetSecs) {
         return;
 
     const samplePeriod = 1.0 / g_WebAudioContext.sampleRate;
-    const duration = this.pbuffersource.buffer.duration;
-    const loopStart = this.pbuffersource.loopStart;
+    const duration = audio_sound_length(this.soundid);
+    const loopStart = this.loopStart;
 
     const minLoopEnd = (_offsetSecs <= 0.0) ? 0.0 : (loopStart + samplePeriod);
 
