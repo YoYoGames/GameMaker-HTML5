@@ -3115,9 +3115,11 @@ function audio_create_stream(_filename)
 
     audio_sampledata[index] = sampleData;
 
+    const srcUrl = getUrlForSound(this.soundid);
+
     // Kick off a request to populate the asset duration
     const request = new XMLHttpRequest();
-    request.open("GET", getUrlForSound(index), true);
+    request.open("GET", srcUrl, true);
     request.responseType = "arraybuffer";
     request.onload = () => {
         if (request.status < 200 || request.status >= 300) {
