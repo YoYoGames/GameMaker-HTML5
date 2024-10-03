@@ -1473,6 +1473,8 @@ function audio_sound_pitch(_soundid, _pitch)
 
     if (g_AudioModel != Audio_WebAudio)
         return;
+
+    _pitch = Math.max(0, _pitch);
     
 	if (_soundid >= BASE_SOUND_INDEX) {
         const voice = GetAudioSoundFromHandle(_soundid);
