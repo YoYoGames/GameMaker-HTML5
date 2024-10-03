@@ -31,13 +31,13 @@ AudioPropsCalc.CalcPitch = function(_voice) {
     const emitter = AudioPropsCalc.GetEmitterProps(_voice.pemitter);
 
     const sourcePitch = _voice.pitch * asset.pitch * emitter.pitch;
-	const clampedPitch = Math.min(Math.max(1 / 256, sourcePitch), 256);
+    const clampedPitch = Math.min(Math.max(1 / 256, sourcePitch), 256);
 
-	if (clampedPitch != sourcePitch) {
-		console.log("Warning: Source pitch was clipped to %f\n", clampedPitch);
-	}
+    if (clampedPitch != sourcePitch) {
+        console.log("Warning: Source pitch was clipped to %f\n", clampedPitch);
+    }
 
-	return clampedPitch;
+    return clampedPitch;
 };
 
 AudioPropsCalc.GetAssetProps = function(_asset_index) {
