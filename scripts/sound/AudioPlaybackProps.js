@@ -32,7 +32,7 @@ function AudioPlaybackProps(_props) {
         this.offset = Math.max(0.0, this.offset);
 
     this.getProp(_props, "pitch", this, "pitch", true, yyGetReal, AudioPropsCalc.default_pitch);
-    this.pitch = Math.max(0.0, this.pitch);
+    this.pitch = Math.max(Number.MIN_VALUE, this.pitch);
 
     this.getProp(_props, "position", this, "position", true, undefined, undefined);
     if (typeof this.position === "object" && this.type === undefined) {

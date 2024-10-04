@@ -1473,8 +1473,10 @@ function audio_sound_pitch(_soundid, _pitch)
 
     if (g_AudioModel != Audio_WebAudio)
         return;
+
+    _pitch = Math.max(Number.MIN_VALUE, _pitch);
     
-	if (_soundid >= BASE_SOUND_INDEX) {
+    if (_soundid >= BASE_SOUND_INDEX) {
         const voice = GetAudioSoundFromHandle(_soundid);
 
         if (voice === null)
@@ -2357,7 +2359,7 @@ function audio_emitter_pitch(_emitterIndex, _pitch) {
         return;
 
     _pitch = yyGetReal(_pitch);
-    _pitch = Math.max(0.0, _pitch);
+    _pitch = Math.max(Number.MIN_VALUE, _pitch);
 
     emitter.pitch = _pitch;
 
