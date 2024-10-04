@@ -1,4 +1,4 @@
-﻿// **********************************************************************************************************************
+// **********************************************************************************************************************
 // 
 // Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
 // 
@@ -38,39 +38,51 @@ function display_mouse_set(x,y)                     {ErrorFunction("display_mous
 
 var g_Clipboard = [];
 var g_ClipboardActive = false;
+var g_ClipboardAvailable = true;
 var g_ActivatingClipboard = false;
 
-function activate_clipboard()
-{
-	// if we support clipboard
-	if (!g_ClipboardActive && navigator.clipboard) {
+function activate_clipboard() {
 
-		if (!g_ActivatingClipboard) {
+	// This is here so we don't spam clipboard activation
+	if (!g_ClipboardAvailable) {
+		return;
+	}
 
-			g_ActivatingClipboard = true;
-			// get permission first for clipboard
-			navigator.permissions.query( { "name": 'clipboard-read', "allowWithoutGesture": true}).then( function(result) {
+	// if we support clipboard 
+	if (!g_ClipboardActive && navigator.clipboard) { 
+	
+		if (!g_ActivatingClipboard) { 
 
-				if ((result.state == 'granted') || (result.state == 'prompt')) {
+			g_ActivatingClipboard = true; 
+			// get permission first for clipboard 
+			navigator.permissions.query({ "name": 'clipboard-read', "allowWithoutGesture": true})
+				.then( function(result) { 
+					if ((result.state == 'granted') || (result.state == 'prompt')) { 
 
-					// flag that clipboard is active and 
-					g_ClipboardActive = true;
+						// flag that clipboard is active and  
+						g_ClipboardActive = true; 
+						g_ActivatingClipboard = false; 
+
+						// empty out everything that we have accumulated on the GM Clipboard into the main clipboard 
+						for( var n =0; n<g_Clipboard.length; ++n) { 
+							navigator.clipboard.writeText( g_Clipboard[n]); 
+						} // end for 
+						g_Clipboard = []; 
+
+						// setup to read text from clipboard 
+						navigator.clipboard.readText().then( clipText => { if (clipText != "") g_Clipboard.push( clipText ); } ).catch( () => {} ); 
+
+					} // end if 
+
+				}).catch(function(e) {
+					// [DOCUMENTATION]
+					// On HTML5, clipboards are not supported on Firefox without the use of an extension, and are not supported on Internet Explorer at all.
 					g_ActivatingClipboard = false;
-
-					// empty out everything that we have accumulated on the GM Clipboard into the main clipboard
-					for( var n =0; n<g_Clipboard.length; ++n) {
-						navigator.clipboard.writeText( g_Clipboard[n]);
-					} // end for
-					g_Clipboard = [];
-
-					// setup to read text from clipboard
-					navigator.clipboard.readText().then( clipText => { if (clipText != "") g_Clipboard.push( clipText ); } ).catch( () => {} );
-
-				} // end if
-
-			});
-		} // end if
-	} // end if
+					g_ClipboardAvailable = false;	
+					console.warn('Failed to activate the clipboard (not available).');
+				});
+		} // end if 
+	} // end if 
 } // end activate_clipboard
 
 function clipboard_has_text() { 
