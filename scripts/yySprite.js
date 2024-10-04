@@ -825,6 +825,76 @@ yySprite.prototype.SetSWFDrawRoutines = function () {
 	// @endif swf
 };
 
+// #############################################################################################
+/// Function:<summary>
+///          	Re-direct draw routines to those that draw SWFs for the sprite
+///          </summary>
+// #############################################################################################
+yySprite.prototype.SetVectorDrawRoutines = function () {
+	// @if feature("swf")
+    this.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _colour, _alpha) {    
+	    Graphics_VectorSpriteDraw(
+	        this.SWFDictionaryItems, this.m_VectorShape, this.xOrigin, this.yOrigin, _x, _y, _xscale, _yscale, _angle, _colour, _alpha, this.ppTPE);
+    };
+    
+    this.DrawSimple = function (_ind, _x, _y, _alpha) {
+        Graphics_VectorSpriteDraw(
+            this.SWFDictionaryItems, this.m_VectorShape, this.xOrigin, this.yOrigin, _x, _y, 1.0, 1.0, 0.0, 0xffffffff, _alpha, this.ppTPE);
+    };
+	// @endif swf
+};
+
+
+// #############################################################################################
+/// Property: <summary>
+///           	Build SWF data associated with the sprite
+///           </summary>
+// #############################################################################################
+yySprite.prototype.BuildVectorData = function (_vecIndex, _xo, _yo) {
+	// @if feature("swf")
+    try {
+        if (g_pSpriteManager.vectorSpriteData !== undefined) {
+        
+            var littleEndian = true;
+            var byteOffset = 0;
+            var vecArrayBuffer = g_pSpriteManager.vectorSpriteData[_vecIndex];
+            
+            var dataView = new DataView(vecArrayBuffer);
+            if (dataView !== undefined) {                        
+            
+                // Read in the header details                            
+				var fileVersion = dataView.getUint32(byteOffset, littleEndian);
+                byteOffset += 4;
+
+				this.m_VectorShape = new yySWFShape(eDIType_Shape, 0);
+				byteOffset = this.m_VectorShape.BuildShapeData(dataView, byteOffset, littleEndian, null);                
+				
+				if(!this.m_LoadedFromChunk)
+				{
+                	this.bboxmode = 0;
+					this.preload = true;
+				}
+                
+                if (!this.m_LoadedFromChunk && this.colcheck === yySprite_CollisionType.AXIS_ALIGNED_RECT) {
+                    this.bbox.left = this.m_VectorShape.minX;
+		            this.bbox.right = this.m_VectorShape.maxX;
+		            this.bbox.top = this.m_VectorShape.minY;
+		            this.bbox.bottom = this.m_VectorShape.maxY;
+		            this.xOrigin = _xo;
+		            this.yOrigin = _yo;
+                }                
+                // i_numb = m_SWF_Timeline->numFrames;                
+                this.CalcCullRadius();                
+                this.SetVectorDrawRoutines();                	
+            }
+        }
+    }
+    catch (e) {
+        debug("Cannot build SWF data " + e.message);
+    }
+	// @endif
+};
+
 
 
 // #############################################################################################
@@ -1141,6 +1211,11 @@ function    CreateSpriteFromStorage( _pStore )
 	if (_pStore.swf !== undefined) {
 		pSprite.m_LoadedFromChunk = true;
 	    pSprite.BuildSWFData(_pStore.swf, pSprite.xOrigin, pSprite.yOrigin);
+	}
+
+	if (_pStore.vector !== undefined) {
+		pSprite.m_LoadedFromChunk = true;
+	    pSprite.BuildVectorData(_pStore.vector, pSprite.xOrigin, pSprite.yOrigin);
 	}
 	// @endif
 
@@ -2877,6 +2952,72 @@ yySpriteManager.prototype.SWFLoad = function (_data) {
     }
     catch (e) {
         debug("Cannot parse SWF data " + e.message);        
+    }
+	// @endif swf
+};
+
+// #############################################################################################
+/// Function:<summary>
+///          	Parse the loaded SWF data
+///             SWFs only supported for WebGL where we're expecting Uint8Arrays to exist, on IE it'll take exception
+///          </summary>
+// #############################################################################################
+yySpriteManager.prototype.VecLoad = function (_data) {
+	// @if feature("swf")
+    try {
+        // header consists of:
+        // "rvec";
+        // major.minor.version;
+        // header size; (to offset to the start of the vector sprite data
+        // number of vector sprites;
+        // size of each vector sprite;                  
+        var dataview = {
+            data: new Uint8Array(_data),
+            offset: 0
+        };            
+        function nextString (_dataview) {
+            var separator = ";";
+            var str = "";
+            while (dataview.offset < _dataview.data.byteLength) {                    
+                if (_dataview.data[dataview.offset] === separator.charCodeAt(0)) {
+                    dataview.offset++;
+                    break;
+                }
+                str = str + String.fromCharCode(_dataview.data[dataview.offset]);                    
+                dataview.offset++;
+            }
+            return str;
+        };
+               
+        var type = nextString(dataview);
+        if (type == "rvec") {            
+            
+            // Make sure the vector sprite loading code knows what version it's dealing with
+            var version = nextString(dataview),            
+                versionInfo = version.split('.', 3);
+                
+            g_VectorSpriteVersion.major = parseInt(versionInfo[0]);
+            g_VectorSpriteVersion.minor = parseInt(versionInfo[1]);
+            g_VectorSpriteVersion.version = parseInt(versionInfo[2]);
+            
+            var headerSize = parseInt(nextString(dataview)),
+                spriteCount = parseInt(nextString(dataview));
+
+            // Get the version code, header size and sprite count
+            this.vectorSpriteData = [];
+
+            // Extract each SWF            
+            var dataOffset = headerSize;
+            for (var i = 0; i < spriteCount; i++) {
+                                               
+                var vecSize = parseInt(nextString(dataview));
+                this.vectorSpriteData[i] = _data.slice(dataOffset, dataOffset + vecSize);                
+                dataOffset += vecSize;
+            }
+        }
+    }
+    catch (e) {
+        debug("Cannot parse vector sprite data " + e.message);        
     }
 	// @endif swf
 };

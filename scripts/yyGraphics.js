@@ -55,6 +55,8 @@ var Graphics_TextureDraw;
 var Graphics_EndFrame;
 var Graphics_SWFDraw;
 var Graphics_SWFDrawObject;
+var Graphics_VectorSpriteDraw;
+var Graphics_VectorSpriteDrawObject;
 var Graphics_DrawText;
 // whether to use texture interpolation in 2d context
 var Graphics_Interpolation = true;
@@ -210,6 +212,8 @@ function    Graphics_Init( _canvas )
         Graphics_DrawComment = Graphics_DrawComment_RELEASE;
         Graphics_SWFDraw = function () {};
 		Graphics_SWFDrawObject = function () {};
+		Graphics_VectorSpriteDraw = function () {};
+		Graphics_VectorSpriteDrawObject = function () {};
 		Graphics_Interpolation = !(g_pGMFile.Options && !g_pGMFile.Options.interpolatePixels);
 
 

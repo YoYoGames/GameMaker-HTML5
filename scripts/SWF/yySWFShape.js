@@ -28,6 +28,12 @@ var g_SWFVersion = {
     version: 1
 };
 
+var g_VectorSpriteVersion = {
+    major: 0,
+    minor: 0,
+    version: 1
+};
+
 // #############################################################################################
 /// Function:<summary>
 ///             Initialise an SWF shape
