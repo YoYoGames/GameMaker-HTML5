@@ -897,7 +897,7 @@ Audio_WebAudio=1,
 	g_CurrentDepthIdStack =[],
 
 	g_gmlConst =null,
-	g_AudioBusMain = null;
+	g_AudioBusMain = null,
 	g_AudioMainVolumeNode =null,
 	g_WebAudioContext =null,
 	g_dialogs = null,
@@ -1030,6 +1030,7 @@ Audio_WebAudio=1,
 	c_greenA =  0,
 	c_blueA = 0,
     g_isZeus = 0,
+    g_requestAnimationID = 0,
     g_crcTable=[],
     g_CanvasName = 'canvas',
     g_Hex='0123456789ABCDEF';

@@ -1029,7 +1029,7 @@ function Audio_GetEngineState() {
 function Audio_WebAudioContextTryUnlock()
 {
 	if ( g_WaitingForWebAudioTouchUnlock )
-        return;
+		return;
 
 	g_WaitingForWebAudioTouchUnlock = true;
 
@@ -1041,7 +1041,7 @@ function Audio_WebAudioContextTryUnlock()
 		eventTypeStart = "touchstart";
 		eventTypeEnd = "touchend";
 	}
-    if ((window.PointerEvent) || (window.navigator.pointerEnabled)||(window.navigator.msPointerEnabled)) {
+    if ((window.PointerEvent) || (window.navigator.pointerEnabled) || (window.navigator.msPointerEnabled)) {
 		eventTypeStart = "pointerdown";
 		eventTypeEnd = "pointerup";
     } // end if
@@ -1050,6 +1050,10 @@ function Audio_WebAudioContextTryUnlock()
 	// Set up context unlock events
 	var unlockWebAudioContext = function ()
 	{
+		if ( !Audio_ContextExists() )
+			// This case should only happen if the game ends or crashes before attempting to unlock the AudioContext instance.
+			// However, let's not make assumptions and keep the event listeners active.
+			return;
 		g_WebAudioContext.resume().then( function ()
 		{
 			document.body.removeEventListener( eventTypeStart, unlockWebAudioContext );
