@@ -1349,12 +1349,23 @@ function YYInstanceof(_x) {
 function YYTypeof(_x) {
     var ret = typeof(_x);
     switch (ret) {
-        case "boolean": return "bool";
-        case "function": return "method";
+        case "number":
+        case "string":
+        case "undefined":
+            return ret;
+        case "boolean":
+            return "bool";
+        case "function":
+            return "method";
         case "object":
-            // JS objects that aren't arrays count as pointers
-            return (_x instanceof Array) ? "array" : (_x instanceof ArrayBuffer) ? "ptr" : (_x instanceof Long) ? "int64" : "struct";
-        default: return ret;
+            if (_x === null) return "null"; // `typeof null` is "object" in JS
+            if (_x instanceof Array) return "array";
+            if (_x instanceof ArrayBuffer) return "ptr";
+            if (_x instanceof Long) return "int64";
+            if (_x instanceof YYRef) return "ref";
+            return "struct";
+        default:
+            return "unknown"; // this would be a "symbol" or a "bigint" which are not supported types in GameMaker
     }
 }
 
