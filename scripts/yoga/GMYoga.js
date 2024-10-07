@@ -511,6 +511,11 @@ function flexpanel_node_set_name( _node, _name )
 function flexpanel_node_get_data( _node )
 {	
 	var context = g_contextYoga.get( _node["M"]["O"] );
+	if (context.data == undefined) {
+
+		context.data = new GMLObject();
+
+	} // end if
 	return context.data;
 }
 
