@@ -1586,6 +1586,8 @@ function Run_EndGame(_reset) {
 	}
 	g_pInstanceManager.Clear();
 
+    g_SDTimeSourceParent.Destroy(g_SDTimeSourceParent);
+
 	// @if feature("audio")
     if (_reset) {
 		// Just stops all audio instances.
