@@ -1078,62 +1078,59 @@ function script_execute_ext( _self, _other, _index, _array, _offset, _length )
     _length = _length || _array.length - _offset;
     _length = yyGetInt32(_length);
     if (!(_array instanceof Array)) {
-    	yyError( "script_execute_ext : argument 2 is not an array")
+    	_array = [];
     }
-    else {
-
-    	var dir = 1;
-		if (_offset < 0) _offset = _array.length + _offset;
-		if (_offset >= _array.length) _offset = _array.length;
-		if (_length < 0) {
-			dir = -1;
-			if ((_offset + _length) < 0) {
-				_length = _offset+1;
-			} // end if
-			else {
-				_length = -_length;
-			} // end else
+	var dir = 1;
+	if (_offset < 0) _offset = _array.length + _offset;
+	if (_offset >= _array.length) _offset = _array.length;
+	if (_length < 0) {
+		dir = -1;
+		if ((_offset + _length) < 0) {
+			_length = _offset+1;
 		} // end if
 		else {
-			if ((_offset + _length) > _array.length) {
-				_length = _array.length - _offset;
-			} // end if
+			_length = -_length;
 		} // end else
-
-        var newArgs = [];
-		for (var n = _offset, i=0; (i < _length); ++i, n+=dir)
-			newArgs.push( _array[n] );
-
-
-	    func = undefined;
-	    if (typeof _index === "function") {
-	        newArgs.splice( 0, 0, _self, _other );
-	        // skip passed the index, but keep the self and other
-	        return _index.apply(this, newArgs);        
-	    } // end if
-	    else {
-	        _index == yyGetInt32(_index);
-	        if (_index < 100000) {
-	            global_scripts_init();
-	            if ((_index >=0) && (_index < g_globalScripts.length)) {
-	                func = g_globalScripts[_index];
-	                if (func !== undefined) {
-	                    // skip passed the index, self and other
-	                    return func.apply(this, newArgs);        
-	                } // end if
-	            } // end if
-	        } // end if
-	        else {
-	            _index -= 100000;
-	            func = JSON_game.Scripts[ _index ];
-	                if (func !== undefined) {
-	                    newArgs.splice( 0, 0, _self, _other );
-	                    // skip passed the index, but keep the self and other
-	                    return func.apply(this, newArgs);        
-	                } // end if
-	        } // end else
-	    } // end else
+	} // end if
+	else {
+		if ((_offset + _length) > _array.length) {
+			_length = _array.length - _offset;
+		} // end if
 	} // end else
+
+    var newArgs = [];
+	for (var n = _offset, i=0; (i < _length); ++i, n+=dir)
+		newArgs.push( _array[n] );
+
+
+    func = undefined;
+    if (typeof _index === "function") {
+        newArgs.splice( 0, 0, _self, _other );
+        // skip passed the index, but keep the self and other
+        return _index.apply(this, newArgs);        
+    } // end if
+    else {
+        _index == yyGetInt32(_index);
+        if (_index < 100000) {
+            global_scripts_init();
+            if ((_index >=0) && (_index < g_globalScripts.length)) {
+                func = g_globalScripts[_index];
+                if (func !== undefined) {
+                    // skip passed the index, self and other
+                    return func.apply(this, newArgs);        
+                } // end if
+            } // end if
+        } // end if
+        else {
+            _index -= 100000;
+            func = JSON_game.Scripts[ _index ];
+                if (func !== undefined) {
+                    newArgs.splice( 0, 0, _self, _other );
+                    // skip passed the index, but keep the self and other
+                    return func.apply(this, newArgs);        
+                } // end if
+        } // end else
+    } // end else
 
     return 0;
 } // end script_execute_ext
