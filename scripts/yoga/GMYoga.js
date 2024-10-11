@@ -161,8 +161,8 @@ function FLEXPANEL_SetCSSValueEdge( _node, _value, _edge, _set, _setPercent )
 
 	switch( unit )
 	{
-	case 1: _set( _node, _value, _edge ); break;
-	case 2: _setPercent( _node, _value, _edge ); break;
+	case 1: _set( _node, _edge, _value ); break;
+	case 2: _setPercent( _node, _edge, _value ); break;
 	}
 }
 
@@ -581,7 +581,7 @@ function flexpanel_node_get_struct( _node )
     ret.__yyIsGMLObject = true;	
 	var context = g_contextYoga.get( _node["M"]["O"] );
     FLEXPANEL_SetIfNotDefault( ret, "alignContent", _node.getAlignContent(), YGAlignFlexStart );
-    FLEXPANEL_SetIfNotDefault( ret, "alignItems", _node.getAlignItems(), YGAlignStretch );
+    FLEXPANEL_SetIfNotDefault( ret, "alignItems", _node.getAlignItems(), YGAlignStretch, g_alignType );
     FLEXPANEL_SetIfNotDefault( ret, "alignSelf", _node.getAlignSelf(), YGAlignAuto );
     FLEXPANEL_SetIfNotDefault( ret, "aspectRatio", _node.getAspectRatio(), "isnan" );
     FLEXPANEL_SetIfNotDefault( ret, "display", _node.getDisplay(), YGDisplayFlex, g_displayType  );
@@ -939,7 +939,7 @@ function flexpanel_node_style_set_gap(_node, _gutter, _value)
 }
 
 // #######################################################################################
-function flexpanel_node_style_set_position(_node, _value)
+function flexpanel_node_style_set_position(_node, _value, _unit)
 {	
 	switch( _unit )
 	{
@@ -972,13 +972,13 @@ function flexpanel_node_style_set_margin(_node, _edge, _value)
 }
 
 // #######################################################################################
-function flexpanel_node_style_set_padding(_node, _value)
+function flexpanel_node_style_set_padding(_node, _edge, _value)
 {	
 	_node.setPadding( yyGetInt32(_edge), yyGetReal(_value));
 }
 
 // #######################################################################################
-function flexpanel_node_style_set_border(_node, _value)
+function flexpanel_node_style_set_border(_node, _edge, _value)
 {	
 	_node.setBorder( yyGetInt32(_edge), yyGetReal(_value));
 }
@@ -991,7 +991,7 @@ function flexpanel_node_style_set_position_type(_node, _value)
 }
 
 // #######################################################################################
-function flexpanel_node_style_set_min_width(_node, _value)
+function flexpanel_node_style_set_min_width(_node, _value, _unit)
 {	
 	switch( _unit )
 	{
@@ -1005,7 +1005,7 @@ function flexpanel_node_style_set_min_width(_node, _value)
 }
 
 // #######################################################################################
-function flexpanel_node_style_set_max_width(_node, _value)
+function flexpanel_node_style_set_max_width(_node, _value, _unit)
 {	
 	switch( _unit )
 	{
@@ -1019,7 +1019,7 @@ function flexpanel_node_style_set_max_width(_node, _value)
 }
 
 // #######################################################################################
-function flexpanel_node_style_set_min_height(_node, _value)
+function flexpanel_node_style_set_min_height(_node, _value, _unit)
 {	
 	switch( _unit )
 	{
@@ -1033,7 +1033,7 @@ function flexpanel_node_style_set_min_height(_node, _value)
 }
 
 // #######################################################################################
-function flexpanel_node_style_set_max_height(_node, _value)
+function flexpanel_node_style_set_max_height(_node, _value, _unit)
 {	
 	switch( _unit )
 	{
@@ -1047,7 +1047,7 @@ function flexpanel_node_style_set_max_height(_node, _value)
 }
 
 // #######################################################################################
-function flexpanel_node_style_set_width(_node, _value)
+function flexpanel_node_style_set_width(_node, _value, _unit)
 {	
 	switch( _unit )
 	{
@@ -1064,7 +1064,7 @@ function flexpanel_node_style_set_width(_node, _value)
 }
 
 // #######################################################################################
-function flexpanel_node_style_set_height(_node, _value)
+function flexpanel_node_style_set_height(_node, _value, _unit)
 {	
 	switch( _unit )
 	{
