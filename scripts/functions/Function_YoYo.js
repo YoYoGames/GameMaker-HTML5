@@ -1029,6 +1029,7 @@ function script_get(_ind)
 function script_execute( _self, _other, _index )
 {
     func = undefined;
+    _self.__yyCreatedByNew = 1;
     if (typeof _index === "function") {
         var newArgs = Array.prototype.slice.call(arguments);
         // move self and other up the arguments
@@ -1104,6 +1105,7 @@ function script_execute_ext( _self, _other, _index, _array, _offset, _length )
 
 
     func = undefined;
+    _self.__yyCreatedByNew = 1;
     if (typeof _index === "function") {
         newArgs.splice( 0, 0, _self, _other );
         // skip passed the index, but keep the self and other
