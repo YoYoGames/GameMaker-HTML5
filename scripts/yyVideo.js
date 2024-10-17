@@ -12,6 +12,7 @@
 
 // @if function("video_")
 var g_VideoUserEnded = false; //For some reason I can't figure this from the video player...
+var g_AnimationFrameRequestID = null;
 
 function video_get_format() {
     var video_format_rgba = 0;
@@ -93,27 +94,58 @@ function video_open(path)
 
     
     if (myVideo.requestVideoFrameCallback === undefined) { //urgh can't use nice fast playback
-        console.log("requestVideoFrameCallback not supported by browser, video playback likely to be poor");
-        myVideo.addEventListener('playing', function () {
-            playing = true;
-            console.log("Video playing event called");
-            checkReady();
+        console.log("requestVideoFrameCallback not supported by browser, falling back to requestAnimationFrame");
+        let fpsInterval = 1000 / 29.97;
+        let then = Date.now();
+		
+        function updateVideoFrame() {
+            if (!g_VideoUserEnded) {
+				g_AnimationFrameRequestID = requestAnimationFrame(updateVideoFrame);
+				console.log(g_AnimationFrameRequestID);
+                let now = Date.now();
+                let elapsed = now - then;
 
-            var map = ds_map_create();
+                if (elapsed > fpsInterval) {
+                    then = now - (elapsed % fpsInterval);
+                    if (gameCanvas.videoCanvas == null) {} else {
+                        gameCanvas.videoCanvas.width = myVideo.videoWidth;
+                        gameCanvas.videoCanvas.height = myVideo.videoHeight;
+                    }
 
-            ds_map_add(map, "type", "video_start");
-
-            g_pBuiltIn.async_load = map;
-            g_pObjectManager.ThrowEvent(EVENT_OTHER_SOCIAL, 0);
-            ds_map_destroy(map);
-
-        }, true);
+                    if ((gameCanvas.yyvideoplayer != null) && (gameCanvas.videoContext != null)) {
+                        gameCanvas.videoContext.drawImage(gameCanvas.yyvideoplayer, 0, 0);
+                    }
+                }
+            }else{
+			if(g_AnimationFrameRequestID){
+			cancelAnimationFrame(g_AnimationFrameRequestID);
+			g_AnimationFrameRequestID = null;
+			}
+			}
+        }
+		
         myVideo.addEventListener('timeupdate', function () {
             timeupdate = true;
             checkReady();
         }, true);
 
         myVideo.load();
+		
+		myVideo.addEventListener('playing', function () {
+        playing = true;
+        console.log("Video playing event called");
+        checkReady();
+        requestAnimationFrame(updateVideoFrame);
+        var map = ds_map_create();
+
+        ds_map_add(map, "type", "video_start");
+
+        g_pBuiltIn.async_load = map;
+        g_pObjectManager.ThrowEvent(EVENT_OTHER_SOCIAL, 0);
+        ds_map_destroy(map);
+    }, true);
+		
+
 
         var promise = myVideo.play();
         if (promise !== undefined) {
