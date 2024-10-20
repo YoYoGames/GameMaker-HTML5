@@ -117,7 +117,7 @@ var g_contextYoga = new Map();
 
 function FLEXPANEL_StringToEnum( _type, _value)
 {
-	return _type[ _value ];
+	return _type[ _value ] ?? -1;
 }
 
 function FLEXPANEL_SetCSSValue( _node, _value, _set, _setPercent, _setAuto )
@@ -672,20 +672,26 @@ function flexpanel_node_layout_get_position( _node, _relative )
 		var curr = _node.getParent();
 		while( curr != undefined ) {
 
-			x += _node.getComputedLeft();
-			y += _node.getComputedTop();
+			x += curr.getComputedLeft();
+			y += curr.getComputedTop();
 
 			curr = curr.getParent();
 		} // end while
 	} // end if
 	var ret = {};
     ret.__yyIsGMLObject = true;	
-    variable_struct_set(ret, "left", _node.getComputedLeft() + x);
-    variable_struct_set(ret, "top", _node.getComputedTop() + y);
-    variable_struct_set(ret, "width", _node.getComputedWidth());
-    variable_struct_set(ret, "height", _node.getComputedHeight());
-    variable_struct_set(ret, "bottom", _node.getComputedBottom() + y);
-    variable_struct_set(ret, "right", _node.getComputedRight() + x);
+    var left = _node.getComputedLeft();
+    var right = _node.getComputedRight();
+    var bottom = _node.getComputedBottom();
+    var top = _node.getComputedTop();
+    var width = _node.getComputedWidth();
+    var height = _node.getComputedHeight();
+    variable_struct_set(ret, "left", left + x);
+    variable_struct_set(ret, "top", top + y);
+    variable_struct_set(ret, "width", width);
+    variable_struct_set(ret, "height", height);
+    variable_struct_set(ret, "bottom", bottom + y);
+    variable_struct_set(ret, "right", right + x);
 
 	return ret;
 }
