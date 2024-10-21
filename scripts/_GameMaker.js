@@ -2298,33 +2298,28 @@ function GameMaker_Tick()
         lastfpstime = g_CurrentTime;
 	}
     newfps++;
-
     // schedule next frame:
     // this might be best done after if(!Run_Paused) block,
     // but then an exception would halt the game loop.
     var nextFrameAt = g_FrameStartTime + 1000 / TargetSpeed;
-    var now = Date.now();
-    var delay = g_FrameStartTime + 1000 / TargetSpeed - now;
-    if (delay < 0) delay = 0;
-    g_FrameStartTime = now + delay;
-    if (delay > 4) {
-        // 4ms is the general minimum timeout time as per spec,
-        // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#timers
-        setTimeout(function() {
-            if (window.yyRequestAnimationFrame) {
-                window.yyRequestAnimationFrame(animate);
-            } else {
-                // Don't re-enter, that would be bad.
-                //animate();
-            }
-        }, delay); 
-    } else {
+    var now = g_CurrentTime;
+    var delay = nextFrameAt - now;
+    if (delay < 0) {
+        delay = 0;
+    }
+    
+    if (delay <= 4) {
+        g_FrameStartTime +=delay;
         if (window.yyRequestAnimationFrame) {
             window.yyRequestAnimationFrame(animate);
-        } else {
-            window.postMessage("yyRequestAnimationFrame", "*");
+        } else{
+           
         }
+    } else{
+        g_FrameStartTime -=delay;
+        window.postMessage("yyRequestAnimationFrame", "*");
     }
+    
 
     if (!Run_Paused)
     {
