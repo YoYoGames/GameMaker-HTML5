@@ -40,8 +40,8 @@ function surface_resize(_id, _w, _h)
 	// it'll happen at the start of the NEXT frame.
     if( _id == g_ApplicationSurface )
     {
-        if (g_ApplicationWidth != g_NewApplicationWidth
-            || g_NewApplicationHeight != g_NewApplicationHeight)
+        if (g_ApplicationWidth != _w
+            || g_ApplicationHeight != _h)
         {
             g_NewApplicationSize = true;
             g_NewApplicationWidth = _w;
