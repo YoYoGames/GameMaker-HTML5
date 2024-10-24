@@ -647,25 +647,34 @@ audioSound.prototype.getLoopState = function() {
 };
 
 audioSound.prototype.setLoopStart = function(_offsetSecs) {
-    if (this.bActive === false || g_WebAudioContext === null)
+    if (this.bActive === false || g_WebAudioContext === null) {
         return;
+    }
 
-    const samplePeriod = 1.0 / g_WebAudioContext.sampleRate;
+    let clampedStart = Math.max(0.0, _offsetSecs);
+    if (clampedStart != _offsetSecs) {
+        console.log("Warning: Loop start (" + _offsetSecs + ") was clipped to " + 0.0 + " as it cannot be negative");
+    }
+    else {
+        const samplePeriod = 1.0 / g_WebAudioContext.sampleRate;
+        const trueEnd = this.getTrueLoopEnd();
+        const maxStart = trueEnd - samplePeriod;
 
-    const trueLoopEnd = this.getTrueLoopEnd();
-    const maxLoopStart = trueLoopEnd - samplePeriod;
-
-    _offsetSecs = Math.max(0.0, _offsetSecs);
-    _offsetSecs = Math.min(_offsetSecs, maxLoopStart);
+        clampedStart = Math.min(_offsetSecs, maxStart);
+        if (clampedStart != _offsetSecs) {
+            console.log("Warning: Loop start (" + _offsetSecs + ") was clipped to " + trueEnd
+                + " as it cannot be greater than the loop end (" + trueEnd + ")");
+        }
+    }
 
     this.setPlaybackCheckpoint();
 
-    this.loopStart = _offsetSecs;
+    this.loopStart = clampedStart;
     
     if (this.pbuffersource === null)
         return;
 
-    this.pbuffersource.loopStart = _offsetSecs;
+    this.pbuffersource.loopStart = this.loopStart;
 };
 
 audioSound.prototype.setLoopEnd = function(_offsetSecs) {
@@ -673,23 +682,33 @@ audioSound.prototype.setLoopEnd = function(_offsetSecs) {
         return;
 
     const samplePeriod = 1.0 / g_WebAudioContext.sampleRate;
-    const duration = audio_sound_length(this.soundid);
-    const loopStart = this.loopStart;
 
-    const minLoopEnd = (_offsetSecs <= 0.0) ? 0.0 : (loopStart + samplePeriod);
+    const minEnd = (_offsetSecs <= 0.0) ? 0.0 : (this.loopStart + samplePeriod);
 
-    _offsetSecs = Math.max(minLoopEnd, _offsetSecs);
-    _offsetSecs = Math.min(_offsetSecs, duration);      
+    let clampedEnd = Math.max(minEnd, _offsetSecs);
+    if (clampedEnd != _offsetSecs) {
+        console.log("Warning: Loop end (" + _offsetSecs + ") was clipped to " + clampedEnd 
+            + " as it cannot be less than the loop start (" + minEnd + ")");
+    }
+    else {
+        const duration = audio_sound_length(this.soundid);
+
+        clampedEnd = Math.min(_offsetSecs, duration);
+        if (clampedEnd != _offsetSecs) {
+            console.log("Warning: Loop end (" + _offsetSecs + ") was clipped to " + clampedEnd
+                + " as it cannot be greater than the duration");
+        }
+    }
     
     this.setPlaybackCheckpoint();
 
-    this.loopEnd = _offsetSecs;
+    this.loopEnd = clampedEnd;
 
     if (this.pbuffersource === null)
         return;
 
     const playbackPosition = this.playbackCheckpoint.bufferTime;
-    const trueLoopEnd = (_offsetSecs > 0.0) ? _offsetSecs : duration;
+    const trueLoopEnd = (this.loopEnd > 0.0) ? this.loopEnd : duration;
     /* 
         Once the loop section has been reached a single time, Web Audio
         considers the buffer source to be 'looping' and will constrain the playback
@@ -699,7 +718,7 @@ audioSound.prototype.setLoopEnd = function(_offsetSecs) {
         The voice-level property (i.e. this.loop) will still reflect the user's chosen loop status.
     */
     this.pbuffersource.loop = (this.loop === true) && (playbackPosition < trueLoopEnd);
-    this.pbuffersource.loopEnd = _offsetSecs;
+    this.pbuffersource.loopEnd = this.loopEnd;
 };
 
 audioSound.prototype.getLoopStart = function() {
@@ -1726,8 +1745,6 @@ function audio_sound_loop_start(_index, _offsetSecs) {
         return;
     }
 
-    _offsetSecs = clamp(_offsetSecs, 0, assetDuration);
-
     if (_index >= BASE_SOUND_INDEX) {
         const voice = GetAudioSoundFromHandle(_index);
 
@@ -1742,10 +1759,32 @@ function audio_sound_loop_start(_index, _offsetSecs) {
             return;
         }
 
-        asset.loopStart = _offsetSecs;
+        let clampedStart = Math.max(0, _offsetSecs);
+        if (clampedStart != _offsetSecs) {
+            console.log("Warning: Loop start (" + _offsetSecs + ") was clipped to " + 0.0 + " as it cannot be negative");
+        }
+        else {
+            let maxStart = 0;
+            const duration = audio_sound_length(_index);
+
+            if (asset.loopEnd > 0) {
+                maxStart = asset.loopEnd;
+            }
+            else if (duration > 0) {
+                maxStart = duration;
+            }
+
+            clampedStart = Math.min(clampedStart, maxStart);
+            if (clampedStart != _offsetSecs) {
+                console.log("Warning: Loop start (" + _offsetSecs + ") was clipped to " + clampedStart
+                    + " as it cannot be greater than the loop end (" + maxStart + ")");
+            }
+        }
+
+        asset.loopStart = clampedStart;
 
         audio_sounds.filter(_voice => _voice.soundid === _index)
-                    .forEach(_voice => _voice.setLoopStart(_offsetSecs));
+                    .forEach(_voice => _voice.setLoopStart(asset.loopStart));
 	}
 }
 
@@ -1783,8 +1822,6 @@ function audio_sound_loop_end(_index, _offsetSecs) {
         return;
     }
 
-    _offsetSecs = clamp(_offsetSecs, 0, assetDuration);
-
     if (_index >= BASE_SOUND_INDEX) {
         const voice = GetAudioSoundFromHandle(_index);
 
@@ -1799,10 +1836,29 @@ function audio_sound_loop_end(_index, _offsetSecs) {
             return;
         }
 
-        asset.loopEnd = _offsetSecs;
+        const minEnd = (asset.loopEnd <= 0.0) ? 0.0 : asset.loopStart;
+        const duration = Math.max(0.0, audio_sound_length(_index));
+        if (duration < 0) {
+            console.log("Warning: Asset duration is not currently known - using" + 0.0);
+        }
+
+        let clampedEnd = Math.max(minEnd, _offsetSecs);
+        if (clampedEnd != _offsetSecs) {
+            console.log("Warning: Loop end (" + _offsetSecs + ") was clipped to " + clampedEnd 
+                + " as it cannot be less than the loop start (" + minEnd + ")");
+        }
+        else {
+            clampedEnd = Math.min(_offsetSecs, duration);
+            if (clampedEnd != _offsetSecs) {
+                console.log("Warning: Loop end (" + _offsetSecs + ") was clipped to " + clampedEnd
+                    + " as it cannot be greater than the duration");
+            }
+        }
+
+        asset.loopEnd = clampedEnd;
 
         audio_sounds.filter(_voice => _voice.soundid === _index)
-                    .forEach(_voice => _voice.setLoopEnd(_offsetSecs));
+                    .forEach(_voice => _voice.setLoopEnd(asset.loopEnd));
 	}
 }
 
