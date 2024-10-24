@@ -373,7 +373,8 @@ audioSound.prototype.Init = function(_props)
 	this.bStreamed = false;
 	this.bBuffered = false;
 	this.bQueued = false;
-    this.pgainnode.gain.value = AudioPropsCalc.CalcGain(this); 
+    this.pgainnode.gain.value = AudioPropsCalc.CalcGain(this);
+    this.request = undefined;
 	
 	if (this.soundid >= 0) {
 	    this.bStreamed = IsSoundStreamed(this.soundid);
@@ -495,6 +496,7 @@ audioSound.prototype.play = function() {
         };
 
         request.send();
+        this.request = request;
     }
     else {
         if (this.bQueued) {
@@ -533,6 +535,11 @@ audioSound.prototype.stop = function() {
 
     if (this.pgainnode !== null)
         this.pgainnode.disconnect();
+
+    if (this.request !== undefined) {
+        this.request.abort();
+        this.request = undefined;
+    }
 
     this.pemitter = null;
     this.bActive = false;
