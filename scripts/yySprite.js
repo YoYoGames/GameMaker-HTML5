@@ -827,9 +827,6 @@ yySprite.prototype.SetupSWFCollisionMasks = function (_dataView, _byteOffset, _l
 // #############################################################################################
 yySprite.prototype.SetupVectorCollisionMasks = function (_dataView, _byteOffset, _littleEndian) {
 	// @if feature("swf")
-    if (this.colcheck !== yySprite_CollisionType.PRECISE) {
-        return;
-    }
 
 	// Read out collision masks header
 	var numCollisionMasks, maskWidth, maskHeight;	
@@ -840,7 +837,7 @@ yySprite.prototype.SetupVectorCollisionMasks = function (_dataView, _byteOffset,
 	maskHeight = _dataView.getInt32(_byteOffset, _littleEndian);
 	_byteOffset+=4;
 
-	if (numCollisionMasks > 0)
+	if ((this.colcheck === yySprite_CollisionType.PRECISE) && (numCollisionMasks > 0))
 	{
 		_byteOffset = this.SetupSWFAndVectorCollisionMasks(_dataView,
 			_byteOffset,
