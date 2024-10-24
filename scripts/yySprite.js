@@ -855,8 +855,8 @@ yySprite.prototype.SetupVectorCollisionMasks = function (_dataView, _byteOffset,
 	}
 	else
 	{
-		this.width = this.SWFTimeline.maxX;
-		this.height = this.SWFTimeline.maxY;
+		this.width = this.m_VectorShape.maxX - this.m_VectorShape.minX;
+		this.height = this.m_VectorShape.maxY - this.m_VectorShape.minY;
 
 		if (!this.m_LoadedFromChunk) {
 			this.colcheck = yySprite_CollisionType.AXIS_ALIGNED_RECT;
