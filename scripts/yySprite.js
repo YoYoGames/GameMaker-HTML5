@@ -704,27 +704,18 @@ yySprite.prototype.BuildSWFData = function (_swfIndex, _xo, _yo) {
 	// @endif
 };
 
-
-// #############################################################################################
-/// Function:<summary>
-///          	Setup collision masks for an SWF
-///          </summary>
-// #############################################################################################
-yySprite.prototype.SetupSWFCollisionMasks = function (_dataView, _byteOffset, _littleEndian) {
+yySprite.prototype.SetupSWFAndVectorCollisionMasks = function (_dataView, _byteOffset, _littleEndian, _maskWidth, _maskHeight, _numCollisionMasks) {
 	// @if feature("swf")
-    if (this.colcheck !== yySprite_CollisionType.PRECISE) {
-        return;
-    }
 
-    // Dispose of the original collision mask
+	// Dispose of the original collision mask
     this.colmask = [];
     
     // Set the w/h of the sprite according to the collision mask header of the timeline
-    this.width = this.SWFTimeline.collisionMaskHeader.maskWidth;
-	this.height = this.SWFTimeline.collisionMaskHeader.maskHeight;
+    this.width = _maskWidth;
+	this.height = _maskHeight;
 	
 	// shorthand this
-	var numCollisionMasks = this.SWFTimeline.collisionMaskHeader.numCollisionMasks;
+	var numCollisionMasks = _numCollisionMasks;
 
 
 
@@ -780,15 +771,15 @@ yySprite.prototype.SetupSWFCollisionMasks = function (_dataView, _byteOffset, _l
 			for (var j = 0; j < mwidth; j++)
 			{
 				var targ = 0;
-				var baseindex = (((k ) * bwidth) + (j  ) * 8);
-				if ((baseindex + 0 < validlength) && (pByteData[baseindex + 0] )>_tolerance )targ |= (1 << 7);
-				if ((baseindex + 1 < validlength) && (pByteData[baseindex + 1] )>_tolerance )targ |= (1 << 6);
-				if ((baseindex + 2 < validlength) && (pByteData[baseindex + 2] )>_tolerance )targ |= (1 << 5);
-				if ((baseindex + 3 < validlength) && (pByteData[baseindex + 3] )>_tolerance )targ |= (1 << 4);
-				if ((baseindex + 4 < validlength) && (pByteData[baseindex + 4] )>_tolerance )targ |= (1 << 3);
-				if ((baseindex + 5 < validlength) && (pByteData[baseindex + 5] )>_tolerance )targ |= (1 << 2);
-				if ((baseindex + 6 < validlength) && (pByteData[baseindex + 6] )>_tolerance )targ |= (1 << 1);
-				if ((baseindex + 7 < validlength) && (pByteData[baseindex + 7] )>_tolerance )targ |= (1 << 0);
+				var baseindex = (((k  * mwidth) + j) * 8);
+				if ((baseindex + 0 < validlength) && (pByteData[baseindex + 0] ) == true )targ |= (1 << 7);
+				if ((baseindex + 1 < validlength) && (pByteData[baseindex + 1] ) == true )targ |= (1 << 6);
+				if ((baseindex + 2 < validlength) && (pByteData[baseindex + 2] ) == true )targ |= (1 << 5);
+				if ((baseindex + 3 < validlength) && (pByteData[baseindex + 3] ) == true )targ |= (1 << 4);
+				if ((baseindex + 4 < validlength) && (pByteData[baseindex + 4] ) == true )targ |= (1 << 3);
+				if ((baseindex + 5 < validlength) && (pByteData[baseindex + 5] ) == true )targ |= (1 << 2);
+				if ((baseindex + 6 < validlength) && (pByteData[baseindex + 6] ) == true )targ |= (1 << 1);
+				if ((baseindex + 7 < validlength) && (pByteData[baseindex + 7] ) == true )targ |= (1 << 0);
 
 				pData[j + (k * mwidth)] = targ;
 			}
@@ -804,6 +795,76 @@ yySprite.prototype.SetupSWFCollisionMasks = function (_dataView, _byteOffset, _l
 	this.maskcreated = true;	
 	// @endif swf
 	return _byteOffset;
+};
+
+// #############################################################################################
+/// Function:<summary>
+///          	Setup collision masks for an SWF
+///          </summary>
+// #############################################################################################
+yySprite.prototype.SetupSWFCollisionMasks = function (_dataView, _byteOffset, _littleEndian) {
+	// @if feature("swf")
+    if (this.colcheck !== yySprite_CollisionType.PRECISE) {
+        return;
+    }
+
+	_byteOffset = this.SetupSWFAndVectorCollisionMasks(_dataView,
+		_byteOffset,
+		_littleEndian,
+		this.SWFTimeline.collisionMaskHeader.maskWidth,
+		this.SWFTimeline.collisionMaskHeader.maskHeight,
+		this.SWFTimeline.collisionMaskHeader.numCollisionMasks);
+
+	// @endif swf
+	return _byteOffset;    
+};
+
+
+// #############################################################################################
+/// Function:<summary>
+///          	Setup collision masks for a vector sprite
+///          </summary>
+// #############################################################################################
+yySprite.prototype.SetupVectorCollisionMasks = function (_dataView, _byteOffset, _littleEndian) {
+	// @if feature("swf")
+    if (this.colcheck !== yySprite_CollisionType.PRECISE) {
+        return;
+    }
+
+	// Read out collision masks header
+	var numCollisionMasks, maskWidth, maskHeight;	
+	numCollisionMasks = _dataView.getInt32(_byteOffset, _littleEndian);
+	_byteOffset+=4;
+	maskWidth = _dataView.getInt32(_byteOffset, _littleEndian);
+	_byteOffset+=4;
+	maskHeight = _dataView.getInt32(_byteOffset, _littleEndian);
+	_byteOffset+=4;
+
+	if (numCollisionMasks > 0)
+	{
+		_byteOffset = this.SetupSWFAndVectorCollisionMasks(_dataView,
+			_byteOffset,
+			_littleEndian,
+			maskWidth,
+			maskHeight,
+			numCollisionMasks);
+
+		if (!this.m_LoadedFromChunk) {
+			this.colcheck = yySprite_CollisionType.PRECISE;
+		}
+	}
+	else
+	{
+		this.width = this.SWFTimeline.maxX;
+		this.height = this.SWFTimeline.maxY;
+
+		if (!this.m_LoadedFromChunk) {
+			this.colcheck = yySprite_CollisionType.AXIS_ALIGNED_RECT;
+		}
+	}
+
+	// @endif swf
+	return _byteOffset;    
 };
 
 // #############################################################################################
@@ -868,7 +929,10 @@ yySprite.prototype.BuildVectorData = function (_vecIndex, _xo, _yo) {
 
 				this.m_VectorShape = new yySWFShape(eDIType_Shape, 0);
 				byteOffset = this.m_VectorShape.BuildShapeData(dataView, byteOffset, littleEndian, null);                
-				
+
+				// Sort out any collision masks                
+				byteOffset = this.SetupVectorCollisionMasks(dataView, byteOffset, littleEndian);
+
 				if(!this.m_LoadedFromChunk)
 				{
                 	this.bboxmode = 0;
@@ -890,7 +954,7 @@ yySprite.prototype.BuildVectorData = function (_vecIndex, _xo, _yo) {
         }
     }
     catch (e) {
-        debug("Cannot build SWF data " + e.message);
+        debug("Cannot build vector data " + e.message);
     }
 	// @endif
 };
