@@ -1384,13 +1384,13 @@ function __yy_CharCodeSize(_code) {
     return (_code >= 0xD800 && _code <= 0xD8FF) ? 2 : 1;
 }
 
-function string_foreach(_str, _func, _pos, _length) {
+function string_foreach(_selfinst, _str, _func, _pos, _length) {
 
     _str = yyGetString(_str);
 
     // Check method argument
     _func = getFunction(_func, 1);
-    _obj = "boundObject" in _func ? _func.boundObject : {};
+    _obj = _func.boundObject ?? _selfinst;
 
     // Check raw offset and length
     _pos = _pos != undefined ? yyGetReal(_pos) : 1;

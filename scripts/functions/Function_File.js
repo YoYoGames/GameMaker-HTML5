@@ -1297,12 +1297,12 @@ function json_encode(_map, _prettify) {
 
 // This is an any to JSON helper function (to be used before JSON.stringify)
 var g_JSON_gml_infunc = undefined;
-function _json_replacer(key, value) 
+function _json_replacer(_selfinst, key, value) 
 {
 	// call the user method
 	if ((g_JSON_gml_infunc != undefined) && is_callable(g_JSON_gml_infunc)) {
 	    var _func = getFunction(g_JSON_gml_infunc, 1);
-	    _obj = "boundObject" in _func ? _func.boundObject : {};
+	    _obj = _func.boundObject : _selfinst;
 		value = _func(_obj, _obj, key, value);
 	} // end if
 
@@ -1342,7 +1342,7 @@ function _json_replacer(key, value)
 
 				var ret = [];
 				value.forEach( (item, index) => {
-					ret.push(_json_replacer(index.toString(), item));
+					ret.push(_json_replacer(_selfinst, index.toString(), item));
 				});
 
 				// Remove the flag
@@ -1379,7 +1379,7 @@ function _json_replacer(key, value)
 
 						if ((entry == undefined) || (entry[0] | entry[1])) {
 							Object.defineProperty( ret, name, { 
-								value : _json_replacer(name, value[oName]),
+								value : _json_replacer(_selfinst, name, value[oName]),
 								configurable : true,
 								writable : true,
 								enumerable : true
@@ -1400,7 +1400,7 @@ function _json_replacer(key, value)
 	}
 } // end _json_replacer
 
-function json_stringify( _v, _prettify, filter )
+function json_stringify( _selfinst, _v, _prettify, filter )
 {
 	try {
 		// Check if we want to prettify the output string
@@ -1413,7 +1413,7 @@ function json_stringify( _v, _prettify, filter )
 
 		var prevFunc = g_JSON_gml_infunc;
 		g_JSON_gml_infunc = filter;
-		var _struct = _json_replacer( "", _v);		
+		var _struct = _json_replacer( _selfinst, "", _v);		
 		g_JSON_gml_infunc = prevFunc;
 		return JSON.stringify(_struct, null, _prettify ? 2 : 0);
 	}
@@ -1426,8 +1426,9 @@ function json_stringify( _v, _prettify, filter )
 
 // This is a JSON to any helper function (to be used with JSON.parse)
 var g_JSON_gml_func = undefined;
+var g_JSON_gml_selfinst = undefined;
 var g_counterPointerNull = 0;
-function _json_reviver(_, value) 
+function _json_reviver( _, value) 
 {
 	var ret = undefined;
 	switch (typeof value) {
@@ -1511,7 +1512,7 @@ function _json_reviver(_, value)
 	// call the user method
 	if ((g_JSON_gml_func != undefined) && is_callable(g_JSON_gml_func)) {
 	    var _func = getFunction(g_JSON_gml_func, 1);
-	    _obj = "boundObject" in _func ? _func.boundObject : {};
+	    _obj = _func.boundObject ?? g_JSON_gml_selfinst;
 	    if (ret == g_pBuiltIn.pointer_null) {
 	    	ret = undefined;
 			--g_counterPointerNull;
@@ -1553,12 +1554,14 @@ function json_convert_pointer_null( _v )
 	return ret;
 }
 
-function json_parse( _v, _func )
+function json_parse( _selfinst, _v, _func )
 {
 	var ret = undefined;
 	var oldFunc = g_JSON_gml_func;
+	var oldSelf = g_JSON_gml_selfinst;
 	var oldCounter = g_counterPointerNull;
 	g_JSON_gml_func = _func;
+	g_JSON_gml_selfinst = _selfinst;
 	g_counterPointerNull = 0;
 	try {
 		var ret = JSON.parse(_v, _json_reviver);	
@@ -1573,6 +1576,7 @@ function json_parse( _v, _func )
 	}
 	g_counterPointerNull = oldCounter;
 	g_JSON_gml_func = oldFunc;
+	g_JSON_gml_selfinst = oldSelf;
 	return ret;
 } // end json_parse
 
