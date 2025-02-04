@@ -34,6 +34,7 @@ var		MASK_PRECISE   = 0,
 function    sprite_exists( _index )
 {
 	// @if feature("sprites")
+	if (_index === undefined) return false;
 	return g_pSpriteManager.Get(yyGetInt32(_index)) != null;
 	// @else
 	return false;
@@ -651,7 +652,7 @@ compile_if_used(sprite_add_from_surface = sprite_add_from_surface_RELEASE);
 ///			 </returns>
 // #############################################################################################
 function sprite_delete( _ind ) {
-	g_pSpriteManager.Delete(yyGetInt32(_ind));
+	return g_pSpriteManager.Delete(yyGetInt32(_ind));
 }
 
 

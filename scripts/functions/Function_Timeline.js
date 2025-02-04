@@ -29,6 +29,7 @@
 // #############################################################################################
 function timeline_exists(_ind) 
 {
+    if (_ind === undefined) return false;
     if (g_pTimelineManager.Get(yyGetInt32(_ind)) != undefined) {
         return true;
     }

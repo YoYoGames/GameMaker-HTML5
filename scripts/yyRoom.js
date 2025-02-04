@@ -2947,40 +2947,15 @@ yyRoom.prototype.HandleSequenceParticle = function (_rect, _layer, _pSequenceEl,
 
 	var _pInst = g_pSequenceManager.GetInstanceFromID(_pSequenceEl.m_instanceIndex);
 
-	// If keyframe changed, destroy the old particle system
-	var keyframeLast = _pInst.m_trackIDToLastKeyframe[_track.id];
-	if (keyframeLast !== undefined && keyframeLast !== keyframeCurrent)
-	{
-		var psLast = _pInst.m_trackIDToPS[_track.id];
-		if (psLast !== undefined && psLast != -1)
-		{
-			ParticleSystem_Destroy(psLast);
-		}
-		_pInst.m_trackIDToPS[_track.id] = -1;
-	}
-
-	var ps = -1;
-	var particleSystem = _pInst.m_trackIDToPS[_track.id];
-	if (particleSystem === undefined || particleSystem === -1)
-	{
-		// Create a new particle system from the current key
-		if (keyframeCurrent && keyframeCurrent.particleSystemIndex != -1)
-		{
-			ps = CParticleSystem.Get(keyframeCurrent.particleSystemIndex).MakeInstance();
-			ParticleSystem_AutomaticDraw(ps, false);
-			ParticleSystem_AutomaticUpdate(ps, false);
-			_pInst.m_trackIDToPS[_track.id] = ps;
-		}
-	}
-	else
-	{
-		// The particle system already exists
-		ps = particleSystem;
-	}
+	g_SeqStack.push(_track);
+	var hashid = CHashMapCalculateHash(g_SeqStack);
+	g_SeqStack.pop();
 
 	// Draw the particles
-	if (ps != -1)
+	var particleInfo = _pInst.trackParticles[hashid];
+	if (particleInfo && particleInfo.particleSystemID != -1)
 	{
+		var ps = particleInfo.particleSystemID;
 		var mul = _node.value.colorMultiply;
 		var add = _node.value.colorAdd;
 		var r = Math.min(255, ((mul[0] + add[0]) * (_pSequenceEl.m_imageBlend & 0xff)));
@@ -2993,9 +2968,6 @@ yyRoom.prototype.HandleSequenceParticle = function (_rect, _layer, _pSequenceEl,
 
 		ParticleSystem_Draw(ps, drawcol, a);
 	}
-
-	// Keep track of the last keyframe played
-	_pInst.m_trackIDToLastKeyframe[_track.id] = keyframeCurrent;
 };
 
 yyRoom.prototype.DrawTextItem = function (_pText, _fontID, _drawcol, _drawalpha, _frameWidth, _frameHeight, _alignment, _wrap, _charSpacing, _lineSpacing, _paraSpacing, _pFontParams, _seqYOffset)

@@ -818,6 +818,10 @@ yyInstance.prototype.SetImageIndexGML = function(_frame)
 	this.image_index = _frame; 
 	this.frame_overflow = 0; 
 }; 
+yyInstance.prototype.GetImageIndexGML = function() 
+{ 
+	return this.image_index; 
+}; 
 
 
 yyInstance.prototype.SetDirtyBBox = function (flag) { this.bbox_dirty = flag; };

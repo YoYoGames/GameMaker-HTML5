@@ -32,7 +32,7 @@ function AudioPlaybackProps(_props) {
         this.offset = Math.max(0.0, this.offset);
 
     this.getProp(_props, "pitch", this, "pitch", true, yyGetReal, AudioPropsCalc.default_pitch);
-    this.pitch = Math.max(0.0, this.pitch);
+    this.pitch = Math.max(Number.MIN_VALUE, this.pitch);
 
     this.getProp(_props, "position", this, "position", true, undefined, undefined);
     if (typeof this.position === "object" && this.type === undefined) {
@@ -81,7 +81,7 @@ AudioPlaybackProps.prototype.invalid = function() {
     }
 
     if (!audio_group_is_loaded(this.asset.groupId)) {
-        debug(audio_get_name(this.asset_index) + ": Audio Group " + this.asset.groupId + " is not loaded");
+        debug("Error: Audio group for " + audio_get_name(this.asset_index) + " (" + this.asset.groupId + ") is not loaded");
         return true;
     }
 

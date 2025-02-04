@@ -1435,3 +1435,6 @@ function physics_raycast( xStart, yStart, xEnd, yEnd, ids, allHits, maxFraction)
         return do_physics_raycast( xStart, yStart, xEnd, yEnd, yyGetInt32(ids), allHits, maxFraction);
     } // end else
 }
+
+//Debugging handled differently on h5, just stubbing this function
+function physics_debug() {};

@@ -2679,6 +2679,35 @@ function draw_get_swf_aa_level() {
 };
 
 
+// #############################################################################################
+/// Function:<summary>
+///          	Flag whether or not to draw SVGs with AA
+///          </summary>
+// #############################################################################################
+function draw_enable_svg_aa(_flag) {
+
+    GR_SVGAAEnabled = yyGetBool(_flag);
+};
+
+// #############################################################################################
+/// Function:<summary>
+///          </summary>
+// #############################################################################################
+function draw_set_svg_aa_level(_aalevel) {
+
+    GR_SVGAAScale = yyGetReal(_aalevel);
+};
+
+// #############################################################################################
+/// Function:<summary>
+///          </summary>
+// #############################################################################################
+function draw_get_svg_aa_level() {
+
+    return GR_SVGAAScale;
+};
+
+
 function SetViewExtents(xview, yview, wview, hview,  angle)
 {
 	

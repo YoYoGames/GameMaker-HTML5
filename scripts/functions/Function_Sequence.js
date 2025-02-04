@@ -91,6 +91,8 @@ function sequence_get(_sequenceId)
 
 function sequence_exists(_sequenceStructOrId)
 {
+	if (_sequenceStructOrId === undefined) return false;
+
     if (arguments.length != 1)
     {
         yyError("sequence_exists() - requires a sequence ID or struct");

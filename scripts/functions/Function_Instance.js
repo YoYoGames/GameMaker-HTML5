@@ -64,6 +64,7 @@ function instance_id_get(_inst, _index) {
 // #############################################################################################
 function instance_exists(_obj) 
 {
+	if (_obj === undefined) return false;
     var pObj = GetWithArray(yyGetInt32(_obj));
     if (pObj != null && pObj.length > 0)
     {    	
@@ -1263,7 +1264,7 @@ function PerformColTest(_selfinst,_x,_y,_obj)
 					return id;
 			}
 		}
-		return -1;
+		return OBJECT_NOONE;
 	}
 	else
 	{

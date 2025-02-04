@@ -547,6 +547,7 @@ function TimeSource_GetChildren(_id)
 
 function time_source_exists(_id)
 {
+	if (_id === undefined) return false;
 	const id = yyGetInt32(_id);
 	return TimeSource_Exists(id);
 }

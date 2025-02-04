@@ -11430,7 +11430,10 @@ b2ParticleSystem.prototype =
 		{
 			flags |= b2ParticleDef.b2_destructionListener;
 		}
-		this.m_flagsBuffer.data[index] |= flags;
+		b2Assert(index>=0 && index<this.m_count);
+
+		if(index>=0 && index<this.m_count)
+			this.m_flagsBuffer.data[index] |= flags;
 	},
 
 	DestroyParticlesInShape: function(shape, xf, callDestructionListener)
@@ -12246,15 +12249,18 @@ b2ParticleSystem.prototype =
 		{
 			var contact = this.m_bodyContactBuffer[k];
 			var a = contact.index;
-			var b = contact.body;
-			var w = contact.weight;
-			var m = contact.mass;
-			var n = contact.normal;
-			var p = this.m_positionBuffer.data[a];
-			var h = this.m_accumulationBuffer[a] + pressurePerWeight * w;
-			var f = b2Vec2.Multiply(velocityPerPressure * w * m * h, n);
-			this.m_velocityBuffer.data[a].Subtract(b2Vec2.Multiply(this.GetParticleInvMass(), f));
-			b.ApplyLinearImpulse(f, p, true);
+			if (!(this.m_flagsBuffer.data[a] & b2ParticleDef.b2_wallParticle))
+			{
+				var b = contact.body;
+				var w = contact.weight;
+				var m = contact.mass;
+				var n = contact.normal;
+				var p = this.m_positionBuffer.data[a];
+				var h = this.m_accumulationBuffer[a] + pressurePerWeight * w;
+				var f = b2Vec2.Multiply(velocityPerPressure * w * m * h, n);
+				this.m_velocityBuffer.data[a].Subtract(b2Vec2.Multiply(this.GetParticleInvMass(), f));
+				b.ApplyLinearImpulse(f, p, true);
+			}
 		}
 		for (var k = 0; k < this.m_contactCount; k++)
 		{
@@ -12265,8 +12271,14 @@ b2ParticleSystem.prototype =
 			var n = contact.normal;
 			var h = this.m_accumulationBuffer[a] + this.m_accumulationBuffer[b];
 			var f = b2Vec2.Multiply(velocityPerPressure * w * h, n);
-			this.m_velocityBuffer.data[a].Subtract(f);
-			this.m_velocityBuffer.data[b].Add(f);
+			if (!(this.m_flagsBuffer.data[a] & b2ParticleDef.b2_wallParticle))
+			{
+				this.m_velocityBuffer.data[a].Subtract(f);
+			}
+			if (!(this.m_flagsBuffer.data[b] & b2ParticleDef.b2_wallParticle))
+			{
+				this.m_velocityBuffer.data[b].Add(f);
+			}
 		}
 	},
 

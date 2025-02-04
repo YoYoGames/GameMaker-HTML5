@@ -1994,7 +1994,7 @@ function ds_grid_sort(_id, _column, _ascending) {
 ///          	Convert a ds_grid into a mp_grid (of the same size)
 ///          </summary>
 // #############################################################################################
-function ds_grid_to_mp_grid(_src, _dest, _predicate) {
+function ds_grid_to_mp_grid(_selfinst, _src, _dest, _predicate) {
 
     var pGrid = g_ActiveGrids.Get(yyGetInt32(_src));
     var pMPGrid = g_MPGridColletion.Get(yyGetInt32(_dest));
@@ -2035,14 +2035,14 @@ function ds_grid_to_mp_grid(_src, _dest, _predicate) {
 	{
 		// Check method argument
 		_func = getFunction(_predicate, 2);
-		_obj = "boundObject" in _func ? _func.boundObject : {};
+		_obj =  _func.boundObject ?? _selfinst;
 
 		for (var y = 0; y < h; ++y)
 		{
 			for (var x = 0; x < w; ++x)
 			{
 				var val = pGrid.m_pGrid[x + (y * pGrid.m_Width)];
-				var res = yyGetBool(_func(_obj, _obj, val, x, y));
+				var res = yyGetBool(_func(_selfinst, _obj, _obj, val, x, y));
 
 				pMPGrid.m_cells[(x * pMPGrid.m_vcells) + y] = res ? -1 : 0;
 			}

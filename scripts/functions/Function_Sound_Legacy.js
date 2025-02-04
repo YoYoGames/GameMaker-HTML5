@@ -185,6 +185,8 @@ function sound_fade(_index,_value,_time)
 // #############################################################################################
 function    sound_exists(_id)
 {
+    if (_id === undefined) return false;
+    
     if(g_AudioModel!=Audio_Sound)
         return false;
         

@@ -31,6 +31,8 @@ var g_fAlreadyFinished = false;
 // #############################################################################################
 function room_exists( _ind )
 {
+    if (_ind === undefined) return false;
+
     var room = g_pRoomManager.Get(yyGetInt32(_ind));
     if ((room === null) || (room == undefined)) {
         return false;

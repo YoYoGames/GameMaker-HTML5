@@ -29,6 +29,8 @@
 // #############################################################################################
 function path_exists(_ind) 
 {
+	if (_ind === undefined) return false;
+	
 	if (g_pPathManager.Paths[yyGetInt32(_ind)]) return true;
 	return false;
 }

@@ -73,9 +73,9 @@ AudioEmitter.prototype.setBus = function(_bus) {
 };
 
 AudioEmitter.prototype.setFalloff = function(_falloffRef, _falloffMax, _falloffFactor) {
-    this.pannerNode.refDistance = _falloffRef;
-    this.pannerNode.maxDistance = _falloffMax;
-    this.pannerNode.rolloffFactor = _falloffFactor;
+    this.pannerNode.refDistance = Math.max(0, _falloffRef);
+    this.pannerNode.maxDistance = Math.max(Number.MIN_VALUE, _falloffMax);
+    this.pannerNode.rolloffFactor = Math.max(0, _falloffFactor);
     this.pannerNode.distanceModel = falloff_model;
 
     if (g_AudioFalloffModel === DistanceModels.AUDIO_FALLOFF_NONE) {

@@ -82,6 +82,37 @@ if (window.chrome && window.chrome.app) {
     }
 }
 
+
+
+window.addEventListener(
+	"message",
+(event) => {
+
+	  //console.log("Event received from " + event.origin);
+	  //console.log("Event data " + event.data);
+      const map = ds_map_create();
+      g_pBuiltIn.async_load = map;
+  
+      ds_map_add(map, "origin", event.origin);
+      ds_map_add(map, "event_type", "post_message_received");
+      if (typeof event.data === 'string' || event.data instanceof String)
+      {
+        ds_map_add(map, "data", event.data);
+      }
+      else
+      {
+        ds_map_add(map, "data", JSON.stringify(event.data));
+      }
+      g_pObjectManager.ThrowEvent(EVENT_OTHER_SYSTEM_EVENT, 0);
+  
+      ds_map_destroy(map);
+
+	}
+
+  );
+
+
+
 // IE11 doesn't support Number.isNaN (since it's only in the draft spec for ECMAScript 6)
 // so we define our own version here within Number.
 if(Number.isNaN === undefined)
@@ -1585,6 +1616,8 @@ function Run_EndGame(_reset) {
 		pObj.Instances_Recursive.Clear();
 	}
 	g_pInstanceManager.Clear();
+
+    g_SDTimeSourceParent.Destroy(g_SDTimeSourceParent);
 
 	// @if feature("audio")
     if (_reset) {

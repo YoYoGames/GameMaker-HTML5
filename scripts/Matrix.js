@@ -617,6 +617,15 @@ Matrix.prototype.Invert = function(that)
 
         this.m = b;
     }
+	
+	if (det != 0)
+	{
+		return true;
+	}
+	else
+	{
+		return false;		// indicate that we couldn't invert the matrix
+	}
 };
 
 Matrix.prototype.TransformVec3 = function(_vec)

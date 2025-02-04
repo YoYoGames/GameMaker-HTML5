@@ -198,6 +198,7 @@ function animcurve_destroy(_curveIdOrCurveObject)
 
 function animcurve_exists(_curveIdOrCurveObject)
 {
+	if (_curveIdOrCurveObject === undefined) return false;
     if (arguments.length != 1)
     {
         yyError("animcurve_exists() - requires a curve ID or struct");

@@ -40,8 +40,8 @@ function surface_resize(_id, _w, _h)
 	// it'll happen at the start of the NEXT frame.
     if( _id == g_ApplicationSurface )
     {
-        if (g_ApplicationWidth != g_NewApplicationWidth
-            || g_NewApplicationHeight != g_NewApplicationHeight)
+        if (g_ApplicationWidth != _w
+            || g_ApplicationHeight != _h)
         {
             g_NewApplicationSize = true;
             g_NewApplicationWidth = _w;
@@ -70,7 +70,7 @@ function surface_resize(_id, _w, _h)
 
         if (g_webGL)
         {
-            format = pSurf.texture.webgl_textureid.format;
+            format = pSurf.texture.webgl_textureid.Format;
         }
 
         surface_create( _w,_h, format, _id );   //create new surface and replace existing in _id slot
@@ -312,6 +312,7 @@ function surface_free_RELEASE(_id)
 // #############################################################################################
 function surface_exists(_id) 
 {
+    if (_id === undefined) return false;
     if (g_Surfaces.Get(yyGetInt32(_id)) != null) return 1; else return 0;
 }
 
@@ -577,8 +578,10 @@ function surface_set_target_RELEASE(_id, _depth_id)
 
     if (g_webGL) {
         g_CurrentFrameBuffer = pSurf.FrameBuffer;
+        var hasDepthTexture = (pSurfDepth.textureDepth != null
+            && pSurfDepth.textureDepth.webgl_textureid instanceof yyGLTexture);
         g_CurrentDepthBuffer = g_SupportDepthTexture
-            ? pSurfDepth.textureDepth.webgl_textureid.Texture
+            ? (hasDepthTexture ? pSurfDepth.textureDepth.webgl_textureid.Texture : null)
             : pSurfDepth.FrameBufferData.RenderBuffer;
         g_webGL.SetRenderTarget(g_CurrentFrameBuffer, g_CurrentDepthBuffer);
         g_RenderTargetActive = -1;

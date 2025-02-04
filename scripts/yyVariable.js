@@ -148,6 +148,7 @@ function GMLObject()
     // do nothing just now
     this.__type = "Object";
     this.__yyIsGMLObject = true;
+
 } // end GMLObject
 
 GMLObject.prototype.toString = function () {
@@ -156,7 +157,14 @@ GMLObject.prototype.toString = function () {
 
 GMLObject.prototype.SetImageIndexGML = function(_frame) 
 { 
-    this.image_index = _frame; 
+    this.gmlimage_index = _frame; 
+
+    function getImageIndex() { return this.gmlimage_index; }
+    function setImageIndex(f) { this.gmlimage_index = f; }
+    
+    Object.defineProperties( this, {
+        image_index : { get : getImageIndex, set : setImageIndex, enumerable : true, configurable : false}
+    });
 };
 
 
@@ -414,7 +422,7 @@ function method_get_index( _method )
         var globalScriptIndex = g_globalScripts.indexOf(_method);
         if(globalScriptIndex != -1)
         {
-            return globalScriptIndex + 100000;
+            return globalScriptIndex;
         }
     } // end if
     return undefined;
@@ -743,7 +751,7 @@ function array_delete( _array, _index, _number )
     } // end else
 } // end array_delete
 
-function array_sort( _array, _typeofSort )
+function array_sort( _selfinst, _array, _typeofSort )
 {
     if (Array.isArray(_array)) {
 
@@ -755,12 +763,7 @@ function array_sort( _array, _typeofSort )
             case "number":
                 var func = JSON_game.Scripts[_typeofSort - 100000];
                 var obj;
-                if ( "boundObject" in func) {
-                    obj = func.boundObject;
-                } // end if
-                else {
-                    obj = {};
-                } // end else
+                obj = func.boundObject ?? _selfinst;
                 _array.sort(function(a,b) { return func( obj, obj, a, b); } );
                 break;
             default:
@@ -870,14 +873,14 @@ function array_last(_array) {
     return _length == 0 ? undefined : _array[_length -1];
 } // end array_last
 
-function array_create_ext(_size, _func) {
+function array_create_ext(_selfinst, _size, _func) {
 
     // Check size argument
     _size = _size === undefined ? 0 : yyGetReal(_size);
     
     // Check method argument
     _func = getFunction(_func, 1);
-    _obj = "boundObject" in _func ? _func.boundObject : {};
+    _obj = _func.boundObject ?? _selfinst;
 
     var ret = new Array(_size);
     for (var i = 0; i < _size; i++) {
@@ -888,14 +891,14 @@ function array_create_ext(_size, _func) {
     return ret;
 } // end array_create_ext
 
-function array_find_index(_array, _func, _offset, _length) {
+function array_find_index(_selfinst, _array, _func, _offset, _length) {
 
     // Check array argument
     if (!Array.isArray(_array)) yyError("array_find_index : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
-    _obj = "boundObject" in _func ? _func.boundObject : {};
+    _obj = _func.boundObject ?? _selfinst;
 
     // Check raw offset and length
     _offset = _offset != undefined ? yyGetReal(_offset) : 0;
@@ -1044,14 +1047,14 @@ function array_contains_ext(_array, _values, _matchAll, _offset, _length) {
     return false;
 } // end array_contains_ext
 
-function array_any(_array, _func, _offset, _length) {
+function array_any(_selfinst, _array, _func, _offset, _length) {
 
     // Check array argument
     if (!Array.isArray(_array)) yyError("array_any : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
-    _obj = "boundObject" in _func ? _func.boundObject : {};
+    _obj = _func.boundObject ?? _selfinst;
 
     // Check raw offset and length
     _offset = _offset != undefined ? yyGetReal(_offset) : 0;
@@ -1080,14 +1083,14 @@ function array_any(_array, _func, _offset, _length) {
     return false;
 } // end array_any
 
-function array_all(_array, _func, _offset, _length) {
+function array_all(_selfinst, _array, _func, _offset, _length) {
 
     // Check array argument
     if (!Array.isArray(_array)) yyError("array_all : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
-    _obj = "boundObject" in _func ? _func.boundObject : {};
+    _obj = _func.boundObject ?? _selfinst;
 
     // Check raw offset and length
     _offset = _offset != undefined ? yyGetReal(_offset) : 0;
@@ -1116,18 +1119,18 @@ function array_all(_array, _func, _offset, _length) {
     return true;
 } // end array_all
 
-function array_foreach(_array, _func, _offset, _length) {
+function array_foreach(_selfinst, _array, _func, _offset, _length) {
 
     // Check array argument
     if (!Array.isArray(_array)) yyError("array_foreach : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
-    _obj = "boundObject" in _func ? _func.boundObject : {};
+    _obj = _func.boundObject ?? _selfinst;
 
     // Check raw offset and length
     _offset = _offset != undefined ? yyGetReal(_offset) : 0;
-    _length = arguments.length > 3 ? yyGetReal(_length) : _array.length; 
+    _length = arguments.length > 5 ? yyGetReal(_length) : _array.length; 
 
     // Compute raw values into valid/clamped values
     _itValues = computeIterationValues(_array.length, _offset, _length); // [offset, loops, step]
@@ -1147,14 +1150,14 @@ function array_foreach(_array, _func, _offset, _length) {
     }
 } // end array_foreach
 
-function array_reduce(_array, _func, _init, _offset, _length) {
+function array_reduce(_selfinst, _array, _func, _init, _offset, _length) {
 
     // Check array argument
     if (!Array.isArray(_array)) yyError("array_reduce : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
-    _obj = "boundObject" in _func ? _func.boundObject : {};
+    _obj = _func.boundObject ?? _selfinst;
 
     // Check raw offset and length
     _offset = _offset != undefined ? yyGetReal(_offset) : 0;
@@ -1188,14 +1191,14 @@ function array_reduce(_array, _func, _init, _offset, _length) {
     return _init;
 } // end array_reduce
 
-function array_filter(_array, _func, _offset, _length) {
+function array_filter(_selfinst, _array, _func, _offset, _length) {
 
     // Check array argument
     if (!Array.isArray(_array)) yyError("array_filter : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
-    _obj = "boundObject" in _func ? _func.boundObject : {};
+    _obj = _func.boundObject ?? _selfinst;
 
     // Check raw offset and length
     _offset = _offset != undefined ? yyGetReal(_offset) : 0;
@@ -1227,14 +1230,14 @@ function array_filter(_array, _func, _offset, _length) {
     return _ret;
 } // end array_filter
 
-function array_filter_ext(_array, _func, _offset, _length) {
+function array_filter_ext(_selfinst, _array, _func, _offset, _length) {
 
     // Check array argument
     if (!Array.isArray(_array)) yyError("array_filter_ext : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
-    _obj = "boundObject" in _func ? _func.boundObject : {};
+    _obj = _func.boundObject ?? _selfinst;
 
     // Check raw offset and length
     _offset = _offset != undefined ? yyGetReal(_offset) : 0;
@@ -1267,14 +1270,14 @@ function array_filter_ext(_array, _func, _offset, _length) {
     return _ret;
 } // end array_filter_ext
 
-function array_map(_array, _func, _offset, _length) {
+function array_map(_selfinst, _array, _func, _offset, _length) {
 
     // Check array argument
     if (!Array.isArray(_array)) yyError("array_map : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
-    _obj = "boundObject" in _func ? _func.boundObject : {};
+    _obj = _func.boundObject ?? _selfinst;
 
     // Check raw offset and length
     _offset = _offset != undefined ? yyGetReal(_offset) : 0;
@@ -1304,14 +1307,14 @@ function array_map(_array, _func, _offset, _length) {
     return _ret;
 } // end array_map
 
-function array_map_ext(_array, _func, _offset, _length) {
+function array_map_ext(_selfinst, _array, _func, _offset, _length) {
 
     // Check array argument
     if (!Array.isArray(_array)) yyError("array_map_ext : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
-    _obj = "boundObject" in _func ? _func.boundObject : {};
+    _obj = _func.boundObject ?? _selfinst;
 
     // Check raw offset and length
     _offset = _offset != undefined ? yyGetReal(_offset) : 0;
@@ -1341,14 +1344,14 @@ function array_map_ext(_array, _func, _offset, _length) {
     return _ret;
 } // end array_map_ext
 
-function array_copy_while(_array, _func, _offset, _length) {
+function array_copy_while(_selfinst, _array, _func, _offset, _length) {
 
     // Check array argument
     if (!Array.isArray(_array)) yyError("array_copy_while : argument0 is not an array");
 
     // Check method argument
     _func = getFunction(_func, 1);
-    _obj = "boundObject" in _func ? _func.boundObject : {};
+    _obj = _func.boundObject ?? _selfinst;
 
     // Check raw offset and length
     _offset = _offset != undefined ? yyGetReal(_offset) : 0;
@@ -2759,10 +2762,10 @@ function struct_remove( _id, _var)
 } // end struct_remove
 
 // struct_foreach(id, func)
-function struct_foreach(_id, _func) {
+function struct_foreach(_selfinst, _id, _func) {
 
     _func = getFunction(_func, 1);
-    _obj = "boundObject" in _func ? _func.boundObject : {};
+    _obj = _func.boundObject ?? _selfinst;
 
     var pObj = null;
     var glob = false;

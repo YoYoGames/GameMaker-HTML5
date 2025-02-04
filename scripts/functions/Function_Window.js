@@ -63,6 +63,12 @@ function window_device() {
         return g_CurrentGraphics;
 }
 
+
+function window_post_message(message){
+
+    window.parent.postMessage(message, "*");
+}
+
 // #############################################################################################
 /// Function:<summary>
 ///             Returns whether the game window is visible.

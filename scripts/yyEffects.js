@@ -391,10 +391,10 @@ yyFilterHost.prototype.LayerBegin = function (_layerID)
 		draw_clear_alpha(0, 0.0);
 
 		WebGL_SetMatrix(MATRIX_WORLD, this.backupWorld);
-		var tempCam = g_pCameraManager.GetTempCamera();
-		tempCam.SetViewMat(this.backupView);
-		tempCam.SetProjMat(this.backupProj);
-		tempCam.ApplyMatrices();
+		var cam = g_pCameraManager.GetActiveCamera();
+		cam.SetViewMat(this.backupView);
+		cam.SetProjMat(this.backupProj);
+		cam.ApplyMatrices();
 
 		g_webGL.RSMan.SaveStates();
 

@@ -407,6 +407,7 @@ function string_height_ext(_string, _sep, _w) {
 ///			</returns>
 // #############################################################################################
 function font_exists(_id) {
+	if (_id === undefined) return false;
     if (g_pFontManager.Get(yyGetInt32(_id))) return true; else return false;
 }
 

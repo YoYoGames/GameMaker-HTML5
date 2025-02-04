@@ -645,7 +645,7 @@ yySprite.prototype.BuildSWFData = function (_swfIndex, _xo, _yo) {
                     var pShape = null;
                     if (type === eDIType_Shape) {
                         pShape = new yySWFShape(type, id);
-                        byteOffset = pShape.BuildShapeData(dataView, byteOffset, littleEndian, this.SWFDictionaryItems);
+                        byteOffset = pShape.BuildShapeData(dataView, byteOffset, littleEndian, this.SWFDictionaryItems, false);
                     }
                     else if (type === eDIType_Bitmap) {
                         pShape = new yySWFBitmap(type, id);
@@ -704,27 +704,18 @@ yySprite.prototype.BuildSWFData = function (_swfIndex, _xo, _yo) {
 	// @endif
 };
 
-
-// #############################################################################################
-/// Function:<summary>
-///          	Setup collision masks for an SWF
-///          </summary>
-// #############################################################################################
-yySprite.prototype.SetupSWFCollisionMasks = function (_dataView, _byteOffset, _littleEndian) {
+yySprite.prototype.SetupSWFAndVectorCollisionMasks = function (_dataView, _byteOffset, _littleEndian, _maskWidth, _maskHeight, _numCollisionMasks) {
 	// @if feature("swf")
-    if (this.colcheck !== yySprite_CollisionType.PRECISE) {
-        return;
-    }
 
-    // Dispose of the original collision mask
+	// Dispose of the original collision mask
     this.colmask = [];
     
     // Set the w/h of the sprite according to the collision mask header of the timeline
-    this.width = this.SWFTimeline.collisionMaskHeader.maskWidth;
-	this.height = this.SWFTimeline.collisionMaskHeader.maskHeight;
+    this.width = _maskWidth;
+	this.height = _maskHeight;
 	
 	// shorthand this
-	var numCollisionMasks = this.SWFTimeline.collisionMaskHeader.numCollisionMasks;
+	var numCollisionMasks = _numCollisionMasks;
 
 
 
@@ -780,15 +771,15 @@ yySprite.prototype.SetupSWFCollisionMasks = function (_dataView, _byteOffset, _l
 			for (var j = 0; j < mwidth; j++)
 			{
 				var targ = 0;
-				var baseindex = (((k ) * bwidth) + (j  ) * 8);
-				if ((baseindex + 0 < validlength) && (pByteData[baseindex + 0] )>_tolerance )targ |= (1 << 7);
-				if ((baseindex + 1 < validlength) && (pByteData[baseindex + 1] )>_tolerance )targ |= (1 << 6);
-				if ((baseindex + 2 < validlength) && (pByteData[baseindex + 2] )>_tolerance )targ |= (1 << 5);
-				if ((baseindex + 3 < validlength) && (pByteData[baseindex + 3] )>_tolerance )targ |= (1 << 4);
-				if ((baseindex + 4 < validlength) && (pByteData[baseindex + 4] )>_tolerance )targ |= (1 << 3);
-				if ((baseindex + 5 < validlength) && (pByteData[baseindex + 5] )>_tolerance )targ |= (1 << 2);
-				if ((baseindex + 6 < validlength) && (pByteData[baseindex + 6] )>_tolerance )targ |= (1 << 1);
-				if ((baseindex + 7 < validlength) && (pByteData[baseindex + 7] )>_tolerance )targ |= (1 << 0);
+				var baseindex = (((k  * mwidth) + j) * 8);
+				if ((baseindex + 0 < validlength) && (pByteData[baseindex + 0] ) == true )targ |= (1 << 7);
+				if ((baseindex + 1 < validlength) && (pByteData[baseindex + 1] ) == true )targ |= (1 << 6);
+				if ((baseindex + 2 < validlength) && (pByteData[baseindex + 2] ) == true )targ |= (1 << 5);
+				if ((baseindex + 3 < validlength) && (pByteData[baseindex + 3] ) == true )targ |= (1 << 4);
+				if ((baseindex + 4 < validlength) && (pByteData[baseindex + 4] ) == true )targ |= (1 << 3);
+				if ((baseindex + 5 < validlength) && (pByteData[baseindex + 5] ) == true )targ |= (1 << 2);
+				if ((baseindex + 6 < validlength) && (pByteData[baseindex + 6] ) == true )targ |= (1 << 1);
+				if ((baseindex + 7 < validlength) && (pByteData[baseindex + 7] ) == true )targ |= (1 << 0);
 
 				pData[j + (k * mwidth)] = targ;
 			}
@@ -808,6 +799,73 @@ yySprite.prototype.SetupSWFCollisionMasks = function (_dataView, _byteOffset, _l
 
 // #############################################################################################
 /// Function:<summary>
+///          	Setup collision masks for an SWF
+///          </summary>
+// #############################################################################################
+yySprite.prototype.SetupSWFCollisionMasks = function (_dataView, _byteOffset, _littleEndian) {
+	// @if feature("swf")
+    if (this.colcheck !== yySprite_CollisionType.PRECISE) {
+        return;
+    }
+
+	_byteOffset = this.SetupSWFAndVectorCollisionMasks(_dataView,
+		_byteOffset,
+		_littleEndian,
+		this.SWFTimeline.collisionMaskHeader.maskWidth,
+		this.SWFTimeline.collisionMaskHeader.maskHeight,
+		this.SWFTimeline.collisionMaskHeader.numCollisionMasks);
+
+	// @endif swf
+	return _byteOffset;    
+};
+
+
+// #############################################################################################
+/// Function:<summary>
+///          	Setup collision masks for a vector sprite
+///          </summary>
+// #############################################################################################
+yySprite.prototype.SetupVectorCollisionMasks = function (_dataView, _byteOffset, _littleEndian) {
+	// @if feature("swf")
+
+	// Read out collision masks header
+	var numCollisionMasks, maskWidth, maskHeight;	
+	numCollisionMasks = _dataView.getInt32(_byteOffset, _littleEndian);
+	_byteOffset+=4;
+	maskWidth = _dataView.getInt32(_byteOffset, _littleEndian);
+	_byteOffset+=4;
+	maskHeight = _dataView.getInt32(_byteOffset, _littleEndian);
+	_byteOffset+=4;
+
+	if ((this.colcheck === yySprite_CollisionType.PRECISE) && (numCollisionMasks > 0))
+	{
+		_byteOffset = this.SetupSWFAndVectorCollisionMasks(_dataView,
+			_byteOffset,
+			_littleEndian,
+			maskWidth,
+			maskHeight,
+			numCollisionMasks);
+
+		if (!this.m_LoadedFromChunk) {
+			this.colcheck = yySprite_CollisionType.PRECISE;
+		}
+	}
+	else
+	{
+		this.width = this.m_VectorShape.maxX - this.m_VectorShape.minX;
+		this.height = this.m_VectorShape.maxY - this.m_VectorShape.minY;
+
+		if (!this.m_LoadedFromChunk) {
+			this.colcheck = yySprite_CollisionType.AXIS_ALIGNED_RECT;
+		}
+	}
+
+	// @endif swf
+	return _byteOffset;    
+};
+
+// #############################################################################################
+/// Function:<summary>
 ///          	Re-direct draw routines to those that draw SWFs for the sprite
 ///          </summary>
 // #############################################################################################
@@ -823,6 +881,79 @@ yySprite.prototype.SetSWFDrawRoutines = function () {
             this.SWFDictionaryItems, this.SWFTimeline, _ind, this.xOrigin, this.yOrigin, _x, _y, 1.0, 1.0, 0.0, 0xffffffff, _alpha, this.ppTPE);
     };
 	// @endif swf
+};
+
+// #############################################################################################
+/// Function:<summary>
+///          	Re-direct draw routines to those that draw SWFs for the sprite
+///          </summary>
+// #############################################################################################
+yySprite.prototype.SetVectorDrawRoutines = function () {
+	// @if feature("swf")
+    this.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _colour, _alpha) {    
+	    Graphics_VectorSpriteDraw(
+	        this.SWFDictionaryItems, this.m_VectorShape, this.xOrigin, this.yOrigin, _x, _y, _xscale, _yscale, _angle, _colour, _alpha, this.ppTPE);
+    };
+    
+    this.DrawSimple = function (_ind, _x, _y, _alpha) {
+        Graphics_VectorSpriteDraw(
+            this.SWFDictionaryItems, this.m_VectorShape, this.xOrigin, this.yOrigin, _x, _y, 1.0, 1.0, 0.0, 0xffffffff, _alpha, this.ppTPE);
+    };
+	// @endif swf
+};
+
+
+// #############################################################################################
+/// Property: <summary>
+///           	Build SWF data associated with the sprite
+///           </summary>
+// #############################################################################################
+yySprite.prototype.BuildVectorData = function (_vecIndex, _xo, _yo) {
+	// @if feature("swf")
+    try {
+        if (g_pSpriteManager.vectorSpriteData !== undefined) {
+        
+            var littleEndian = true;
+            var byteOffset = 0;
+            var vecArrayBuffer = g_pSpriteManager.vectorSpriteData[_vecIndex];
+            
+            var dataView = new DataView(vecArrayBuffer);
+            if (dataView !== undefined) {                        
+            
+                // Read in the header details                            
+				var fileVersion = dataView.getUint32(byteOffset, littleEndian);
+                byteOffset += 4;
+
+				this.m_VectorShape = new yySWFShape(eDIType_Shape, 0);
+				byteOffset = this.m_VectorShape.BuildShapeData(dataView, byteOffset, littleEndian, null, true);                
+
+				// Sort out any collision masks                
+				byteOffset = this.SetupVectorCollisionMasks(dataView, byteOffset, littleEndian);
+
+				if(!this.m_LoadedFromChunk)
+				{
+                	this.bboxmode = 0;
+					this.preload = true;
+				}
+                
+                if (!this.m_LoadedFromChunk && this.colcheck === yySprite_CollisionType.AXIS_ALIGNED_RECT) {
+                    this.bbox.left = this.m_VectorShape.minX;
+		            this.bbox.right = this.m_VectorShape.maxX;
+		            this.bbox.top = this.m_VectorShape.minY;
+		            this.bbox.bottom = this.m_VectorShape.maxY;
+		            this.xOrigin = _xo;
+		            this.yOrigin = _yo;
+                }                
+                // i_numb = m_SWF_Timeline->numFrames;                
+                this.CalcCullRadius();                
+                this.SetVectorDrawRoutines();                	
+            }
+        }
+    }
+    catch (e) {
+        debug("Cannot build vector data " + e.message);
+    }
+	// @endif
 };
 
 
@@ -1142,6 +1273,11 @@ function    CreateSpriteFromStorage( _pStore )
 		pSprite.m_LoadedFromChunk = true;
 	    pSprite.BuildSWFData(_pStore.swf, pSprite.xOrigin, pSprite.yOrigin);
 	}
+
+	if (_pStore.vector !== undefined) {
+		pSprite.m_LoadedFromChunk = true;
+	    pSprite.BuildVectorData(_pStore.vector, pSprite.xOrigin, pSprite.yOrigin);
+	}
 	// @endif
 
 	if (_pStore.sequence !== undefined) {
@@ -1285,7 +1421,10 @@ yySprite.prototype.DrawSimple = function (_sub_image, _x, _y, _alpha) {
 		if (!this.ppTPE) return;
         // Make sure we're not dealing with a texture that's been downsized to fit the tpage
         var pTPE = this.ppTPE[_sub_image];
-        if (!pTPE) return; // no loaded? texture group etc?
+        if (!pTPE) { // no loaded? texture group etc?
+			console.log("Error: Texture page for " + this.pName + " is not loaded");
+			return;
+		}
 		
 		// @if feature("nineslice")
         if ((this.nineslicedata != null) && (this.nineslicedata.enabled == true))
@@ -1370,8 +1509,14 @@ yySprite.prototype.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _col
 		} else // ->
 		// @endif
 		{
-		    // undefined forces colour+alpha into ALL verts
-		    Graphics_TextureDraw(this.ppTPE[_ind], this.xOrigin, this.yOrigin, _x, _y, _xscale, _yscale, _angle * Math.PI / 180.0, _colour, undefined, undefined, undefined, _alpha);
+			const pTPE = this.ppTPE[_ind];
+			if (!pTPE) {
+				console.log("Error: Texture group for " + this.pName + " is not loaded");
+			}
+			else {
+				// undefined forces colour+alpha into ALL verts
+				Graphics_TextureDraw(pTPE, this.xOrigin, this.yOrigin, _x, _y, _xscale, _yscale, _angle * Math.PI / 180.0, _colour, undefined, undefined, undefined, _alpha);
+			}
 		}
 	}
 };
@@ -2774,6 +2919,7 @@ yySpriteManager.prototype.List = function () {
 ///				
 // #############################################################################################
 yySpriteManager.prototype.Delete = function(_id) {
+	var res = false;
 	var pSprite = this.Sprites[_id];
 	if (pSprite != undefined) {
 		var flush = true;
@@ -2808,7 +2954,9 @@ yySpriteManager.prototype.Delete = function(_id) {
 			}
 		}
 		this.Sprites[_id] = undefined;
+		res = true;
 	}
+	return res;
 };
 
 
@@ -2874,6 +3022,72 @@ yySpriteManager.prototype.SWFLoad = function (_data) {
     }
     catch (e) {
         debug("Cannot parse SWF data " + e.message);        
+    }
+	// @endif swf
+};
+
+// #############################################################################################
+/// Function:<summary>
+///          	Parse the loaded SWF data
+///             SWFs only supported for WebGL where we're expecting Uint8Arrays to exist, on IE it'll take exception
+///          </summary>
+// #############################################################################################
+yySpriteManager.prototype.VecLoad = function (_data) {
+	// @if feature("swf")
+    try {
+        // header consists of:
+        // "rvec";
+        // major.minor.version;
+        // header size; (to offset to the start of the vector sprite data
+        // number of vector sprites;
+        // size of each vector sprite;                  
+        var dataview = {
+            data: new Uint8Array(_data),
+            offset: 0
+        };            
+        function nextString (_dataview) {
+            var separator = ";";
+            var str = "";
+            while (dataview.offset < _dataview.data.byteLength) {                    
+                if (_dataview.data[dataview.offset] === separator.charCodeAt(0)) {
+                    dataview.offset++;
+                    break;
+                }
+                str = str + String.fromCharCode(_dataview.data[dataview.offset]);                    
+                dataview.offset++;
+            }
+            return str;
+        };
+               
+        var type = nextString(dataview);
+        if (type == "rvec") {            
+            
+            // Make sure the vector sprite loading code knows what version it's dealing with
+            var version = nextString(dataview),            
+                versionInfo = version.split('.', 3);
+                
+            g_VectorSpriteVersion.major = parseInt(versionInfo[0]);
+            g_VectorSpriteVersion.minor = parseInt(versionInfo[1]);
+            g_VectorSpriteVersion.version = parseInt(versionInfo[2]);
+            
+            var headerSize = parseInt(nextString(dataview)),
+                spriteCount = parseInt(nextString(dataview));
+
+            // Get the version code, header size and sprite count
+            this.vectorSpriteData = [];
+
+            // Extract each SWF            
+            var dataOffset = headerSize;
+            for (var i = 0; i < spriteCount; i++) {
+                                               
+                var vecSize = parseInt(nextString(dataview));
+                this.vectorSpriteData[i] = _data.slice(dataOffset, dataOffset + vecSize);                
+                dataOffset += vecSize;
+            }
+        }
+    }
+    catch (e) {
+        debug("Cannot parse vector sprite data " + e.message);        
     }
 	// @endif swf
 };

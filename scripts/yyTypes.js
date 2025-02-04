@@ -435,7 +435,29 @@ function STRING_RemoveVisited( _v )
 
 function yyGetString(_v) {
     if (_v instanceof YYRef) {
-        return "ref " + RefName(_v.type) + " " + _v.value;
+        if ((_v.type & 0xff000000) == REFCAT_RESOURCE) {
+            var name = ResourceGetName(_v.value, _v.type&0x00ffffff);
+            if ((name == "") && (_v.type == REFID_SCRIPT)) {
+                var func = g_globalScripts[ _v.value];
+                if (func != undefined) {
+                    name = func.name;
+                    if (typeof g_obf2var !== "undefined") {
+                        name = g_obf2var[ name ];
+                    } // end if
+                } // end if
+            } // end if
+            if ((name != undefined) && (name != "")) {
+                if (name.startsWith("gml_GlobalScript_")) name = name.substring(17);
+                else
+                if (name.startsWith("gml_Script_")) name = name.substring(11);
+                return "ref " + RefName(_v.type) + " " + name;
+            } // end if
+            else {
+                return "ref " + RefName(_v.type) + " " + _v.value;
+            } // end else
+        } else {
+            return "ref " + RefName(_v.type) + " " + _v.value;
+        } // end else
     } // end if
     else if (typeof _v === "string") {
         var ret = "";

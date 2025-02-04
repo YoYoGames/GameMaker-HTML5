@@ -104,7 +104,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
             variable_struct_set(pPSI, "oldtonew", pPS.oldtonew ? true : false);
             variable_struct_set(pPSI, "global_space", pPS.globalSpaceParticles);
 
-            for (var i = pPS.emitters.length - 1; i >= 0; --i)
+            for (var i = 0; i < pPS.emitters.length; ++i)
             {
                 var emitter = pPS.emitters[i];
                 if (emitter)
@@ -129,7 +129,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
             variable_struct_set(pPSI, "oldtonew", (pPS.drawOrder == 0));
             variable_struct_set(pPSI, "global_space", pPS.globalSpaceParticles);
 
-            for (var i = 0; i < pPS.emitters.length; ++i)
+            for (var i = pPS.emitters.length - 1; i >= 0; --i)
             {
                 var emitter = g_PSEmitters[pPS.emitters[i]];
                 if (emitter)
@@ -151,7 +151,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
         var emitter = emitters[i];
         var pEmitterI = new GMLObject();
 
-        variable_struct_set(pEmitterI, "ind", i);
+        variable_struct_set(pEmitterI, "ind", MAKE_REF(REFID_PART_EMITTER, i));
         variable_struct_set(pEmitterI, "name", emitter.name);
         variable_struct_set(pEmitterI, "mode", emitter.mode);
         variable_struct_set(pEmitterI, "number", emitter.number);
@@ -173,7 +173,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
         var pPartTypeI = new GMLObject();
         var particleType = g_ParticleTypes[emitter.parttype];
 
-        variable_struct_set(pPartTypeI, "ind", emitter.parttype);
+        variable_struct_set(pPartTypeI, "ind", MAKE_REF(REFID_PART_TYPE, emitter.parttype));
 
         if(particleType!==undefined)
         {
@@ -525,9 +525,12 @@ function part_system_drawit(_ind)
 	var matPos = new Matrix();
 	matPos.SetTranslation(-pSystem.xdraw, -pSystem.ydraw, 0.0);
 	
-	var matWorldNew = new Matrix();
-	matWorldNew.Multiply(matPos, matRot);
-	matWorldNew.Translation(pSystem.xdraw, pSystem.ydraw, 0.0);
+	var matParticle = new Matrix();
+	matParticle.Multiply(matPos, matRot);
+	matParticle.Translation(pSystem.xdraw, pSystem.ydraw, 0.0);
+
+    var matWorldNew = new Matrix();
+    matWorldNew.Multiply(matParticle, matWorldOld);
 
 	WebGL_SetMatrix(MATRIX_WORLD, matWorldNew);
 	ParticleSystem_SetMatrix(ps, matWorldNew);

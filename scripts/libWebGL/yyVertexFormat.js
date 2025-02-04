@@ -80,11 +80,16 @@ function yyVertexFormat() {
         switch (_type) {
             
             case yyGL.VT_COLOR:
-            case yyGL.VT_UBYTE4:
                 m_byteSize += 4;
                 formatElement.gltype = gl.UNSIGNED_BYTE;
                 formatElement.glcomponents = 4;
                 formatElement.normalised = true;
+            break;
+            case yyGL.VT_UBYTE4:
+                m_byteSize += 4;
+                formatElement.gltype = gl.UNSIGNED_BYTE;
+                formatElement.glcomponents = 4;
+                formatElement.normalised = false;
             break;
             case yyGL.VT_FLOAT1:
                 m_byteSize += 4;            

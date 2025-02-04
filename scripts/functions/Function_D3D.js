@@ -262,6 +262,7 @@ function gpu_set_state(){}
 var matrix_build = WebGL_Matrix_Build;
 var matrix_multiply = WebGL_Matrix_Multiply;
 var matrix_transform_vertex = WebGL_Matrix_Transform_Vertex;
+var matrix_inverse = WebGL_Matrix_Inverse;
 
 var matrix_stack_push = WebGL_matrix_stack_push;
 var matrix_stack_pop = WebGL_matrix_stack_pop;           
@@ -909,6 +910,27 @@ function WebGL_Matrix_Transform_Vertex(_mat, _x, _y, _z)
     }
 
     return res;
+}
+
+function WebGL_Matrix_Inverse(_s1) {
+
+    var s1 = new Matrix();
+    var inv_s1 = new Matrix();    
+
+    for (var i = 0; i < 16; i++) {
+        s1.m[i] = yyGetReal(_s1[i]);        
+    }
+    var success = inv_s1.Invert(s1);
+    if (!success)
+    {
+        return undefined;
+    }
+
+    var mat = [];
+    for (var i = 0; i < 16; i++) {
+        mat[i] = inv_s1.m[i];
+    }
+    return mat;
 }
 
 function WebGL_matrix_stack_push(_matrix)

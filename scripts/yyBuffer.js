@@ -2094,6 +2094,7 @@ function buffer_allocate(_srcByteBuffer) {
 ///          </summary>
 // #############################################################################################
 function buffer_exists(_handle){
+    if (_handle === undefined) return false;
     var pBuff = g_BufferStorage.Get(yyGetInt32(_handle));
     if (!pBuff) return 0; 
     return 1;
