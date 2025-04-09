@@ -132,10 +132,49 @@ yyView.prototype.GetMouseCoord = function(_x,_y,_horizontal) {
 
 // #############################################################################################
 /// Function:<summary>
+///             Work out the position in this view of the IO's Mouse coordinate.
+///             Returns both coordinates as an array: 0 - xpos, 1 - ypos
+///          </summary>
+// #############################################################################################
+yyView.prototype.GetMouseCoords = function(_x, _y, applyCamera = true) {
+    var cam = g_pCameraManager.GetCamera(this.cameraID);
+    if (cam == null) return 0;
+
+    // First, adjust the incoming coordinates by subtracting the canvas offsets.
+    var pRect = g_CanvasRect;
+    _x = (_x - pRect.left - this.scaledportx) / (pRect.scaleX || 1);
+    _y = (_y - pRect.top - this.scaledporty) / (pRect.scaleY || 1);
+
+    // If using the default camera, or if we don't want to apply camera transformation, 
+    // convert using world view scaling and return.
+    if (!applyCamera || this.cameraID == g_DefaultCameraID) {
+        _x = (_x / this.WorldViewScaleX) + this.worldx;
+        _y = (_y / this.WorldViewScaleY) + this.worldy;
+        return [Math.floor(_x), Math.floor(_y)];
+    }
+
+    // Otherwise, compute clip-space coordinates based on the view's scaled port.
+    var clipX = _x / this.scaledportw;
+    var clipY = _y / this.scaledporth;
+    clipX = clipX * 2.0 - 1.0;
+    clipY = clipY * 2.0 - 1.0;
+
+    // Get the inverse view-projection matrix from the camera.
+    var invViewProj = cam.GetInvViewProjMat();
+
+    // Compute the backtransformed coordinate using the appropriate row of the matrix.
+    _x = (clipX * invViewProj.m[_11]) + (clipY * invViewProj.m[_21]) + invViewProj.m[_41];
+	_y = (clipX * invViewProj.m[_12]) + (clipY * invViewProj.m[_22]) + invViewProj.m[_42];
+
+    return [Math.floor(_x), Math.floor(_y)];
+};
+
+// #############################################################################################
+/// Function:<summary>
 ///          	Work out the x position in this view of the IO's MouseX
 ///          </summary>
 // #############################################################################################
-yyView.prototype.GetMouseX = function (_x,_y) {
+yyView.prototype.GetMouseX = function (_x, _y) {
 	return this.GetMouseCoord(_x, _y, true);
 };
 

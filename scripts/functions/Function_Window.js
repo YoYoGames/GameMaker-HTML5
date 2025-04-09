@@ -844,6 +844,29 @@ function window_view_mouse_get_y(_id) {
 	// return g_pBuiltIn.mouse_y - pView.porty;
 }
 
+function GR_Window_Views_Convert(_x, _y, applyCamera = true) {
+    if (!g_RunRoom.m_enableviews){
+		return [_x, _y];
+	}
+		
+	//reverse iterate for consistency with native runner
+	//for (var i = 0; i < g_RunRoom.m_Views.length; i++)
+	for (var i = g_RunRoom.m_Views.length-1; i >=0; --i)
+	{	    
+	    var pView = g_RunRoom.m_Views[i];
+	    if (!pView.visible) {
+	        continue;
+	    }
+	    
+	    var m = pView.GetMouseCoords(_x, _y, applyCamera);
+	    // check that the results are within the view's region
+	    if (((m[0] >= pView.worldx) && (m[0] < pView.worldx + pView.worldw)) &&
+	        ((m[1] >= pView.worldy) && (m[1] < pView.worldy + pView.worldh))) {
+	        return m;
+	    }
+	}
+}
+
 // #############################################################################################
 /// Function:<summary>
 ///          	  Returns the x-coordinate of the mouse with respect to the view it is in
@@ -868,7 +891,7 @@ function window_views_mouse_get_x() {
 	    var my = pView.GetMouseY(g_pIOManager.MouseX,g_pIOManager.MouseY);
 	    // check that the results are within the view's region
 	    if (((mx >= pView.worldx) && (mx < pView.worldx + pView.worldw)) &&
-	        ((my >= pView.worldy) && (mx < pView.worldy + pView.worldh)))
+	        ((my >= pView.worldy) && (my < pView.worldy + pView.worldh)))
 	    {
 	        return mx;
 	    }
@@ -900,7 +923,7 @@ function window_views_mouse_get_y() {
 	    var my = pView.GetMouseY(g_pIOManager.MouseX,g_pIOManager.MouseY);
 	    // check that the results are within the view's region
 	    if (((mx >= pView.worldx) && (mx < pView.worldx + pView.worldw)) &&
-	        ((my >= pView.worldy) && (mx < pView.worldy + pView.worldh)))
+	        ((my >= pView.worldy) && (my < pView.worldy + pView.worldh)))
 	    {
 	        return my;
 	    }

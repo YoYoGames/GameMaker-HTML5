@@ -3388,6 +3388,7 @@ yyRoom.prototype.DrawRoomLayers = function(_rect, _gui_mask){
 		    {
 			    WebGL_d3d_set_depth_RELEASE(player.depth);		
 		    }
+			player.SetView();
 
 			// @if feature("layerEffects")
 			if (player.m_effectEnabled)
@@ -3519,6 +3520,8 @@ yyRoom.prototype.DrawRoomLayers = function(_rect, _gui_mask){
 			if (player.m_effectEnabled)
 				ExecuteEffectFunction(player, EFFECT_LAYER_END_FUNC, EVENT_DRAW, 0);
 			// @endif
+
+			player.RestoreView();
 	    }
 
 	    Current_Event_Type = oldtype;
@@ -3751,6 +3754,7 @@ yyRoom.prototype.ExecuteDrawEvent = function (_rect, _event, _gui_mask) {
 
 			Current_Event_Number = EVENT_DRAW_BEGIN;
 
+			player.SetView();
 			// @if feature("layerEffects")
 			if (player.m_effectEnabled)
 				ExecuteEffectFunction(player, EFFECT_LAYER_BEGIN_FUNC, EVENT_DRAW_BEGIN, 0);
@@ -3790,7 +3794,7 @@ yyRoom.prototype.ExecuteDrawEvent = function (_rect, _event, _gui_mask) {
 			if (player.m_effectEnabled)
 				ExecuteEffectFunction(player, EFFECT_LAYER_END_FUNC, EVENT_DRAW_BEGIN, 0);
 			// @endif
-	    
+			player.RestoreView();
 	    }
 	}
 	else
