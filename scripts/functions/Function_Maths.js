@@ -1797,8 +1797,9 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
         } // end if
 
         if (ret === undefined) {
+            var f = NaN;
             if ((typeof _val1 == "number") && (typeof _val2 == "number")) {
-                var f = _val1 - _val2;
+                f = _val1 - _val2;
                 } // end if
             if (Number.isNaN(f)) {
                 f = (!Number.isNaN(_val1) && !Number.isFinite(_val1) && !Number.isNaN(_val2) && !Number.isFinite(_val2)) ? 0 : f;
