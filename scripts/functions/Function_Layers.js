@@ -99,6 +99,10 @@ this.m_effect = null; // yyEffectInstanceRef
 this.m_pInitialEffectInfo = null;
 this.m_effectPS = -1;
 this.m_gui_layer = eLAYER_NORMAL;
+
+this.m_storedViewPort = [0,0,0,0];
+this.m_storedCamViewPort = [0,0,0,0];
+
 };
 
 CLayer.prototype.SetEffect = function(_effect)
@@ -134,6 +138,71 @@ CLayer.prototype.IsUILayer = function()
 CLayer.prototype.IsGUISpaceLayer = function()
 {
     return this.m_gui_layer == eLAYER_GUI_IN_GUI;
+};
+
+CLayer.prototype.SetView = function()
+{
+	if (this.m_gui_layer == eLAYER_GUI_IN_VIEW)
+    {
+        var storedViewPort = this.m_storedViewPort;
+        storedViewPort[0] = g_clipx;
+        storedViewPort[1] = g_clipy;
+        storedViewPort[2] = g_clipw;
+        storedViewPort[3] = g_cliph;
+        
+        var pCam = g_pCameraManager.GetActiveCamera();
+        if (pCam != null)
+        {
+            pCam.Begin();
+            pCam.ApplyMatrices();
+
+            var storedCamViewPort = this.m_storedCamViewPort;
+            storedCamViewPort[0] = pCam.GetViewX();
+            storedCamViewPort[1] = pCam.GetViewY();
+            storedCamViewPort[2] = pCam.GetViewWidth();
+            storedCamViewPort[3] = pCam.GetViewHeight();
+        }
+
+        //x,y,w,h
+        //Setup our camera (if views are disabled then our view/camera is the whole screen)
+        if (g_RunRoom.GetEnableViews())
+        {
+            var view = g_pCurrentView;
+            var cam_width_to_use = view.portw;
+            var cam_height_to_use = view.porth;
+
+            if (pCam != null)
+            {
+                cam_width_to_use = storedCamViewPort[2];
+                cam_height_to_use = storedCamViewPort[3];
+            }
+
+            Graphics_SetViewPort(view.portx * g_DisplayScaleX, view.porty * g_DisplayScaleY, view.portw * g_DisplayScaleX, view.porth * g_DisplayScaleY);
+            UpdateCamera(0, 0, cam_width_to_use, cam_height_to_use, 0, pCam);
+        }
+    }
+};
+
+CLayer.prototype.RestoreView = function()
+{
+	if (this.m_gui_layer == eLAYER_GUI_IN_VIEW)
+    {
+
+        if (g_RunRoom.GetEnableViews()) 
+        {
+            var storedViewPort = this.m_storedViewPort;
+            Graphics_SetViewPort(storedViewPort[0], storedViewPort[1], storedViewPort[2], storedViewPort[3]);
+        }
+
+        var pCam = g_pCameraManager.GetActiveCamera();
+
+        if (pCam != null)
+        {
+            pCam.End();
+            var storedCamViewPort = this.m_storedCamViewPort;
+            UpdateCamera(storedCamViewPort[0], storedCamViewPort[1], storedCamViewPort[2], storedCamViewPort[3], 0, pCam);
+        }
+    }
 };
 
 /** @constructor */

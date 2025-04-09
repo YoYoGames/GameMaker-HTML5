@@ -1517,8 +1517,6 @@ function UILayers_Layout_measure_node(node, width, widthMode, height, heightMode
 
 function UILayers_Layout_node_position(node, outer_rect, clipping_rect, set_clipping_rect)
 {
-	console.log(flexpanel_node_get_struct(node));
-
 	var context = FLEXPANEL_GetContext(node);
 
 	local_x = node.getComputedLeft();
@@ -2358,8 +2356,8 @@ UILayerSpriteElement.prototype.position = function(container, clipping_rect, set
 		{
 			/* Size of the sprite with no scaling applied. */
 			var base_size = [
-				sprite.GetWidth(),
-				sprite.GetHeight(),
+				sprite.GetWidth() + 1,
+				sprite.GetHeight() + 1,
 			];
 
 			/* Size of the sprite with scaling from the flexpanel element properties applied. */
@@ -2695,7 +2693,7 @@ UILayerTextElement.prototype.position = function(container, clipping_rect, set_c
 
 		if(this.stretchWidth)
 		{
-			element.m_frameW = container.GetWidth() / element.m_scaleX;
+			element.m_frameW = (container.GetWidth() + 1) / element.m_scaleX;
 		}
 		else{
 			element.m_frameW = this.textFrameWidth;
@@ -2703,7 +2701,7 @@ UILayerTextElement.prototype.position = function(container, clipping_rect, set_c
 
 		if(this.stretchHeight)
 		{
-			element.m_frameH = container.GetHeight() / element.m_scaleY;
+			element.m_frameH = (container.GetHeight() + 1) / element.m_scaleY;
 		}
 		else{
 			element.m_frameH = this.textFrameHeight;
