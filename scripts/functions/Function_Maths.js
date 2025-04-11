@@ -1806,7 +1806,7 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
             if (Number.isNaN(f))
                 ret = -2;
             else
-                ret = abs(f) <= _prec ? 0 : (f < 0.0) ? -1 : 1;
+                ret = Math.abs(f) <= _prec ? 0 : (f < 0.0) ? -1 : 1;
         } // end if
         else 
         if (ret != -2) {            
