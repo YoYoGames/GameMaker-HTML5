@@ -97,7 +97,7 @@ YYRECT.prototype.Intersection = function(r1, r2)
 	r.right = Math.min(r1.right, r2.right);
 	r.bottom = Math.min(r1.bottom, r2.bottom);
 	return r;
-}
+};
 
 YYRECT.prototype.GetWidth = function () {
 	return this.right - this.left;
@@ -1573,8 +1573,7 @@ yySprite.prototype.DrawTiled = function(_ind, _x, _y, _xscale, _yscale, _htile, 
 			Graphics_TextureDrawTiled(pTPE, this.xOrigin, this.yOrigin, _x, _y, _xscale, _yscale, _htile, _vtile, _tile_xr, _tile_yr, _tile_wr, _tile_hr, _colour, _alpha);
 		}
 	}
-}
-
+};
 
 yySprite.prototype.GetSkeletonSlotsAtPoint = function(_inst, _x, _y, _list)
 {
@@ -1599,8 +1598,6 @@ yySprite.prototype.GetSkeletonSlotsAtPoint = function(_inst, _x, _y, _list)
     this.m_skeletonSprite.GetSlotsAtWorldPos(_inst, undefined, undefined, ind, x, y, xscale, yscale, angle, _x, _y, _list);
 	// @endif spine
 };
-
-
 
 // #############################################################################################
 /// Function:<summary>
@@ -1800,7 +1797,6 @@ yySprite.prototype.PreciseCollisionTilemapRect= function ( tMaskData, bb2, t_ibb
 	return false;
 
 };
-
 
 yySprite.prototype.PreciseCollisionTilemapLine= function ( tMaskData, bb2, t_ibbox,  xl,  yl,  xr, yr)
 {
