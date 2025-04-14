@@ -3275,7 +3275,7 @@ yyInstance.prototype.GetLayerID=function()	{ return this.m_nLayerID; };
 yyInstance.prototype.SetLayerID=function(_layerID)	{ this.m_nLayerID = _layerID; };
 yyInstance.prototype.GetOnActiveLayer=function() { return this.m_bOnActiveLayer; };
 yyInstance.prototype.SetOnActiveLayer=function( _onLayer)	{ this.m_bOnActiveLayer = _onLayer; };
-yyInstance.prototype.GetOnUILayer = function() { return this.m_bOnUILayer; }
+yyInstance.prototype.GetOnUILayer = function() { return this.m_bOnUILayer; };
 yyInstance.prototype.SetOnUILayer = function(_onUILayer) { this.m_bOnUILayer = _onUILayer; };
 yyInstance.prototype.GetInGUISpace = function() { return this.m_bInGUISpace; };
 yyInstance.prototype.SetInGUISpace = function(_inGUISpace) { this.m_bInGUISpace = _inGUISpace; };
