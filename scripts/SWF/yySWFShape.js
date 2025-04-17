@@ -449,7 +449,7 @@ yySWFShape.prototype.BuildSubShapes = function (_styleGroup, _dataView, _byteOff
 
 		pSubShape.numPoints = _dataView.getInt32(_byteOffset, _littleEndian);
 		_byteOffset+=4;
-		if (((_isVectorSprite == true) && (g_VectorSpriteVersion >= 2)) || (g_SWFVersion.version >= 4))
+		if (((_isVectorSprite == true) && (g_VectorSpriteVersion.version >= 2)) || (g_SWFVersion.version >= 4))
 		{
 			pSubShape.numPointColours = _dataView.getInt32(_byteOffset, _littleEndian);
 			_byteOffset+=4;
