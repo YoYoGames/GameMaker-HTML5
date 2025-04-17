@@ -2276,7 +2276,7 @@ function WebGL_DrawVectorSpriteObject_RELEASE(SWFDictionaryItems, _pObject, _pPo
         transcoladd = [];        
     for (var i = 0; i < 4; i++)
     {
-	    colmul[i] = 255;
+	    colmul[i] = 256;				// 256 (not 255) is 1.0f
 	    coladd[i] = 0;
 	    transcoladd[i] = 0;
     }
@@ -2323,7 +2323,22 @@ function WebGL_DrawVectorSprite_RELEASE(SWFDictionary, pObject, xorig, yorig, x,
 	transcolvals[0] = transmulcolor & 0xff;
 	transcolvals[1] = (transmulcolor >> 8) & 0xff;
 	transcolvals[2] = (transmulcolor >> 16) & 0xff;
-	transcolvals[3] = (transmulcolor >> 24) & 0xff;	
+	transcolvals[3] = (transmulcolor >> 24) & 0xff;
+    
+    // Remap into a 1 -> 256 range
+	// This is needed since we later treat 256 as 1.0f
+	// This won't brighten things up since we use a shift to do the final division which rounds things down
+	// In the most extreme case, where we multiply the max colour value of 255 by the min scale value of 1 (which is originally 0 with 1 added to it), then shift right by 8
+	// we'll still end up with 0
+	colvals[0]++;
+	colvals[1]++;
+	colvals[2]++;
+	colvals[3]++;
+
+	transcolvals[0]++;
+	transcolvals[1]++;
+	transcolvals[2]++;
+	transcolvals[3]++;
 
     // Set up any transformation here related to pos\rot\scale
     var posMat = new Matrix();
