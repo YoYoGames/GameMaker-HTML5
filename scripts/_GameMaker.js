@@ -1625,6 +1625,7 @@ function Run_EndGame(_reset) {
 	var pool = g_pObjectManager.objidlist;
 	for (var i = 0; i < pool.length; i++) {
 		var pObj = pool[i];
+        if (pObj === undefined) continue;
 		pObj.Instances.Clear();
 		pObj.Instances_Recursive.Clear();
 	}

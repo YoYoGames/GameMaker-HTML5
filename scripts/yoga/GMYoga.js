@@ -571,7 +571,19 @@ function flexpanel_node_insert_child( _node, _child, _index)
 		var ui_layer = UILayers_Get_By_Node(root);
 		UILayers_Create_node_elements(_child, ui_layer.layer, true);
 
-		// TODO: Update layout from root
+		/* Update layout from root (only if layer is visible) */
+		var pLayer = ui_layer.layer;
+		if (pLayer.m_visible) {
+			if (pLayer.IsGUISpaceLayer())
+			{
+				var gui_rect = Calc_GUI_Matrices_And_Rect();
+				UILayers_Layout_layer(ui_layer, gui_rect, eLAYER_GUI_IN_GUI);
+			}
+			else {
+				var view_rect = UILayers_Calculate_Initial_View_Rect();
+				UILayers_Layout_layer(ui_layer, view_rect, eLAYER_GUI_IN_VIEW);
+			}
+		}
 	}
 }
 
@@ -1345,58 +1357,33 @@ function UILayers_Layout(rect, gui_mask)
 	for(var i = 0; i < g_UILayers.length; ++i)
 	{
 		var ui_layer = g_UILayers[i];
-
-		if(!(ui_layer.layer.m_visible) || (ui_layer.layer.m_gui_layer & gui_mask) == 0)
-		{
-			continue;
-		}
-
-		/* Mark leaf nodes dirty so Yoga will rediscover their sizes. */
-		UILayers_Layout_node_prepare(ui_layer.node);
-
-		var direction = flexpanel_node_style_get_direction(ui_layer.node);
-		ui_layer.node.calculateLayout((rect.right - rect.left), (rect.bottom - rect.top), direction);
-
-		var offset_rect = new YYRECT();
-		offset_rect.Copy(rect);
-
-		offset_rect.left += ui_layer.x_offset;
-		offset_rect.right += ui_layer.x_offset;
-
-		offset_rect.top += ui_layer.y_offset;
-		offset_rect.bottom += ui_layer.y_offset;
-
-		UILayers_Layout_node_position(ui_layer.node, offset_rect, offset_rect, false);
+		UILayers_Layout_layer(ui_layer, rect, gui_mask);
 	}
 }
 
-function UILayers_Layout_single_layer(ui_layer, rect, gui_mask) {
+function UILayers_Layout_layer(ui_layer, rect, gui_mask) {
 
 	if(!(ui_layer.layer.m_visible) || (ui_layer.layer.m_gui_layer & gui_mask) == 0)
 	{
 		return;
 	}
 
-    // Mark the node’s leaf nodes as dirty so that Yoga recalculates sizes.
-    UILayers_Layout_node_prepare(ui_layer.node);
-    
-    // Calculate the layout for this node using the available width and height.
-    var width = rect.right - rect.left;
-    var height = rect.bottom - rect.top;
+	/* Mark leaf nodes dirty so Yoga will rediscover their sizes. */
+	UILayers_Layout_node_prepare(ui_layer.node);
 
 	var direction = flexpanel_node_style_get_direction(ui_layer.node);
-    ui_layer.node.calculateLayout(width, height, direction);
-    
-    // Create an offset rectangle based on the provided rect and this layer’s offsets.
-    var offsetRect = new YYRECT();
-    offsetRect.Copy(rect);
-    offsetRect.left += ui_layer.x_offset;
-    offsetRect.right += ui_layer.x_offset;
-    offsetRect.top += ui_layer.y_offset;
-    offsetRect.bottom += ui_layer.y_offset;
-    
-    // Compute and store the absolute positions for this UI node.
-    UILayers_Layout_node_position(ui_layer.node, offsetRect);
+	ui_layer.node.calculateLayout((rect.right - rect.left), (rect.bottom - rect.top), direction);
+
+	var offset_rect = new YYRECT();
+	offset_rect.Copy(rect);
+
+	offset_rect.left += ui_layer.x_offset;
+	offset_rect.right += ui_layer.x_offset;
+
+	offset_rect.top += ui_layer.y_offset;
+	offset_rect.bottom += ui_layer.y_offset;
+
+	UILayers_Layout_node_position(ui_layer.node, offset_rect, offset_rect, false);
 }
 
 function UILayers_Layout_node_prepare(node)
@@ -2356,8 +2343,8 @@ UILayerSpriteElement.prototype.position = function(container, clipping_rect, set
 		{
 			/* Size of the sprite with no scaling applied. */
 			var base_size = [
-				sprite.GetWidth() + 1,
-				sprite.GetHeight() + 1,
+				sprite.GetWidth(),
+				sprite.GetHeight(),
 			];
 
 			/* Size of the sprite with scaling from the flexpanel element properties applied. */
