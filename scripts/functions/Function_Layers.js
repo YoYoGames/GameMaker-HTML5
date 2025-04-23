@@ -2555,11 +2555,11 @@ function layer_set_visible( arg1,arg2)
             if (pLayer.IsGUISpaceLayer())
             {
                 var gui_rect = Calc_GUI_Matrices_And_Rect();
-                UILayers_Layout_single_layer(uilayer, gui_rect, eLAYER_GUI_IN_GUI);
+                UILayers_Layout_layer(uilayer, gui_rect, eLAYER_GUI_IN_GUI);
             }
             else {
                 var view_rect = UILayers_Calculate_Initial_View_Rect();
-                UILayers_Layout_single_layer(uilayer, view_rect, eLAYER_GUI_IN_VIEW);
+                UILayers_Layout_layer(uilayer, view_rect, eLAYER_GUI_IN_VIEW);
             }
         }
 
