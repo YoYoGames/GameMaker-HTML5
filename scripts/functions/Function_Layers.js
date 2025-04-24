@@ -1828,7 +1828,7 @@ LayerManager.prototype.RestoreUILayers = function(_room)
                     _room.m_Active.Add(element.m_pInstance);
                 }
                 else{
-                    this.m_Deactive.Add(element.m_pInstance);
+                    _room.m_Deactive.Add(element.m_pInstance);
                 }
             }
             else if (element.m_type == eLayerElementType_Sequence)

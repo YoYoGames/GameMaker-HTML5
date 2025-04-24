@@ -531,6 +531,16 @@ function flexpanel_delete_node( _node, _recursive )
 // #######################################################################################
 function flexpanel_node_insert_child( _node, _child, _index)
 {
+	/*
+	* After we remove the last child, the 'UILayers_Layout_node_prepare' function call 
+	* will convert any childless node into a leaf (by adding a measure function),
+	* which *disallows* adding children later.  Clear the assigned measure
+	* function first so the node becomes a regular container again.
+	*/
+	if (_node.getChildCount() === 0) {
+		_node.unsetMeasureFunc();   // restore container behaviour
+	}
+
 	_node.insertChild( _child, _index );
 
 	/* Walk up the hierarchy to see if we are being inserted into a UI layer. */
