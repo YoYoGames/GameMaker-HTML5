@@ -1558,7 +1558,15 @@ function    StartGame()
 	
 	// create the running rooms
 	persnumb = 0;   // no persistent instances
-	StartRoom( g_pRoomManager.GetOrder(0).id, true );
+
+    // Don't always start in the first room, startup scripts might already have 
+    // called `goto_room()`, which sets `New_Room` use this instead.
+    var startRoom = g_pRoomManager.GetOrder(0).id;
+    if (New_Room != -1) {
+        startRoom = New_Room;
+    }
+
+	StartRoom( startRoom, true );
     
     g_FrameStartTime = Date.now();
 	lastfpstime = g_FrameStartTime;
