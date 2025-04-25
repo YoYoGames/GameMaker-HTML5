@@ -1951,7 +1951,8 @@ UILayerInstanceElement.prototype.measure_item = function(node, max_width, max_he
 	if(this.m_element_id === undefined)
 	{
 		/* Element hasn't been created yet. */
-		return { width: 0.0, height: 0.0 };
+		var ret = { width: 0.0, height: 0.0 };
+		return ret;
 	}
 
 	var element = g_pLayerManager.GetElementFromID(g_RunRoom, this.m_element_id);
@@ -1961,13 +1962,15 @@ UILayerInstanceElement.prototype.measure_item = function(node, max_width, max_he
 
 		instance.Maybe_Compute_BoundingBox();
 
-		return {
+		var ret ={
 			width: (((instance.bbox.right - instance.bbox.left) / instance.image_xscale) * this.instanceScaleX),
 			height: (((instance.bbox.bottom - instance.bbox.top) / instance.image_yscale) * this.instanceScaleY),
 		};
+		return ret;
 	}
 	else{
-		return { width: 0.0, height: 0.0 };
+		var ret = { width: 0.0, height: 0.0 };
+		return ret;
 	}
 };
 
