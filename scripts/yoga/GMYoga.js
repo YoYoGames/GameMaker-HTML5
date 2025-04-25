@@ -2192,10 +2192,12 @@ UILayerSequenceElement.prototype.measure_item = function(node, max_width, max_he
 	if(sequence !== undefined && sequence.m_width !== undefined && sequence.m_height !== undefined)
 	{
 		/* Sequence width/height (at t=0) is calculated by the IDE for us. */
-		return { width: sequence.m_width, height: sequence.m_height };
+		var ret = { width: sequence.m_width, height: sequence.m_height };
+		return ret;
 	}
 
-	return { width: 0.0, height: 0.0 };
+	var ret =  { width: 0.0, height: 0.0 };
+	return ret;
 };
 
 UILayerSequenceElement.prototype.serialise = function()
@@ -2453,7 +2455,7 @@ UILayerSpriteElement.prototype.position = function(container, clipping_rect, set
 UILayerSpriteElement.prototype.measure_item = function(node, max_width, max_height)
 {
 	var sprite = g_pSpriteManager.Get(this.spriteIndex);
-
+	var ret;
 	if(sprite !== null)
 	{
 		/* Get the size of the base sprite, applying the scale of the layer element. */
@@ -2491,10 +2493,12 @@ UILayerSpriteElement.prototype.measure_item = function(node, max_width, max_heig
 			sprite_height = (extent_bottom - extent_top) + 1.0;
 		}
 
-		return { width: sprite_width, height: sprite_height };
+		ret = { width: sprite_width, height: sprite_height };
+		return ret;
 	}
 	else{
-		return { width: 0.0, height: 0.0 };
+		ret =  { width: 0.0, height: 0.0 };
+		return ret;
 	}
 };
 
@@ -2721,10 +2725,12 @@ UILayerTextElement.prototype.position = function(container, clipping_rect, set_c
 
 UILayerTextElement.prototype.measure_item = function(node, max_width, max_height)
 {
+	var ret;
 	if(this.m_element_id === undefined)
 	{
 		/* Element hasn't been created yet. */
-		return { width: 0, height: 0 };
+		ret = { width: 0, height: 0 };
+		return ret;
 	}
 
 	var element = g_pLayerManager.GetElementFromID(g_RunRoom, this.m_element_id);
@@ -2732,7 +2738,8 @@ UILayerTextElement.prototype.measure_item = function(node, max_width, max_height
 
 	if(element === null || font === null)
 	{
-		return { width: 0, height: 0 };
+		ret= { width: 0, height: 0 };
+		return ret;
 	}
 
 	var size = this._calc_base_text_size(element, font, max_width);
@@ -2823,7 +2830,8 @@ UILayerTextElement.prototype._calc_base_text_size = function(element, font, max_
 
 	g_pFontManager.fontid = old_font;
 
-	return { width: computed_width, height: computed_height };
+	var ret = { width: computed_width, height: computed_height };
+	return ret;
 };
 
 UILayerTextElement.prototype.serialise = function()
