@@ -2432,7 +2432,7 @@ function layer_destroy_instances(arg1)
 
     if(pLayer!=null)
     {
-        for(var i = 0; i < pLayer.m_elements.length; i++)
+        for(var i = pLayer.m_elements.length - 1; i >= 0; --i)
         {
             var el = pLayer.m_elements.Get(i);
             if (el != null)
