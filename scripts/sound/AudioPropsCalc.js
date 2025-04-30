@@ -61,7 +61,7 @@ AudioPropsCalc.GetAssetProps = function(_asset_index) {
 AudioPropsCalc.GetEmitterProps = function(_emitter) {
     if (_emitter != null) {
         return (() => ({
-            gain: _emitter.getGain(),
+            gain: _emitter.gainramp.get(),
             pitch: _emitter.pitch
         }))();
     }
