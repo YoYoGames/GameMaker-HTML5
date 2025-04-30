@@ -3,6 +3,9 @@ const Yoga = require('/yoga-wasm-base64-csm.js');
 var g_yoga = null;
 var g_UILayers = null;
 
+/// Global flag: **true** after the first UI-layer layout pass has completed.
+g_UILayersInit = false;
+
 async function flexpanel_init()
 {
 	g_yoga = await Yoga();
@@ -1369,6 +1372,14 @@ function UILayers_Layout(rect, gui_mask)
 		var ui_layer = g_UILayers[i];
 		UILayers_Layout_layer(ui_layer, rect, gui_mask);
 	}
+
+	/// The very first mouse-event callback can fire before the UI layers have been
+	/// laid out. At that moment every control still reports its position as
+	/// (0, 0) — which happens to be the mouse's initial position — so every widget
+	/// would falsely receive “mouse-over / mouse-enter” events.
+	/// This global variable post-pones the execution of mouse events on UILayers
+	/// up until the first layout phase is finished. 
+	g_UILayersInit = true;
 }
 
 function UILayers_Layout_layer(ui_layer, rect, gui_mask) {

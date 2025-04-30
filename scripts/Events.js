@@ -426,6 +426,19 @@ function HandleMouse()
                 		// If the instance uses ANY mouse event, then we need to 
                 		if (!pInst.marked && (pInst.createCounter <= count))
                 		{
+							/// Early-out until the UI layers have been laid out.
+							///
+							/// The very first mouse callback can fire **before** the UILayer layout pass
+							/// runs.  At that moment every UI element still reports its position as (0, 0),
+							/// which is also where the mouse starts, so every control would incorrectly
+							/// receive “mouse-enter/over” events.  
+							///
+							/// We avoid that by bailing out until `g_UILayersInit` is set by the first
+							/// successful layout pass.
+							if (!g_UILayersInit) {
+								continue;
+							}
+
 							if (pInst.GetInGUISpace()) {
 								mousex = device_mouse_x_to_gui(0);
 								mousey = device_mouse_y_to_gui(0);
