@@ -1903,7 +1903,7 @@ function yyftime(_val1, _val2) {
     }
     else if (_val1 instanceof Long) {
         // _val1 is long, promote it to a number (precision for numbers > (2^53)-1 is lost)
-        _val1 = _val1.toNumber();
+        return _val1.mul( new Long(_val2) );
     }
     else if (_val2 instanceof Long) {
         // _val2 is long, promote it to a number (precision for numbers > (2^53)-1 is lost)

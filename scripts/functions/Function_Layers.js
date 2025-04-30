@@ -1828,7 +1828,7 @@ LayerManager.prototype.RestoreUILayers = function(_room)
                     _room.m_Active.Add(element.m_pInstance);
                 }
                 else{
-                    this.m_Deactive.Add(element.m_pInstance);
+                    _room.m_Deactive.Add(element.m_pInstance);
                 }
             }
             else if (element.m_type == eLayerElementType_Sequence)
@@ -2432,7 +2432,7 @@ function layer_destroy_instances(arg1)
 
     if(pLayer!=null)
     {
-        for(var i = 0; i < pLayer.m_elements.length; i++)
+        for(var i = pLayer.m_elements.length - 1; i >= 0; --i)
         {
             var el = pLayer.m_elements.Get(i);
             if (el != null)
@@ -2555,11 +2555,11 @@ function layer_set_visible( arg1,arg2)
             if (pLayer.IsGUISpaceLayer())
             {
                 var gui_rect = Calc_GUI_Matrices_And_Rect();
-                UILayers_Layout_single_layer(uilayer, gui_rect, eLAYER_GUI_IN_GUI);
+                UILayers_Layout_layer(uilayer, gui_rect, eLAYER_GUI_IN_GUI);
             }
             else {
                 var view_rect = UILayers_Calculate_Initial_View_Rect();
-                UILayers_Layout_single_layer(uilayer, view_rect, eLAYER_GUI_IN_VIEW);
+                UILayers_Layout_layer(uilayer, view_rect, eLAYER_GUI_IN_VIEW);
             }
         }
 
@@ -3866,7 +3866,7 @@ function layer_x(arg1,arg2)
     {
         if(layer.IsUILayer())
         {
-            var ui_layer = UILayers_Get_By_Name(yyGetString(arg1));
+            var ui_layer = UILayers_Get_By_Name(layer.m_pName);
             if(ui_layer !== null)
             {
                 ui_layer.x_offset = yyGetReal(arg2);
@@ -3886,7 +3886,7 @@ function layer_y(arg1,arg2)
     {
         if(layer.IsUILayer())
         {
-            var ui_layer = UILayers_Get_By_Name(yyGetString(arg1));
+            var ui_layer = UILayers_Get_By_Name(layer.m_pName);
             if(ui_layer !== null)
             {
                 ui_layer.y_offset = yyGetReal(arg2);
@@ -3906,7 +3906,7 @@ function layer_get_x(arg1)
     {
         if(layer.IsUILayer())
         {
-            var ui_layer = UILayers_Get_By_Name(yyGetString(arg1));
+            var ui_layer = UILayers_Get_By_Name(layer.m_pName);
             if(ui_layer !== null)
             {
                 return ui_layer.x_offset;
@@ -3928,7 +3928,7 @@ function layer_get_y(arg1)
     {
         if(layer.IsUILayer())
         {
-            var ui_layer = UILayers_Get_By_Name(yyGetString(arg1));
+            var ui_layer = UILayers_Get_By_Name(layer.m_pName);
             if(ui_layer !== null)
             {
                 return ui_layer.y_offset;
