@@ -159,6 +159,9 @@ function    yySprite()
 	this.nineslicedata = null;
 	this.m_LoadedFromChunk = false;
 	this.m_LoadedFromIncludedFiles = false;
+
+	this.m_VectorShapes = null;
+	this.m_VectorShapeFrameIndices = null;
 };
 yySprite.prototype.GetCollisionChecking = function () { return this.colcheck === yySprite_CollisionType.PRECISE; };
 yySprite.prototype.GetXOrigin = function () { return this.xOrigin; };
@@ -869,8 +872,17 @@ yySprite.prototype.SetupVectorCollisionMasks = function (_dataView, _byteOffset,
 	}
 	else
 	{
-		this.width = this.m_VectorShape.maxX - this.m_VectorShape.minX;
-		this.height = this.m_VectorShape.maxY - this.m_VectorShape.minY;
+		if (this.m_VectorShapes.length > 0)
+		{
+			this.width = this.m_VectorShapes[0].maxX - this.m_VectorShapes[0].minX;
+			this.height = this.m_VectorShapes[0].maxY - this.m_VectorShapes[0].minY;
+
+			for(var i = 1; i < this.m_VectorShapes.length; i++)
+			{
+				this.width = yymax(this.width, (this.m_VectorShapes[i].maxX - this.m_VectorShapes[i].minX));
+				this.height = yymax(this.height, (this.m_VectorShapes[i].maxY - this.m_VectorShapes[i].minY));
+			}
+		}		
 
 		if (!this.m_LoadedFromChunk) {
 			this.colcheck = yySprite_CollisionType.AXIS_ALIGNED_RECT;
@@ -908,13 +920,21 @@ yySprite.prototype.SetSWFDrawRoutines = function () {
 yySprite.prototype.SetVectorDrawRoutines = function () {
 	// @if feature("swf")
     this.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _colour, _alpha) {    
+
+		var shapeIndex = this.m_VectorShapeFrameIndices[_ind];		
+		var shapeToDraw = this.m_VectorShapes[shapeIndex];
+
 	    Graphics_VectorSpriteDraw(
-	        this.SWFDictionaryItems, this.m_VectorShape, this.xOrigin, this.yOrigin, _x, _y, _xscale, _yscale, _angle, _colour, _alpha, this.ppTPE);
+	        this.SWFDictionaryItems, shapeToDraw, this.xOrigin, this.yOrigin, _x, _y, _xscale, _yscale, _angle, _colour, _alpha, this.ppTPE);
     };
     
     this.DrawSimple = function (_ind, _x, _y, _alpha) {
+
+		var shapeIndex = this.m_VectorShapeFrameIndices[_ind];		
+		var shapeToDraw = this.m_VectorShapes[shapeIndex];
+
         Graphics_VectorSpriteDraw(
-            this.SWFDictionaryItems, this.m_VectorShape, this.xOrigin, this.yOrigin, _x, _y, 1.0, 1.0, 0.0, 0xffffffff, _alpha, this.ppTPE);
+            this.SWFDictionaryItems, shapeToDraw, this.xOrigin, this.yOrigin, _x, _y, 1.0, 1.0, 0.0, 0xffffffff, _alpha, this.ppTPE);
     };
 	// @endif swf
 };
@@ -937,12 +957,39 @@ yySprite.prototype.BuildVectorData = function (_vecIndex, _xo, _yo) {
             var dataView = new DataView(vecArrayBuffer);
             if (dataView !== undefined) {                        
             
-                // Read in the header details                            
-				var fileVersion = dataView.getUint32(byteOffset, littleEndian);
-                byteOffset += 4;
+				var numVectorShapes = 0;
+				this.m_VectorShapeFrameIndices = [];
+				this.m_VectorShapes = [];
+				if (g_VectorSpriteVersion.version >= 4)
+				{
+					this.numb = dataView.getInt32(byteOffset, littleEndian);
+					byteOffset += 4;
+					
+					for(var i = 0; i < this.numb; i++)
+					{
+						this.m_VectorShapeFrameIndices[i] = dataView.getInt32(byteOffset, littleEndian);
+						byteOffset += 4;
+					}
 
-				this.m_VectorShape = new yySWFShape(eDIType_Shape, 0);
-				byteOffset = this.m_VectorShape.BuildShapeData(dataView, byteOffset, littleEndian, null, true);                
+					numVectorShapes = dataView.getUint32(byteOffset, littleEndian);
+					byteOffset += 4;					
+				}
+				else
+				{
+					this.numb = 1;
+					numVectorShapes = 1;
+					this.m_VectorShapeFrameIndices[0] = 0;
+				}
+			
+				for(var i = 0; i < numVectorShapes; i++)
+				{
+					// Read in the header details                            
+					var fileVersion = dataView.getUint32(byteOffset, littleEndian);
+					byteOffset += 4;
+
+					this.m_VectorShapes[i] = new yySWFShape(eDIType_Shape, 0);
+					byteOffset = this.m_VectorShapes[i].BuildShapeData(dataView, byteOffset, littleEndian, null, true);                					
+				}
 
 				// Sort out any collision masks                
 				byteOffset = this.SetupVectorCollisionMasks(dataView, byteOffset, littleEndian);
@@ -954,10 +1001,22 @@ yySprite.prototype.BuildVectorData = function (_vecIndex, _xo, _yo) {
 				}
                 
                 if (!this.m_LoadedFromChunk && this.colcheck === yySprite_CollisionType.AXIS_ALIGNED_RECT) {
-                    this.bbox.left = this.m_VectorShape.minX;
-		            this.bbox.right = this.m_VectorShape.maxX;
-		            this.bbox.top = this.m_VectorShape.minY;
-		            this.bbox.bottom = this.m_VectorShape.maxY;
+					if (this.m_VectorShapes.length > 0)
+					{
+						this.bbox.left = this.m_VectorShapes[0].minX;
+						this.bbox.right = this.m_VectorShapes[0].maxX;
+						this.bbox.top = this.m_VectorShapes[0].minY;
+						this.bbox.bottom = this.m_VectorShapes[0].maxY;
+
+						for(var i = 1; i < this.m_VectorShapes.length; i++)
+						{
+							this.bbox.left = yymin(this.bbox.left, this.m_VectorShapes[i].minX);
+							this.bbox.right = yymax(this.bbox.right, this.m_VectorShapes[i].maxX);
+							this.bbox.top = yymin(this.bbox.top, this.m_VectorShapes[i].minY);
+							this.bbox.bottom = yymax(this.bbox.bottom, this.m_VectorShapes[i].maxY);
+						}
+					}
+
 		            this.xOrigin = _xo;
 		            this.yOrigin = _yo;
                 }                
@@ -2906,6 +2965,10 @@ yySpriteManager.prototype.GetImageCount = function (_spr_number) {
 	if ((sprite.SWFTimeline !== null) && (sprite.SWFTimeline !== undefined)) {
 	    return sprite.SWFTimeline.numFrames;
 	}
+	else if (sprite.m_VectorShapeFrameIndices !== null)
+	{
+		return sprite.numb;
+	}
 	// @endif
 	return sprite.ppTPE.length;
 };
@@ -3127,7 +3190,7 @@ yySpriteManager.prototype.VecLoad = function (_data) {
             // Get the version code, header size and sprite count
             this.vectorSpriteData = [];
 
-            // Extract each SWF            
+            // Extract each chunk of vector data            
             var dataOffset = headerSize;
             for (var i = 0; i < spriteCount; i++) {
                                                
