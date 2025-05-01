@@ -384,7 +384,7 @@ function FLEXPANEL_Init_From_Struct(_node, _struct, _from_wad)
 			FLEXPANEL_SetCSSValueEdge( _node, value, YGEdgeHorizontal, function( n, v, e ) { n.setPosition(e, v) }, function( n, v, e ) { n.setPositionPercent(e, v) } );
 			break;
 		case "vertical":
-			FLEXPANEL_SetCSSValueEdge( _node, value, YGEdgeVetical, function( n, v, e ) { n.setPosition(e, v) }, function( n, v, e ) { n.setPositionPercent(e, v) } );
+			FLEXPANEL_SetCSSValueEdge( _node, value, YGEdgeVertical, function( n, v, e ) { n.setPosition(e, v) }, function( n, v, e ) { n.setPositionPercent(e, v) } );
 			break;
 		case "position":
 		case "positionType":
