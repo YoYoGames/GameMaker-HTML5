@@ -430,20 +430,25 @@ function HandleMouse()
 							///
 							/// The very first mouse callback can fire **before** the UILayer layout pass
 							/// runs.  At that moment every UI element still reports its position as (0, 0),
-							/// which is also where the mouse starts, so every control would incorrectly
+							/// which is also where the mouse starts, so every instance would incorrectly
 							/// receive “mouse-enter/over” events.  
 							///
 							/// We avoid that by bailing out until `g_UILayersInit` is set by the first
 							/// successful layout pass.
-							if (!g_UILayersInit) {
-								continue;
-							}
-
 							if (pInst.GetInGUISpace()) {
+								// Skip instance
+								if (!g_UILayersInit) {
+									continue;
+								}
 								mousex = device_mouse_x_to_gui(0);
 								mousey = device_mouse_y_to_gui(0);
 							}
 							else if (pInst.GetOnUILayer()) {
+								// Skip instance
+								if (!g_UILayersInit) {
+									continue;
+								}
+
 								m = GR_Window_Views_Convert(g_pIOManager.MouseX, g_pIOManager.MouseY, false);
 								mousex = m[0];
 								mousey = m[1];
