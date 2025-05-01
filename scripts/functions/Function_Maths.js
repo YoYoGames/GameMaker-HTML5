@@ -2209,23 +2209,7 @@ function yyfxor(_val1, _val2) {
 ///			</returns>
 // #############################################################################################
 function yyfbitand(_val1, _val2) {
-    if ((typeof _val1 === "number") && (typeof _val2 === "number")) 
-        return _val1 & _val2;
-    else if ((_val1 instanceof Long)  && (_val2 instanceof Long)) {
-        return _val1.and( _val2 );
-    }
-    else if (_val1 instanceof Long) {
-        return _val1.and( yyGetInt64(_val2) );
-    }
-    else if (_val2 instanceof Long) {
-        return _val2.and( yyGetInt64(_val1) );
-    }
-    else if (typeof _val1 == "number") 
-        return _val1 & yyGetInt32(_val2);
-    else if (typeof _val2 == "number") 
-        return yyGetInt32(_val1) & _val2;
-
-    return yyGetInt32(_val1) & yyGetInt32(_val2);
+    return yyGetInt64(_val1).and( yyGetInt64(_val2) );
 }
 
 // #############################################################################################
@@ -2240,23 +2224,7 @@ function yyfbitand(_val1, _val2) {
 ///			</returns>
 // #############################################################################################
 function yyfbitor(_val1, _val2) {
-    if ((typeof _val1 == "number") && (typeof _val2 == "number")) 
-        return _val1 | _val2;
-    else if ((_val1 instanceof Long)  && (_val2 instanceof Long)) {
-        return _val1.or( _val2 );
-    }
-    else if (_val1 instanceof Long) {
-        return _val1.or( yyGetInt64(_val2) );
-    }
-    else if (_val2 instanceof Long) {
-        return _val2.or( yyGetInt64(_val1) );
-    }
-    else if (typeof _val1 == "number") 
-        return _val1 | yyGetInt32(_val2);
-    else if (typeof _val2 == "number") 
-        return yyGetInt32(_val1) | _val2;
-
-    return yyGetInt32(_val1) | yyGetInt32(_val2);
+    return yyGetInt64(_val1).or( yyGetInt64(_val2) );
 }
 
 // #############################################################################################
@@ -2271,23 +2239,7 @@ function yyfbitor(_val1, _val2) {
 ///			</returns>
 // #############################################################################################
 function yyfbitxor(_val1, _val2) {
-    if ((typeof _val1 == "number") && (typeof _val2 == "number")) 
-        return _val1 ^ _val2;
-    else if ((_val1 instanceof Long)  && (_val2 instanceof Long)) {
-        return _val1.xor( _val2 );
-    }
-    else if (_val1 instanceof Long) {
-        return _val1.xor( yyGetInt64(_val2) );
-    }
-    else if (_val2 instanceof Long) {
-        return _val2.xor( yyGetInt64(_val1) );
-    }
-    else if (typeof _val1 == "number") 
-        return _val1 ^ yyGetInt32(_val2);
-    else if (typeof _val2 == "number") 
-        return yyGetInt32(_val1) ^ _val2;
-
-    return yyGetInt32(_val1) ^  yyGetInt32(_val2);
+    return yyGetInt64(_val1).xor( yyGetInt64(_val2) );
 }
 
 
