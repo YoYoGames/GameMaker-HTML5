@@ -1374,9 +1374,9 @@ function UILayers_Layout(rect, gui_mask)
 	}
 
 	/// The very first mouse-event callback can fire before the UI layers have been
-	/// laid out. At that moment every control still reports its position as
-	/// (0, 0) — which happens to be the mouse's initial position — so every widget
-	/// would falsely receive “mouse-over / mouse-enter” events.
+	/// laid out. At that moment every element still reports its position as
+	/// (0, 0) — which happens to be the mouse's initial position — so every instance
+	/// would falsely receive “mouse-enter / mouse-leave” events.
 	/// This global variable post-pones the execution of mouse events on UILayers
 	/// up until the first layout phase is finished. 
 	g_UILayersInit = true;

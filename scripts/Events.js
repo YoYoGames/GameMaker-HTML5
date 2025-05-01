@@ -431,7 +431,7 @@ function HandleMouse()
 							/// The very first mouse callback can fire **before** the UILayer layout pass
 							/// runs.  At that moment every UI element still reports its position as (0, 0),
 							/// which is also where the mouse starts, so every instance would incorrectly
-							/// receive “mouse-enter/over” events.  
+							/// receive “mouse-enter/leave” events.  
 							///
 							/// We avoid that by bailing out until `g_UILayersInit` is set by the first
 							/// successful layout pass.
