@@ -4,7 +4,7 @@ var g_yoga = null;
 var g_UILayers = null;
 
 /// Global flag: **true** after the first UI-layer layout pass has completed.
-g_UILayersInit = false;
+var g_UILayersInit = false;
 
 async function flexpanel_init()
 {
