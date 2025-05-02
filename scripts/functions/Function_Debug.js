@@ -371,7 +371,7 @@ function show_debug_message( _txt )
         _values.push(arguments[n]);
     }
     
-    debug(__yy_StringReplacePlaceholders(msg, _values));
+    debug(__yy_StringReplacePlaceholders(msg, _values, true));
 }
 
 // #############################################################################################
@@ -395,7 +395,7 @@ function show_debug_message_ext( _txt, _values )
         yyError("show_debug_message_ext() argument1 is not an array");
     }
 
-    debug(__yy_StringReplacePlaceholders(msg, _values));
+    debug(__yy_StringReplacePlaceholders(msg, _values, true));
 }
 
 // #############################################################################################

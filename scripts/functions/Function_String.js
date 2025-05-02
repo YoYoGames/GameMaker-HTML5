@@ -214,10 +214,18 @@ function bool(_v) {
 
 var g_PlaceholderRE = new RegExp('{([0-9]+)}', 'g');
 
-function __yy_StringReplacePlaceholders(_str, _values)
+var g_PlaceholderEscapeRE = new RegExp('\\{\\{|\\}\\}|\\{([0-9]+)\\}', 'g');
+
+function __yy_StringReplacePlaceholders(_str, _values, _allowEscapes)
 {
-    return _str.replaceAll(g_PlaceholderRE, function(match, group){
+    var rx = _allowEscapes ? g_PlaceholderEscapeRE : g_PlaceholderRE;
+
+    return _str.replaceAll(rx, function(match, group){
         
+        // doubled braces → one literal brace
+        if (match === '{{') return '{';
+        if (match === '}}') return '}';
+
         // Convert catch group to a number
         var _index = parseInt(group);
         
@@ -226,6 +234,26 @@ function __yy_StringReplacePlaceholders(_str, _values)
         return yyGetString(_values[_index]);
     })
 }
+
+
+function __yy_BuildString(argsLike, allowEscapes)
+{
+    var template = argsLike[0];
+
+    // fast path: no placeholders, just stringify the single value
+    if (argsLike.length === 1) {
+        return yyGetString(template);
+    }
+
+    if (typeof template !== 'string') {
+        yyError('string() trying to use string template but argument0 is not a string');
+    }
+
+    // slice arguments(‑like) object → ordinary array of values
+    var values = Array.prototype.slice.call(argsLike, 1);
+    return __yy_StringReplacePlaceholders(template, values, allowEscapes);
+}
+
 
 // #############################################################################################
 /// Function:<summary>
@@ -239,24 +267,14 @@ function __yy_StringReplacePlaceholders(_str, _values)
 ///			</returns>
 // #############################################################################################
 
+function __yy_InternalStringInterpolation(_obj) 
+{
+    return __yy_BuildString(arguments, false);
+}
+
 function string(_obj) 
 {
-    if (arguments.length == 1)
-    {
-        return yyGetString(_obj);
-    }
-
-    if (typeof(_obj) != "string") 
-    {
-        yyError("string() trying to use string template but argument0 is not a string");
-    }
-
-    var _values = [];
-    for( var n=1; n<arguments.length; ++n) {
-        _values.push(arguments[n]);
-    }
-    
-    return __yy_StringReplacePlaceholders(_obj, _values);
+    return __yy_BuildString(arguments, true);
 }
 
 function string_ext(_str, _values)
@@ -269,7 +287,7 @@ function string_ext(_str, _values)
         yyError("string_ext() argument1 is not an array");
     }
 
-    return __yy_StringReplacePlaceholders(_str, _values);
+    return __yy_StringReplacePlaceholders(_str, _values, true);
 }
 
 // #############################################################################################
