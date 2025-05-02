@@ -1562,7 +1562,7 @@ function    StartGame()
     // Don't always start in the first room, startup scripts might already have 
     // called `goto_room()`, which sets `New_Room` use this instead.
     var startRoom = g_pRoomManager.GetOrder(0).id;
-    if (New_Room != -1) {
+    if (New_Room >= 0) {
         startRoom = New_Room;
     }
 
