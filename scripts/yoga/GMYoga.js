@@ -1365,6 +1365,40 @@ function UILayers_Create_node_elements(node, layer, run_instance_create_events)
 	}
 }
 
+function UILayers_Destroy()
+{
+	if(g_UILayers !== null)
+	{
+		for(var i = 0; i < g_UILayers.length; ++i)
+		{
+			UILayers_Destroy_node_elements(g_UILayers[i].node);
+		}
+
+		g_UILayers = null;
+		g_UILayersInit = false;
+	}
+}
+
+function UILayers_Destroy_node_elements(node)
+{
+	var context = FLEXPANEL_GetContext(node);
+
+	if(context.elements !== undefined)
+	{
+		for(var i = 0; i < context.elements.length; ++i)
+		{
+			var element = context.elements[i];
+			element.destroy_element();
+		}
+	}
+
+	for(var i = 0; i < node.getChildCount(); ++i)
+	{
+		var child = node.getChild(i);
+		UILayers_Destroy_node_elements(child);
+	}
+}
+
 function UILayers_Layout(rect, gui_mask)
 {
 	for(var i = 0; i < g_UILayers.length; ++i)

@@ -1627,6 +1627,9 @@ function Run_EndGame(_reset) {
 	g_ParticleSystems = [];
 	types_created = 0;
 
+	// Destroy UI layers and elements
+	UILayers_Destroy();
+
 	// Clear all instances - including persistant ones.
 	g_RunRoom.m_Active.Clear();
 	g_RunRoom.m_Deactive.Clear();
