@@ -200,11 +200,7 @@ function mouse_clear( _button )
         mouse_clear(2);
         mouse_clear(3);
     } else if (_button >= 1 && _button <= 3) {
-        var i = _button - 1;
-        g_pIOManager.ButtonDown[i] = 0;
-        g_pIOManager.ButtonPressed[i] = 0;
-        g_pIOManager.ButtonReleased[i] = 0;
-        g_EventButtons &= ~(1 << i);
+        g_pIOManager.Button_Clear(_button);
     }
 }
 
