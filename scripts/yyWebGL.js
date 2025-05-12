@@ -4787,6 +4787,18 @@ function WEBGL_draw_enable_alpha_blend_RELEASE( _enableAlphaBlend )
 // #############################################################################################
 function WebGL_texture_get_texel_width_RELEASE(_tex) {    
 
+    if(typeof _tex == "number")
+    {
+        //Have to get the actual texture pointer
+        _tex = g_Textures[yyGetInt32(_tex)];
+
+        if (_tex) {
+            if(_tex.complete)
+                return 1.0 / _tex.width;
+        }
+    }
+
+
     if (_tex) {
         return 1.0 / _tex.WebGLTexture.width;
     }
@@ -4798,6 +4810,18 @@ function WebGL_texture_get_texel_width_RELEASE(_tex) {
 ///          </summary>
 // #############################################################################################
 function WebGL_texture_get_texel_height_RELEASE(_tex) {
+
+    if(typeof _tex == "number")
+    {
+        //Have to get the actual texture pointer
+        _tex = g_Textures[yyGetInt32(_tex)];
+        if (_tex) {
+            if(_tex.complete)
+                return 1.0 / _tex.height;
+        }
+    }
+
+
     if (_tex) {
         return 1.0 / _tex.WebGLTexture.height;
     }
