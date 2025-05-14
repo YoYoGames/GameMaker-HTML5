@@ -4292,7 +4292,9 @@ function CalcGUITransformMat(guiMat, invGuiMat) {
     invGuiMat.Translation( - (tx + (g_DisplayWidth / 2.0)) / sx, - (ty + (g_DisplayHeight / 2.0)) / sy, -1.0 );
     
     // Return the computed scaling and translation values.
-    return { sx: sx, sy: sy, tx: tx, ty: ty };
+
+	var ret = { sx: sx, sy: sy, tx: tx, ty: ty };
+    return ret;
 }
 
 /**
