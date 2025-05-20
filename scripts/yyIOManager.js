@@ -1032,7 +1032,7 @@ function    yyIOManager( )
         this.KeyMap[l] = l;
     }
     for(var l=0;l<MAX_BUTTONS;l++){
-        this.ButtonDown[l]= this.ButtonReleased[l]= this.ButtonPressed[l] = this.ButtonCleared[l] = false;
+        this.ButtonDown[l]= this.ButtonReleased[l]= this.ButtonPressed[l] = this.ButtonCleared[l] = 0;
     }
 
     this.Update = IO_Update;
@@ -1586,10 +1586,10 @@ function  Button_Clear(_button)
     _button--;
 	if ( _button>=0 && _button<MAX_BUTTONS ) 
 	{
-	    this.ButtonDown[_button] = false;
-	    this.ButtonPressed[_button] = false;
-	    this.ButtonReleased[_button] = false;
-	    this.ButtonCleared[_button] = true;
+	    this.ButtonDown[_button] = 0;
+	    this.ButtonPressed[_button] = 0;
+	    this.ButtonReleased[_button] = 0;
+	    this.ButtonCleared[_button] = 1;
     }
 }
 
@@ -1610,10 +1610,10 @@ function  Button_Clear_All()
 
 	for(var i=0; i<=MAX_BUTTONS; i++ ){
 	
-	    this.ButtonDown[i] = false;
-	    this.ButtonPressed[i] = false;
-	    this.ButtonReleased[i] = false;
-	    this.ButtonCleared[i] = true;
+	    this.ButtonDown[i] = 0;
+	    this.ButtonPressed[i] = 0;
+	    this.ButtonReleased[i] = 0;
+	    this.ButtonCleared[i] = 1;
 	}
 	this.WheelUp = false;
 	this.WheelDown = false;
@@ -1742,19 +1742,19 @@ function    IO_Update()
 		{
 			if (((this.m_DoMouseButton_Last ^ this.m_DoMouseButton) & (1 << i)) != 0)
 			{
-				this.ButtonPressed[i] = true;
-				this.ButtonCleared[i] = false;
+				this.ButtonPressed[i] = 1;
+				this.ButtonCleared[i] = 0;
 			}
 
 			this.ButtonDown[i] = !(this.ButtonCleared[i]);
 		}
 		else {
-			this.ButtonDown[i] = false;
+			this.ButtonDown[i] = 1;
 
 			if (((this.m_DoMouseButton_Last ^ this.m_DoMouseButton) & (1 << i)) != 0)
 			{
-				this.ButtonReleased[i] = true;
-				this.ButtonCleared[i] = false;
+				this.ButtonReleased[i] = 1;
+				this.ButtonCleared[i] = 0;
 			}
 		}
 	}
@@ -2084,8 +2084,8 @@ function    IO_StartStep()
 
         
     for(var i=0;i<=MAX_BUTTONS;i++) {
-        this.ButtonPressed[i] = false;
-        this.ButtonReleased[i] = false;
+        this.ButtonPressed[i] = 0;
+        this.ButtonReleased[i] = 0;
     }
     this.WheelUp = false;
     this.WheelDown = false;
