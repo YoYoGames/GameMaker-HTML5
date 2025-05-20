@@ -1749,7 +1749,7 @@ function    IO_Update()
 			this.ButtonDown[i] = !(this.ButtonCleared[i]);
 		}
 		else {
-			this.ButtonDown[i] = 1;
+			this.ButtonDown[i] = 0;
 
 			if (((this.m_DoMouseButton_Last ^ this.m_DoMouseButton) & (1 << i)) != 0)
 			{
