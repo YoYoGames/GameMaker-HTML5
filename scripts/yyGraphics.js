@@ -52,6 +52,7 @@ var Graphics_Restore;
 var Graphics_Save;
 var Graphics_SetViewAreaTransform;
 var Graphics_TextureDraw;
+var Graphics_TextureDrawWH;
 var Graphics_EndFrame;
 var Graphics_SWFDraw;
 var Graphics_SWFDrawObject;
@@ -194,6 +195,7 @@ function    Graphics_Init( _canvas )
         }
         Graphics_TextureDrawTiled = Graphics_TextureDrawTiled_RELEASE;
         Graphics_TextureDraw = Graphics_TextureDraw_RELEASE;
+        Graphics_TextureDrawWH = Graphics_TextureDrawWH_RELEASE;
         Graphics_SetViewPort = Graphics_SetViewPort_RELEASE;
         Graphics_SetViewArea = Graphics_SetViewArea_RELEASE;
         Graphics_SetViewAreaTransform = Graphics_SetViewAreaTransform_RELEASE;
@@ -1191,6 +1193,92 @@ function Graphics_TextureDraw_RELEASE(_pTPE, _xorig, _yorig, _x, _y, _xsc, _ysc,
 
 // #############################################################################################
 /// Function:<summary>
+///             Draws the texture
+///          </summary>
+///
+/// In:		 <param name="pTPE">Texture page entry</param>
+///			 <param name="xorig">The X origin of the texture</param>
+///			 <param name="yorig">The Y origin of the texture</param>
+///			 <param name="width">The Width of the source image to draw</param>
+///			 <param name="height">The Height of the source image to draw</param>
+///			 <param name="x">the X position to put the origin at</param>
+///			 <param name="y">the X position to put the origin at</param>
+///			 <param name="xsc">X Scale are the scale factor in x- and y- direction</param>
+///			 <param name="ysc">Y Scale are the scale factor in x- and y- direction</param>
+///			 <param name="rot">rot is the rotation angle (counterclockwise in radians)</param>
+///			 <param name="col">col is the blend color</param>
+///			 <param name="_alpha">alpha is the alpha transparency value (0-1)</param>
+///				
+// #############################################################################################
+function Graphics_TextureDrawWH_RELEASE(_pTPE, _xorig, _yorig, _width, _height, _x, _y, _xsc, _ysc, _rot, _col1, _col2, _col3, _col4, _alpha) {
+
+	// Need these checks here in case "dynamic loading" has forced an unload of the image.
+	if (!_pTPE.texture) return;
+	if (!_pTPE.texture.complete) return;
+
+	// If we scaled down to almost 0, OR have an ALPHA of almost 0.... don't bother.
+	if ((abs(_xsc) <= 0.0001) || (abs(_ysc) <= 0.0001) || (_alpha<=0)) { return; }
+
+    _col1 &= 0xffffff;
+
+    var ox = -(_xorig-_pTPE.XOffset);
+    var oy = -(_yorig-_pTPE.YOffset);
+
+    // If coloured, then cache a "colourised" version
+    var la = graphics.globalAlpha;
+    graphics.globalAlpha = _alpha;
+            
+    if (_col1 != g_CacheWhite)
+    {
+    	var cached_image = Graphics_CacheBlock(_pTPE, _col1);
+    	var r = Math.abs(_rot);    		
+    	if ((r < 0.0001) && (_xsc == 1) && (_ysc == 1) && (_pTPE.w === _pTPE.CropWidth) && (_pTPE.h === _pTPE.CropHeight)) {
+    	
+    		graphics._drawImage(cached_image, _x+ox, _y+oy);    		
+    	} 
+    	else {    	
+			// When doing negative scales, or rotation - use a matrix    	    
+    	    if ((_xsc < 0) || (_ysc < 0) || (r > 0.0001)) {
+    	    
+    			Graphics_PushTransform(_x, _y, _xsc, _ysc, -_rot);
+    			graphics._drawImage(cached_image, 0, 0, _pTPE.w, _pTPE.h, ox, oy, _pTPE.CropWidth, _pTPE.CropHeight);
+    			Graphics_SetTransform();
+    		}
+    		else {
+				// otherwise, draw faster
+    			graphics._drawImage(cached_image, 0, 0, _pTPE.w, _pTPE.h, _x + (ox * _xsc), _y + (oy * _ysc), _pTPE.CropWidth * _xsc, _pTPE.CropHeight * _ysc);
+    		}
+    	}
+    } 
+    else {
+    
+		var r = Math.abs(_rot);
+    	if ((r < 0.0001) && (_xsc == 1) && (_ysc == 1) && (_pTPE.w === _pTPE.CropWidth) && (_pTPE.h === _pTPE.CropHeight))
+    	{    	
+    		if (_pTPE.singleimage == null) {
+    		    _pTPE.singleimage = Graphics_ExtractImage(_pTPE);
+    		}
+    		graphics._drawImage(_pTPE.singleimage, _x + ox, _y + oy);    		
+    	}
+    	else {
+    		// When doing negative scales, or rotation - use a matrix
+    		if (_xsc < 0 || _ysc < 0 || r > 0.001) {
+    		
+    			Graphics_PushTransform(_x, _y, _xsc, _ysc, -_rot);
+    			graphics._drawImage(_pTPE.texture, _pTPE.x, _pTPE.y, _pTPE.w, _pTPE.h, ox, oy, _pTPE.CropWidth, _pTPE.CropHeight);
+    			Graphics_SetTransform();
+    		}
+    		else {
+    			// otherwise, draw faster
+    			graphics._drawImage(_pTPE.texture, _pTPE.x, _pTPE.y, _pTPE.w, _pTPE.h, _x + (ox * _xsc), _y + (oy * _ysc), _pTPE.CropWidth * _xsc, _pTPE.CropHeight * _ysc);
+    		}
+    	}
+    }
+    graphics.globalAlpha = la;
+}
+
+// #############################################################################################
+/// Function:<summary>
 ///             Draws the texture, debug version
 ///          </summary>
 // #############################################################################################
@@ -1592,7 +1680,7 @@ function Graphics_DrawGeneral(_pTPE, _left,_top,_width,_height,    _x,_y,_xscale
 	_y = ~ ~_y;
     */
 
-	Graphics_TextureDraw(_pTPE, _left, _top, _x, _y, _xscale, _yscale, _rot, _c1, _c2, _c3, _c4, _alpha); 	// only draws with ONE colour!
+	Graphics_TextureDrawWH(_pTPE, _left, _top, _width, _height, _x, _y, _xscale, _yscale, _rot, _c1, _c2, _c3, _c4, _alpha); 	// only draws with ONE colour!
 }
 
 // #############################################################################################

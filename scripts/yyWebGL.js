@@ -149,6 +149,7 @@ function InitWebGLFunctions() {
     Graphics_TextureDrawSimple = WebGL_TextureDrawSimple_RELEASE;
     Graphics_TextureDrawTiled = WebGL_TextureDrawTiled_RELEASE;
     Graphics_TextureDraw = WebGL_TextureDraw_RELEASE;
+    Graphics_TextureDrawWH = WebGL_TextureDrawWH_RELEASE;
     // @if function("draw_sprite_pos")
     Graphics_TextureDrawPos = WebGL_TextureDrawPos_RELEASE;
     // @endif
@@ -277,6 +278,9 @@ function InitWebGLFunctions() {
     PostInitWebGLFunctions();	    	
 }
 
+var     g_scissorRect = { x : 0, y : 0, w : 0, h : 0 };
+
+
 // #############################################################################################
 /// Function:<summary>
 ///          </summary>
@@ -302,7 +306,7 @@ function InitWebGL(_canvas) {
     g_RenderTargetActive = 1;
     g_pProjection = new Matrix();
     g_pView = new Matrix();
-    g_scissorRect = { x : 0, y : 0, w : 0, h : 0 };
+    //g_scissorRect = { x : 0, y : 0, w : 0, h : 0 };
     
     var stages = g_webGL.GetMaxTextureStages();
     for (var i = 0; i < stages; i++) {
