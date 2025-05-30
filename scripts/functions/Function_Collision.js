@@ -232,7 +232,7 @@ function Command_CollisionRectangle(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 {
 	return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
 		function (_pInstance) {
-			if(_pInstance.GetCollisionDomain() != _pInst.GetCollisionDomain)
+			if(_pInstance.GetCollisionDomain() != _pInst.GetCollisionDomain())
 			{
 				return OBJECT_NOONE;
 			}
