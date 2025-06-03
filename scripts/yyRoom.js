@@ -2217,24 +2217,7 @@ yyRoom.prototype.DrawLayerParticleSystem = function(_rect,_layer,_el)
 
 	var matWorldOld = WebGL_GetMatrix(MATRIX_WORLD);
 
-	var matRot = new Matrix();
-	matRot.SetZRotation(_el.m_imageAngle + pSystem.angle);
-
-	var matScale = new Matrix();
-	matScale.SetScale(_el.m_imageScaleX, _el.m_imageScaleY, 1.0);
-
-	var matScaleRot = new Matrix();
-	matScaleRot.Multiply(matScale, matRot);
-
-	var matPos = new Matrix();
-	matPos.SetTranslation(-pSystem.xdraw, -pSystem.ydraw, 0.0);
-	
-	var matWorldNew = new Matrix();
-	matWorldNew.Multiply(matPos, matScaleRot);
-	matWorldNew.Translation(pSystem.xdraw + _el.m_x, pSystem.ydraw + _el.m_y, 0.0);
-
-	WebGL_SetMatrix(MATRIX_WORLD, matWorldNew);
-	ParticleSystem_SetMatrix(ps, matWorldNew);
+	WebGL_SetMatrix(MATRIX_WORLD, pSystem.matrix);
 	ParticleSystem_Draw(ps, _el.m_imageBlend, _el.m_imageAlpha);
 	WebGL_SetMatrix(MATRIX_WORLD, matWorldOld);
 	// @endif
