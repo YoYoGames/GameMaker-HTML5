@@ -2722,8 +2722,8 @@ function WebGL_TextureDrawWH_RELEASE(_pTPE, _xorig, _yorig, _width, _height, _x,
     pColours = pBuff.Colours;
     pUVs = pBuff.UVs;
 
-    var x1 =  -_xsc * (_xorig-_pTPE.XOffset);
-    var y1 =  -_ysc * (_yorig-_pTPE.YOffset);
+    var x1 =  -_xsc * (0-_pTPE.XOffset);
+    var y1 =  -_ysc * (0-_pTPE.YOffset);
 	
     var x2 = x1 + (_xsc*_width);
     var y2 = y1 + (_ysc*_height);
@@ -2761,10 +2761,12 @@ function WebGL_TextureDrawWH_RELEASE(_pTPE, _xorig, _yorig, _width, _height, _x,
 	    
 	    pCoords[v0 + 2] = pCoords[v1 + 2] = pCoords[v2 + 2] = pCoords[v3 + 2] = pCoords[v4 + 2] = pCoords[v5 + 2] = GR_Depth;		    
     }
-    pUVs[v0 + 0] = pUVs[v4 + 0] = pUVs[v5 + 0] = _pTPE.x / _pTPE.texture.width;
-    pUVs[v0 + 1] = pUVs[v1 + 1] = pUVs[v5 + 1] = _pTPE.y / _pTPE.texture.height;
-    pUVs[v1 + 0] = pUVs[v2 + 0] = pUVs[v3 + 0] = (_pTPE.x + _width) / _pTPE.texture.width;
-    pUVs[v2 + 1] = pUVs[v3 + 1] = pUVs[v4 + 1] = (_pTPE.y + _height) / _pTPE.texture.height;
+    var x = _pTPE.x + _xorig;
+    var y = _pTPE.y + _yorig;
+    pUVs[v0 + 0] = pUVs[v4 + 0] = pUVs[v5 + 0] = x / _pTPE.texture.width;
+    pUVs[v0 + 1] = pUVs[v1 + 1] = pUVs[v5 + 1] = y / _pTPE.texture.height;
+    pUVs[v1 + 0] = pUVs[v2 + 0] = pUVs[v3 + 0] = (x + _width) / _pTPE.texture.width;
+    pUVs[v2 + 1] = pUVs[v3 + 1] = pUVs[v4 + 1] = (y + _height) / _pTPE.texture.height;
 
     var a = (_alpha * 255.0) << 24; 
     _col = a | (_col & 0xffffff);
