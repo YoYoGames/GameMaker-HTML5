@@ -1263,7 +1263,7 @@ function StartRoom( _numb, _starting )
             g_pLayerManager.CleanRoomLayers(g_CurrentRoom);
         }
         else {
-        
+            g_pLayerManager.CleanRoomLayers(g_CurrentRoom);
         	for (var i = g_CurrentRoom.m_Active.length - 1; i >= 0; i--)
         	{
         		var pInst = g_CurrentRoom.m_Active.Get(i);

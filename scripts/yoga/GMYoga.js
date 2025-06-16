@@ -1916,6 +1916,9 @@ UILayerInstanceElement.prototype.create_element = function(target_layer, run_ins
 		instance.createdone = true;
 		instance.PerformEvent(EVENT_CREATE, 0, instance, instance);
 	}
+
+	if(!target_layer.m_visible)
+		g_RunRoom.DeactivateInstance(instance);
 };
 
 UILayerInstanceElement.prototype.destroy_element = function()
