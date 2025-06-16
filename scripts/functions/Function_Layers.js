@@ -1775,6 +1775,9 @@ LayerManager.prototype.UpdateLayers = function()
     }
 };
 
+
+
+
 LayerManager.prototype.CleanRoomLayers = function(_room)
 {
     if(_room==null)
@@ -5015,6 +5018,29 @@ function layerTileGetElement(tile_element_id)
     if ((el != null) && (el.m_type === eLayerElementType_Tile)) return el;
     return null;
 }
+
+
+function layer_get_type(_layerid) {
+    var room = g_pLayerManager.GetTargetRoomObj();
+
+    if (room == null) {
+        return -1;
+    }
+
+
+    var layer = null;
+    if (typeof (_layerid) == "string")
+        layer = g_pLayerManager.GetLayerFromName(room, yyGetString(_layerid));
+    else
+        layer = g_pLayerManager.GetLayerFromID(room, yyGetInt32(_layerid));
+
+    if (layer != null)
+    {
+        return layer.m_gui_layer;
+    }
+
+    return -1;
+};
 
 function layer_tile_exists(_layerid, _arg2) {
     var room = g_pLayerManager.GetTargetRoomObj();
