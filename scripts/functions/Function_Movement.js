@@ -479,7 +479,7 @@ function Command_InstancePlace(_pInst,_x,_y,_obj,_list)
 
 	var pInstance = Instance_SearchLoop(_pInst, yyGetInt32(_obj), false, OBJECT_NOONE,
 		function (_pInstance) {
-			if(_pInstance.GetCollisionDomain() != _pInst.GetCollisionDomain())
+			if(_pInstance.GetCollisionDomain() != GetCollisionDomainForContext(_pInst))
 			{
 				return OBJECT_NOONE;
 			}
@@ -504,7 +504,7 @@ function Command_InstancePosition(_pInst, _x,_y,_obj,_list)
 {
 	var pInstance = Instance_SearchLoop(null, yyGetInt32(_obj), false, OBJECT_NOONE,
 		function (_pInstance) {
-			if(_pInstance.GetCollisionDomain() != _pInst.GetCollisionDomain())
+			if(_pInstance.GetCollisionDomain() != GetCollisionDomainForContext(_pInst))
 			{
 				return OBJECT_NOONE;
 			}
@@ -941,7 +941,7 @@ function position_empty(_inst,_x,_y)
 	var i = 0;
 	var found = Instance_SearchLoop(_inst, OBJECT_ALL, false, false,
 		function (_pInstance) {
-			if(_pInstance.GetCollisionDomain() != _inst.GetCollisionDomain())
+			if(_pInstance.GetCollisionDomain() != GetCollisionDomainForContext(_inst))
 			{
 				return OBJECT_NOONE;
 			}
