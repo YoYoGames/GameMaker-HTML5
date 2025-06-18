@@ -3716,6 +3716,9 @@ function audio_start_recording(_deviceNum)
         gRecorder = g_WebAudioContext.createScriptProcessor(block_size, 1, 1);
         gRecorder.wavBuffer = buffer_create(block_size * 2, eBuffer_Format_Fast, 1);
         gRecorder.onaudioprocess = function(audioProcessingEvent) {
+            if (gRecorder === undefined || !gRecording) {
+                return;
+            }
 
             var inputBuffer = audioProcessingEvent.inputBuffer;
 
@@ -3736,15 +3739,12 @@ function audio_start_recording(_deviceNum)
                     ++samples_written;
                 }
 
-                if (gRecording)
-                {
-                    var map = ds_map_create();
-                    g_pBuiltIn.async_load = map;
-                    ds_map_add(map, "buffer_id", gRecorder.wavBuffer );
-                    ds_map_add(map, "channel_index", 0);
-                    ds_map_add(map, "data_len", samples_written * 2 );
-                    g_pObjectManager.ThrowEvent(EVENT_OTHER_AUDIO_RECORDING,0);   
-                }
+                var map = ds_map_create();
+                g_pBuiltIn.async_load = map;
+                ds_map_add(map, "buffer_id", gRecorder.wavBuffer);
+                ds_map_add(map, "channel_index", 0);
+                ds_map_add(map, "data_len", samples_written * 2 );
+                g_pObjectManager.ThrowEvent(EVENT_OTHER_AUDIO_RECORDING,0);   
             }
         };
 
@@ -3755,11 +3755,10 @@ function audio_start_recording(_deviceNum)
                 // success callback
                 function(stream)
                 {
-                    var source = g_WebAudioContext.createMediaStreamSource(stream);
-                    source.connect(gRecorder);
-                    var gainNode = Audio_CreateGainNode(g_WebAudioContext);
-                    gRecorder.connect(gainNode);
-                    gainNode.connect(g_WebAudioContext.destination);
+                    gRecorder.source = g_WebAudioContext.createMediaStreamSource(stream);
+                    gRecorder.source.connect(gRecorder);
+                    gRecorder.connect(g_WebAudioContext.destination);
+                    gRecorder.stream = stream;
                 },
                 // failure callback
                 function(err)
@@ -3776,6 +3775,14 @@ function audio_start_recording(_deviceNum)
 
 function audio_stop_recording(_deviceNum)
 {
+    if (gRecorder !== undefined) {
+        gRecorder.disconnect();
+        gRecorder.source.disconnect();
+        gRecorder.stream.getTracks().forEach(track => track.stop());
+        buffer_delete(gRecorder.wavBuffer);
+        gRecorder = undefined;
+    }
+
     gRecording = false;
 }
 
