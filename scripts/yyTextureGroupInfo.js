@@ -338,6 +338,19 @@ function texturegroup_set_mode(_explicit, _debug, _default_sprite)
     // Do nothing on HTML5
 }
 
+function texturegroup_exists(_groupname)
+{
+    var pTGInfo = g_pTextureGroupInfoManager.Find(yyGetString(_groupname));
+    if (pTGInfo == null)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
+
 var g_TextureDebugMessages = 0;
 
 function texture_debug_messages(_enable)
