@@ -188,6 +188,20 @@ TTALIGN_Top = 0;
 TTALIGN_VCentre = 1;
 TTALIGN_Bottom = 2;
 
+//text element origin
+TTORIGIN_TopLeft = 0;
+TTORIGIN_TopCentre = 1;
+TTORIGIN_TopRight = 2;
+TTORIGIN_MiddleLeft = 3;
+TTORIGIN_MiddleCentre = 4;
+TTORIGIN_MiddleRight = 5;
+TTORIGIN_BottomLeft = 6;
+TTORIGIN_BottomCentre = 7;
+TTORIGIN_BottomRight = 8;
+
+//text element wrap mode
+TTWRAPMODE_Default = 0;
+TTWRAPMODE_SplitWords = 1;
 
 SEQ_KEY_LENGTH_EPSILON = -0.0001;
 
@@ -3123,12 +3137,16 @@ function yyTextTrackKey(_pStorage)
 
     this.text = "";
     this.wrap = false;
+    this.wrapMode = 0;
+    this.origin = 0;
     this.alignment = 0;
     this.fontIndex = -1;
 
     if ((_pStorage != null) && (_pStorage != undefined)) {
         this.text = _pStorage.text;
         this.wrap = _pStorage.wrap;
+        this.wrapMode = _pStorage.wrapMode;
+        this.origin = _pStorage.origin;
         this.alignment = _pStorage.alignment;
         this.fontIndex = _pStorage.fontIndex;
     }
@@ -3143,6 +3161,16 @@ function yyTextTrackKey(_pStorage)
             enumerable: true,
             get: function () { return this.wrap; },
             set: function (_val) { this.wrap = yyGetBool(_val); }
+        },
+        gmlwrapMode: {
+            enumerable: true,
+            get: function () { return this.wrapMode; },
+            set: function (_val) { this.wrapMode = yyGetInt32(_val); }
+        },
+        gmlorigin: {
+            enumerable: true,
+            get: function () { return this.origin; },
+            set: function (_val) { this.origin = yyGetInt32(_val); }
         },
         gmlalignmentV: {
             enumerable: true,
@@ -4392,7 +4420,7 @@ yySequenceManager.prototype.IsLiveSequence = function (_seq)
 //returns: true if sequence with give id exists
 function _sequence_exists(_index)                   // need to add the underscore at the start so it doesn't class with the GML "sequence_exists"
 {
-    var pSequence = g_pSequenceManager.Get(_index);
+    var pSequence = g_pSequenceManager.GetSequenceFromID(_index);
     if( pSequence !== undefined && pSequence !== null )
         return true;
     return false;
@@ -4401,7 +4429,7 @@ function _sequence_exists(_index)                   // need to add the underscor
 //returns: name of sequence with given index, or empty string
 function sequence_get_name(_index)
 {
-    var pSequence = g_pSequenceManager.Get(_index);
+    var pSequence = g_pSequenceManager.GetSequenceFromID(_index);
     if( pSequence !== undefined && pSequence !== null )
         return pSequence.pName;
     return "";
@@ -5206,6 +5234,9 @@ yySequenceManager.prototype.HandleUpdateTracks = function (_el, _sequence, _inst
                     
                     this.HandleSequenceTrackUpdate(_el, _sequence, _instance, node.value, node.m_subtree, node, _matrix, _parentTrack, currentTrack, _headPosition, _lastHeadPosition, _headDirection, false, dirty);
                     break;
+                case eSTT_Text:
+                    this.HandleTextTrackUpdate(node.value, currentTrack, _headPosition, _sequence.m_length);
+                    break;
             }
 
             // Build matrix and eval tree for this track
@@ -5356,9 +5387,10 @@ yySequenceManager.prototype.HandleUpdateTracks = function (_el, _sequence, _inst
                     this.HandleParticleTrackUpdate(_el, _sequence, _instance, node.value, _matrix, currentTrack, _headPosition, _lastHeadPosition);
                     break;
 
-                case eSTT_Text:
-                    this.HandleTextTrackUpdate(node.value, currentTrack, _headPosition, _sequence.m_length);
-                    break;
+                //moved up before the MultiplyTrackMatrix above because we need to apply source origin
+                //case eSTT_Text:
+                //    this.HandleTextTrackUpdate(node.value, currentTrack, _headPosition, _sequence.m_length);
+                //    break;
             }
 
             if (currentTrack.m_tracks.length > 0)
@@ -6077,6 +6109,39 @@ yySequenceManager.prototype.HandleTextTrackUpdate = function(_srcVars, _track, _
 
     var textkey = keyframeStore.GetKeyframeAtFrame(_headPos, _seqLength);
     if (textkey == null) return;
+
+    //text track centre/edge origin adjustment
+    var origin = textkey.m_channels[0].origin;
+    if (origin != 0)
+    {
+        var wrap = textkey.m_channels[0].wrap;
+        var textWidth, textHeight;
+        if (wrap)
+        {
+            //origin is relative to frame size which we have already
+            textWidth = _srcVars.text.FrameSizeX;
+            textHeight = _srcVars.text.FrameSizeY;
+        }
+        else
+        {
+            //have to measure the text *before* draw to set the origin
+            var pText = textkey.m_channels[0].text;
+            var fontID = textkey.m_channels[0].fontIndex;
+            var charSpacing = _srcVars.CharacterSpacing;
+			var lineSpacing = _srcVars.LineSpacing;
+            var paraSpacing = _srcVars.ParagraphSpacing;
+            g_pFontManager.GR_Text_Measure_IDEStyle(pText, fontID, charSpacing, lineSpacing, paraSpacing);
+            textWidth = g_ActualTextWidth;
+            textHeight = g_ActualTextHeight;
+        }
+
+        var ox = (origin % 3) * textWidth * 0.5;
+        var oy = Math.floor(origin / 3) * textHeight * 0.5;
+        if (!_srcVars.Overrides(eT_OriginX))
+            _srcVars.xOrigin += ox;
+        if (!_srcVars.Overrides(eT_OriginY))
+            _srcVars.yOrigin += oy;
+    }
 
     // Check to see if we should enable particular effects 
 	// Need to check both whether the track exists and the actual track values 

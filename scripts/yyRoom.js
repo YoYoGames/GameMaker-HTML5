@@ -493,6 +493,7 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
 								sBlend: srcTextitem.sBlend,
 								sXOrigin: srcTextitem.sXOrigin,
 								sYOrigin: srcTextitem.sYOrigin,
+								sOrigin: srcTextitem.sOrigin,
 								sText: srcTextitem.sText,
 								sAlignment: srcTextitem.sAlignment,
 								sCharSpacing: srcTextitem.sCharSpacing,
@@ -500,6 +501,7 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
 								sFrameW: srcTextitem.sFrameW,
 								sFrameH: srcTextitem.sFrameH,
 								sWrap: srcTextitem.sWrap,
+								sWrapMode: srcTextitem.sWrapMode,
 								sName: srcTextitem.sName,								
 							};
 						}
@@ -1339,6 +1341,7 @@ yyRoom.prototype.DrawLayerTextElement = function(_rect,_layer,_el)
 		return;	// empty string so nothing to draw
 
 	var wrap = _el.m_wrap;
+	var wrapMode = _el.m_wrapMode;
 	var alignment = _el.m_alignment;
 	var fontID = _el.m_fontIndex;
 
@@ -1360,6 +1363,26 @@ yyRoom.prototype.DrawLayerTextElement = function(_rect,_layer,_el)
 	var angle = _el.m_angle;
 	var originX = _el.m_originX;
 	var originY = _el.m_originY;
+	var origin = _el.m_origin;
+	if (origin != 0)
+	{
+		var textW;
+		var textH;
+		if (wrap) {
+			textW = frameWidth;
+			textH = frameHeight;
+		}
+		else  //have to measure the text *before* draw to set origin correctly :( 
+		{ 
+			g_pFontManager.GR_Text_Measure_IDEStyle(pText, fontID, charSpacing, lineSpacing, paraSpacing);
+			textW = g_ActualTextWidth;
+			textH = g_ActualTextHeight;
+		}
+		var ox = (origin % 3) * textW * 0.5;
+		var oy = Math.floor(origin / 3) * textH * 0.5;
+		originX += ox;
+		originY += oy; 
+	}
 
 	var mats = [];	
 	var currmat = 0;	
@@ -1415,7 +1438,7 @@ yyRoom.prototype.DrawLayerTextElement = function(_rect,_layer,_el)
 		WebGL_SetMatrix(MATRIX_WORLD, newWorldMat);		
 	}
 
-	this.DrawTextItem(pText, fontID, drawcol, a, frameWidth, frameHeight, alignment, wrap, charSpacing, lineSpacing, paraSpacing, pFontParams, false);
+	this.DrawTextItem(pText, fontID, drawcol, a, frameWidth, frameHeight, alignment, wrap, wrapMode, charSpacing, lineSpacing, paraSpacing, pFontParams, false);
 
 	if (currmat > 0)
 	{
@@ -3052,7 +3075,7 @@ yyRoom.prototype.HandleSequenceParticle = function (_rect, _layer, _pSequenceEl,
 	}
 };
 
-yyRoom.prototype.DrawTextItem = function (_pText, _fontID, _drawcol, _drawalpha, _frameWidth, _frameHeight, _alignment, _wrap, _charSpacing, _lineSpacing, _paraSpacing, _pFontParams, _seqYOffset)
+yyRoom.prototype.DrawTextItem = function (_pText, _fontID, _drawcol, _drawalpha, _frameWidth, _frameHeight, _alignment, _wrap, _wrapMode, _charSpacing, _lineSpacing, _paraSpacing, _pFontParams, _seqYOffset)
 {
 	// @if feature("fonts")
 	var oldFontID = draw_get_font();
@@ -3064,7 +3087,7 @@ yyRoom.prototype.DrawTextItem = function (_pText, _fontID, _drawcol, _drawalpha,
 	draw_set_alpha(_drawalpha);
 
 	g_pFontManager.SetFont();
-	var sldata = g_pFontManager.Split_TextBlock_IDEstyle(_pText, _frameWidth, _frameHeight, _alignment, _wrap, _charSpacing, _lineSpacing, _paraSpacing);
+	var sldata = g_pFontManager.Split_TextBlock_IDEstyle(_pText, _frameWidth, _frameHeight, _alignment, _wrap, _wrapMode, _charSpacing, _lineSpacing, _paraSpacing);
 
 	var mask = _wrap && ((sldata.totalW > _frameWidth + 2) || (sldata.totalH > _frameHeight + 2));
 	if (mask)
@@ -3270,6 +3293,7 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 		return;
 
 	var wrap = pTextKey.m_channels[0].wrap;
+	var wrapMode = pTextKey.m_channels[0].wrapMode;
 	var alignment = pTextKey.m_channels[0].alignment;
 	var fontID = pTextKey.m_channels[0].fontIndex;
 
@@ -3312,7 +3336,7 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 
 	var pFontParams = _node.value.pFontEffectParams;
 
-	this.DrawTextItem(text, fontID, drawcol, a, frameWidth, frameHeight, alignment, wrap, charSpacing, lineSpacing, paraSpacing, pFontParams, true);	
+	this.DrawTextItem(text, fontID, drawcol, a, frameWidth, frameHeight, alignment, wrap, wrapMode, charSpacing, lineSpacing, paraSpacing, pFontParams, true);	
 };
 // @endif sequences
 

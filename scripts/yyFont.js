@@ -1956,6 +1956,34 @@ yyFontManager.prototype.Split_TextBlock = function (_pStr, linewidth, thefont) {
 	return sl;	
 };
 
+// #############################################################################################
+/// Function:<summary>
+///				Calculates maximum number of characters which will fit in given width for sub string
+///          </summary>
+///
+/// In:		 <param name="_pStr"></param>
+///			 <param name="_start">string start index</param>
+///			 <param name="_len">string character count to check</param>
+//			 <param name="_boundsWidth">width to fit</param>
+//			 <param name="_charSpacing">additional character spacing</param>
+/// Out:	 <returns>
+///				{ count : number of characters which fit (min 1) , measuredWidth : measured width of fitted string}
+///			 </returns>
+yyFontManager.prototype.MaxCharsToFitWidth = function (_pStr, _start, _len, _boundsWidth, _charSpacing) {
+	var ret = new Object();
+	for (var i = 1; i <= _len; ++i) {
+		var w = this.thefont.TextWidthN(_pStr, _start, i, _charSpacing);
+		if (w > _boundsWidth) {
+			ret.count = yymax(i - 1, 1);
+			ret.measuredWidth = this.thefont.TextWidthN(_pStr, _start, ret.count, _charSpacing);
+			return ret;
+		}
+	}
+	//all the chars fit boundsWidth
+	ret.count = _len;
+	ret.measuredWidth = this.thefont.TextWidthN(_pStr, _start, _len, _charSpacing);
+	return ret;
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -1969,7 +1997,7 @@ yyFontManager.prototype.Split_TextBlock = function (_pStr, linewidth, thefont) {
 ///				
 ///			 </returns>
 // #############################################################################################
-yyFontManager.prototype.Split_TextBlock_IDEstyle = function (_pStr, _boundsWidth, _boundsHeight, _alignment, _wrap, _charSpacing, _lineSpacing, _paraSpacing) {
+yyFontManager.prototype.Split_TextBlock_IDEstyle = function (_pStr, _boundsWidth, _boundsHeight, _alignment, _wrap, _wrapMode, _charSpacing, _lineSpacing, _paraSpacing) {
 
 	if (_pStr == null) return;	
 	
@@ -1993,6 +2021,7 @@ yyFontManager.prototype.Split_TextBlock_IDEstyle = function (_pStr, _boundsWidth
 	var textLines = [];
 	var start = 0;
 	var char = 0;
+	var bSplitWord = (_wrapMode == TTWRAPMODE_SplitWords);
 
 	while (char != len)
 	{
@@ -2072,54 +2101,115 @@ yyFontManager.prototype.Split_TextBlock_IDEstyle = function (_pStr, _boundsWidth
 					var extrawidthforspace = (lineWords > 0) ? spaceWidth : 0.0;
 					if ((lineWidth + wordWidth + extrawidthforspace) > _boundsWidth)
 					{
-						// Add what we've got
-						if (lineWords == 0)
+						if (wordWidth > _boundsWidth && bSplitWord)
 						{
-							// Even though we've overflowed, we only have a single word, so add it
-							lineWidth = wordWidth;
-							totalW = yymax(totalW, lineWidth);
+							//single word is too long to fit on single line - split over multiple lines
+							if (lineWords > 0)
+							{
+								//add the current lineWords
+								totalW = yymax(totalW, lineWidth);
+								lineData = new Object();
+								lineData.pString = str.substring(lineStart, wordEnd);
+								lineData.x = xpos;
+								lineData.y = ypos;
+								lineData.lineWidth = lineWidth;
+								lineData.wordSpacing = 0.0;
+								lineData.paragraphEnd = false;
+								lineData.numWords = lineWords;
+								sl[sl.length] = lineData;
+								
+								lineStart = wordStart;
+								ypos += lineHeight + _lineSpacing;
+							}
 
-							lineData = new Object();
-							lineData.pString = str.substring(lineStart, curr);
-							lineData.x = xpos;
-							lineData.y = ypos;
-							lineData.lineWidth = lineWidth;
-							lineData.wordSpacing = 0.0;
-							lineData.paragraphEnd = false;
-							lineData.numWords = 1;
+							//split long word over multiple lines
+							var remaining = curr - wordStart;
+							var chunkStart = wordStart;
+							while (remaining > 0)
+							{
+								var result = this.MaxCharsToFitWidth(str, chunkStart, remaining, _boundsWidth, _charSpacing);
+								var chunkLen = result.count;
+								var chunkWidth = result.measuredWidth;
 
-							sl[sl.length] = lineData;
+								remaining -= chunkLen;
+								if (remaining > 0) {
+									//add line with this chunk
+									var chunkEnd = chunkStart + chunkLen;
 
-							curr++;
+									lineData = new Object();
+									lineData.pString = str.substring(chunkStart, chunkEnd);
+									lineData.x = xpos;
+									lineData.y = ypos;
+									lineData.lineWidth = chunkWidth;
+									lineData.wordSpacing = 0.0;
+									lineData.paragraphEnd = false;
+									lineData.numWords = 1;
+									sl[sl.length] = lineData;
 
-							lineWidth = 0.0;
-							lineWords = 0;
-							lineStart = curr;
+									chunkStart = chunkEnd;
+									ypos += lineHeight + _lineSpacing;
+								}
+								else
+								{
+									//remaining chunk fits on line; no line output cos more words can be added; no need for terminator insert...right...
+									lineStart = chunkStart;
+									wordEnd = curr;
+									lineWidth = chunkWidth;
+									lineWords = 1;
+								}
+							}
 						}
 						else
 						{
-							// Add everything up to the previous word
-							totalW = yymax(totalW, lineWidth);
+							// Add what we've got
+							if (lineWords == 0)
+							{
+								// Even though we've overflowed, we only have a single word, so add it
+								lineWidth = wordWidth;
+								totalW = yymax(totalW, lineWidth);
 
-							lineData = new Object();
-							lineData.pString = str.substring(lineStart, wordEnd);
-							lineData.x = xpos;
-							lineData.y = ypos;
-							lineData.lineWidth = lineWidth;
-							lineData.wordSpacing = 0.0;
-							lineData.paragraphEnd = false;
-							lineData.numWords = lineWords;
+								lineData = new Object();
+								lineData.pString = str.substring(lineStart, curr);
+								lineData.x = xpos;
+								lineData.y = ypos;
+								lineData.lineWidth = lineWidth;
+								lineData.wordSpacing = 0.0;
+								lineData.paragraphEnd = false;
+								lineData.numWords = 1;
 
-							sl[sl.length] = lineData;
+								sl[sl.length] = lineData;
 
-							wordEnd = curr;
-							lineWidth = wordWidth;
-							lineWords = 1;
-							lineStart = wordStart;
+								curr++;
+
+								lineWidth = 0.0;
+								lineWords = 0;
+								lineStart = curr;
+							}
+							else
+							{
+								// Add everything up to the previous word
+								totalW = yymax(totalW, lineWidth);
+
+								lineData = new Object();
+								lineData.pString = str.substring(lineStart, wordEnd);
+								lineData.x = xpos;
+								lineData.y = ypos;
+								lineData.lineWidth = lineWidth;
+								lineData.wordSpacing = 0.0;
+								lineData.paragraphEnd = false;
+								lineData.numWords = lineWords;
+
+								sl[sl.length] = lineData;
+
+								wordEnd = curr;
+								lineWidth = wordWidth;
+								lineWords = 1;
+								lineStart = wordStart;
+							}
+
+							ypos += lineHeight;
+							ypos += _lineSpacing;
 						}
-
-						ypos += lineHeight;
-						ypos += _lineSpacing;
 					}
 					else
 					{
@@ -2622,6 +2712,18 @@ yyFontManager.prototype.GR_StringList_Draw_IDEstyle = function (_sl, _x, _y, _ch
 	}	
 };
 
+
+//Measure unwrapped text area with character / line / paragraph spacing applied
+yyFontManager.prototype.GR_Text_Measure_IDEStyle = function (_str, _fontID, _charSpacing, _lineSpacing, _paraSpacing) {
+	g_ActualTextWidth = g_ActualTextHeight = 0;
+	var oldFontID = draw_get_font();
+	draw_set_font(_fontID);
+	g_pFontManager.SetFont();
+	var sldata = g_pFontManager.Split_TextBlock_IDEstyle(_str, 0, 0, 0, false, 0, _charSpacing, _lineSpacing, _paraSpacing);
+	draw_set_font(oldFontID);
+	g_ActualTextWidth = sldata.totalW;
+	g_ActualTextHeight = sldata.totalH;
+};
 
 
 // #############################################################################################
