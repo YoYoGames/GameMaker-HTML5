@@ -340,12 +340,12 @@ function texturegroup_set_mode(_explicit, _debug, _default_sprite)
 
 function texturegroup_add(_groupname, _filename_or_array, _struct_or_json)
 {
-    // Do nothing on HTML5
+    ErrorFunction("texturegroup_add()");
 }
 
 function texturegroup_delete(_groupname)
 {
-    // Do nothing on HTML5
+    ErrorFunction("texturegroup_delete()");
 }
 
 function texturegroup_exists(_groupname)
