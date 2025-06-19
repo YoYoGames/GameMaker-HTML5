@@ -338,6 +338,16 @@ function texturegroup_set_mode(_explicit, _debug, _default_sprite)
     // Do nothing on HTML5
 }
 
+function texturegroup_add(_groupname, _filename_or_array, _struct_or_json)
+{
+    ErrorFunction("texturegroup_add()");
+}
+
+function texturegroup_delete(_groupname)
+{
+    ErrorFunction("texturegroup_delete()");
+}
+
 function texturegroup_exists(_groupname)
 {
     var pTGInfo = g_pTextureGroupInfoManager.Find(yyGetString(_groupname));
