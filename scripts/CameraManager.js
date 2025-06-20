@@ -298,7 +298,8 @@ CameraManager.prototype.GetTempCamera = function () {
 };
 
 CameraManager.prototype.SetActiveCamera = function (arg0) {
-    if (typeof (arg0) == CCamera) {
+
+    if (typeof (arg0) === "object") {
         this.m_activeCamera = arg0;
     }
     else {
@@ -761,10 +762,9 @@ function camera_destroy(arg0) {
 function camera_apply(arg0) {
     var cam = g_pCameraManager.GetCamera(yyGetInt32(arg0));
     if (cam != null) {
-        // Don't change active camera
-
         // Apply camera's current matrices
         cam.ApplyMatrices();
+        g_pCameraManager.SetActiveCamera(cam);
     }
 }
 
