@@ -192,6 +192,11 @@ function __yy_gml_object_create( _self, _a )
     return r;
 }
 
+function __yy_gml_blank_constructor( )
+{
+}
+__yy_gml_blank_constructor.__yyg__is_constructor = true;
+
 function is_method( _a )
 {
     return (_a instanceof Function) && (typeof _a.__yy_userFunction !== 'undefined');   
