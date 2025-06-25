@@ -536,6 +536,7 @@ function surface_set_target_RELEASE(_id, _depth_id)
             cannvas_graphics: graphics,
 
             ActiveCam: true,
+            cachedCameraID:currcam.m_id,
 
             camx: currcam.m_viewX,
             camy: currcam.m_viewY,
@@ -566,7 +567,7 @@ function surface_set_target_RELEASE(_id, _depth_id)
             worldh: g_worldh,
 
             cannvas_graphics: graphics,
-
+            cachedCameraID: -1,
             ActiveCam: false,
         });
     }
@@ -673,6 +674,11 @@ function surface_reset_target_RELEASE()
             Calc_GUI_Scale();
         } else {
             Graphics_SetViewPort(g_clipx, g_clipy, g_clipw, g_cliph);
+
+            if(storedState.cachedCameraID!=-1)
+                g_pCameraManager.SetActiveCamera(storedState.cachedCameraID);
+
+
             var currcam = g_pCameraManager.GetActiveCamera();
             if ((activeCam == true) && (currcam != null))
             {

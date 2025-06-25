@@ -3915,6 +3915,7 @@ yyRoom.prototype.DrawViews = function (r) {
 
     // Get a "VIEW" array... and if we don't have one, supply the "fake" one.
 	var pViews;
+	var pCam = null;
 	if (!this.m_enableviews) {
 	
 		pViews = g_DefaultViewArray;
@@ -3923,6 +3924,14 @@ yyRoom.prototype.DrawViews = function (r) {
          
 		g_DefaultView.cameraID = g_DefaultCameraID;
 		UpdateDefaultCamera(0, 0, g_RunRoom.m_width, g_RunRoom.m_height, 0);
+
+		pCam = g_pCameraManager.GetActiveCamera();
+		if(pCam)
+		{
+			pCam.Begin();
+			pCam.ApplyMatrices();
+		}
+
 	} 
 	else {
 	
@@ -4031,6 +4040,11 @@ yyRoom.prototype.DrawViews = function (r) {
 	//     this.DrawTheRoom(r);
 	//}
 	
+	if(pCam)
+	{
+		pCam.End();
+	}
+	g_pCameraManager.SetActiveCamera(-1);
 	// Restore the room extents to the pre-view handling state
 	g_roomExtents.Copy(roomExtents);
 	Graphics_Restore();
