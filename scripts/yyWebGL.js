@@ -80,7 +80,8 @@ var g_circleSteps = 36,
     g_circleCos = [],
     g_circleSin = [];
 
-var offsethackGL = 0.5;
+var offsethackD3D = 1.0;
+var offsethackGL = 0.0;
 
 var g_extAnisotropic = null;
 var g_extTextureHalfFloat = null;
@@ -2939,16 +2940,26 @@ function WebGL_draw_rectangle_RELEASE(_x1, _y1, _x2, _y2, _outline)
 	    col3 |= 0x00010000;
 	    col4 |= 0x00010001;
     }
+
+    if (offsethackD3D != 0.0)
+    {        
+        _x2 += offsethackD3D;
+        _y2 += offsethackD3D;
+    }
+
+    // Correct the positions
+    var t;
+	if ( _x2<_x1 ) { t=_x2; _x2=_x1; _x1=t; }
+	if ( _y2<_y1 ) { t=_y2; _y2=_y1; _y1=t; }
+	if ( _x2 == Math.floor(_x2) ) _x2=_x2+(0.01 * offsethackD3D);
+	if ( _y2 == Math.floor(_y2) ) _y2=_y2+(0.01 * offsethackD3D);
+
+    _y1 += offsethackGL;
+    _y2 += offsethackGL;
 	
     // Don't care about UV's as it's a SOLID white texture... so whatever is there is good.
     if (!_outline)
-    {
-        if (offsethackGL != 0.0)
-        {        
-            _x2 += offsethackGL;
-            _y2 += offsethackGL;
-        }
-
+    {        
 	    // Solid fill, 2 triangles
 	    pCoords[v0 + 0] = pCoords[v4 + 0] = pCoords[v5 + 0] = _x1;
 	    pCoords[v0 + 1] = pCoords[v1 + 1] = pCoords[v5 + 1] = _y1;
@@ -2963,14 +2974,6 @@ function WebGL_draw_rectangle_RELEASE(_x1, _y1, _x2, _y2, _outline)
     } 
     else
     {
-        if (offsethackGL != 0.0)
-        {
-            _x1 += offsethackGL;
-            _y1 += offsethackGL;
-            _x2 += offsethackGL;
-            _y2 += offsethackGL;
-        }
-
 	    pColours[v0] = pColours[v1] = pColours[v2] = pColours[v3] 
 	                 = pColours[v4] = pColours[v5] = pColours[v6] = pColours[v7] = col;
 
@@ -3016,12 +3019,19 @@ function WebGL_draw_roundrect_color_EXT_RELEASE( _x1, _y1, _x2, _y2, _radx, _rad
 
     _outline = yyGetBool(_outline);
 
-    if (offsethackGL != 0.0)
+    // Correct the positions (this happens before the general offset for round rects in the C++ runner)
+    var t;
+	if ( _x2<_x1 ) { t=_x2; _x2=_x1; _x1=t; }
+	if ( _y2<_y1 ) { t=_y2; _y2=_y1; _y1=t; }
+	if ( _x2 == Math.floor(_x2) ) _x2=_x2+(0.01 * offsethackD3D);
+	if ( _y2 == Math.floor(_y2) ) _y2=_y2+(0.01 * offsethackD3D);
+
+    if (offsethackD3D != 0.0)
     {
-        _x1 += offsethackGL;
-        _y1 += offsethackGL;
-        _x2 += offsethackGL;
-        _y2 += offsethackGL;
+        _x1 += offsethackD3D;
+        _y1 += offsethackD3D;
+        _x2 += offsethackD3D;
+        _y2 += offsethackD3D;
     }
 
     var i,w,h;
@@ -3189,16 +3199,26 @@ function WebGL_draw_rectangle_color_RELEASE(_x1, _y1, _x2, _y2, _col1, _col2, _c
     pUVs = pBuff.UVs;
 
     var col = ~~((g_GlobalAlpha * 255.0) << 24) | (g_GlobalColour & 0xffffff);
+
+    if (offsethackD3D != 0.0)
+    {        
+        _x2 += offsethackD3D;
+        _y2 += offsethackD3D;
+    }
+
+    // Correct the positions
+    var t;
+	if ( _x2<_x1 ) { t=_x2; _x2=_x1; _x1=t; }
+	if ( _y2<_y1 ) { t=_y2; _y2=_y1; _y1=t; }
+	if ( _x2 == Math.floor(_x2) ) _x2=_x2+(0.01 * offsethackD3D);
+	if ( _y2 == Math.floor(_y2) ) _y2=_y2+(0.01 * offsethackD3D);
+
+    _y1 += offsethackGL;
+    _y2 += offsethackGL;
 	
     // Don't care about UV's as it's a SOLID white texture... so whatever is there is good.
     if (!_outline)
     {
-       /* if (offsethackGL != 0.0)
-        {        
-            _x2 += offsethackGL;
-            _y2 += offsethackGL;
-        }*/
-
 	    // Solid fill, 2 triangles
 	    pCoords[v0 + 0] = pCoords[v4 + 0] = pCoords[v5 + 0] = _x1;
 	    pCoords[v0 + 1] = pCoords[v1 + 1] = pCoords[v5 + 1] = _y1;
@@ -3213,14 +3233,6 @@ function WebGL_draw_rectangle_color_RELEASE(_x1, _y1, _x2, _y2, _col1, _col2, _c
     } 
     else
     {
-        if (offsethackGL != 0.0)
-        {
-            _x1 += offsethackGL;
-            _y1 += offsethackGL;
-            _x2 += offsethackGL;
-            _y2 += offsethackGL;
-        }
-
 	    pColours[v0] = pColours[v7] = _col1;
 	    pColours[v1] = pColours[v2] = _col2;
 	    pColours[v3] = pColours[v4] = _col3;
@@ -3256,10 +3268,12 @@ function WebGL_draw_point_color_RELEASE(_x, _y, _col) {
     _y = yyGetReal(_y);
     _col = yyGetInt32(_col);
 
-    if (offsethackGL != 0.0)
+    _y += offsethackGL;
+
+    if (offsethackD3D != 0.0)
     {
-        _x += offsethackGL;
-        _y += offsethackGL;    
+        _x += offsethackD3D;
+        _y += offsethackD3D;    
     }
 
     var pBuff, pCoords, pColours;
@@ -3274,8 +3288,8 @@ function WebGL_draw_point_color_RELEASE(_x, _y, _col) {
     
 
     var col = ~~((g_GlobalAlpha * 255.0) << 24) | ConvertGMColour(_col);
-    pCoords[v0 + 0] = ~~_x + 0.5;
-    pCoords[v0 + 1] = ~~_y + 0.5;
+    pCoords[v0 + 0] = _x;
+    pCoords[v0 + 1] = _y;
     pCoords[v0 + 2] = GR_Depth;
     pColours[v0] = col;	
 }
@@ -3306,14 +3320,18 @@ function WebGL_draw_triangle_RELEASE(_x1, _y1, _x2, _y2, _x3, _y3, _outline) {
     _y3 = yyGetReal(_y3);
     _outline = yyGetBool(_outline);
 
-    if (offsethackGL != 0.0)
+    _y1 += offsethackGL;
+    _y2 += offsethackGL;
+    _y3 += offsethackGL;
+
+    if (offsethackD3D != 0.0)
     {
-        _x1 += offsethackGL;
-        _y1 += offsethackGL;
-        _x2 += offsethackGL;
-        _y2 += offsethackGL;
-        _x3 += offsethackGL;
-        _y3 += offsethackGL;
+        _x1 += offsethackD3D;
+        _y1 += offsethackD3D;
+        _x2 += offsethackD3D;
+        _y2 += offsethackD3D;
+        _x3 += offsethackD3D;
+        _y3 += offsethackD3D;
     }
 
     var pBuff, pCoords, pColours, pUVs;
@@ -3448,14 +3466,18 @@ function WebGL_draw_triangle_color_RELEASE(_x1, _y1, _x2, _y2, _x3, _y3, _c1,_c2
 
     _outline = yyGetBool(_outline);
 
-    if (offsethackGL != 0.0)
+    _y1 += offsethackGL;
+    _y2 += offsethackGL;
+    _y3 += offsethackGL;
+
+    if (offsethackD3D != 0.0)
     {
-        _x1 += offsethackGL;
-        _y1 += offsethackGL;
-        _x2 += offsethackGL;
-        _y2 += offsethackGL;
-        _x3 += offsethackGL;
-        _y3 += offsethackGL;
+        _x1 += offsethackD3D;
+        _y1 += offsethackD3D;
+        _x2 += offsethackD3D;
+        _y2 += offsethackD3D;
+        _x3 += offsethackD3D;
+        _y3 += offsethackD3D;
     }
 
     var pBuff, pCoords, pColours, pUVs;
@@ -3533,12 +3555,12 @@ function WebGL_draw_ellipse_color_RELEASE(_x1, _y1, _x2, _y2, _col1, _col2, _out
 
     _outline = yyGetBool(_outline);
 
-    if (offsethackGL != 0.0)
+    if (offsethackD3D != 0.0)
     {
-        _x1 += offsethackGL;
-        _y1 += offsethackGL;
-        _x2 += offsethackGL;
-        _y2 += offsethackGL;    
+        _x1 += offsethackD3D;
+        _y1 += offsethackD3D;
+        _x2 += offsethackD3D;
+        _y2 += offsethackD3D;    
     }
 
     var xm = (_x1+_x2) / 2;
@@ -3698,12 +3720,15 @@ function WebGL_draw_line_width_color_RELEASE(_x1, _y1, _x2, _y2, _w, _col1, _col
     _col1 = yyGetInt32(_col1);
     _col2 = yyGetInt32(_col2);
 
-    if (offsethackGL != 0.0)
+    _y1 += offsethackGL;
+    _y2 += offsethackGL;
+
+    if (offsethackD3D != 0.0)
     {
-        _x1 += offsethackGL;
-        _y1 += offsethackGL;
-        _x2 += offsethackGL;
-        _y2 += offsethackGL;
+        _x1 += offsethackD3D;
+        _y1 += offsethackD3D;
+        _x2 += offsethackD3D;
+        _y2 += offsethackD3D;
     }
 
     var a = ((g_GlobalAlpha * 255.0) << 24);

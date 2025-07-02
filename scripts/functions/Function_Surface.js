@@ -586,6 +586,8 @@ function surface_set_target_RELEASE(_id, _depth_id)
             : pSurfDepth.FrameBufferData.RenderBuffer;
         g_webGL.SetRenderTarget(g_CurrentFrameBuffer, g_CurrentDepthBuffer);
         g_RenderTargetActive = -1;
+
+        offsethackGL = 0.0;
     } else {
         g_CurrentGraphics = pSurf.graphics;
         graphics = pSurf.graphics;
@@ -665,6 +667,15 @@ function surface_reset_target_RELEASE()
             g_RenderTargetActive = storedState.RenderTargetActive;
             g_CurrentFrameBuffer = storedState.FrameBuffer;
             g_CurrentDepthBuffer = storedState.DepthBuffer;
+
+            if (g_RenderTargetActive == -1)
+            {
+                offsethackGL = 0.0;
+            }
+            else
+            {
+                offsethackGL = -0.01;
+            }
         }
 
         if (g_InGUI_Zone && g_SurfaceStack.length == 0) {
