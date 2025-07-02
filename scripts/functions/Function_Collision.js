@@ -20,10 +20,7 @@ function Command_CollisionPoint(_pInst,_x,_y,_obj,_prec,_notme)
 	return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x, _y, _prec,
 		function( _pInstance )
 		{
-			if(_pInstance.GetCollisionDomain() != GetCollisionDomainForContext(_pInst))
-			{
-				return OBJECT_NOONE;
-			}
+			
 
 			var coll = _pInstance.Collision_Point(_x,_y,_prec);
 			if (!coll) {
@@ -39,10 +36,7 @@ function Command_CollisionPointList(_pInst,_x,_y,_obj,_prec,_notme,_list)
 {
 	Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x, _y, _prec,
 		function( _pInstance ) {
-			if(_pInstance.GetCollisionDomain() != GetCollisionDomainForContext(_pInst))
-			{
-				return OBJECT_NOONE;
-			}
+			
 
 			if (_pInstance.Collision_Point(_x,_y,_prec)) {
 				_list.push(MAKE_REF(REFID_INSTANCE, _pInstance.id));
