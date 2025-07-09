@@ -865,16 +865,24 @@ function LoadGame(_GameFile)
     g_pRoomManager.SetRoomOrder( _GameFile.RoomOrder );
     var firstRoom = _GameFile.RoomOrder.length;
     var lastRoom = -1;
+    var firstRoomID = 0;
+    var lastRoomID = 0;
     for(i=0;i<_GameFile.RoomOrder.length;i++){
         pRoom = g_pRoomManager.GetOrder( i );
         if (pRoom) {
        		pRoom.actualroom=i;
-       		if (firstRoom > i) firstRoom = pRoom.id;
-       		if (lastRoom < i) lastRoom = pRoom.id;
+       		if (firstRoom > i) {
+       			firstRoom = i;
+       			firstRoomID = pRoom.id;
+       		} 
+       		if (lastRoom < i) {
+       			lastRoom = i;
+       			lastRoomID = pRoom.id;
+       		} // end if
        	} // end if
     }
-    g_pBuiltIn.room_first =  firstRoom;
-    g_pBuiltIn.room_last = lastRoom;
+    g_pBuiltIn.room_first =  firstRoomID;
+    g_pBuiltIn.room_last = lastRoomID;
     g_pCameraManager.SetInitialLoadHighPoint();
 
 
