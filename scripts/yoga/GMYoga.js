@@ -1304,6 +1304,28 @@ function flexpanel_node_style_set_height(_node, _value, _unit)
 		break;
 	} // end switch
 }
+
+// #######################################################################################
+function flexpanel_node_set_measure_function( _node, _func )
+{
+	if ((_node.getChildCount() == 0) && (typeof(_func) == "function")) {
+		var context = FLEXPANEL_GetContext(_node);
+		context.measureFunc = _func;
+		_node.setMeasuerFunc( _func );
+		_node.markDirty();
+	} // end if
+	else {
+		yyError( "Unable to set measure function on flexpanel node" );
+	} // end else
+}
+
+
+// #######################################################################################
+function flexpanel_node_get_measure_function( _node )
+{
+	var context = FLEXPANEL_GetContext(_node);
+	return context.measureFunc;
+}
 // @endif
 
 function UILayers_Create()
