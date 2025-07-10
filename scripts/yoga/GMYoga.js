@@ -1304,6 +1304,45 @@ function flexpanel_node_style_set_height(_node, _value, _unit)
 		break;
 	} // end switch
 }
+
+// #######################################################################################
+function flexpanel_node_set_measure_function( _selfinst, _node, _func )
+{
+	var func = getFunction(_func, 1);
+	if ((_node.getChildCount() == 0) && (typeof(func) == "function")) {
+		var context = FLEXPANEL_GetContext(_node);
+		context.measureFunc = func;
+		var obj = func.boundObject ?? _selfinst;
+
+		var flexpanel_node_MeasureCallbackWrapper = g_yoga.MeasureCallback.extend("MeasureCallback", {
+			__construct: function(node, obj, func) {
+				this.__parent.__construct.call(this);
+				this.node = node;
+				this.obj = obj;
+				this.func = func;
+			},
+
+			measure: function(width, widthMode, height, heightMode)
+			{
+				var s = this.func( this.obj, this.obj, width, widthMode, height, heightMode);
+				return { "width" : variable_struct_get( s, "width" ),  "height" : variable_struct_get( s, "height") };
+			},
+		});		
+		_node.setMeasureFunc( new flexpanel_node_MeasureCallbackWrapper( _node, obj, func));
+		_node.markDirty();
+	} // end if
+	else {
+		yyError( "Unable to set measure function on flexpanel node" );
+	} // end else
+}
+
+
+// #######################################################################################
+function flexpanel_node_get_measure_function( _node )
+{
+	var context = FLEXPANEL_GetContext(_node);
+	return context.measureFunc;
+}
 // @endif
 
 function UILayers_Create()
