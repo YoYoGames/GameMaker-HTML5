@@ -863,12 +863,26 @@ function LoadGame(_GameFile)
 	//g_MD5CRC = CalcArrayCRC(g_MD5);
 
     g_pRoomManager.SetRoomOrder( _GameFile.RoomOrder );
+    var firstRoom = _GameFile.RoomOrder.length;
+    var lastRoom = -1;
+    var firstRoomID = 0;
+    var lastRoomID = 0;
     for(i=0;i<_GameFile.RoomOrder.length;i++){
         pRoom = g_pRoomManager.GetOrder( i );
-        pRoom.actualroom=i;
+        if (pRoom) {
+       		pRoom.actualroom=i;
+       		if (firstRoom > i) {
+       			firstRoom = i;
+       			firstRoomID = pRoom.id;
+       		} 
+       		if (lastRoom < i) {
+       			lastRoom = i;
+       			lastRoomID = pRoom.id;
+       		} // end if
+       	} // end if
     }
-    g_pBuiltIn.room_first =  g_pRoomManager.GetOrder( 0 ).id;
-    g_pBuiltIn.room_last = g_pRoomManager.GetOrder( g_pRoomManager.m_RoomOrder.length-1 ).id;
+    g_pBuiltIn.room_first =  firstRoomID;
+    g_pBuiltIn.room_last = lastRoomID;
     g_pCameraManager.SetInitialLoadHighPoint();
 
 

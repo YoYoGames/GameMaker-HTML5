@@ -695,6 +695,13 @@ function GameMaker_Init()
 	g_CurrentGraphics = graphics;
 
 	g_Collision_Compatibility_Mode = g_pGMFile.Options.CollisionCompatibility;
+    g_Legacy_Primitive_Drawing = g_pGMFile.Options.LegacyPrimitiveDrawing;
+
+    if (g_Legacy_Primitive_Drawing == false)
+    {
+        offsethackD3D = 0.0;
+    }
+
  	g_LastCanvasWidth = canvas.width;
     g_LastCanvasHeight = canvas.height;    
     
