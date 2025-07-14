@@ -1788,9 +1788,10 @@ LayerManager.prototype.CleanRoomLayers = function(_room)
 
     var pLayer,pool;
     pool = _room.m_Layers.pool;
-    while(pool.length > 0)
+    //while(pool.length > 0)
+    for (var l =  _room.m_Layers.pool.length-1; l >=0; --l)
     {
-        pLayer = pool[0];
+        pLayer = pool[l];
         if (pLayer == null)
         {
             continue;
@@ -1804,7 +1805,8 @@ LayerManager.prototype.CleanRoomLayers = function(_room)
             g_TransitioningUILayers.push(pLayer);
         }
         else{
-            this.RemoveLayer(_room, pLayer.m_id, false);
+            if(!_room.m_persistent)
+                this.RemoveLayer(_room, pLayer.m_id, false);
         }
     }
 };
