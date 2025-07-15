@@ -380,14 +380,16 @@ function CLayerTextElement()
     this.m_blend=0xffffffff;  // blending for the text
     this.m_alpha=1;           // alpha transparency for the text
     this.m_originX=1;          // x scale factor
-    this.m_originY=1;          // y scale factor
+    this.m_originY = 1;          // y scale factor
+    this.m_origin = 0;
     this.m_text = "";           // text string to draw
     this.m_alignment=0;          // alignment   
     this.m_charSpacing=0;          // character spacing value
     this.m_lineSpacing=0;          // line spacing value
     this.m_frameW=-1;          // x scale factor
     this.m_frameH=-1;          // y scale factor
-    this.m_wrap=false;
+    this.m_wrap = false;
+    this.m_wrapMode = 0;
 
     this.m_type = eLayerElementType_Text;
     this.m_name = "";
@@ -2222,6 +2224,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                         NewTextItem.m_alpha = ((pLayer.textitems[i].sBlend>>24)&0xff) / 255.0;                        
                         NewTextItem.m_originX = pLayer.textitems[i].sXOrigin;
                         NewTextItem.m_originY = pLayer.textitems[i].sYOrigin;
+                        NewTextItem.m_origin = pLayer.textitems[i].sOrigin;
                         NewTextItem.m_text = pLayer.textitems[i].sText;
                         NewTextItem.m_alignment = pLayer.textitems[i].sAlignment;
                         NewTextItem.m_charSpacing = pLayer.textitems[i].sCharSpacing;
@@ -2229,6 +2232,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                         NewTextItem.m_frameW = pLayer.textitems[i].sFrameW;
                         NewTextItem.m_frameH = pLayer.textitems[i].sFrameH;
                         NewTextItem.m_wrap = (pLayer.textitems[i].sWrap != 0) ? true : false;
+                        NewTextItem.m_wrapMode = pLayer.textitems[i].sWrapMode;
                         NewTextItem.m_name = pLayer.textitems[i].sName;
                         
                         this.AddNewElement(_room,NewLayer,NewTextItem,false);
@@ -3549,6 +3553,14 @@ function layer_text_yorigin( _textelID,_yorigin)
     }
 };
 
+function layer_text_origin(_textelID, _origin)
+{
+    var el = layerTextGetElement(_textelID);
+    if (el != null) {
+        el.m_origin = yyGetInt32(_origin);
+    }
+};
+
 function layer_text_charspacing( _textelID,_charspacing) 
 {
     var el = layerTextGetElement(_textelID);
@@ -3591,6 +3603,14 @@ function layer_text_wrap( _textelID,_wrap)
     if (el != null)
     {
         el.m_wrap = yyGetBool(_wrap);
+    }
+};
+
+function layer_text_wrapmode(_textelID, _wrapMode)
+{
+    var el = layerTextGetElement(_textelID);
+    if (el != null) {
+        el.m_wrapMode = yyGetInt32(_wrapMode);
     }
 };
 
@@ -3724,6 +3744,15 @@ function layer_text_get_yorigin( _textelID)
     return 0;
 };
 
+function layer_text_get_origin(_textelID)
+{
+    var el = layerTextGetElement(_textelID);
+    if (el != null) {
+        return el.m_origin;
+    }
+    return 0;
+};
+
 function layer_text_get_charspacing( _textelID) 
 {
     var el = layerTextGetElement(_textelID);
@@ -3770,6 +3799,15 @@ function layer_text_get_wrap( _textelID)
     if (el != null)
     {
         return el.m_wrap;
+    }
+    return 0;
+};
+
+function layer_text_get_wrapmode(_textelID)
+{
+    var el = layerTextGetElement(_textelID);
+    if (el != null) {
+        return el.m_wrapMode;
     }
     return 0;
 };

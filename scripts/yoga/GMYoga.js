@@ -2641,13 +2641,15 @@ function UILayerTextElement(element_data, from_wad)
 		this.textColour           = element_data.textColour;
 		this.textOriginX          = element_data.textOriginX;
 		this.textOriginY          = element_data.textOriginY;
+		this.textOrigin			  = element_data.textOrigin;
 		this.textText             = element_data.textText;
 		this.textAlignment        = element_data.textAlignment;
 		this.textCharacterSpacing = element_data.textCharacterSpacing;
 		this.textLineSpacing      = element_data.textLineSpacing;
 		this.textFrameWidth       = element_data.textFrameWidth;
 		this.textFrameHeight      = element_data.textFrameHeight;
-		this.textWrap             = element_data.textWrap;
+		this.textWrap			  = element_data.textWrap;
+		this.textWrapMode		  =	element_data.textWrapMode;
 		this.textName             = element_data.textName;
 
 		this.flexVisible    = element_data.flexVisible;
@@ -2666,14 +2668,16 @@ function UILayerTextElement(element_data, from_wad)
 		this.textAngle            = yyGetReal(variable_struct_get(element_data, "textAngle"));
 		this.textColour           = yyGetInt32(variable_struct_get(element_data, "textColour"));
 		this.textOriginX          = yyGetReal(variable_struct_get(element_data, "textOriginX"));
-		this.textOriginY          = yyGetReal(variable_struct_get(element_data, "textOriginY"));
+		this.textOriginY		  = yyGetReal(variable_struct_get(element_data, "textOriginY"));
+		this.textOrigin			  = yyGetInt32(variable_struct_get(element_data, "textOrigin"));
 		this.textText             = yyGetString(variable_struct_get(element_data, "textText"));
 		this.textAlignment        = yyGetReal(variable_struct_get(element_data, "textAlignment"));
 		this.textCharacterSpacing = yyGetReal(variable_struct_get(element_data, "textCharacterSpacing"));
 		this.textLineSpacing      = yyGetReal(variable_struct_get(element_data, "textLineSpacing"));
 		this.textFrameWidth       = yyGetReal(variable_struct_get(element_data, "textFrameWidth"));
 		this.textFrameHeight      = yyGetReal(variable_struct_get(element_data, "textFrameHeight"));
-		this.textWrap             = yyGetBool(variable_struct_get(element_data, "textWrap"));
+		this.textWrap			  = yyGetBool(variable_struct_get(element_data, "textWrap"));
+		this.textWrapMode		  = yyGetInt32(variable_struct_get(element_data, "textWrapMode"));
 		this.textName             = undefined;
 
 		this.flexVisible    = yyGetBool(variable_struct_get(element_data, "flexVisible"));
@@ -2703,6 +2707,9 @@ UILayerTextElement.prototype.create_element = function(target_layer, run_instanc
 	NewTextItem.m_alpha = ((this.textColour >> 24) & 0xff) / 255.0;
 	NewTextItem.m_scaleX = this.textScaleX;
 	NewTextItem.m_scaleY = this.textScaleY;
+	NewTextItem.m_originX = this.textOriginX;
+	NewTextItem.m_originY = this.textOriginY;
+	NewTextItem.m_origin = this.textOrigin;
 	NewTextItem.m_text = this.textText;
 	NewTextItem.m_alignment = this.textAlignment;
 	NewTextItem.m_charSpacing = this.textCharacterSpacing;
@@ -2710,6 +2717,7 @@ UILayerTextElement.prototype.create_element = function(target_layer, run_instanc
 	NewTextItem.m_frameW = this.textFrameWidth;
 	NewTextItem.m_frameH = this.textFrameHeight;
 	NewTextItem.m_wrap = this.textWrap;
+	NewTextItem.m_wrapMode = this.textWrapMode;
 	NewTextItem.m_order = this.elementOrder;
 	NewTextItem.m_uiNode = this;
 
@@ -2944,14 +2952,16 @@ UILayerTextElement.prototype.serialise = function()
 	variable_struct_set(ret, "textAngle",            this.textAngle);
 	variable_struct_set(ret, "textColour",           this.textColour);
 	variable_struct_set(ret, "textOriginX",          this.textOriginX);
-	variable_struct_set(ret, "textOriginY",          this.textOriginY);
+	variable_struct_set(ret, "textOriginY",			 this.textOriginY);
+	variable_struct_set(ret, "textOrigin",			 this.textOrigin);
 	variable_struct_set(ret, "textText",             this.textText);
 	variable_struct_set(ret, "textAlignment",        this.textAlignment);
 	variable_struct_set(ret, "textCharacterSpacing", this.textCharacterSpacing);
 	variable_struct_set(ret, "textLineSpacing",      this.textLineSpacing);
 	variable_struct_set(ret, "textFrameWidth",       this.textFrameWidth);
 	variable_struct_set(ret, "textFrameHeight",      this.textFrameHeight);
-	variable_struct_set(ret, "textWrap",             this.textWrap);
+	variable_struct_set(ret, "textWrap",			 this.textWrap);
+	variable_struct_set(ret, "textWrapMode",		 this.textWrapMode);
 
 	variable_struct_set(ret, "flexVisible",   this.flexVisible);
 	variable_struct_set(ret, "flexAnchor",    this.flexAnchor);
