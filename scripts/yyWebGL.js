@@ -1567,10 +1567,10 @@ function WebGL_DrawSWFDictionaryItem(SWFDictionaryItems, _pItem, _combinedMat, _
                             var srcX4 = pSubShape.LineAAVectors[(index2 * 2) + 0],
                                 srcY4 = pSubShape.LineAAVectors[(index2 * 2) + 1];																	
 
-                            var x1 = (srcX1 * combinedMat.m[_11]) + (srcY1 * combinedMat.m[_21]) + combinedMat.m[_41],
-                                y1 = (srcX1 * combinedMat.m[_12]) + (srcY1 * combinedMat.m[_22]) + combinedMat.m[_42],
-                                x2 = (srcX2 * combinedMat.m[_11]) + (srcY2 * combinedMat.m[_21]) + combinedMat.m[_41],
-                                y2 = (srcX2 * combinedMat.m[_12]) + (srcY2 * combinedMat.m[_22]) + combinedMat.m[_42];
+                            var x1 = (srcX1 * _combinedMat.m[_11]) + (srcY1 * _combinedMat.m[_21]) + _combinedMat.m[_41],
+                                y1 = (srcX1 * _combinedMat.m[_12]) + (srcY1 * _combinedMat.m[_22]) + _combinedMat.m[_42],
+                                x2 = (srcX2 * _combinedMat.m[_11]) + (srcY2 * _combinedMat.m[_21]) + _combinedMat.m[_41],
+                                y2 = (srcX2 * _combinedMat.m[_12]) + (srcY2 * _combinedMat.m[_22]) + _combinedMat.m[_42];
 
                             // Scale offsets
                             srcX3 *= _aascale;
@@ -1579,10 +1579,10 @@ function WebGL_DrawSWFDictionaryItem(SWFDictionaryItems, _pItem, _combinedMat, _
                             srcX4 *= _aascale;
                             srcY4 *= _aascale;
 
-                            var x3 = (srcX3 * combinedMat.m[_11]) + (srcY3 * combinedMat.m[_21]) + x1,
-                                y3 = (srcX3 * combinedMat.m[_12]) + (srcY3 * combinedMat.m[_22]) + y1,
-                                x4 = (srcX4 * combinedMat.m[_11]) + (srcY4 * combinedMat.m[_21]) + x2,
-                                y4 = (srcX4 * combinedMat.m[_12]) + (srcY4 * combinedMat.m[_22]) + y2;
+                            var x3 = (srcX3 * _combinedMat.m[_11]) + (srcY3 * _combinedMat.m[_21]) + x1,
+                                y3 = (srcX3 * _combinedMat.m[_12]) + (srcY3 * _combinedMat.m[_22]) + y1,
+                                x4 = (srcX4 * _combinedMat.m[_11]) + (srcY4 * _combinedMat.m[_21]) + x2,
+                                y4 = (srcX4 * _combinedMat.m[_12]) + (srcY4 * _combinedMat.m[_22]) + y2;
                             
                             
                             // tri 1	
