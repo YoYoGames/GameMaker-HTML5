@@ -1325,7 +1325,8 @@ function flexpanel_node_set_measure_function( _selfinst, _node, _func )
 			measure: function(width, widthMode, height, heightMode)
 			{
 				var s = this.func( this.obj, this.obj, width, widthMode, height, heightMode);
-				return { "width" : variable_struct_get( s, "width" ),  "height" : variable_struct_get( s, "height") };
+				var ret =  { "width" : variable_struct_get( s, "width" ),  "height" : variable_struct_get( s, "height") };
+				return ret;
 			},
 		});		
 		_node.setMeasureFunc( new flexpanel_node_MeasureCallbackWrapper( _node, obj, func));
