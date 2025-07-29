@@ -319,8 +319,7 @@ yySprite.prototype.SetBoundingBoxMode = function(bboxmode)
 		return;
 	}
 
-	this.bboxmode = bboxmode;
-	this.ComputeBoundingBox();
+	this.bboxmode = bboxmode;	
 	this.MarkInstancesAsDirty();
 };
 
@@ -342,7 +341,7 @@ yySprite.prototype.SetBoundingBox = function(bbox)
 	}
 };
 
-yySprite.prototype.ComputeBoundingBox = function()
+yySprite.prototype.ComputeBoundingBox = function(_tolerance)
 {
 	if (this.bboxmode == 0 /* bboxmode_automatic */)
 	{
