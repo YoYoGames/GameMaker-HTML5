@@ -35,6 +35,8 @@ function video_open(path)
 
     if (gameCanvas.yyvideoplayer == null) {
         gameCanvas.yyvideoplayer = document.createElement('video');
+        gameCanvas.yyvideoplayer.setAttribute('webkit-playsinline', 'true');
+        gameCanvas.yyvideoplayer.setAttribute('playsinline', 'true');
     }
     else {
         gameCanvas.yyvideoplayer.pause();
