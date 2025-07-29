@@ -3649,6 +3649,7 @@ function audio_free_play_queue(_queueId)
     queue_sounds[queueSoundId].bQueued = false;
     queue_sounds[queueSoundId] = undefined;
     delete queue_sounds[queueSoundId];
+    --g_queueSoundCount;
     return 0;
 }
 
