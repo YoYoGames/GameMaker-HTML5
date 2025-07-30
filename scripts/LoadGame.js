@@ -659,12 +659,12 @@ function AddCollision(ID1, pObj) {
 		// Now check all parents to see if THEY collide with the desired object
 		var found = false;
 		var pCheck = pObj;
-		while (pCheck !== null)
+		while (pCheck !== null && pCheck!==undefined)
 		{
 			var id = pCheck.ID;				// get parent ID
 
 			var pCheck2 = g_pObjectManager.Get(ID2);
-			while (pCheck2 !== null)
+			while (pCheck2 !== null && pCheck2!==undefined)
 			{
 				var iid = pCheck2.ID;
 				// Check to see if the object we're hitting, can hit US OR of our parents!
