@@ -659,12 +659,12 @@ function AddCollision(ID1, pObj) {
 		// Now check all parents to see if THEY collide with the desired object
 		var found = false;
 		var pCheck = pObj;
-		while (pCheck !== null)
+		while (pCheck !== null && pCheck!==undefined)
 		{
 			var id = pCheck.ID;				// get parent ID
 
 			var pCheck2 = g_pObjectManager.Get(ID2);
-			while (pCheck2 !== null)
+			while (pCheck2 !== null && pCheck2!==undefined)
 			{
 				var iid = pCheck2.ID;
 				// Check to see if the object we're hitting, can hit US OR of our parents!
@@ -863,12 +863,26 @@ function LoadGame(_GameFile)
 	//g_MD5CRC = CalcArrayCRC(g_MD5);
 
     g_pRoomManager.SetRoomOrder( _GameFile.RoomOrder );
+    var firstRoom = _GameFile.RoomOrder.length;
+    var lastRoom = -1;
+    var firstRoomID = 0;
+    var lastRoomID = 0;
     for(i=0;i<_GameFile.RoomOrder.length;i++){
         pRoom = g_pRoomManager.GetOrder( i );
-        pRoom.actualroom=i;
+        if (pRoom) {
+       		pRoom.actualroom=i;
+       		if (firstRoom > i) {
+       			firstRoom = i;
+       			firstRoomID = pRoom.id;
+       		} 
+       		if (lastRoom < i) {
+       			lastRoom = i;
+       			lastRoomID = pRoom.id;
+       		} // end if
+       	} // end if
     }
-    g_pBuiltIn.room_first =  g_pRoomManager.GetOrder( 0 ).id;
-    g_pBuiltIn.room_last = g_pRoomManager.GetOrder( g_pRoomManager.m_RoomOrder.length-1 ).id;
+    g_pBuiltIn.room_first =  firstRoomID;
+    g_pBuiltIn.room_last = lastRoomID;
     g_pCameraManager.SetInitialLoadHighPoint();
 
 

@@ -348,14 +348,16 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                     variable_struct_set( element, "x", sourceLayer.textitems[assetIdx].sX);
                                     variable_struct_set( element, "y", sourceLayer.textitems[assetIdx].sY);
                                     variable_struct_set( element, "xorigin", sourceLayer.textitems[assetIdx].sXOrigin);
-                                    variable_struct_set( element, "yorigin", sourceLayer.textitems[assetIdx].sYOrigin);
+                                    variable_struct_set(element, "yorigin", sourceLayer.textitems[assetIdx].sYOrigin);
+                                    variable_struct_set(element, "origin", sourceLayer.textitems[assetIdx].sOrigin);
                                     variable_struct_set( element, "h_align", sourceLayer.textitems[assetIdx].sAlignment & 0xff);
                                     variable_struct_set( element, "v_align", (sourceLayer.textitems[assetIdx].sAlignment >> 8) & 0xff);
                                     variable_struct_set( element, "char_spacing", sourceLayer.textitems[assetIdx].sCharSpacing);
                                     variable_struct_set( element, "line_spacing", sourceLayer.textitems[assetIdx].sLineSpacing);
                                     variable_struct_set( element, "frame_width", sourceLayer.textitems[assetIdx].sFrameW);
                                     variable_struct_set( element, "frame_height", sourceLayer.textitems[assetIdx].sFrameH);
-                                    variable_struct_set( element, "wrap", sourceLayer.textitems[assetIdx].sWrap);
+                                    variable_struct_set(element, "wrap", sourceLayer.textitems[assetIdx].sWrap);
+                                    variable_struct_set(element, "wrap_mode", sourceLayer.textitems[assetIdx].sWrapMode);
                                     variable_struct_set( element, "xscale", sourceLayer.textitems[assetIdx].sXScale);
                                     variable_struct_set( element, "yscale", sourceLayer.textitems[assetIdx].sYScale);
                                     variable_struct_set( element, "blend", sourceLayer.textitems[assetIdx].sBlend & 0x00ffffff );
@@ -734,6 +736,8 @@ function room_instance_add(_ind,_x,_y,_obj)
             y: yyGetReal(_y), 
             index: yyGetInt32(_obj), 
             id: instance_id };
+
+        pRoom.m_creationOrder.push(pRoom.m_pStorage.pInstances[instanceIndex]);
 
 		return MAKE_REF(REFID_INSTANCE, instance_id);
 	}

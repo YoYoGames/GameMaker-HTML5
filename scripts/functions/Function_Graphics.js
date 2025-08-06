@@ -2666,7 +2666,12 @@ function draw_enable_swf_aa(_flag) {
 // #############################################################################################
 function draw_set_swf_aa_level(_aalevel) {
 
-    GR_SWFAAScale = yyGetReal(_aalevel);
+    var aalevel = yyGetReal(_aalevel);
+    if (aalevel < 0.0)
+        aalevel = 0.0;
+    else if (aalevel > 1.0)
+        aalevel = 1.0;
+    GR_SWFAAScale = aalevel;
 };
 
 // #############################################################################################

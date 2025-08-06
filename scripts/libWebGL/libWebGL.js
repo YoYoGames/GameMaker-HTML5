@@ -422,6 +422,7 @@ function yyWebGL(_canvas, _options) {
     
         m_VBufferManager.Flush();
         m_CommandBuilder.SetViewPort(_portx, _porty, _portw, _porth);
+        g_scissorRect = { x: _portx, y: _porty, w: _portw, h: _porth };
     };            
 
     // #############################################################################################
@@ -433,6 +434,7 @@ function yyWebGL(_canvas, _options) {
     
         m_VBufferManager.Flush();
         m_CommandBuilder.SetScissor(_x, _y, _w, _h);
+        g_scissorRect = { x: _x, y: _y, w: _w, h: _h };
     };            
 
     // #############################################################################################

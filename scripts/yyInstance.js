@@ -18,6 +18,11 @@ var Current_Event_Type = -1;
 var Current_Event_Number = -1;
 var g_currentCreateCounter = 0;
 
+var CollisionDomain = {
+	ROOM: 0,
+	UI_VIEW_LAYER: 1,
+	UI_GUI_LAYER: 2,
+};
 
 // #############################################################################################
 /// Function:<summary>
@@ -141,6 +146,8 @@ function    yyInstance( _xx, _yy, _id, _objectind, _AddObjectLink, _create_dummy
     }
 	this.m_nLayerID = -1;
 	this.m_bOnActiveLayer = false;
+	this.m_bOnUILayer = false;
+	this.m_bInGUISpace = false;
 }
 
 yyInstance.prototype = {
@@ -2051,10 +2058,24 @@ yyInstance.prototype.Collision_Line = function (_x1, _y1, _x2, _y2, _prec) {
 
 	// easy cases first    
 	var i_bbox = this.bbox;
-	if (yymin(_x1, _x2) >= i_bbox.right + 1) { return false; }
-	if (yymax(_x1, _x2) < i_bbox.left) { return false; }
-	if (yymin(_y1, _y2) >= i_bbox.bottom + 1) { return false; }
-	if (yymax(_y1, _y2) < i_bbox.top) { return false; }
+	var Result = false;
+	var col_delta = -0.00001; //To avoid floating point inaccuracies
+	if (g_Collision_Compatibility_Mode)
+	{
+		col_delta = 1.0; //or in compat mode to go back to how it was
+		if (yymin(_x1, _x2) >= i_bbox.right + col_delta) return Result;
+		if (yymax(_x1, _x2) < i_bbox.left) return Result;
+		if (yymin(_y1, _y2) >= i_bbox.bottom + col_delta) return Result;
+		if (yymax(_y1, _y2) < i_bbox.top) return Result;
+	}
+	else
+	{
+		if (yymin(_x1, _x2) >= i_bbox.right) return Result;
+		if (yymax(_x1, _x2) < i_bbox.left) return Result;
+		if (yymin(_y1, _y2) >= i_bbox.bottom) return Result;
+		if (yymax(_y1, _y2) < i_bbox.top) return Result;
+	}
+
 
 	// now check whether we intersect the bounding box
 	// make sure line runs from left to right
@@ -2077,16 +2098,22 @@ yyInstance.prototype.Collision_Line = function (_x1, _y1, _x2, _y2, _prec) {
 	}
 
 	// shift right end point
-	if (_x2 > (i_bbox.right + 1))
+	if (_x2 > (i_bbox.right +col_delta))
 	{
-		_y2 = _y2 + (i_bbox.right + 1 - _x2) * (_y2 - _y1) / (_x2 - _x1);   // x2 cannot be x1
-		_x2 = i_bbox.right + 1;
+		_y2 = _y2 + (i_bbox.right +col_delta - _x2) * (_y2 - _y1) / (_x2 - _x1);   // x2 cannot be x1
+		_x2 = i_bbox.right +col_delta;
 	}
 
 	// check whether part lies outside
 	if ((_y1 < i_bbox.top) && (_y2 < i_bbox.top)) { return false; }
-	if ((_y1 >= i_bbox.bottom + 1) && (_y2 >= i_bbox.bottom + 1)) { return false; }
-
+	if (g_Collision_Compatibility_Mode)
+	{
+		if ((_y1 >= i_bbox.bottom + col_delta) && (_y2 >= i_bbox.bottom + col_delta)) return Result;
+	}
+	else
+	{
+		if ((_y1 > i_bbox.bottom ) && (_y2 > i_bbox.bottom)) return Result;
+	}
 	// @if feature("sprites")
 		var pSpr;
 	    if (this.mask_index < 0) {
@@ -3248,7 +3275,25 @@ yyInstance.prototype.GetLayerID=function()	{ return this.m_nLayerID; };
 yyInstance.prototype.SetLayerID=function(_layerID)	{ this.m_nLayerID = _layerID; };
 yyInstance.prototype.GetOnActiveLayer=function() { return this.m_bOnActiveLayer; };
 yyInstance.prototype.SetOnActiveLayer=function( _onLayer)	{ this.m_bOnActiveLayer = _onLayer; };
+yyInstance.prototype.GetOnUILayer = function() { return this.m_bOnUILayer; };
+yyInstance.prototype.SetOnUILayer = function(_onUILayer) { this.m_bOnUILayer = _onUILayer; };
+yyInstance.prototype.GetInGUISpace = function() { return this.m_bInGUISpace; };
+yyInstance.prototype.SetInGUISpace = function(_inGUISpace) { this.m_bInGUISpace = _inGUISpace; };
 
+yyInstance.prototype.GetCollisionDomain = function()
+{
+	if(this.GetInGUISpace())
+	{
+		return CollisionDomain.UI_GUI_LAYER;
+	}
+	else if(this.GetOnUILayer())
+	{
+		return CollisionDomain.UI_VIEW_LAYER;
+	}
+	else{
+		return CollisionDomain.ROOM;
+	}
+};
 
 // #############################################################################################
 /// Function:<summary>

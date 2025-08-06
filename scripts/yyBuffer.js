@@ -2954,6 +2954,15 @@ function buffer_get_surface_depth(_buffer, _surface, _offset)
     return false;
 }
 
+function buffer_get_used_size(_index)
+{
+    var pBuff = g_BufferStorage.Get(yyGetInt32(_index));
+
+    if (!pBuff) return eBuffer_UnknownBuffer;
+    return pBuff.m_UsedSize;
+
+}
+
 function buffer_set_used_size(_index, _size)
 {
 

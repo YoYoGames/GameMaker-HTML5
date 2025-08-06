@@ -116,7 +116,7 @@ yyEffectInfo.prototype.SetupFromJson = function (_json)
 
 	if(this.type == FAE_TYPE_EFFECT)
 	{
-		this.pScriptOrShaderName = jsonObj.name;
+		this.pScriptOrShaderName = jsonObj.scriptname;
 	}
 	else
 	{

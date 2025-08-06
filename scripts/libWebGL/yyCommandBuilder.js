@@ -191,8 +191,7 @@ function yyCommandBuilder(_interpolatePixels) {
 	    m_lastTexture = [];
 	    m_lastVBuffer = undefined;
 	    m_lastShader = undefined;
-        m_scissor = { x : 0, y : 0, w : 0, h : 0 };
-	    
+        g_scissorRect = { x : 0, y : 0, w : 0, h : 0 };
 	    m_lastTexture[0] = 1; 	// can't be NULL as thats a FLAT texture
 	    m_lastTexture[1] = 1;
     };
@@ -1423,12 +1422,6 @@ function yyCommandBuilder(_interpolatePixels) {
                     {
                         gl.viewport(m_commandList[i + 1], m_commandList[i + 2], m_commandList[i + 3], m_commandList[i + 4]);
                         gl.scissor(m_commandList[i + 1], m_commandList[i + 2], m_commandList[i + 3], m_commandList[i + 4]);
-                        m_scissor = { 
-                            x : m_commandList[i + 1], 
-                            y : m_commandList[i + 2],
-                            w : m_commandList[i + 3], 
-                            h : m_commandList[i + 4] 
-                        };
                         i += 5;
                         break;
                     }
@@ -1436,12 +1429,6 @@ function yyCommandBuilder(_interpolatePixels) {
                 case CMD_SETSCISSOR:
                     {
                         gl.scissor(m_commandList[i + 1], m_commandList[i + 2], m_commandList[i + 3], m_commandList[i + 4]);
-                        m_scissor = { 
-                            x : m_commandList[i + 1], 
-                            y : m_commandList[i + 2],
-                            w : m_commandList[i + 3], 
-                            h : m_commandList[i + 4] 
-                        };
                         i += 5;
                         break;
                     }

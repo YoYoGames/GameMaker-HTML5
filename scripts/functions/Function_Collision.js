@@ -17,30 +17,52 @@
 
 function Command_CollisionPoint(_pInst,_x,_y,_obj,_prec,_notme)
 {
-    return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x, _y, _prec,  
-        function( _pInstance )
-        {
-            var coll = _pInstance.Collision_Point(_x,_y,_prec);
-            if (!coll) {
-                return OBJECT_NOONE;
-            }
-            return MAKE_REF(REFID_INSTANCE, _pInstance.id);
-        }
-    );
+	return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x, _y, _prec,
+		function( _pInstance )
+		{
+			
+
+			var coll = _pInstance.Collision_Point(_x,_y,_prec);
+			if (!coll) {
+				return OBJECT_NOONE;
+			}
+			return MAKE_REF(REFID_INSTANCE, _pInstance.id);
+		}
+	);
 };
 
 
 function Command_CollisionPointList(_pInst,_x,_y,_obj,_prec,_notme,_list)
 {
-    Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x, _y, _prec,  
-        function( _pInstance ) {
-            if (_pInstance.Collision_Point(_x,_y,_prec)) {
-                _list.push(MAKE_REF(REFID_INSTANCE, _pInstance.id));
-            }
-            return OBJECT_NOONE;
-        }
-    );
+	Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x, _y, _prec,
+		function( _pInstance ) {
+			
+
+			if (_pInstance.Collision_Point(_x,_y,_prec)) {
+				_list.push(MAKE_REF(REFID_INSTANCE, _pInstance.id));
+			}
+			return OBJECT_NOONE;
+		}
+	);
 };
+
+function GetCollisionDomainForContext(_ind)
+{
+
+	var isInstance = ((_ind instanceof YYRef) && (_ind.type == REFID_PART_SYSTEM));
+
+	if(isInstance)
+	{
+		return _ind.GetCollisionDomain();
+	}
+
+	return CollisionDomain.ROOM;
+
+
+}
+
+
+
 // #############################################################################################
 /// Function:<summary>
 ///          	This function tests whether at point (x,y) there is a collision with entities of 
@@ -221,14 +243,19 @@ function collision_point_list(_pInst, _x, _y, _obj, _prec, _notme, _list, _order
 function Command_CollisionRectangle(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 {
 	return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
-        function (_pInstance) {
-        	var coll = _pInstance.Collision_Rectangle(_x1, _y1, _x2, _y2, _prec);
-        	if (!coll) {
-        	    return OBJECT_NOONE;
-        	}
-        	return MAKE_REF(REFID_INSTANCE, _pInstance.id);
-        }
-    );
+		function (_pInstance) {
+			if(_pInstance.GetCollisionDomain() != GetCollisionDomainForContext(_pInst))
+			{
+				return OBJECT_NOONE;
+			}
+
+			var coll = _pInstance.Collision_Rectangle(_x1, _y1, _x2, _y2, _prec);
+			if (!coll) {
+				return OBJECT_NOONE;
+			}
+			return MAKE_REF(REFID_INSTANCE, _pInstance.id);
+		}
+	);
 
 };
 
@@ -427,42 +454,52 @@ function collision_circle_list(_pInst, _xc,_yc,_radius,_obj,_prec,_notme,_list,_
 };
 function Command_CollisionEllipse(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 {
-    _x1 = yyGetReal(_x1);
-    _y1 = yyGetReal(_y1);
-    _x2 = yyGetReal(_x2);
-    _y2 = yyGetReal(_y2);
-    _prec = yyGetBool(_prec);
+	_x1 = yyGetReal(_x1);
+	_y1 = yyGetReal(_y1);
+	_x2 = yyGetReal(_x2);
+	_y2 = yyGetReal(_y2);
+	_prec = yyGetBool(_prec);
 
-	return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,  
-        function(_pInstance) 
-        {
-            var coll = _pInstance.Collision_Ellipse(_x1,_y1,_x2,_y2,_prec);
-        	if (!coll) {
-        	    return OBJECT_NOONE;
-        	}
-        	return MAKE_REF(REFID_INSTANCE, _pInstance.id);
-        }
-    );
+	return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
+		function(_pInstance)
+		{
+			if(_pInstance.GetCollisionDomain() != GetCollisionDomainForContext(_pInst))
+			{
+				return OBJECT_NOONE;
+			}
+
+			var coll = _pInstance.Collision_Ellipse(_x1,_y1,_x2,_y2,_prec);
+			if (!coll) {
+				return OBJECT_NOONE;
+			}
+			return MAKE_REF(REFID_INSTANCE, _pInstance.id);
+		}
+	);
 };
 
 function Command_CollisionEllipseList(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,_list)
 {
-    _x1 = yyGetReal(_x1);
-    _y1 = yyGetReal(_y1);
-    _x2 = yyGetReal(_x2);
-    _y2 = yyGetReal(_y2);
-    _prec = yyGetBool(_prec);
+	_x1 = yyGetReal(_x1);
+	_y1 = yyGetReal(_y1);
+	_x2 = yyGetReal(_x2);
+	_y2 = yyGetReal(_y2);
+	_prec = yyGetBool(_prec);
 
-	return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,  
-        function(_pInstance) 
-        {
-            if(_pInstance.Collision_Ellipse(_x1,_y1,_x2,_y2,_prec))
-        	{
-                _list.push(MAKE_REF(REFID_INSTANCE, _pInstance.id));
-            }
-            return OBJECT_NOONE;
-        }
-    );
+	return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
+		function(_pInstance)
+		{
+			if(_pInstance.GetCollisionDomain() != GetCollisionDomainForContext(_pInst))
+			{
+				return OBJECT_NOONE;
+			}
+
+			if(_pInstance.Collision_Ellipse(_x1,_y1,_x2,_y2,_prec))
+			{
+				_list.push(MAKE_REF(REFID_INSTANCE, _pInstance.id));
+			}
+			return OBJECT_NOONE;
+		}
+	);
 };
 // #############################################################################################
 /// Function:<summary>
@@ -594,27 +631,37 @@ function collision_ellipse_list(_pInst, _x1, _y1, _x2, _y2, _obj, _prec, _notme,
 };
 function Command_CollisionLine(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme)
 {
-    return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
-        function(_pInstance) 
-        {
-            var coll = _pInstance.Collision_Line(_x1, _y1, _x2, _y2, _prec);
-        	if (!coll) {
-        	    return OBJECT_NOONE;        	
-        	}
-        	return MAKE_REF(REFID_INSTANCE, _pInstance.id);
-        }
-    );
+	return Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
+		function(_pInstance)
+		{
+			if(_pInstance.GetCollisionDomain() != GetCollisionDomainForContext(_pInst))
+			{
+				return OBJECT_NOONE;
+			}
+
+			var coll = _pInstance.Collision_Line(_x1, _y1, _x2, _y2, _prec);
+			if (!coll) {
+				return OBJECT_NOONE;
+			}
+			return MAKE_REF(REFID_INSTANCE, _pInstance.id);
+		}
+	);
 };
 function Command_CollisionLineList(_pInst, _x1,_y1,_x2,_y2,_obj,_prec,_notme,_list)
 {
-    Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
-        function(_pInstance) {
-            if (_pInstance.Collision_Line(_x1, _y1, _x2, _y2, _prec)) {
-                _list.push(MAKE_REF(REFID_INSTANCE, _pInstance.id));
-            }
-        	return OBJECT_NOONE;
-        }
-    );
+	Instance_SearchLoop(_pInst, yyGetInt32(_obj), yyGetBool(_notme), OBJECT_NOONE, _x1, _y1, _x2, _y2, _prec,
+		function(_pInstance) {
+			if(_pInstance.GetCollisionDomain() != GetCollisionDomainForContext(_pInst))
+			{
+				return OBJECT_NOONE;
+			}
+
+			if (_pInstance.Collision_Line(_x1, _y1, _x2, _y2, _prec)) {
+				_list.push(MAKE_REF(REFID_INSTANCE, _pInstance.id));
+			}
+			return OBJECT_NOONE;
+		}
+	);
 };
 // #############################################################################################
 /// Function:<summary>

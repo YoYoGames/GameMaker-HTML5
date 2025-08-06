@@ -1015,6 +1015,7 @@ function    yyIOManager( )
 	this.ButtonDown = [];						// Whether the mouse button is down
 	this.ButtonReleased = [];					// Whether the mouse button was released
 	this.ButtonPressed = [];					// Whether the mouse button was pressed
+	this.ButtonCleared = [];					// Whether the mouse button has been "cleared" (suppressed) from GML
 	this.WheelDown = this.WheelUp = false;
 	    
 	this.KeyMap = [];						    // Translation map for keys
@@ -1031,7 +1032,7 @@ function    yyIOManager( )
         this.KeyMap[l] = l;
     }
     for(var l=0;l<MAX_BUTTONS;l++){
-        this.ButtonDown[l]= this.ButtonReleased[l]= this.ButtonPressed[l]=false;
+        this.ButtonDown[l]= this.ButtonReleased[l]= this.ButtonPressed[l] = this.ButtonCleared[l] = 0;
     }
 
     this.Update = IO_Update;
@@ -1585,9 +1586,10 @@ function  Button_Clear(_button)
     _button--;
 	if ( _button>=0 && _button<MAX_BUTTONS ) 
 	{
-	    this.ButtonDown[_button] = false;
-	    this.ButtonPressed[_button] = false;
-	    this.ButtonReleased[_button] = false;
+	    this.ButtonDown[_button] = 0;
+	    this.ButtonPressed[_button] = 0;
+	    this.ButtonReleased[_button] = 0;
+	    this.ButtonCleared[_button] = 1;
     }
 }
 
@@ -1608,10 +1610,11 @@ function  Button_Clear_All()
 
 	for(var i=0; i<=MAX_BUTTONS; i++ ){
 	
-	    this.ButtonDown[i] = false;
-	    this.ButtonPressed[i] = false;
-	    this.ButtonReleased[i] = false;
-	}		
+	    this.ButtonDown[i] = 0;
+	    this.ButtonPressed[i] = 0;
+	    this.ButtonReleased[i] = 0;
+	    this.ButtonCleared[i] = 1;
+	}
 	this.WheelUp = false;
 	this.WheelDown = false;
 	
@@ -1733,87 +1736,26 @@ function    IO_Update()
     this.MouseY = g_EventMouseY;
     this.m_DoMouseButton = g_EventButtons;    
     
-    // LEFT mouse button.
-    if ((this.m_DoMouseButton & 1) != 0)
-    {
-        this.ButtonDown[0] = 1;        
-        if (((this.m_DoMouseButton_Last ^ this.m_DoMouseButton) & 0x1) != 0)
-        {
-        	this.ButtonPressed[0] = 1;        	
-		}
-	}
-	else {
-        this.ButtonDown[0] = 0;        
-        if (((this.m_DoMouseButton_Last ^ this.m_DoMouseButton) & 0x1) != 0)
-        {
-        	this.ButtonReleased[0] = 1;
-		}
-	}
-    	
-	// Right mouse button.
-    if ((this.m_DoMouseButton & 2) != 0)
-    {
-        this.ButtonDown[1] = 1;        
-        if (((this.m_DoMouseButton_Last ^ this.m_DoMouseButton) & 0x2) != 0)
-        {
-        	this.ButtonPressed[1] = 1;
-		}
-	}
-	else {
-        this.ButtonDown[1] = 0;        
-        if (((this.m_DoMouseButton_Last ^ this.m_DoMouseButton) & 0x2) != 0)
-        {
-        	this.ButtonReleased[1] = 1;
-		}
-	}
-	    
-	// Middle mouse button.
-    if ((this.m_DoMouseButton & 4) != 0)
-    {
-        this.ButtonDown[2] = 1;        
-        if (((this.m_DoMouseButton_Last ^ this.m_DoMouseButton) & 0x4) != 0)
-        {
-        	this.ButtonPressed[2] = 1;
-		}
-	}
-	else {
-        this.ButtonDown[2] = 0;        
-        if (((this.m_DoMouseButton_Last ^ this.m_DoMouseButton) & 0x4) != 0)
-        {
-        	this.ButtonReleased[2] = 1;
-		}
-	}
+	for(var i = 0; i < MAX_BUTTONS; ++i)
+	{
+		if ((this.m_DoMouseButton & (1 << i)) != 0)
+		{
+			if (((this.m_DoMouseButton_Last ^ this.m_DoMouseButton) & (1 << i)) != 0)
+			{
+				this.ButtonPressed[i] = 1;
+				this.ButtonCleared[i] = 0;
+			}
 
-	// side1 mouse button.
-    if ((this.m_DoMouseButton & 8) != 0)
-    {
-        this.ButtonDown[3] = 1;        
-        if (((this.m_DoMouseButton_Last ^ this.m_DoMouseButton) & 0x8) != 0)
-        {
-        	this.ButtonPressed[3] = 1;
+			this.ButtonDown[i] = !(this.ButtonCleared[i]);
 		}
-	}
-	else {
-        this.ButtonDown[3] = 0;        
-        if (((this.m_DoMouseButton_Last ^ this.m_DoMouseButton) & 0x8) != 0)
-        {
-        	this.ButtonReleased[3] = 1;
-		}
-	}
-	// side2 mouse button.
-    if ((this.m_DoMouseButton & 16) != 0)
-    {
-        this.ButtonDown[4] = 1;        
-        if (((this.m_DoMouseButton_Last ^ this.m_DoMouseButton) & 0x10) != 0)
-        {
-        	this.ButtonPressed[4] = 1;
-		}
-	}
-	else {
-        this.ButtonDown[4] = 0;        
-        if (((this.m_DoMouseButton_Last ^ this.m_DoMouseButton) & 0x10) != 0)
-        {
-        	this.ButtonReleased[4] = 1;
+		else {
+			this.ButtonDown[i] = 0;
+
+			if (((this.m_DoMouseButton_Last ^ this.m_DoMouseButton) & (1 << i)) != 0)
+			{
+				this.ButtonReleased[i] = 1;
+				this.ButtonCleared[i] = 0;
+			}
 		}
 	}
 
@@ -1957,7 +1899,10 @@ function  EventHandleKeyPressed(key_pressed)
 	{
 		// get the object
 		var pInst = pool[o];
-		if (pInst.marked) {
+
+		// Instances can be removed from the active pool midway through a keypress event
+		// so we end up with holes in the m_Active in the current loop.
+		if (!pInst || pInst.marked) {
 		    continue;
 		}
 		
@@ -2139,8 +2084,8 @@ function    IO_StartStep()
 
         
     for(var i=0;i<=MAX_BUTTONS;i++) {
-        this.ButtonPressed[i] = false;
-        this.ButtonReleased[i] = false;
+        this.ButtonPressed[i] = 0;
+        this.ButtonReleased[i] = 0;
     }
     this.WheelUp = false;
     this.WheelDown = false;

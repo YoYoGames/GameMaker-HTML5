@@ -108,6 +108,7 @@ function audio_update()
         return;
 
     // Update and apply gains
+    audio_emitters.forEach(_emitter => _emitter.updateGain());
     g_AudioGroups.forEach(_group => _group.gain.update());
     audio_sampledata.forEach(_asset => {
         if (_asset != null) {
@@ -1557,7 +1558,7 @@ function audio_sound_get_gain(_index)
     return 0;
 }
 
-function audio_sound_gain(_index, _gain, _timeMs)
+function audio_sound_gain(_index, _gain, _timeMs = 0)
 {
     _index = yyGetInt32(_index);
 
@@ -2398,17 +2399,17 @@ function audio_get_master_gain( _listenerId )
 }
 
 /* Sets the gain of an emitter. Also updates any voices playing on the emitter. */
-function audio_emitter_gain(_emitterIndex, _gain) {
+function audio_emitter_gain(_emitterIndex, _gain, _timeMs = 0) {
     const emitter = Audio_GetEmitterOrThrow(_emitterIndex);
 
     if (emitter === undefined)
         return;
 
     _gain = yyGetReal(_gain);
-    _gain = Math.max(0.0, _gain);
+    _timeMs = yyGetInt32(_timeMs);
 
     /* Voice gain is updated in audio_update() */
-    emitter.gainnode.gain.value = _gain;
+    emitter.setGain(_gain, _timeMs);
 }
 
 /* Retrieves the gain of an emitter. */
@@ -2418,7 +2419,7 @@ function audio_emitter_get_gain(_emitterIndex) {
     if (emitter === undefined)
         return 0.0;
 
-    return emitter.gainnode.gain.value;
+    return emitter.getGain();
 }
 
 /* Sets the pitch of an emitter. Also updates any voices playing on the emitter. */
@@ -3097,7 +3098,7 @@ function audio_group_stop_all( _groupId )
     audio_group_stop_sounds( yyGetInt32(_groupId) );
 }
 
-function audio_group_set_gain(_groupId, _gain, _timeMs)
+function audio_group_set_gain(_groupId, _gain, _timeMs = 0)
 {
     _groupId = yyGetInt32(_groupId);
     _gain = yyGetReal(_gain);
@@ -3648,6 +3649,7 @@ function audio_free_play_queue(_queueId)
     queue_sounds[queueSoundId].bQueued = false;
     queue_sounds[queueSoundId] = undefined;
     delete queue_sounds[queueSoundId];
+    --g_queueSoundCount;
     return 0;
 }
 
@@ -3715,6 +3717,9 @@ function audio_start_recording(_deviceNum)
         gRecorder = g_WebAudioContext.createScriptProcessor(block_size, 1, 1);
         gRecorder.wavBuffer = buffer_create(block_size * 2, eBuffer_Format_Fast, 1);
         gRecorder.onaudioprocess = function(audioProcessingEvent) {
+            if (gRecorder === undefined || !gRecording) {
+                return;
+            }
 
             var inputBuffer = audioProcessingEvent.inputBuffer;
 
@@ -3735,15 +3740,12 @@ function audio_start_recording(_deviceNum)
                     ++samples_written;
                 }
 
-                if (gRecording)
-                {
-                    var map = ds_map_create();
-                    g_pBuiltIn.async_load = map;
-                    ds_map_add(map, "buffer_id", gRecorder.wavBuffer );
-                    ds_map_add(map, "channel_index", 0);
-                    ds_map_add(map, "data_len", samples_written * 2 );
-                    g_pObjectManager.ThrowEvent(EVENT_OTHER_AUDIO_RECORDING,0);   
-                }
+                var map = ds_map_create();
+                g_pBuiltIn.async_load = map;
+                ds_map_add(map, "buffer_id", gRecorder.wavBuffer);
+                ds_map_add(map, "channel_index", 0);
+                ds_map_add(map, "data_len", samples_written * 2 );
+                g_pObjectManager.ThrowEvent(EVENT_OTHER_AUDIO_RECORDING,0);   
             }
         };
 
@@ -3754,11 +3756,10 @@ function audio_start_recording(_deviceNum)
                 // success callback
                 function(stream)
                 {
-                    var source = g_WebAudioContext.createMediaStreamSource(stream);
-                    source.connect(gRecorder);
-                    var gainNode = Audio_CreateGainNode(g_WebAudioContext);
-                    gRecorder.connect(gainNode);
-                    gainNode.connect(g_WebAudioContext.destination);
+                    gRecorder.source = g_WebAudioContext.createMediaStreamSource(stream);
+                    gRecorder.source.connect(gRecorder);
+                    gRecorder.connect(g_WebAudioContext.destination);
+                    gRecorder.stream = stream;
                 },
                 // failure callback
                 function(err)
@@ -3775,6 +3776,14 @@ function audio_start_recording(_deviceNum)
 
 function audio_stop_recording(_deviceNum)
 {
+    if (gRecorder !== undefined) {
+        gRecorder.disconnect();
+        gRecorder.source.disconnect();
+        gRecorder.stream.getTracks().forEach(track => track.stop());
+        buffer_delete(gRecorder.wavBuffer);
+        gRecorder = undefined;
+    }
+
     gRecording = false;
 }
 

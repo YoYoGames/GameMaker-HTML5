@@ -80,7 +80,8 @@ var g_circleSteps = 36,
     g_circleCos = [],
     g_circleSin = [];
 
-var offsethackGL = 0.5;
+var offsethackD3D = 1.0;
+var offsethackGL = 0.0;
 
 var g_extAnisotropic = null;
 var g_extTextureHalfFloat = null;
@@ -149,6 +150,7 @@ function InitWebGLFunctions() {
     Graphics_TextureDrawSimple = WebGL_TextureDrawSimple_RELEASE;
     Graphics_TextureDrawTiled = WebGL_TextureDrawTiled_RELEASE;
     Graphics_TextureDraw = WebGL_TextureDraw_RELEASE;
+    Graphics_TextureDrawWH = WebGL_TextureDrawWH_RELEASE;
     // @if function("draw_sprite_pos")
     Graphics_TextureDrawPos = WebGL_TextureDrawPos_RELEASE;
     // @endif
@@ -277,6 +279,9 @@ function InitWebGLFunctions() {
     PostInitWebGLFunctions();	    	
 }
 
+var     g_scissorRect = { x : 0, y : 0, w : 0, h : 0 };
+
+
 // #############################################################################################
 /// Function:<summary>
 ///          </summary>
@@ -302,6 +307,7 @@ function InitWebGL(_canvas) {
     g_RenderTargetActive = 1;
     g_pProjection = new Matrix();
     g_pView = new Matrix();
+    //g_scissorRect = { x : 0, y : 0, w : 0, h : 0 };
     
     var stages = g_webGL.GetMaxTextureStages();
     for (var i = 0; i < stages; i++) {
@@ -482,17 +488,6 @@ function InitWebGLTextureGetFunctions() {
         return texture;
     };    
 
-    /*// And again for background textures    
-    var fn_background_get_texture = background_get_texture;
-    background_get_texture = function(_ind) {
-    
-        var texture = fn_background_get_texture(_ind);
-        // violating law of Demeter on the texture (reaching through to retrieve webgl_textureid)...
-        if (texture && !texture.WebGLTexture.webgl_textureid) {
-            WebGL_BindTexture(texture.TPE);
-        }
-        return texture;
-    };*/
     WebGL_StartFrame_RELEASE();// Call this to setup defaults..
 }
 
@@ -1147,7 +1142,7 @@ function WebGL_drawImage_Replacement_RELEASE(_pTPE, _tx,_ty,_tw,_th,  _x,_y,_w,_
 ///				
 ///			 </returns>
 // #############################################################################################
-function	WebGL_TextureDrawTiled_RELEASE( _pTPE, _x, _y, _xsc, _ysc, vtiled, htiled, _col, _alpha ) 
+function	WebGL_TextureDrawTiled_RELEASE( _pTPE, _xorig, _yorig, _x, _y, _xsc, _ysc, _htiled, _vtiled, _xr, _yr, _wr, _hr, _col, _alpha ) 
 {
     var pBuff, curr, colcurr, pCoords, pColours, pUVs,w,h;
     if (!_pTPE.texture.webgl_textureid) {
@@ -1160,29 +1155,32 @@ function	WebGL_TextureDrawTiled_RELEASE( _pTPE, _x, _y, _xsc, _ysc, vtiled, htil
 
     var ow = _pTPE.ow * _axsc;
 	var oh = _pTPE.oh * _aysc;
-	//account for larger extents when view is rotated - 
-	var xr = g_roomExtents.left;
-	var yr = g_roomExtents.top;
-	var wr = (g_roomExtents.right - g_roomExtents.left);
-	var hr = (g_roomExtents.bottom - g_roomExtents.top);
+
+    var cam = g_pCameraManager.GetActiveCamera();
+	if ((cam != null) && (cam.m_is2D == false))
+    {
+        // Erm, bounds won't be correct, so disable tiling
+        //dbg_csol.Output("Attempting to use tiled draw with perspective projection - this won't work properly\n");
+        _htiled = false;
+        _vtiled = false;
+    }
+
+    if (!_htiled && !_vtiled) {
+        WebGL_TextureDraw_RELEASE(_pTPE, _xorig, _yorig, _x, _y, _xsc, _ysc, 0, _col, undefined, undefined, undefined, _alpha);
+		return true;
+	}
 
 	w = ow;
 	h = oh;
-	if (htiled)
+	if (_htiled)
 	{
-		//w = (((((g_pCurrentView.worldw + (pTPE->ow - 1)) / pTPE->ow) & 0xffffffff) + 2) * pTPE->ow);
-		//w = (((g_ViewAreaW + (ow - 1)) / ow) + 2) * ow;
-		//x = g_ViewAreaX + fmod(x - g_ViewAreaX, ow) - ow;
-		w = (((wr + (ow - 1)) / ow) + 2) * ow;
-		_x = xr + fmod(_x - xr, ow) - ow;
+		w = (((_wr + (ow - 1)) / ow) + 2) * ow;
+		_x = _xr + fmod(_x - _xr, ow) - ow;
 	}
-	if (vtiled)
+	if (_vtiled)
 	{
-		// h = (((((g_pCurrentView.worldh + (pTPE.oh - 1)) / pTPE.oh) & 0xffffffff) + 2) * pTPE->oh);
-		//h = (((g_ViewAreaH + (oh - 1)) / oh) + 2) * oh;
-		//y = g_ViewAreaY + fmod(y - g_ViewAreaY, oh) - oh;
-		h = (((hr + (oh - 1)) / oh) + 2) * oh;
-		_y = yr + fmod(_y - yr, oh) - oh;
+		h = (((_hr + (oh - 1)) / oh) + 2) * oh;
+		_y = _yr + fmod(_y - _yr, oh) - oh;
 	}
 	
     if ( (ow <= 0) || (oh <= 0) ) return;           // Drawing would take forever
@@ -1214,20 +1212,21 @@ function	WebGL_TextureDrawTiled_RELEASE( _pTPE, _x, _y, _xsc, _ysc, vtiled, htil
 	var v2 = (_pTPE.y + _pTPE.h)*invTHeight;
 	var nw = _xsc * _pTPE.CropWidth;
 	var nh = _ysc * _pTPE.CropHeight;
-	
 
     // Work out the loop count targets
     var tx = (w / ow);
     var ty = (h / oh);
 
+	x1 = -_xsc*_xorig;
+	y1 = -_ysc*_yorig;
     
     var yy = _y + (_pTPE.YOffset * _aysc);
-    for (var cy = 0; cy < ty; cy++, yy += (_pTPE.oh * _aysc))
+    for (var cy = 0; cy < ty; cy++, yy += oh)
     {
         var xx = _x + (_pTPE.XOffset * _axsc);
 	    var yy2 = yy + nh;
 
-	    for (var cx = 0; cx < tx; cx++, xx += (_pTPE.ow * _axsc))
+	    for (var cx = 0; cx < tx; cx++, xx += ow)
 	    {
 		    // Cut the texture up varo 4 strips to avoid texture cache misses on PSP
 		    pBuff = g_webGL.AllocVerts(yyGL.PRIM_TRIANGLE, _pTPE.texture.webgl_textureid, g_webGL.VERTEX_FORMAT_2D, 6 );
@@ -1243,8 +1242,8 @@ function	WebGL_TextureDrawTiled_RELEASE( _pTPE, _x, _y, _xsc, _ysc, vtiled, htil
 
 		    // Top Left
 		    pColours[index] = col1;
-		    pCoords[index + 0] = xx;
-		    pCoords[index + 1] = yy;
+		    pCoords[index + 0] = xx + x1;
+		    pCoords[index + 1] = yy + y1;
 		    pCoords[index + 2] = GR_Depth;
 		    pUVs[index + 0] = u;
 		    pUVs[index + 1] = v;
@@ -1252,8 +1251,8 @@ function	WebGL_TextureDrawTiled_RELEASE( _pTPE, _x, _y, _xsc, _ysc, vtiled, htil
 		    // Top Right
 		    index += stride;
 		    pColours[index] = col2;
-		    pCoords[index + 0] = xx2;
-		    pCoords[index + 1] = yy;
+		    pCoords[index + 0] = xx2 + x1;
+		    pCoords[index + 1] = yy + y1;
 		    pCoords[index + 2] = GR_Depth;
 		    pUVs[index + 0] = u2;
 		    pUVs[index + 1] = v;
@@ -1261,8 +1260,8 @@ function	WebGL_TextureDrawTiled_RELEASE( _pTPE, _x, _y, _xsc, _ysc, vtiled, htil
 		    // Bottom Right
 		    index += stride;
 		    pColours[index] = col3;
-		    pCoords[index + 0] = xx2;
-		    pCoords[index + 1] = yy2;
+		    pCoords[index + 0] = xx2 + x1;
+		    pCoords[index + 1] = yy2 + y1;
 		    pCoords[index + 2] = GR_Depth;
 		    pUVs[index + 0] = u2;
 		    pUVs[index + 1] = v2;
@@ -1270,8 +1269,8 @@ function	WebGL_TextureDrawTiled_RELEASE( _pTPE, _x, _y, _xsc, _ysc, vtiled, htil
 		    // Bottom Right
 		    index += stride;
 		    pColours[index] = col3;
-		    pCoords[index + 0] = xx2;
-		    pCoords[index + 1] = yy2;
+		    pCoords[index + 0] = xx2 + x1;
+		    pCoords[index + 1] = yy2 + y1;
 		    pCoords[index + 2] = GR_Depth;
 		    pUVs[index + 0] = u2;
 		    pUVs[index + 1] = v2;
@@ -1279,8 +1278,8 @@ function	WebGL_TextureDrawTiled_RELEASE( _pTPE, _x, _y, _xsc, _ysc, vtiled, htil
 		    // Bottom Left
 		    index += stride;
 		    pColours[index] = col4;
-		    pCoords[index + 0] = xx;
-		    pCoords[index + 1] = yy2;
+		    pCoords[index + 0] = xx + x1;
+		    pCoords[index + 1] = yy2 + y1;
 		    pCoords[index + 2] = GR_Depth;
 		    pUVs[index + 0] = u;
 		    pUVs[index + 1] = v2;
@@ -1288,8 +1287,8 @@ function	WebGL_TextureDrawTiled_RELEASE( _pTPE, _x, _y, _xsc, _ysc, vtiled, htil
             // Top left again
             index += stride;
             pColours[index] = col1;
-		    pCoords[index + 0] = xx;
-		    pCoords[index + 1] = yy;
+		    pCoords[index + 0] = xx + x1;
+		    pCoords[index + 1] = yy + y1;
 		    pCoords[index + 2] = GR_Depth;
 		    pUVs[index + 0] = u;
 		    pUVs[index + 1] = v;
@@ -1488,7 +1487,7 @@ function WebGL_DrawSWFDictionaryItem(SWFDictionaryItems, _pItem, _combinedMat, _
                     if ((pFillStyleData !== null) && (pFillStyleData !== undefined))
                     {
                         var filltype = pFillStyleData.type;
-                        if (filltype === eSWFFillType_Solid) 
+                        if ((filltype === eSWFFillType_Solid) || ((filltype === eSWFFillType_Gradient) && (pSubShape.numPointColours > 0)))
                         {
                             numtris += WebGL_Draw_SolidSWFShape(
                                 pFillStyleData, pSubShape, _combinedMat, _colvals, _transcolvals, _colmul, _coladd, _transcoladd, _useaa, _aascale);
@@ -1568,10 +1567,10 @@ function WebGL_DrawSWFDictionaryItem(SWFDictionaryItems, _pItem, _combinedMat, _
                             var srcX4 = pSubShape.LineAAVectors[(index2 * 2) + 0],
                                 srcY4 = pSubShape.LineAAVectors[(index2 * 2) + 1];																	
 
-                            var x1 = (srcX1 * combinedMat.m[_11]) + (srcY1 * combinedMat.m[_21]) + combinedMat.m[_41],
-                                y1 = (srcX1 * combinedMat.m[_12]) + (srcY1 * combinedMat.m[_22]) + combinedMat.m[_42],
-                                x2 = (srcX2 * combinedMat.m[_11]) + (srcY2 * combinedMat.m[_21]) + combinedMat.m[_41],
-                                y2 = (srcX2 * combinedMat.m[_12]) + (srcY2 * combinedMat.m[_22]) + combinedMat.m[_42];
+                            var x1 = (srcX1 * _combinedMat.m[_11]) + (srcY1 * _combinedMat.m[_21]) + _combinedMat.m[_41],
+                                y1 = (srcX1 * _combinedMat.m[_12]) + (srcY1 * _combinedMat.m[_22]) + _combinedMat.m[_42],
+                                x2 = (srcX2 * _combinedMat.m[_11]) + (srcY2 * _combinedMat.m[_21]) + _combinedMat.m[_41],
+                                y2 = (srcX2 * _combinedMat.m[_12]) + (srcY2 * _combinedMat.m[_22]) + _combinedMat.m[_42];
 
                             // Scale offsets
                             srcX3 *= _aascale;
@@ -1580,10 +1579,10 @@ function WebGL_DrawSWFDictionaryItem(SWFDictionaryItems, _pItem, _combinedMat, _
                             srcX4 *= _aascale;
                             srcY4 *= _aascale;
 
-                            var x3 = (srcX3 * combinedMat.m[_11]) + (srcY3 * combinedMat.m[_21]) + x1,
-                                y3 = (srcX3 * combinedMat.m[_12]) + (srcY3 * combinedMat.m[_22]) + y1,
-                                x4 = (srcX4 * combinedMat.m[_11]) + (srcY4 * combinedMat.m[_21]) + x2,
-                                y4 = (srcX4 * combinedMat.m[_12]) + (srcY4 * combinedMat.m[_22]) + y2;
+                            var x3 = (srcX3 * _combinedMat.m[_11]) + (srcY3 * _combinedMat.m[_21]) + x1,
+                                y3 = (srcX3 * _combinedMat.m[_12]) + (srcY3 * _combinedMat.m[_22]) + y1,
+                                x4 = (srcX4 * _combinedMat.m[_11]) + (srcY4 * _combinedMat.m[_21]) + x2,
+                                y4 = (srcX4 * _combinedMat.m[_12]) + (srcY4 * _combinedMat.m[_22]) + y2;
                             
                             
                             // tri 1	
@@ -2002,6 +2001,9 @@ function WebGL_Draw_BitmapGradientSWFShape(
     return numtris;
 }
 
+var g_SWFvertcolbuff = [];
+var g_SWFaavertcolbuff = [];
+
 // #############################################################################################
 /// Function:<summary>
 ///             Draw a solid SWF shape
@@ -2022,41 +2024,93 @@ function WebGL_Draw_SolidSWFShape(_pFillStyleData, _pSubShape, _combinedMat, _co
 	    col = pFillData.col,
 	    t = 0;
 
-	// Multiply our material colour and mul colour together using good old fashioned fixed point maths
-	// Note that this will make things very slightly darker and more transparent, as 1.0 is represented by 256, not 255
-	var blendcolvals = [];
-    var r = (col & 0xff),
-	    g = ((col >> 8) & 0xff),
-	    b = ((col >> 16) & 0xff),
-	    a = ((col >> 24) & 0xff);							        
-	blendcolvals[0] = (r * _colvals[0]) >> 8;
-	blendcolvals[1] = (g * _colvals[1]) >> 8;
-	blendcolvals[2] = (b * _colvals[2]) >> 8;								
-	blendcolvals[3] = (a * _colvals[3]) >> 8;
+    var numcols = 1;
+    var indexcolmask = 0;
+    var srccols = [];
 
-	// Apply colour transform (TODO: store and check flag to see if we actually need to do this)
-	for (t = 0; t < 4; t++)
-	{
-	    blendcolvals[t] = ((blendcolvals[t] * _colmul[t]) >> 8) + _coladd[t];
-	    blendcolvals[t] = yymax(0, yymin(blendcolvals[t], 255));
-	}
-	var blendcol = blendcolvals[0] | (blendcolvals[1] << 8) | (blendcolvals[2] << 16) | (blendcolvals[3] << 24);
-	
-	// Do AA trans blending
-	var transblendcolvals = [];
-	transblendcolvals[0] = ((col & 0xff) * _transcolvals[0]) >> 8;
-	transblendcolvals[1] = (((col >> 8) & 0xff) * _transcolvals[1]) >> 8;
-	transblendcolvals[2] = (((col >> 16) & 0xff) * _transcolvals[2]) >> 8;
-	transblendcolvals[3] = (((col >> 24) & 0xff) * _transcolvals[3]) >> 8;
+    if (pFillData.type === eSWFFillType_Solid)
+    {
+        srccols[0] = col;
+    }
+    else
+    {
+        numcols = _pSubShape.numPointColours;
+        srccols = _pSubShape.PointColours;
+        indexcolmask = 0xffffffff;
+    }
 
-	// Apply colour transform (TODO: store and check flag to see if we actually need to do this)
-	for (t = 0; t < 4; t++)
-	{
-		transblendcolvals[t] = ((transblendcolvals[t] * _colmul[t]) >> 8) + _transcoladd[t];
-		transblendcolvals[t] = yymax(0, yymin(transblendcolvals[t], 255));
-	}
-	var transblendcol = transblendcolvals[0] | (transblendcolvals[1] << 8) | (transblendcolvals[2] << 16) | (transblendcolvals[3] << 24);
-	
+    if (_aa && (_pSubShape.numAALines > 0))
+    {
+        for(var colcount = 0; colcount < numcols; colcount++)
+        {
+            var srccol = srccols[colcount];
+
+            // Multiply our material colour and mul colour together using good old fashioned fixed point maths
+            // Note that this will make things very slightly darker and more transparent, as 1.0 is represented by 256, not 255
+            var blendcolvals = [];
+            var r = (srccol & 0xff),
+                g = ((srccol >> 8) & 0xff),
+                b = ((srccol >> 16) & 0xff),
+                a = ((srccol >> 24) & 0xff);							        
+            blendcolvals[0] = (r * _colvals[0]) >> 8;
+            blendcolvals[1] = (g * _colvals[1]) >> 8;
+            blendcolvals[2] = (b * _colvals[2]) >> 8;								
+            blendcolvals[3] = (a * _colvals[3]) >> 8;
+
+            // Apply colour transform (TODO: store and check flag to see if we actually need to do this)
+            for (t = 0; t < 4; t++)
+            {
+                blendcolvals[t] = ((blendcolvals[t] * _colmul[t]) >> 8) + _coladd[t];
+                blendcolvals[t] = yymax(0, yymin(blendcolvals[t], 255));
+            }
+            var blendcol = blendcolvals[0] | (blendcolvals[1] << 8) | (blendcolvals[2] << 16) | (blendcolvals[3] << 24);
+            g_SWFvertcolbuff[colcount] = blendcol;
+            
+            // Do AA trans blending
+            var transblendcolvals = [];
+            transblendcolvals[0] = (r * _transcolvals[0]) >> 8;
+            transblendcolvals[1] = (g * _transcolvals[1]) >> 8;
+            transblendcolvals[2] = (b * _transcolvals[2]) >> 8;
+            transblendcolvals[3] = (a * _transcolvals[3]) >> 8;
+
+            // Apply colour transform (TODO: store and check flag to see if we actually need to do this)
+            for (t = 0; t < 4; t++)
+            {
+                transblendcolvals[t] = ((transblendcolvals[t] * _colmul[t]) >> 8) + _transcoladd[t];
+                transblendcolvals[t] = yymax(0, yymin(transblendcolvals[t], 255));
+            }
+            var transblendcol = transblendcolvals[0] | (transblendcolvals[1] << 8) | (transblendcolvals[2] << 16) | (transblendcolvals[3] << 24);
+            g_SWFaavertcolbuff[colcount] = transblendcol;
+        }
+    }
+    else
+    {
+        for(var colcount = 0; colcount < numcols; colcount++)
+        {
+            var srccol = srccols[colcount];
+
+            // Multiply our material colour and mul colour together using good old fashioned fixed point maths
+            // Note that this will make things very slightly darker and more transparent, as 1.0 is represented by 256, not 255
+            var blendcolvals = [];
+            var r = (srccol & 0xff),
+                g = ((srccol >> 8) & 0xff),
+                b = ((srccol >> 16) & 0xff),
+                a = ((srccol >> 24) & 0xff);							        
+            blendcolvals[0] = (r * _colvals[0]) >> 8;
+            blendcolvals[1] = (g * _colvals[1]) >> 8;
+            blendcolvals[2] = (b * _colvals[2]) >> 8;								
+            blendcolvals[3] = (a * _colvals[3]) >> 8;
+
+            // Apply colour transform (TODO: store and check flag to see if we actually need to do this)
+            for (t = 0; t < 4; t++)
+            {
+                blendcolvals[t] = ((blendcolvals[t] * _colmul[t]) >> 8) + _coladd[t];
+                blendcolvals[t] = yymax(0, yymin(blendcolvals[t], 255));
+            }
+            var blendcol = blendcolvals[0] | (blendcolvals[1] << 8) | (blendcolvals[2] << 16) | (blendcolvals[3] << 24);
+            g_SWFvertcolbuff[colcount] = blendcol;                
+        }
+    }
 	
 	// Currently just do manual transformation
 	if (useTextureWithSolidFill) {
@@ -2119,41 +2173,48 @@ function WebGL_Draw_SolidSWFShape(_pFillStyleData, _pSubShape, _combinedMat, _co
 			    y3 = (srcX3 * _combinedMat.m[_12]) + (srcY3 * _combinedMat.m[_22]) + y1,
 			    x4 = (srcX4 * _combinedMat.m[_11]) + (srcY4 * _combinedMat.m[_21]) + x2,
 			    y4 = (srcX4 * _combinedMat.m[_12]) + (srcY4 * _combinedMat.m[_22]) + y2;
+
+            var maskedindex1 = index1 & indexcolmask;
+            var maskedindex2 = index2 & indexcolmask;
+            var blendcol1 = g_SWFvertcolbuff[maskedindex1];
+            var blendcol2 = g_SWFvertcolbuff[maskedindex2];
+            var transblendcol1 = g_SWFaavertcolbuff[maskedindex1];
+            var transblendcol2 = g_SWFaavertcolbuff[maskedindex2];
 											
 		    pCoords[currVert + 0] = x1;
 	        pCoords[currVert + 1] = y1;
 	        pCoords[currVert + 2] = GR_Depth;
-	        pColours[currVert] = blendcol;		
+	        pColours[currVert] = blendcol1;		
 	        currVert += stride;
 	        
 	        pCoords[currVert + 0] = x2;
 	        pCoords[currVert + 1] = y2;
 	        pCoords[currVert + 2] = GR_Depth;
-	        pColours[currVert] = blendcol;		
+	        pColours[currVert] = blendcol2;		
 	        currVert += stride;
 	        
 	        pCoords[currVert + 0] = x3;
 	        pCoords[currVert + 1] = y3;
 	        pCoords[currVert + 2] = GR_Depth;
-	        pColours[currVert] = transblendcol;
+	        pColours[currVert] = transblendcol1;
 	        currVert += stride;
 	        
 	        pCoords[currVert + 0] = x3;
 	        pCoords[currVert + 1] = y3;
 	        pCoords[currVert + 2] = GR_Depth;
-	        pColours[currVert] = transblendcol;
+	        pColours[currVert] = transblendcol1;
 	        currVert += stride;
 	        
 	        pCoords[currVert + 0] = x2;
 	        pCoords[currVert + 1] = y2;
 	        pCoords[currVert + 2] = GR_Depth;
-	        pColours[currVert] = blendcol;
+	        pColours[currVert] = blendcol2;
 	        currVert += stride;
 	        
 	        pCoords[currVert + 0] = x4;
 	        pCoords[currVert + 1] = y4;
 	        pCoords[currVert + 2] = GR_Depth;
-	        pColours[currVert] = transblendcol;
+	        pColours[currVert] = transblendcol2;
 	        currVert += stride;
 	    }
     }    
@@ -2179,6 +2240,9 @@ function WebGL_Draw_SolidSWFShape(_pFillStyleData, _pSubShape, _combinedMat, _co
 
 	    var x = (srcX * _combinedMat.m[_11]) + (srcY * _combinedMat.m[_21]) + _combinedMat.m[_41];
 	    var y = (srcX * _combinedMat.m[_12]) + (srcY * _combinedMat.m[_22]) + _combinedMat.m[_42];
+
+        var maskedindex = index & indexcolmask;										
+        var blendcol = g_SWFvertcolbuff[maskedindex];
 
 	    pCoords[currVert + 0] = x;
 	    pCoords[currVert + 1] = y;
@@ -2217,7 +2281,7 @@ function WebGL_DrawVectorSpriteObject_RELEASE(SWFDictionaryItems, _pObject, _pPo
         transcoladd = [];        
     for (var i = 0; i < 4; i++)
     {
-	    colmul[i] = 255;
+	    colmul[i] = 256;				// 256 (not 255) is 1.0f
 	    coladd[i] = 0;
 	    transcoladd[i] = 0;
     }
@@ -2264,7 +2328,22 @@ function WebGL_DrawVectorSprite_RELEASE(SWFDictionary, pObject, xorig, yorig, x,
 	transcolvals[0] = transmulcolor & 0xff;
 	transcolvals[1] = (transmulcolor >> 8) & 0xff;
 	transcolvals[2] = (transmulcolor >> 16) & 0xff;
-	transcolvals[3] = (transmulcolor >> 24) & 0xff;	
+	transcolvals[3] = (transmulcolor >> 24) & 0xff;
+    
+    // Remap into a 1 -> 256 range
+	// This is needed since we later treat 256 as 1.0f
+	// This won't brighten things up since we use a shift to do the final division which rounds things down
+	// In the most extreme case, where we multiply the max colour value of 255 by the min scale value of 1 (which is originally 0 with 1 added to it), then shift right by 8
+	// we'll still end up with 0
+	colvals[0]++;
+	colvals[1]++;
+	colvals[2]++;
+	colvals[3]++;
+
+	transcolvals[0]++;
+	transcolvals[1]++;
+	transcolvals[2]++;
+	transcolvals[3]++;
 
     // Set up any transformation here related to pos\rot\scale
     var posMat = new Matrix();
@@ -2644,8 +2723,8 @@ function WebGL_TextureDrawWH_RELEASE(_pTPE, _xorig, _yorig, _width, _height, _x,
     pColours = pBuff.Colours;
     pUVs = pBuff.UVs;
 
-    var x1 =  -_xsc * (_xorig-_pTPE.XOffset);
-    var y1 =  -_ysc * (_yorig-_pTPE.YOffset);
+    var x1 =  -_xsc * (0-_pTPE.XOffset);
+    var y1 =  -_ysc * (0-_pTPE.YOffset);
 	
     var x2 = x1 + (_xsc*_width);
     var y2 = y1 + (_ysc*_height);
@@ -2683,10 +2762,12 @@ function WebGL_TextureDrawWH_RELEASE(_pTPE, _xorig, _yorig, _width, _height, _x,
 	    
 	    pCoords[v0 + 2] = pCoords[v1 + 2] = pCoords[v2 + 2] = pCoords[v3 + 2] = pCoords[v4 + 2] = pCoords[v5 + 2] = GR_Depth;		    
     }
-    pUVs[v0 + 0] = pUVs[v4 + 0] = pUVs[v5 + 0] = _pTPE.x / _pTPE.texture.width;
-    pUVs[v0 + 1] = pUVs[v1 + 1] = pUVs[v5 + 1] = _pTPE.y / _pTPE.texture.height;
-    pUVs[v1 + 0] = pUVs[v2 + 0] = pUVs[v3 + 0] = (_pTPE.x + _width) / _pTPE.texture.width;
-    pUVs[v2 + 1] = pUVs[v3 + 1] = pUVs[v4 + 1] = (_pTPE.y + _height) / _pTPE.texture.height;
+    var x = _pTPE.x + _xorig;
+    var y = _pTPE.y + _yorig;
+    pUVs[v0 + 0] = pUVs[v4 + 0] = pUVs[v5 + 0] = x / _pTPE.texture.width;
+    pUVs[v0 + 1] = pUVs[v1 + 1] = pUVs[v5 + 1] = y / _pTPE.texture.height;
+    pUVs[v1 + 0] = pUVs[v2 + 0] = pUVs[v3 + 0] = (x + _width) / _pTPE.texture.width;
+    pUVs[v2 + 1] = pUVs[v3 + 1] = pUVs[v4 + 1] = (y + _height) / _pTPE.texture.height;
 
     var a = (_alpha * 255.0) << 24; 
     _col = a | (_col & 0xffffff);
@@ -2859,16 +2940,26 @@ function WebGL_draw_rectangle_RELEASE(_x1, _y1, _x2, _y2, _outline)
 	    col3 |= 0x00010000;
 	    col4 |= 0x00010001;
     }
+
+    if (offsethackD3D != 0.0)
+    {        
+        _x2 += offsethackD3D;
+        _y2 += offsethackD3D;
+    }
+
+    // Correct the positions
+    var t;
+	if ( _x2<_x1 ) { t=_x2; _x2=_x1; _x1=t; }
+	if ( _y2<_y1 ) { t=_y2; _y2=_y1; _y1=t; }
+	if ( _x2 == Math.floor(_x2) ) _x2=_x2+(0.01 * offsethackD3D);
+	if ( _y2 == Math.floor(_y2) ) _y2=_y2+(0.01 * offsethackD3D);
+
+    _y1 += offsethackGL;
+    _y2 += offsethackGL;
 	
     // Don't care about UV's as it's a SOLID white texture... so whatever is there is good.
     if (!_outline)
-    {
-        if (offsethackGL != 0.0)
-        {        
-            _x2 += offsethackGL;
-            _y2 += offsethackGL;
-        }
-
+    {        
 	    // Solid fill, 2 triangles
 	    pCoords[v0 + 0] = pCoords[v4 + 0] = pCoords[v5 + 0] = _x1;
 	    pCoords[v0 + 1] = pCoords[v1 + 1] = pCoords[v5 + 1] = _y1;
@@ -2883,14 +2974,6 @@ function WebGL_draw_rectangle_RELEASE(_x1, _y1, _x2, _y2, _outline)
     } 
     else
     {
-        if (offsethackGL != 0.0)
-        {
-            _x1 += offsethackGL;
-            _y1 += offsethackGL;
-            _x2 += offsethackGL;
-            _y2 += offsethackGL;
-        }
-
 	    pColours[v0] = pColours[v1] = pColours[v2] = pColours[v3] 
 	                 = pColours[v4] = pColours[v5] = pColours[v6] = pColours[v7] = col;
 
@@ -2936,12 +3019,19 @@ function WebGL_draw_roundrect_color_EXT_RELEASE( _x1, _y1, _x2, _y2, _radx, _rad
 
     _outline = yyGetBool(_outline);
 
-    if (offsethackGL != 0.0)
+    // Correct the positions (this happens before the general offset for round rects in the C++ runner)
+    var t;
+	if ( _x2<_x1 ) { t=_x2; _x2=_x1; _x1=t; }
+	if ( _y2<_y1 ) { t=_y2; _y2=_y1; _y1=t; }
+	if ( _x2 == Math.floor(_x2) ) _x2=_x2+(0.01 * offsethackD3D);
+	if ( _y2 == Math.floor(_y2) ) _y2=_y2+(0.01 * offsethackD3D);
+
+    if (offsethackD3D != 0.0)
     {
-        _x1 += offsethackGL;
-        _y1 += offsethackGL;
-        _x2 += offsethackGL;
-        _y2 += offsethackGL;
+        _x1 += offsethackD3D;
+        _y1 += offsethackD3D;
+        _x2 += offsethackD3D;
+        _y2 += offsethackD3D;
     }
 
     var i,w,h;
@@ -3109,16 +3199,26 @@ function WebGL_draw_rectangle_color_RELEASE(_x1, _y1, _x2, _y2, _col1, _col2, _c
     pUVs = pBuff.UVs;
 
     var col = ~~((g_GlobalAlpha * 255.0) << 24) | (g_GlobalColour & 0xffffff);
+
+    if (offsethackD3D != 0.0)
+    {        
+        _x2 += offsethackD3D;
+        _y2 += offsethackD3D;
+    }
+
+    // Correct the positions
+    var t;
+	if ( _x2<_x1 ) { t=_x2; _x2=_x1; _x1=t; }
+	if ( _y2<_y1 ) { t=_y2; _y2=_y1; _y1=t; }
+	if ( _x2 == Math.floor(_x2) ) _x2=_x2+(0.01 * offsethackD3D);
+	if ( _y2 == Math.floor(_y2) ) _y2=_y2+(0.01 * offsethackD3D);
+
+    _y1 += offsethackGL;
+    _y2 += offsethackGL;
 	
     // Don't care about UV's as it's a SOLID white texture... so whatever is there is good.
     if (!_outline)
     {
-       /* if (offsethackGL != 0.0)
-        {        
-            _x2 += offsethackGL;
-            _y2 += offsethackGL;
-        }*/
-
 	    // Solid fill, 2 triangles
 	    pCoords[v0 + 0] = pCoords[v4 + 0] = pCoords[v5 + 0] = _x1;
 	    pCoords[v0 + 1] = pCoords[v1 + 1] = pCoords[v5 + 1] = _y1;
@@ -3133,14 +3233,6 @@ function WebGL_draw_rectangle_color_RELEASE(_x1, _y1, _x2, _y2, _col1, _col2, _c
     } 
     else
     {
-        if (offsethackGL != 0.0)
-        {
-            _x1 += offsethackGL;
-            _y1 += offsethackGL;
-            _x2 += offsethackGL;
-            _y2 += offsethackGL;
-        }
-
 	    pColours[v0] = pColours[v7] = _col1;
 	    pColours[v1] = pColours[v2] = _col2;
 	    pColours[v3] = pColours[v4] = _col3;
@@ -3176,10 +3268,12 @@ function WebGL_draw_point_color_RELEASE(_x, _y, _col) {
     _y = yyGetReal(_y);
     _col = yyGetInt32(_col);
 
-    if (offsethackGL != 0.0)
+    _y += offsethackGL;
+
+    if (offsethackD3D != 0.0)
     {
-        _x += offsethackGL;
-        _y += offsethackGL;    
+        _x += offsethackD3D;
+        _y += offsethackD3D;    
     }
 
     var pBuff, pCoords, pColours;
@@ -3194,8 +3288,8 @@ function WebGL_draw_point_color_RELEASE(_x, _y, _col) {
     
 
     var col = ~~((g_GlobalAlpha * 255.0) << 24) | ConvertGMColour(_col);
-    pCoords[v0 + 0] = ~~_x + 0.5;
-    pCoords[v0 + 1] = ~~_y + 0.5;
+    pCoords[v0 + 0] = _x;
+    pCoords[v0 + 1] = _y;
     pCoords[v0 + 2] = GR_Depth;
     pColours[v0] = col;	
 }
@@ -3226,14 +3320,18 @@ function WebGL_draw_triangle_RELEASE(_x1, _y1, _x2, _y2, _x3, _y3, _outline) {
     _y3 = yyGetReal(_y3);
     _outline = yyGetBool(_outline);
 
-    if (offsethackGL != 0.0)
+    _y1 += offsethackGL;
+    _y2 += offsethackGL;
+    _y3 += offsethackGL;
+
+    if (offsethackD3D != 0.0)
     {
-        _x1 += offsethackGL;
-        _y1 += offsethackGL;
-        _x2 += offsethackGL;
-        _y2 += offsethackGL;
-        _x3 += offsethackGL;
-        _y3 += offsethackGL;
+        _x1 += offsethackD3D;
+        _y1 += offsethackD3D;
+        _x2 += offsethackD3D;
+        _y2 += offsethackD3D;
+        _x3 += offsethackD3D;
+        _y3 += offsethackD3D;
     }
 
     var pBuff, pCoords, pColours, pUVs;
@@ -3368,14 +3466,18 @@ function WebGL_draw_triangle_color_RELEASE(_x1, _y1, _x2, _y2, _x3, _y3, _c1,_c2
 
     _outline = yyGetBool(_outline);
 
-    if (offsethackGL != 0.0)
+    _y1 += offsethackGL;
+    _y2 += offsethackGL;
+    _y3 += offsethackGL;
+
+    if (offsethackD3D != 0.0)
     {
-        _x1 += offsethackGL;
-        _y1 += offsethackGL;
-        _x2 += offsethackGL;
-        _y2 += offsethackGL;
-        _x3 += offsethackGL;
-        _y3 += offsethackGL;
+        _x1 += offsethackD3D;
+        _y1 += offsethackD3D;
+        _x2 += offsethackD3D;
+        _y2 += offsethackD3D;
+        _x3 += offsethackD3D;
+        _y3 += offsethackD3D;
     }
 
     var pBuff, pCoords, pColours, pUVs;
@@ -3453,12 +3555,12 @@ function WebGL_draw_ellipse_color_RELEASE(_x1, _y1, _x2, _y2, _col1, _col2, _out
 
     _outline = yyGetBool(_outline);
 
-    if (offsethackGL != 0.0)
+    if (offsethackD3D != 0.0)
     {
-        _x1 += offsethackGL;
-        _y1 += offsethackGL;
-        _x2 += offsethackGL;
-        _y2 += offsethackGL;    
+        _x1 += offsethackD3D;
+        _y1 += offsethackD3D;
+        _x2 += offsethackD3D;
+        _y2 += offsethackD3D;    
     }
 
     var xm = (_x1+_x2) / 2;
@@ -3618,12 +3720,15 @@ function WebGL_draw_line_width_color_RELEASE(_x1, _y1, _x2, _y2, _w, _col1, _col
     _col1 = yyGetInt32(_col1);
     _col2 = yyGetInt32(_col2);
 
-    if (offsethackGL != 0.0)
+    _y1 += offsethackGL;
+    _y2 += offsethackGL;
+
+    if (offsethackD3D != 0.0)
     {
-        _x1 += offsethackGL;
-        _y1 += offsethackGL;
-        _x2 += offsethackGL;
-        _y2 += offsethackGL;
+        _x1 += offsethackD3D;
+        _y1 += offsethackD3D;
+        _x2 += offsethackD3D;
+        _y2 += offsethackD3D;
     }
 
     var a = ((g_GlobalAlpha * 255.0) << 24);
@@ -4713,6 +4818,18 @@ function WEBGL_draw_enable_alpha_blend_RELEASE( _enableAlphaBlend )
 // #############################################################################################
 function WebGL_texture_get_texel_width_RELEASE(_tex) {    
 
+    if(typeof _tex == "number")
+    {
+        //Have to get the actual texture pointer
+        _tex = g_Textures[yyGetInt32(_tex)];
+
+        if (_tex) {
+            if(_tex.complete)
+                return 1.0 / _tex.width;
+        }
+    }
+
+
     if (_tex) {
         return 1.0 / _tex.WebGLTexture.width;
     }
@@ -4724,6 +4841,18 @@ function WebGL_texture_get_texel_width_RELEASE(_tex) {
 ///          </summary>
 // #############################################################################################
 function WebGL_texture_get_texel_height_RELEASE(_tex) {
+
+    if(typeof _tex == "number")
+    {
+        //Have to get the actual texture pointer
+        _tex = g_Textures[yyGetInt32(_tex)];
+        if (_tex) {
+            if(_tex.complete)
+                return 1.0 / _tex.height;
+        }
+    }
+
+
     if (_tex) {
         return 1.0 / _tex.WebGLTexture.height;
     }

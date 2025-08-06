@@ -20,6 +20,9 @@ YYLayerType_Tile=4,
 YYLayerType_Particle=5,
 YYLayerType_Effect=6;
 
+var eLAYER_NORMAL = 1;
+var eLAYER_GUI_IN_VIEW = 2;
+var eLAYER_GUI_IN_GUI = 4;
 
 var	eLayerElementType_Undefined = 0,
 	eLayerElementType_Background=1,
@@ -49,6 +52,8 @@ var TileScaleRot_ShiftedMask = 0x7;
 var TileIndex_Shift = 0;
 var TileIndex_Mask = (0x7ffff << TileIndex_Shift);
 var TileIndex_ShiftedMask = (0x7ffff);
+
+var g_TransitioningUILayers = [];
 
 /** @constructor */
 function CBackGM2()
@@ -93,6 +98,11 @@ this.m_effectToBeEnabled = true;
 this.m_effect = null; // yyEffectInstanceRef
 this.m_pInitialEffectInfo = null;
 this.m_effectPS = -1;
+this.m_gui_layer = eLAYER_NORMAL;
+
+this.m_storedViewPort = [0,0,0,0];
+this.m_storedCamViewPort = [0,0,0,0];
+
 };
 
 CLayer.prototype.SetEffect = function(_effect)
@@ -120,6 +130,80 @@ CLayer.prototype.GetInitialEffectInfo = function()
     return this.m_pInitialEffectInfo;
 };
 
+CLayer.prototype.IsUILayer = function()
+{
+    return this.m_gui_layer != eLAYER_NORMAL;
+};
+
+CLayer.prototype.IsGUISpaceLayer = function()
+{
+    return this.m_gui_layer == eLAYER_GUI_IN_GUI;
+};
+
+CLayer.prototype.SetView = function()
+{
+	if (this.m_gui_layer == eLAYER_GUI_IN_VIEW)
+    {
+        var storedViewPort = this.m_storedViewPort;
+        storedViewPort[0] = g_clipx;
+        storedViewPort[1] = g_clipy;
+        storedViewPort[2] = g_clipw;
+        storedViewPort[3] = g_cliph;
+        
+        var pCam = g_pCameraManager.GetActiveCamera();
+        if (pCam != null)
+        {
+            pCam.Begin();
+            pCam.ApplyMatrices();
+
+            var storedCamViewPort = this.m_storedCamViewPort;
+            storedCamViewPort[0] = pCam.GetViewX();
+            storedCamViewPort[1] = pCam.GetViewY();
+            storedCamViewPort[2] = pCam.GetViewWidth();
+            storedCamViewPort[3] = pCam.GetViewHeight();
+        }
+
+        //x,y,w,h
+        //Setup our camera (if views are disabled then our view/camera is the whole screen)
+        if (g_RunRoom.GetEnableViews())
+        {
+            var view = g_pCurrentView;
+            var cam_width_to_use = view.portw;
+            var cam_height_to_use = view.porth;
+
+            if (pCam != null)
+            {
+                cam_width_to_use = storedCamViewPort[2];
+                cam_height_to_use = storedCamViewPort[3];
+            }
+
+            Graphics_SetViewPort(view.portx * g_DisplayScaleX, view.porty * g_DisplayScaleY, view.portw * g_DisplayScaleX, view.porth * g_DisplayScaleY);
+            UpdateCamera(0, 0, cam_width_to_use, cam_height_to_use, 0, pCam);
+        }
+    }
+};
+
+CLayer.prototype.RestoreView = function()
+{
+	if (this.m_gui_layer == eLAYER_GUI_IN_VIEW)
+    {
+
+        if (g_RunRoom.GetEnableViews()) 
+        {
+            var storedViewPort = this.m_storedViewPort;
+            Graphics_SetViewPort(storedViewPort[0], storedViewPort[1], storedViewPort[2], storedViewPort[3]);
+        }
+
+        var pCam = g_pCameraManager.GetActiveCamera();
+
+        if (pCam != null)
+        {
+            pCam.End();
+            var storedCamViewPort = this.m_storedCamViewPort;
+            UpdateCamera(storedCamViewPort[0], storedCamViewPort[1], storedCamViewPort[2], storedCamViewPort[3], 0, pCam);
+        }
+    }
+};
 
 /** @constructor */
 function YYRoomLayer()
@@ -296,14 +380,16 @@ function CLayerTextElement()
     this.m_blend=0xffffffff;  // blending for the text
     this.m_alpha=1;           // alpha transparency for the text
     this.m_originX=1;          // x scale factor
-    this.m_originY=1;          // y scale factor
+    this.m_originY = 1;          // y scale factor
+    this.m_origin = 0;
     this.m_text = "";           // text string to draw
     this.m_alignment=0;          // alignment   
     this.m_charSpacing=0;          // character spacing value
     this.m_lineSpacing=0;          // line spacing value
     this.m_frameW=-1;          // x scale factor
     this.m_frameH=-1;          // y scale factor
-    this.m_wrap=false;
+    this.m_wrap = false;
+    this.m_wrapMode = 0;
 
     this.m_type = eLayerElementType_Text;
     this.m_name = "";
@@ -779,12 +865,36 @@ LayerManager.prototype.AddNewElement = function(_room,_layer,_element,_buildRunt
     _element.m_id = this.GetNextElementID();
     _element.m_layer = _layer;
 
+    /* Add first but keep instances first in list... unless on a UI layer.
+     *
+     * Instances are normally kept at the start of the list so the pre/post draw loop can bail
+     * out as soon as it encounters a non-instance rather than iterating over all elements on a
+     * layer, but we want to interleave instance/sprite drawing on UI Layers, so we bypass that
+     * optimisation and instead insert into the list based on the element m_order flag there.
+    */
     var insertIndex = 0;
-    if(_element.m_type != eLayerElementType_Instance)
-    {
+    if (_layer.IsUILayer()) {
         for(var elemI = 0; elemI < _layer.m_elements.pool.length; elemI++)
         {
             var pEl = _layer.m_elements.pool[elemI];
+            /* For a UI layer sorted in ascending order (lowest m_order first),
+             * set insertIndex to the index after the last element whose m_order is less than or equal 
+             * to the new element's m_order, or at the end of the list if all elements satisfy this.
+            */
+            if (pEl !== null && pEl.m_order <= _element.m_order) 
+            {
+                insertIndex = elemI + 1;
+            } 
+            else 
+            {
+                break;
+            }
+        
+        }
+    }
+    else {
+        for(var elemI = 0; elemI < _layer.m_elements.pool.length; elemI++)
+        {
             if(pEl == null || pEl.m_type != eLayerElementType_Instance)
             {
                 break;
@@ -1058,11 +1168,10 @@ LayerManager.prototype.AddInstance= function (_room,_inst)
     }
 };
 
-LayerManager.prototype.AddInstanceToLayer= function(_room,_layer,_inst)
+LayerManager.prototype.AddInstanceToLayer= function(_room,_layer,_inst,_order)
 {
-
     if(_room == null || _layer==null || _inst===null)
-        return;
+        return undefined;
    
     if(_inst.GetOnActiveLayer() === false)
     {
@@ -1072,9 +1181,12 @@ LayerManager.prototype.AddInstanceToLayer= function(_room,_layer,_inst)
         _inst.m_nLayerID = _layer.m_id;
         _inst.SetOnActiveLayer(true);
         NewInstanceElement.m_bRuntimeDataInitialised = true;
+        NewInstanceElement.m_order = _order;
         
-        g_pLayerManager.AddNewElement(_room, _layer, NewInstanceElement, false);
+        return g_pLayerManager.AddNewElement(_room, _layer, NewInstanceElement, false);
     }
+
+    return undefined;
 };
 
 LayerManager.prototype.RemoveInstance = function (_room, _inst) {
@@ -1205,16 +1317,20 @@ LayerManager.prototype.RemoveStorageInstanceFromLayer = function (_room, _layer,
     }
 };
 
-LayerManager.prototype.AddLayer = function(_room, _depth, _name)
+LayerManager.prototype.AddLayer = function(_room, _depth, _name, _type)
 {
     if (_room == null)
         return null;
+
+    if (_type === undefined)
+        _type = eLAYER_NORMAL;
 
     var NewLayer = new CLayer();
     NewLayer.m_id = this.GetNextLayerID();
     NewLayer.depth = _depth;
     NewLayer.m_pName = _name;
-    NewLayer.m_dynamic = false;    
+    NewLayer.m_dynamic = false;
+    NewLayer.m_gui_layer = _type;
 
     _room.m_Layers.Add(NewLayer);
 
@@ -1663,6 +1779,9 @@ LayerManager.prototype.UpdateLayers = function()
     }
 };
 
+
+
+
 LayerManager.prototype.CleanRoomLayers = function(_room)
 {
     if(_room==null)
@@ -1673,15 +1792,59 @@ LayerManager.prototype.CleanRoomLayers = function(_room)
 
     var pLayer,pool;
     pool = _room.m_Layers.pool;
-    while(pool.length > 0)
+    //while(pool.length > 0)
+    for (var l =  _room.m_Layers.pool.length-1; l >=0; --l)
     {
-        pLayer = pool[0];
+        pLayer = pool[l];
         if (pLayer == null)
         {
             continue;
         }
 
-        this.RemoveLayer(_room, pLayer.m_id, false);        
+        if(pLayer.IsUILayer())
+        {
+            /* Stash the layer to be injected into the next room by StartRoom(). */
+
+            _room.m_Layers.Delete(pLayer);
+            g_TransitioningUILayers.push(pLayer);
+        }
+        else{
+            if(!_room.m_persistent)
+                this.RemoveLayer(_room, pLayer.m_id, false);
+        }
+    }
+};
+
+LayerManager.prototype.RestoreUILayers = function(_room)
+{
+    while(g_TransitioningUILayers.length > 0)
+    {
+        var layer = g_TransitioningUILayers.pop();
+
+        _room.m_Layers.Add(layer);
+
+        /* Insert all elements (assets/instances/etc) on the UI layer into the room's lookup tables. */
+        for(var i = 0; i < layer.m_elements.length; i++)
+        {
+            var element = layer.m_elements.Get(i);
+            if (element == null)
+                continue;
+
+            if (element.m_type == eLayerElementType_Instance)
+            {
+                if(element.m_pInstance.active)
+                {
+                    _room.m_Active.Add(element.m_pInstance);
+                }
+                else{
+                    _room.m_Deactive.Add(element.m_pInstance);
+                }
+            }
+            else if (element.m_type == eLayerElementType_Sequence)
+            {
+                _room.AddSeqInstance(element.m_id);
+            }
+        }
     }
 };
 
@@ -2063,6 +2226,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                         NewTextItem.m_alpha = ((pLayer.textitems[i].sBlend>>24)&0xff) / 255.0;                        
                         NewTextItem.m_originX = pLayer.textitems[i].sXOrigin;
                         NewTextItem.m_originY = pLayer.textitems[i].sYOrigin;
+                        NewTextItem.m_origin = pLayer.textitems[i].sOrigin;
                         NewTextItem.m_text = pLayer.textitems[i].sText;
                         NewTextItem.m_alignment = pLayer.textitems[i].sAlignment;
                         NewTextItem.m_charSpacing = pLayer.textitems[i].sCharSpacing;
@@ -2070,6 +2234,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                         NewTextItem.m_frameW = pLayer.textitems[i].sFrameW;
                         NewTextItem.m_frameH = pLayer.textitems[i].sFrameH;
                         NewTextItem.m_wrap = (pLayer.textitems[i].sWrap != 0) ? true : false;
+                        NewTextItem.m_wrapMode = pLayer.textitems[i].sWrapMode;
                         NewTextItem.m_name = pLayer.textitems[i].sName;
                         
                         this.AddNewElement(_room,NewLayer,NewTextItem,false);
@@ -2278,7 +2443,7 @@ function layer_destroy_instances(arg1)
 
     if(pLayer!=null)
     {
-        for(var i = 0; i < pLayer.m_elements.length; i++)
+        for(var i = pLayer.m_elements.length - 1; i >= 0; --i)
         {
             var el = pLayer.m_elements.Get(i);
             if (el != null)
@@ -2386,9 +2551,46 @@ function layer_set_visible( arg1,arg2)
     var pLayer = layerGetFromTargetRoom(arg1);
     if (pLayer === null) return;
    
-   pLayer.m_visible = yyGetBool(arg2);
-  
+    var visible = yyGetBool(arg2);
+    pLayer.m_visible = visible;
+
+    if (pLayer.IsUILayer())
+    {
+        if (visible)
+        {
+            /* Layout newly-visible UI layers to avoid spurious mouse/etc events on any instances
+            * before they have a valid position.
+            */
+            var uilayer = UILayers_Get_By_Name(pLayer.m_pName);
+
+            if (pLayer.IsGUISpaceLayer())
+            {
+                var gui_rect = Calc_GUI_Matrices_And_Rect();
+                UILayers_Layout_layer(uilayer, gui_rect, eLAYER_GUI_IN_GUI);
+            }
+            else {
+                var view_rect = UILayers_Calculate_Initial_View_Rect();
+                UILayers_Layout_layer(uilayer, view_rect, eLAYER_GUI_IN_VIEW);
+            }
+        }
+
+        for (var i = 0; i < pLayer.m_elements.length; i++) {
+            var el = pLayer.m_elements.Get(i);
+            if (el != null) {
+                if (el.m_type === eLayerElementType_Instance) {
+                    var inst = el.m_pInstance;
+                    if (visible) {
+                        g_RunRoom.ActivateInstance(inst);
+                    }
+                    else {
+                        g_RunRoom.DeactivateInstance(inst);
+                    }
+                }
+            }
+        }
+    }
 };
+
 function layer_get_visible( arg1) 
 {
     var pLayer = layerGetFromTargetRoom(arg1);
@@ -2404,6 +2606,18 @@ function layer_exists( arg1)
         
     return true;
 };
+
+function layer_get_flexpanel_node(layer_name)
+{
+    var ui_layer = UILayers_Get_By_Name(yyGetString(layer_name));
+    if(ui_layer !== null)
+    {
+        return ui_layer.node;
+    }
+    else{
+        return undefined;
+    }
+}
 
 function layer_script_begin( arg1,arg2) 
 {
@@ -3427,7 +3641,12 @@ function layer_text_x( _textelID,_x)
     var el = layerTextGetElement(_textelID);
     if (el != null)
     {
-        el.m_x = yyGetReal(_x);
+        if (!el.m_layer.IsUILayer()) {
+            el.m_x = yyGetReal(_x);
+        }
+        else {
+            el.m_uiNode.textOffsetX = _xscale;
+        }
     }
 };
 
@@ -3436,7 +3655,12 @@ function layer_text_y( _textelID,_y)
     var el = layerTextGetElement(_textelID);
     if (el != null)
     {
-        el.m_y = yyGetReal(_y);
+        if (!el.m_layer.IsUILayer()) {
+            el.m_y = yyGetReal(_y);
+        }
+        else {
+            el.m_uiNode.textOffsetY = yyGetReal(_y);
+        }
     }
 };
 
@@ -3445,7 +3669,12 @@ function layer_text_xscale( _textelID,_xscale)
     var el = layerTextGetElement(_textelID);
     if (el != null)
     {
-        el.m_scaleX = yyGetReal(_xscale);
+        if (!el.m_layer.IsUILayer()) {
+            el.m_scaleX = yyGetReal(_xscale);
+        }
+        else {
+            el.m_uiNode.textScaleX = yyGetReal(_xscale);
+        }
     }
 };
 
@@ -3454,7 +3683,12 @@ function layer_text_yscale( _textelID,_yscale)
     var el = layerTextGetElement(_textelID);
     if (el != null)
     {
-        el.m_scaleY = yyGetReal(_yscale);
+        if (!el.m_layer.IsUILayer()) {
+            el.m_scaleY = yyGetReal(_yscale);
+        }
+        else {
+            el.m_uiNode.textScaleY = yyGetReal(_yscale);
+        }
     }
 };
 
@@ -3503,6 +3737,14 @@ function layer_text_yorigin( _textelID,_yorigin)
     }
 };
 
+function layer_text_origin(_textelID, _origin)
+{
+    var el = layerTextGetElement(_textelID);
+    if (el != null) {
+        el.m_origin = yyGetInt32(_origin);
+    }
+};
+
 function layer_text_charspacing( _textelID,_charspacing) 
 {
     var el = layerTextGetElement(_textelID);
@@ -3545,6 +3787,14 @@ function layer_text_wrap( _textelID,_wrap)
     if (el != null)
     {
         el.m_wrap = yyGetBool(_wrap);
+    }
+};
+
+function layer_text_wrapmode(_textelID, _wrapMode)
+{
+    var el = layerTextGetElement(_textelID);
+    if (el != null) {
+        el.m_wrapMode = yyGetInt32(_wrapMode);
     }
 };
 
@@ -3678,6 +3928,15 @@ function layer_text_get_yorigin( _textelID)
     return 0;
 };
 
+function layer_text_get_origin(_textelID)
+{
+    var el = layerTextGetElement(_textelID);
+    if (el != null) {
+        return el.m_origin;
+    }
+    return 0;
+};
+
 function layer_text_get_charspacing( _textelID) 
 {
     var el = layerTextGetElement(_textelID);
@@ -3724,6 +3983,15 @@ function layer_text_get_wrap( _textelID)
     if (el != null)
     {
         return el.m_wrap;
+    }
+    return 0;
+};
+
+function layer_text_get_wrapmode(_textelID)
+{
+    var el = layerTextGetElement(_textelID);
+    if (el != null) {
+        return el.m_wrapMode;
     }
     return 0;
 };
@@ -3820,22 +4088,41 @@ function layer_tilemap_destroy( arg1)
 function layer_x(arg1,arg2)
 {
     var layer = layerGetFromTargetRoom(arg1);
-   
+
     if(layer!=null)
     {
-        layer.m_xoffset = yyGetReal(arg2);
+        if(layer.IsUILayer())
+        {
+            var ui_layer = UILayers_Get_By_Name(layer.m_pName);
+            if(ui_layer !== null)
+            {
+                ui_layer.x_offset = yyGetReal(arg2);
+            }
+        }
+        else{
+            layer.m_xoffset = yyGetReal(arg2);
+        }
     }
 };
 
 function layer_y(arg1,arg2)
 {
     var layer = layerGetFromTargetRoom(arg1);
-   
+
     if(layer!=null)
     {
-        layer.m_yoffset = yyGetReal(arg2);
+        if(layer.IsUILayer())
+        {
+            var ui_layer = UILayers_Get_By_Name(layer.m_pName);
+            if(ui_layer !== null)
+            {
+                ui_layer.y_offset = yyGetReal(arg2);
+            }
+        }
+        else{
+            layer.m_yoffset = yyGetReal(arg2);
+        }
     }
-   
 };
 
 function layer_get_x(arg1)
@@ -3844,7 +4131,17 @@ function layer_get_x(arg1)
    
     if(layer!=null)
     {
-        return layer.m_xoffset;
+        if(layer.IsUILayer())
+        {
+            var ui_layer = UILayers_Get_By_Name(layer.m_pName);
+            if(ui_layer !== null)
+            {
+                return ui_layer.x_offset;
+            }
+        }
+        else{
+            return layer.m_xoffset;
+        }
     }
     
     return 0;
@@ -3856,7 +4153,17 @@ function layer_get_y(arg1)
    
     if(layer!=null)
     {
-        return layer.m_yoffset;
+        if(layer.IsUILayer())
+        {
+            var ui_layer = UILayers_Get_By_Name(layer.m_pName);
+            if(ui_layer !== null)
+            {
+                return ui_layer.y_offset;
+            }
+        }
+        else{
+            return layer.m_yoffset;
+        }
     }
     
     return 0;
@@ -4701,7 +5008,7 @@ function ShallowCopyVars( _dest, _other)
 {
     if (_other != undefined) {
         var props = Object.getOwnPropertyNames(_other);
-        props = props.filter(val => !val.startsWith("__"));
+        props = props.filter(prop => prop.startsWith("gml") || (typeof g_obf2var!=="undefined" && g_obf2var[prop] != null));
         for (var i = 0; i < props.length; i++)
         {
             var prop = props[i];
@@ -4935,6 +5242,29 @@ function layerTileGetElement(tile_element_id)
     if ((el != null) && (el.m_type === eLayerElementType_Tile)) return el;
     return null;
 }
+
+
+function layer_get_type(_layerid) {
+    var room = g_pLayerManager.GetTargetRoomObj();
+
+    if (room == null) {
+        return -1;
+    }
+
+
+    var layer = null;
+    if (typeof (_layerid) == "string")
+        layer = g_pLayerManager.GetLayerFromName(room, yyGetString(_layerid));
+    else
+        layer = g_pLayerManager.GetLayerFromID(room, yyGetInt32(_layerid));
+
+    if (layer != null)
+    {
+        return layer.m_gui_layer;
+    }
+
+    return -1;
+};
 
 function layer_tile_exists(_layerid, _arg2) {
     var room = g_pLayerManager.GetTargetRoomObj();

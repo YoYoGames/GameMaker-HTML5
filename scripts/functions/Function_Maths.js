@@ -1684,9 +1684,12 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
     else if ((typeof _val1 == "number") && (typeof _val2 == "number")) {
         var f = _val1 - _val2;
         if (Number.isNaN(f)) {
-            f = (_val1 == _val2) ? 0 : f;
+            f = (!Number.isNaN(_val1) && !Number.isFinite(_val1) && !Number.isNaN(_val2) && !Number.isFinite(_val2)) ? 0 : f;
         } // end if
-        ret = abs(f) <= _prec ? 0 : (f < 0.0) ? -1 : 1;
+        if (Number.isNaN(f))
+            ret = -2;
+        else
+            ret = abs(f) <= _prec ? 0 : (f < 0.0) ? -1 : 1;
     } // end if
     else if (typeof _val1 == "string" && typeof _val2 == "string")
     {
@@ -1796,18 +1799,22 @@ function yyCompareVal(_val1, _val2, _prec, _showError) {
         if (ret === undefined) {
             if ((typeof _val1 == "number") && (typeof _val2 == "number")) {
                 var f = _val1 - _val2;
-                if (Number.isNaN(f)) {
-                    f = (_val1 == _val2) ? 0 : f;
-                }
-                ret = abs(f) <= _prec ? 0 : (f < 0.0) ? -1 : 1;
-            } // end if
-            else {            
-                ret = 1;
-                if (typeof _val1 == "number") {
-                    ret = -1;
                 } // end if
-            }  // end else
+            if (Number.isNaN(f)) {
+                f = (!Number.isNaN(_val1) && !Number.isFinite(_val1) && !Number.isNaN(_val2) && !Number.isFinite(_val2)) ? 0 : f;
+            } // end if
+            if (Number.isNaN(f))
+                ret = -2;
+            else
+                ret = Math.abs(f) <= _prec ? 0 : (f < 0.0) ? -1 : 1;
         } // end if
+        else 
+        if (ret != -2) {            
+            ret = 1;
+            if (typeof _val1 == "number") {
+                ret = -1;
+            } // end if
+        }  // end else
     }  // end if
     return ret;
 }
@@ -1896,7 +1903,7 @@ function yyftime(_val1, _val2) {
     }
     else if (_val1 instanceof Long) {
         // _val1 is long, promote it to a number (precision for numbers > (2^53)-1 is lost)
-        _val1 = _val1.toNumber();
+        return _val1.mul( new Long(_val2) );
     }
     else if (_val2 instanceof Long) {
         // _val2 is long, promote it to a number (precision for numbers > (2^53)-1 is lost)
@@ -2049,11 +2056,7 @@ function yyfdiv(_val1, _val2) {
 ///			</returns>
 // #############################################################################################
 function yyfnotequal(_val1, _val2) {
-    var ret = yyCompareVal(_val1, _val2, g_GMLMathEpsilon, false);
-    //if (Number.isNaN(ret)) {
-    //    yyError( "unable to compare " + string(_val1) + " to " + string(_val2));
-    //} // end if
-    return ret != 0;
+    return !yyfequal(_val1, _val2);
 }
 
 // #############################################################################################
@@ -2069,9 +2072,6 @@ function yyfnotequal(_val1, _val2) {
 // #############################################################################################
 function yyfequal(_val1, _val2) {
     var ret = yyCompareVal(_val1, _val2, g_GMLMathEpsilon, false);
-    //if (Number.isNaN(ret)) {
-    //    yyError( "unable to compare " + string(_val1) + " to " + string(_val2));
-    //} // end if
     return ret == 0;
 }
 
@@ -2209,23 +2209,7 @@ function yyfxor(_val1, _val2) {
 ///			</returns>
 // #############################################################################################
 function yyfbitand(_val1, _val2) {
-    if ((typeof _val1 === "number") && (typeof _val2 === "number")) 
-        return _val1 & _val2;
-    else if ((_val1 instanceof Long)  && (_val2 instanceof Long)) {
-        return _val1.and( _val2 );
-    }
-    else if (_val1 instanceof Long) {
-        return _val1.and( yyGetInt64(_val2) );
-    }
-    else if (_val2 instanceof Long) {
-        return _val2.and( yyGetInt64(_val1) );
-    }
-    else if (typeof _val1 == "number") 
-        return _val1 & yyGetInt32(_val2);
-    else if (typeof _val2 == "number") 
-        return yyGetInt32(_val1) & _val2;
-
-    return yyGetInt32(_val1) & yyGetInt32(_val2);
+    return yyGetInt64(_val1).and( yyGetInt64(_val2) );
 }
 
 // #############################################################################################
@@ -2240,23 +2224,7 @@ function yyfbitand(_val1, _val2) {
 ///			</returns>
 // #############################################################################################
 function yyfbitor(_val1, _val2) {
-    if ((typeof _val1 == "number") && (typeof _val2 == "number")) 
-        return _val1 | _val2;
-    else if ((_val1 instanceof Long)  && (_val2 instanceof Long)) {
-        return _val1.or( _val2 );
-    }
-    else if (_val1 instanceof Long) {
-        return _val1.or( yyGetInt64(_val2) );
-    }
-    else if (_val2 instanceof Long) {
-        return _val2.or( yyGetInt64(_val1) );
-    }
-    else if (typeof _val1 == "number") 
-        return _val1 | yyGetInt32(_val2);
-    else if (typeof _val2 == "number") 
-        return yyGetInt32(_val1) | _val2;
-
-    return yyGetInt32(_val1) | yyGetInt32(_val2);
+    return yyGetInt64(_val1).or( yyGetInt64(_val2) );
 }
 
 // #############################################################################################
@@ -2271,23 +2239,7 @@ function yyfbitor(_val1, _val2) {
 ///			</returns>
 // #############################################################################################
 function yyfbitxor(_val1, _val2) {
-    if ((typeof _val1 == "number") && (typeof _val2 == "number")) 
-        return _val1 ^ _val2;
-    else if ((_val1 instanceof Long)  && (_val2 instanceof Long)) {
-        return _val1.xor( _val2 );
-    }
-    else if (_val1 instanceof Long) {
-        return _val1.xor( yyGetInt64(_val2) );
-    }
-    else if (_val2 instanceof Long) {
-        return _val2.xor( yyGetInt64(_val1) );
-    }
-    else if (typeof _val1 == "number") 
-        return _val1 ^ yyGetInt32(_val2);
-    else if (typeof _val2 == "number") 
-        return yyGetInt32(_val1) ^ _val2;
-
-    return yyGetInt32(_val1) ^  yyGetInt32(_val2);
+    return yyGetInt64(_val1).xor( yyGetInt64(_val2) );
 }
 
 

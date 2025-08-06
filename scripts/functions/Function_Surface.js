@@ -536,6 +536,7 @@ function surface_set_target_RELEASE(_id, _depth_id)
             cannvas_graphics: graphics,
 
             ActiveCam: true,
+            cachedCameraID:currcam.m_id,
 
             camx: currcam.m_viewX,
             camy: currcam.m_viewY,
@@ -566,7 +567,7 @@ function surface_set_target_RELEASE(_id, _depth_id)
             worldh: g_worldh,
 
             cannvas_graphics: graphics,
-
+            cachedCameraID: -1,
             ActiveCam: false,
         });
     }
@@ -585,6 +586,8 @@ function surface_set_target_RELEASE(_id, _depth_id)
             : pSurfDepth.FrameBufferData.RenderBuffer;
         g_webGL.SetRenderTarget(g_CurrentFrameBuffer, g_CurrentDepthBuffer);
         g_RenderTargetActive = -1;
+
+        offsethackGL = 0.0;
     } else {
         g_CurrentGraphics = pSurf.graphics;
         graphics = pSurf.graphics;
@@ -664,6 +667,15 @@ function surface_reset_target_RELEASE()
             g_RenderTargetActive = storedState.RenderTargetActive;
             g_CurrentFrameBuffer = storedState.FrameBuffer;
             g_CurrentDepthBuffer = storedState.DepthBuffer;
+
+            if (g_RenderTargetActive == -1)
+            {
+                offsethackGL = 0.0;
+            }
+            else
+            {
+                offsethackGL = -0.01;
+            }
         }
 
         if (g_InGUI_Zone && g_SurfaceStack.length == 0) {
@@ -673,6 +685,11 @@ function surface_reset_target_RELEASE()
             Calc_GUI_Scale();
         } else {
             Graphics_SetViewPort(g_clipx, g_clipy, g_clipw, g_cliph);
+
+            if(storedState.cachedCameraID!=-1)
+                g_pCameraManager.SetActiveCamera(storedState.cachedCameraID);
+
+
             var currcam = g_pCameraManager.GetActiveCamera();
             if ((activeCam == true) && (currcam != null))
             {
@@ -897,9 +914,14 @@ function draw_surface_stretched(_id,_x,_y,_w,_h)
 function draw_surface_tiled(_id,_x,_y) 
 {
     var pSurf = g_Surfaces.Get(yyGetInt32(_id));
-	if( pSurf != null)
+	if (pSurf != null)
 	{
-	    Graphics_TextureDrawTiled(pSurf.m_pTPE, yyGetReal(_x), yyGetReal(_y), 1, 1, true, true, 0xffffff, 1);
+        var xr = g_roomExtents.left;
+		var yr = g_roomExtents.top;
+		var wr = (g_roomExtents.right - g_roomExtents.left);
+		var hr = (g_roomExtents.bottom - g_roomExtents.top);
+
+        Graphics_TextureDrawTiled(pSurf.m_pTPE, 0, 0, yyGetReal(_x), yyGetReal(_y), 1, 1, true, true, xr, yr, wr, hr, 0xffffff, 1);
     }
 }
 

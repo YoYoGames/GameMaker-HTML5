@@ -479,6 +479,11 @@ function Command_InstancePlace(_pInst,_x,_y,_obj,_list)
 
 	var pInstance = Instance_SearchLoop(_pInst, yyGetInt32(_obj), false, OBJECT_NOONE,
 		function (_pInstance) {
+			if(_pInstance.GetCollisionDomain() != GetCollisionDomainForContext(_pInst))
+			{
+				return OBJECT_NOONE;
+			}
+
 			if (_pInstance.Collision_Instance(_pInst, true)) {
 				if(_list)
 				{
@@ -495,10 +500,15 @@ function Command_InstancePlace(_pInst,_x,_y,_obj,_list)
 };
 
 
-function Command_InstancePosition(_x,_y,_obj,_list)
+function Command_InstancePosition(_pInst, _x,_y,_obj,_list)
 {
 	var pInstance = Instance_SearchLoop(null, yyGetInt32(_obj), false, OBJECT_NOONE,
 		function (_pInstance) {
+			if(_pInstance.GetCollisionDomain() != GetCollisionDomainForContext(_pInst))
+			{
+				return OBJECT_NOONE;
+			}
+
 			if (_pInstance.Collision_Point(_x,_y, true)) {
 				if(_list)
 				{
@@ -930,10 +940,15 @@ function position_empty(_inst,_x,_y)
 	var dist = 10000000000;
 	var i = 0;
 	var found = Instance_SearchLoop(_inst, OBJECT_ALL, false, false,
-        function (_pInstance) {
-        	return _pInstance.Collision_Point(yyGetReal(_x), yyGetReal(_y), true);
-        }
-    );
+		function (_pInstance) {
+			if(_pInstance.GetCollisionDomain() != GetCollisionDomainForContext(_inst))
+			{
+				return OBJECT_NOONE;
+			}
+
+			return _pInstance.Collision_Point(yyGetReal(_x), yyGetReal(_y), true);
+		}
+	);
 	return !found;
 }
 

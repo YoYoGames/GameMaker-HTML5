@@ -695,6 +695,13 @@ function GameMaker_Init()
 	g_CurrentGraphics = graphics;
 
 	g_Collision_Compatibility_Mode = g_pGMFile.Options.CollisionCompatibility;
+    g_Legacy_Primitive_Drawing = g_pGMFile.Options.LegacyPrimitiveDrawing;
+
+    if (g_Legacy_Primitive_Drawing == false)
+    {
+        offsethackD3D = 0.0;
+    }
+
  	g_LastCanvasWidth = canvas.width;
     g_LastCanvasHeight = canvas.height;    
     
@@ -1263,7 +1270,7 @@ function StartRoom( _numb, _starting )
             g_pLayerManager.CleanRoomLayers(g_CurrentRoom);
         }
         else {
-        
+            g_pLayerManager.CleanRoomLayers(g_CurrentRoom);
         	for (var i = g_CurrentRoom.m_Active.length - 1; i >= 0; i--)
         	{
         		var pInst = g_CurrentRoom.m_Active.Get(i);
@@ -1326,6 +1333,9 @@ function StartRoom( _numb, _starting )
 	
 	g_pBuiltIn.room = g_RunRoom.id;	
 	SetCanvasSize();
+
+	g_pLayerManager.RestoreUILayers(g_RunRoom);
+	UILayers_Create();
 
     //initialise view scaledport properties- mouse_x/y will return NaN until first draw otherwise
 	var sx = g_AppSurfaceRect.w / (g_roomExtents.right - g_roomExtents.left);
@@ -1399,28 +1409,38 @@ function StartRoom( _numb, _starting )
             }
         }        
         
-        var pInstStorage = g_RunRoom.m_pStorage.pInstances;
-        for(var l=0; l < g_RunRoom.m_pStorage.pInstances.length; l++)
+        for(var l=0; l < g_RunRoom.m_creationOrder.length; l++)
         {
-            var pIStore = g_RunRoom.m_pStorage.pInstances[l];
+            var pIStore = g_RunRoom.m_creationOrder[l];
             var pInstance = g_pInstanceManager.Get(pIStore.id);
             if (pInstance && (pInstance.createdone == false)) {
             
-            	pInstance.createdone = true;    	
-            	
+            	pInstance.createdone = true;
+
+            	var pCode = pIStore.pCode;
+            	var pPreCreateCode = pIStore.pPreCreateCode;
+
+            	if(pIStore.uiLayer)
+            	{
+            		var ui_element = g_UILayerInstanceElementsFromWAD[ pIStore.id ];
+
+            		pCode = ui_element.instanceCreate;
+            		pPreCreateCode = ui_element.instancePreCreate;
+            	}
+
             	if(!g_CreateEventOrderSwap && !g_isZeus) {
             	
-            		if (pIStore.pCode) pIStore.pCode(pInstance, pInstance);
+            		if (pCode) pCode(pInstance, pInstance);
             		pInstance.PerformEvent(EVENT_PRE_CREATE, 0, pInstance, pInstance);
-            		if (pIStore.pPreCreateCode) pIStore.pPreCreateCode(pInstance, pInstance);
+            		if (pPreCreateCode) pPreCreateCode(pInstance, pInstance);
             		pInstance.PerformEvent(EVENT_CREATE, 0, pInstance, pInstance);
             	} 
             	else {
             	
             		pInstance.PerformEvent(EVENT_PRE_CREATE, 0, pInstance, pInstance);
-            		if (pIStore.pPreCreateCode) pIStore.pPreCreateCode(pInstance, pInstance);
+            		if (pPreCreateCode) pPreCreateCode(pInstance, pInstance);
             		pInstance.PerformEvent(EVENT_CREATE, 0, pInstance, pInstance);
-            		if (pIStore.pCode) pIStore.pCode(pInstance, pInstance);
+            		if (pCode) pCode(pInstance, pInstance);
             	}
             }
         }
@@ -1545,7 +1565,15 @@ function    StartGame()
 	
 	// create the running rooms
 	persnumb = 0;   // no persistent instances
-	StartRoom( g_pRoomManager.GetOrder(0).id, true );
+
+    // Don't always start in the first room, startup scripts might already have 
+    // called `goto_room()`, which sets `New_Room` use this instead.
+    var startRoom = g_pRoomManager.GetOrder(0).id;
+    if (New_Room >= 0) {
+        startRoom = New_Room;
+    }
+
+	StartRoom( startRoom, true );
     
     g_FrameStartTime = Date.now();
 	lastfpstime = g_FrameStartTime;
@@ -1606,12 +1634,16 @@ function Run_EndGame(_reset) {
 	g_ParticleSystemManager.RemoveAll();
 	types_created = 0;
 
+	// Destroy UI layers and elements
+	UILayers_Destroy();
+
 	// Clear all instances - including persistant ones.
 	g_RunRoom.m_Active.Clear();
 	g_RunRoom.m_Deactive.Clear();
 	var pool = g_pObjectManager.objidlist;
 	for (var i = 0; i < pool.length; i++) {
 		var pObj = pool[i];
+        if (pObj === undefined) continue;
 		pObj.Instances.Clear();
 		pObj.Instances_Recursive.Clear();
 	}

@@ -1202,7 +1202,7 @@ function sprite_collision_mask( _ind, _sepmasks, _bbmode,_bbleft,_bbtop,_bbright
 
 		pSpr.SetBoundingBoxMode(_bbmode);
 		pSpr.SetBoundingBox(bbox);  /* will no-op if _bbmode != bboxmode_manual */
-		pSpr.ComputeBoundingBox();  /* will no-ip if _bbmode == bboxmode_manual */
+		pSpr.ComputeBoundingBox(_tolerance);  /* will no-op if _bbmode == bboxmode_manual */
 
 		if (_kind == 1)
 		{
@@ -1236,6 +1236,7 @@ function sprite_collision_mask( _ind, _sepmasks, _bbmode,_bbleft,_bbtop,_bbright
 
 		pSpr.SetBoundingBoxMode(_bbmode);
 		pSpr.SetBoundingBox(bbox); /* will no-op if _bbmode != bboxmode_manual */
+		pSpr.ComputeBoundingBox(_tolerance);  /* will no-op if _bbmode == bboxmode_manual */
 
 		// if bounding box mode, then don't assign sprites, just fill in the bounding box.
 

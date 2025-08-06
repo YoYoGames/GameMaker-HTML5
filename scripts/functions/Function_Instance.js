@@ -116,7 +116,7 @@ function instance_number(_obj)
 ///				
 ///			</returns>
 // #############################################################################################
-function instance_position(_x,_y,_obj) 
+function instance_position(_pInst, _x,_y,_obj)
 {
     _x = yyGetReal(_x);
     _y = yyGetReal(_y);
@@ -134,7 +134,7 @@ function instance_position(_x,_y,_obj)
 		}
 		else
 		{
-			var id = Command_InstancePosition(_x,_y,_obj,null);
+			var id = Command_InstancePosition(_pInst, _x,_y,_obj,null);
 		
 			if(id!=OBJECT_NOONE)
 				return id;
@@ -155,7 +155,7 @@ function instance_position(_x,_y,_obj)
 			}
 			else
 			{
-				var id = Command_InstancePosition(_x,_y,obj2,null);
+				var id = Command_InstancePosition(_pInst, _x,_y,obj2,null);
 				if(id!=OBJECT_NOONE)
 					return id;
 			}
@@ -163,13 +163,13 @@ function instance_position(_x,_y,_obj)
 	}
 	else
 	{
-		var id = Command_InstancePosition(_x,_y,_obj,null);
+		var id = Command_InstancePosition(_pInst, _x,_y,_obj,null);
 		if(id!=OBJECT_NOONE)
 			return id;
 	}
 	return OBJECT_NOONE;
 }
-function instance_position_list(_x, _y, _obj, _list, _ordered)
+function instance_position_list(_pInst, _x, _y, _obj, _list, _ordered)
 {
     _x = yyGetReal(_x);
     _y = yyGetReal(_y);
@@ -204,14 +204,14 @@ function instance_position_list(_x, _y, _obj, _list, _ordered)
 			}
 			else
 			{
-				Command_InstancePosition(_x,_y,obj2,instList);
+				Command_InstancePosition(_pInst, _x,_y,obj2,instList);
 			}
 		}
 		skipafterswitch = true;
 	}
 		
 	if(!skipafterswitch) //If we've been passed an array or a tilemap ref don't do this call
-		Command_InstancePosition( _x, _y, _obj, instList);
+		Command_InstancePosition(_pInst, _x, _y, _obj, instList);
 	
 	var count = instList.length;
 	AppendCollisionResults(instList, list, _x, _y, _ordered);

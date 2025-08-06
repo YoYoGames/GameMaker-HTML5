@@ -3195,6 +3195,44 @@ function ParticleSystem_Update(_ps)
 	var pPartSys = g_ParticleSystemManager.Get(_ps);
 	if (pPartSys == null) return 0;
 
+	var elementAndLayer = g_pLayerManager.GetElementAndLayerFromID(g_RunRoom, pPartSys.m_elementID);
+	if (elementAndLayer != null)
+	{
+		var pParticleEl = elementAndLayer.element;
+
+		var matRot = new Matrix();
+		matRot.SetZRotation(pParticleEl.m_imageAngle + pPartSys.angle);
+
+		var matScale = new Matrix();
+		matScale.SetScale(pParticleEl.m_imageScaleX, pParticleEl.m_imageScaleY, 1.0);
+
+		var matScaleRot = new Matrix();
+		matScaleRot.Multiply(matScale, matRot);
+
+		var matPos = new Matrix();
+		matPos.SetTranslation(-pPartSys.xdraw, -pPartSys.ydraw, 0.0);
+		
+		var matWorldNew = new Matrix();
+		matWorldNew.Multiply(matPos, matScaleRot);
+		matWorldNew.Translation(pPartSys.xdraw + pParticleEl.m_x, pPartSys.ydraw + pParticleEl.m_y, 0.0);
+
+		ParticleSystem_SetMatrix(_ps, matWorldNew);
+	}
+	else
+	{
+		var matRot = new Matrix();
+		matRot.SetZRotation(pPartSys.angle);
+
+		var matPos = new Matrix();
+		matPos.SetTranslation(-pPartSys.xdraw, -pPartSys.ydraw, 0.0);
+		
+		var matParticle = new Matrix();
+		matParticle.Multiply(matPos, matRot);
+		matParticle.Translation(pPartSys.xdraw, pPartSys.ydraw, 0.0);
+
+		ParticleSystem_SetMatrix(_ps, matParticle);
+	}
+
 	var pEmitters = pPartSys.emitters;
 	if (pEmitters)
 	{

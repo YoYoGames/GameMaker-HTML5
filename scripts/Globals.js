@@ -982,6 +982,7 @@ Audio_WebAudio=1,
 	g_DefaultFont = 0,
 	g_RenderTargetActive = 0,	
     g_Collision_Compatibility_Mode =false,
+	g_Legacy_Primitive_Drawing = false,
 
     g_CurrentHWCursor = 0,
     g_CurrentCursor = 0,

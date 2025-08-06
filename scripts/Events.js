@@ -1,4 +1,4 @@
-﻿// **********************************************************************************************************************
+// **********************************************************************************************************************
 // 
 // Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
 // 
@@ -426,6 +426,34 @@ function HandleMouse()
                 		// If the instance uses ANY mouse event, then we need to 
                 		if (!pInst.marked && (pInst.createCounter <= count))
                 		{
+							/// Early-out until the UI layers have been laid out.
+							///
+							/// The very first mouse callback can fire **before** the UILayer layout pass
+							/// runs.  At that moment every UI element still reports its position as (0, 0),
+							/// which is also where the mouse starts, so every instance would incorrectly
+							/// receive “mouse-enter/leave” events.  
+							///
+							/// We avoid that by bailing out until `g_UILayersInit` is set by the first
+							/// successful layout pass.
+							if (pInst.GetInGUISpace()) {
+								// Skip instance
+								if (!g_UILayersInit) {
+									continue;
+								}
+								mousex = device_mouse_x_to_gui(0);
+								mousey = device_mouse_y_to_gui(0);
+							}
+							else if (pInst.GetOnUILayer()) {
+								// Skip instance
+								if (!g_UILayersInit) {
+									continue;
+								}
+
+								m = GR_Window_Views_Convert(g_pIOManager.MouseX, g_pIOManager.MouseY, false);
+								mousex = m[0];
+								mousey = m[1];
+							}
+
                 			// NOTE:    This isn't "exactly" how GM8.x works. This will not loop through each instance, on each event.
                 			//          Instead, it takes a single instance and does all mouse events on that instance.
                 			if (pInst.bbox_dirty) pInst.Compute_BoundingBox();

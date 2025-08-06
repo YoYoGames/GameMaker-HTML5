@@ -52,6 +52,7 @@ var Graphics_Restore;
 var Graphics_Save;
 var Graphics_SetViewAreaTransform;
 var Graphics_TextureDraw;
+var Graphics_TextureDrawWH;
 var Graphics_EndFrame;
 var Graphics_SWFDraw;
 var Graphics_SWFDrawObject;
@@ -194,6 +195,7 @@ function    Graphics_Init( _canvas )
         }
         Graphics_TextureDrawTiled = Graphics_TextureDrawTiled_RELEASE;
         Graphics_TextureDraw = Graphics_TextureDraw_RELEASE;
+        Graphics_TextureDrawWH = Graphics_TextureDrawWH_RELEASE;
         Graphics_SetViewPort = Graphics_SetViewPort_RELEASE;
         Graphics_SetViewArea = Graphics_SetViewArea_RELEASE;
         Graphics_SetViewAreaTransform = Graphics_SetViewAreaTransform_RELEASE;
@@ -949,14 +951,36 @@ function    Graphics_CanvasSizeSupported( _canvas ) {
 
 // #############################################################################################
 /// Function:<summary>
-///             Draw a texture tiled across the screen. This creates a "cache" of the large image
-///				to save drawing it many times.
-///             NB: Because of speed issues, the non-WebGL version of this explicitly ignores the
+///				Draws the texture tiled to cover at least the given area (xr,yr,wr,hr)
+///				No clipping is performed so a slightly larger area might be filled
+///				Its origin is placed on position x,y  and it is scaled as indicated
+///				htiled indicates whether to use horizontal tiling, vtiled for vertical tiling
+///				col is the blend color, alpha is the alpha transparency value (0-1)
+///				NB: Because of speed issues, the non-WebGL version of this explicitly ignores the
 ///             scaling values.
 ///          </summary>
+///
+/// In:		 <param name="id"></param>
+///			 <param name="xorig"></param>
+///			 <param name="yorig"></param>
+///			 <param name="x"></param>
+///			 <param name="y"></param>
+///			 <param name="xsc">IGNORED</param>
+///			 <param name="ysc">IGNORED</param>
+///			 <param name="htiled"></param>
+///			 <param name="vtiled"></param>
+///			 <param name="xr"></param>
+///			 <param name="yr"></param>
+///			 <param name="wr"></param>
+///			 <param name="hr"></param>
+///			 <param name="col"></param>
+///			 <param name="alpha"></param>
+/// Out:	 <returns>
+///				
+///			 </returns>
 // #############################################################################################
-function	Graphics_TextureDrawTiled_RELEASE( _pTPE, _x, _y, _xsc, _ysc, vtile, htile, _col, _alpha ) {
-
+function	Graphics_TextureDrawTiled_RELEASE( _pTPE, _xorig, _yorig, _x, _y, _xsc, _ysc, htiled, vtiled, _xr, _yr, _wr, _hr, _col, _alpha ) 
+{
 	var pTexture = _pTPE.texture;
 
 	if (!pTexture) return;
@@ -966,32 +990,47 @@ function	Graphics_TextureDrawTiled_RELEASE( _pTPE, _x, _y, _xsc, _ysc, vtile, ht
 	if (_pTPE.w == 0 || _pTPE.h == 0) return;
 
 
-    var i = 0;
-    if( vtile ) i = 1;
-    if( htile ) i |= 2; 
+    var cam = g_pCameraManager.GetActiveCamera();
+	if ((cam != null) && (cam.m_is2D == false))
+    {
+        // Erm, bounds won't be correct, so disable tiling
+        //dbg_csol.Output("Attempting to use tiled draw with perspective projection - this won't work properly\n");
+        htiled = false;
+        vtiled = false;
+    }
 
+    var i = 0;
+    if( vtiled ) i = 1;
+    if( htiled ) i |= 2; 
 
     // tiled?        
     if (i === 0)
     {
-    	graphics.globalAlpha = _alpha;
+		// C++ does this ???
+        // Graphics_TextureDraw_RELEASE(_pTPE, _xorig, _yorig, _x, _y, _xsc, _ysc, 0, _col, undefined, undefined, undefined, _alpha);
+		// return true;
+
+		graphics.globalAlpha = _alpha;
     	graphics._drawImage(pTexture, _pTPE.x, _pTPE.y, _pTPE.w, _pTPE.h, _x + _pTPE.XOffset, _y + _pTPE.YOffset, (_pTPE.CropWidth * _xsc), (_pTPE.CropHeight * _ysc));
         return;
     }            
-        
+
+	var ow = _pTPE.ow;
+	var oh = _pTPE.oh;
+
 	var w = _pTPE.ow;
 	var h = _pTPE.oh;
-	if (htile)
+	if (htiled)
 	{
-		w = (((((g_pCurrentView.worldw + (_pTPE.ow - 1)) / _pTPE.ow) & 0xffffffff) + 2) * _pTPE.ow);						
+		w = (((((_wr + (ow - 1)) / ow) & 0xffffffff) + 2) * ow);						
 		//_x = g_worldx + (~~((_x - g_worldx) % _pTPE.ow) - _pTPE.ow);		
-		_x = g_worldx + (((_x - g_worldx) % _pTPE.ow) - _pTPE.ow);		
+		_x = _xr + (((_x - _xr) % ow) - ow);		
 	}
-	if (vtile)
+	if (vtiled)
 	{
-		h = (((((g_pCurrentView.worldh + (_pTPE.oh - 1)) / _pTPE.oh) & 0xffffffff) + 2) * _pTPE.oh);		
+		h = (((((_hr + (oh - 1)) / oh) & 0xffffffff) + 2) * oh);		
 		//_y = g_worldy + (~~((_y - g_worldy) % _pTPE.oh) - _pTPE.oh);
-		_y = g_worldy + (((_y - g_worldy) % _pTPE.oh) - _pTPE.oh);
+		_y = _yr + (((_y - _yr) % oh) - oh);
 	}
     
 	if ((_pTPE.hvcached != null) && (_pTPE.hvcached.width < (w * _pTPE.hvcachedScale) || _pTPE.hvcached.height < (h * _pTPE.hvcachedScale)))
@@ -1068,8 +1107,6 @@ function	Graphics_TextureDrawTiled_RELEASE( _pTPE, _x, _y, _xsc, _ysc, vtile, ht
     // graphics._drawImage(_pTPE.hvcached, _x, _y);
 }
 
-
-
 // #############################################################################################
 /// Function:<summary>
 ///             Draws the texture
@@ -1088,6 +1125,92 @@ function	Graphics_TextureDrawTiled_RELEASE( _pTPE, _x, _y, _xsc, _ysc, vtile, ht
 ///				
 // #############################################################################################
 function Graphics_TextureDraw_RELEASE(_pTPE, _xorig, _yorig, _x, _y, _xsc, _ysc, _rot, _col1, _col2, _col3, _col4, _alpha) {
+
+	// Need these checks here in case "dynamic loading" has forced an unload of the image.
+	if (!_pTPE.texture) return;
+	if (!_pTPE.texture.complete) return;
+
+	// If we scaled down to almost 0, OR have an ALPHA of almost 0.... don't bother.
+	if ((abs(_xsc) <= 0.0001) || (abs(_ysc) <= 0.0001) || (_alpha<=0)) { return; }
+
+    _col1 &= 0xffffff;
+
+    var ox = -(_xorig-_pTPE.XOffset);
+    var oy = -(_yorig-_pTPE.YOffset);
+
+    // If coloured, then cache a "colourised" version
+    var la = graphics.globalAlpha;
+    graphics.globalAlpha = _alpha;
+            
+    if (_col1 != g_CacheWhite)
+    {
+    	var cached_image = Graphics_CacheBlock(_pTPE, _col1);
+    	var r = Math.abs(_rot);    		
+    	if ((r < 0.0001) && (_xsc == 1) && (_ysc == 1) && (_pTPE.w === _pTPE.CropWidth) && (_pTPE.h === _pTPE.CropHeight)) {
+    	
+    		graphics._drawImage(cached_image, _x+ox, _y+oy);    		
+    	} 
+    	else {    	
+			// When doing negative scales, or rotation - use a matrix    	    
+    	    if ((_xsc < 0) || (_ysc < 0) || (r > 0.0001)) {
+    	    
+    			Graphics_PushTransform(_x, _y, _xsc, _ysc, -_rot);
+    			graphics._drawImage(cached_image, 0, 0, _pTPE.w, _pTPE.h, ox, oy, _pTPE.CropWidth, _pTPE.CropHeight);
+    			Graphics_SetTransform();
+    		}
+    		else {
+				// otherwise, draw faster
+    			graphics._drawImage(cached_image, 0, 0, _pTPE.w, _pTPE.h, _x + (ox * _xsc), _y + (oy * _ysc), _pTPE.CropWidth * _xsc, _pTPE.CropHeight * _ysc);
+    		}
+    	}
+    } 
+    else {
+    
+		var r = Math.abs(_rot);
+    	if ((r < 0.0001) && (_xsc == 1) && (_ysc == 1) && (_pTPE.w === _pTPE.CropWidth) && (_pTPE.h === _pTPE.CropHeight))
+    	{    	
+    		if (_pTPE.singleimage == null) {
+    		    _pTPE.singleimage = Graphics_ExtractImage(_pTPE);
+    		}
+    		graphics._drawImage(_pTPE.singleimage, _x + ox, _y + oy);    		
+    	}
+    	else {
+    		// When doing negative scales, or rotation - use a matrix
+    		if (_xsc < 0 || _ysc < 0 || r > 0.001) {
+    		
+    			Graphics_PushTransform(_x, _y, _xsc, _ysc, -_rot);
+    			graphics._drawImage(_pTPE.texture, _pTPE.x, _pTPE.y, _pTPE.w, _pTPE.h, ox, oy, _pTPE.CropWidth, _pTPE.CropHeight);
+    			Graphics_SetTransform();
+    		}
+    		else {
+    			// otherwise, draw faster
+    			graphics._drawImage(_pTPE.texture, _pTPE.x, _pTPE.y, _pTPE.w, _pTPE.h, _x + (ox * _xsc), _y + (oy * _ysc), _pTPE.CropWidth * _xsc, _pTPE.CropHeight * _ysc);
+    		}
+    	}
+    }
+    graphics.globalAlpha = la;
+}
+
+// #############################################################################################
+/// Function:<summary>
+///             Draws the texture
+///          </summary>
+///
+/// In:		 <param name="pTPE">Texture page entry</param>
+///			 <param name="xorig">The X origin of the texture</param>
+///			 <param name="yorig">The Y origin of the texture</param>
+///			 <param name="width">The Width of the source image to draw</param>
+///			 <param name="height">The Height of the source image to draw</param>
+///			 <param name="x">the X position to put the origin at</param>
+///			 <param name="y">the X position to put the origin at</param>
+///			 <param name="xsc">X Scale are the scale factor in x- and y- direction</param>
+///			 <param name="ysc">Y Scale are the scale factor in x- and y- direction</param>
+///			 <param name="rot">rot is the rotation angle (counterclockwise in radians)</param>
+///			 <param name="col">col is the blend color</param>
+///			 <param name="_alpha">alpha is the alpha transparency value (0-1)</param>
+///				
+// #############################################################################################
+function Graphics_TextureDrawWH_RELEASE(_pTPE, _xorig, _yorig, _width, _height, _x, _y, _xsc, _ysc, _rot, _col1, _col2, _col3, _col4, _alpha) {
 
 	// Need these checks here in case "dynamic loading" has forced an unload of the image.
 	if (!_pTPE.texture) return;
@@ -1557,7 +1680,7 @@ function Graphics_DrawGeneral(_pTPE, _left,_top,_width,_height,    _x,_y,_xscale
 	_y = ~ ~_y;
     */
 
-	Graphics_TextureDraw(_pTPE, _left, _top, _x, _y, _xscale, _yscale, _rot, _c1, _c2, _c3, _c4, _alpha); 	// only draws with ONE colour!
+	Graphics_TextureDrawWH(_pTPE, _left, _top, _width, _height, _x, _y, _xscale, _yscale, _rot, _c1, _c2, _c3, _c4, _alpha); 	// only draws with ONE colour!
 }
 
 // #############################################################################################

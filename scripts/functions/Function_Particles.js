@@ -514,26 +514,13 @@ function part_system_drawit(_ind)
     ps = GetParticleSystemInstanceIndex(_ind);
 
     var pSystem = g_ParticleSystemManager.Get(ps);
-
     if (pSystem == null) return;
 
 	var matWorldOld = WebGL_GetMatrix(MATRIX_WORLD);
-
-	var matRot = new Matrix();
-	matRot.SetZRotation(pSystem.angle);
-
-	var matPos = new Matrix();
-	matPos.SetTranslation(-pSystem.xdraw, -pSystem.ydraw, 0.0);
-	
-	var matParticle = new Matrix();
-	matParticle.Multiply(matPos, matRot);
-	matParticle.Translation(pSystem.xdraw, pSystem.ydraw, 0.0);
-
     var matWorldNew = new Matrix();
-    matWorldNew.Multiply(matParticle, matWorldOld);
+    matWorldNew.Multiply(pSystem.matrix, matWorldOld);
 
 	WebGL_SetMatrix(MATRIX_WORLD, matWorldNew);
-	ParticleSystem_SetMatrix(ps, matWorldNew);
 	ParticleSystem_Draw(ps);
 	WebGL_SetMatrix(MATRIX_WORLD, matWorldOld);
 }

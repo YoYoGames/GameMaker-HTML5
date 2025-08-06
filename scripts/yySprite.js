@@ -89,6 +89,23 @@ YYRECT.prototype.Copy = function (_bbox) {
 	this.bottom = _bbox.bottom;
 };
 
+YYRECT.prototype.Intersection = function(r1, r2)
+{
+	var r = new YYRECT();
+	r.left = Math.max(r1.left, r2.left);
+	r.top = Math.max(r1.top, r2.top);
+	r.right = Math.min(r1.right, r2.right);
+	r.bottom = Math.min(r1.bottom, r2.bottom);
+	return r;
+};
+
+YYRECT.prototype.GetWidth = function () {
+	return this.right - this.left;
+};
+
+YYRECT.prototype.GetHeight = function () {
+	return this.bottom - this.top;
+};
 
 // @if feature("sprites")
 // #############################################################################################
@@ -142,6 +159,9 @@ function    yySprite()
 	this.nineslicedata = null;
 	this.m_LoadedFromChunk = false;
 	this.m_LoadedFromIncludedFiles = false;
+
+	this.m_VectorShapes = null;
+	this.m_VectorShapeFrameIndices = null;
 };
 yySprite.prototype.GetCollisionChecking = function () { return this.colcheck === yySprite_CollisionType.PRECISE; };
 yySprite.prototype.GetXOrigin = function () { return this.xOrigin; };
@@ -299,8 +319,7 @@ yySprite.prototype.SetBoundingBoxMode = function(bboxmode)
 		return;
 	}
 
-	this.bboxmode = bboxmode;
-	this.ComputeBoundingBox();
+	this.bboxmode = bboxmode;	
 	this.MarkInstancesAsDirty();
 };
 
@@ -322,7 +341,7 @@ yySprite.prototype.SetBoundingBox = function(bbox)
 	}
 };
 
-yySprite.prototype.ComputeBoundingBox = function()
+yySprite.prototype.ComputeBoundingBox = function(_tolerance)
 {
 	if (this.bboxmode == 0 /* bboxmode_automatic */)
 	{
@@ -852,8 +871,17 @@ yySprite.prototype.SetupVectorCollisionMasks = function (_dataView, _byteOffset,
 	}
 	else
 	{
-		this.width = this.m_VectorShape.maxX - this.m_VectorShape.minX;
-		this.height = this.m_VectorShape.maxY - this.m_VectorShape.minY;
+		if (this.m_VectorShapes.length > 0)
+		{
+			this.width = this.m_VectorShapes[0].maxX - this.m_VectorShapes[0].minX;
+			this.height = this.m_VectorShapes[0].maxY - this.m_VectorShapes[0].minY;
+
+			for(var i = 1; i < this.m_VectorShapes.length; i++)
+			{
+				this.width = yymax(this.width, (this.m_VectorShapes[i].maxX - this.m_VectorShapes[i].minX));
+				this.height = yymax(this.height, (this.m_VectorShapes[i].maxY - this.m_VectorShapes[i].minY));
+			}
+		}		
 
 		if (!this.m_LoadedFromChunk) {
 			this.colcheck = yySprite_CollisionType.AXIS_ALIGNED_RECT;
@@ -891,13 +919,21 @@ yySprite.prototype.SetSWFDrawRoutines = function () {
 yySprite.prototype.SetVectorDrawRoutines = function () {
 	// @if feature("swf")
     this.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _colour, _alpha) {    
+
+		var shapeIndex = this.m_VectorShapeFrameIndices[_ind];		
+		var shapeToDraw = this.m_VectorShapes[shapeIndex];
+
 	    Graphics_VectorSpriteDraw(
-	        this.SWFDictionaryItems, this.m_VectorShape, this.xOrigin, this.yOrigin, _x, _y, _xscale, _yscale, _angle, _colour, _alpha, this.ppTPE);
+	        this.SWFDictionaryItems, shapeToDraw, this.xOrigin, this.yOrigin, _x, _y, _xscale, _yscale, _angle, _colour, _alpha, this.ppTPE);
     };
     
     this.DrawSimple = function (_ind, _x, _y, _alpha) {
+
+		var shapeIndex = this.m_VectorShapeFrameIndices[_ind];		
+		var shapeToDraw = this.m_VectorShapes[shapeIndex];
+
         Graphics_VectorSpriteDraw(
-            this.SWFDictionaryItems, this.m_VectorShape, this.xOrigin, this.yOrigin, _x, _y, 1.0, 1.0, 0.0, 0xffffffff, _alpha, this.ppTPE);
+            this.SWFDictionaryItems, shapeToDraw, this.xOrigin, this.yOrigin, _x, _y, 1.0, 1.0, 0.0, 0xffffffff, _alpha, this.ppTPE);
     };
 	// @endif swf
 };
@@ -920,12 +956,39 @@ yySprite.prototype.BuildVectorData = function (_vecIndex, _xo, _yo) {
             var dataView = new DataView(vecArrayBuffer);
             if (dataView !== undefined) {                        
             
-                // Read in the header details                            
-				var fileVersion = dataView.getUint32(byteOffset, littleEndian);
-                byteOffset += 4;
+				var numVectorShapes = 0;
+				this.m_VectorShapeFrameIndices = [];
+				this.m_VectorShapes = [];
+				if (g_VectorSpriteVersion.version >= 4)
+				{
+					this.numb = dataView.getInt32(byteOffset, littleEndian);
+					byteOffset += 4;
+					
+					for(var i = 0; i < this.numb; i++)
+					{
+						this.m_VectorShapeFrameIndices[i] = dataView.getInt32(byteOffset, littleEndian);
+						byteOffset += 4;
+					}
 
-				this.m_VectorShape = new yySWFShape(eDIType_Shape, 0);
-				byteOffset = this.m_VectorShape.BuildShapeData(dataView, byteOffset, littleEndian, null, true);                
+					numVectorShapes = dataView.getUint32(byteOffset, littleEndian);
+					byteOffset += 4;					
+				}
+				else
+				{
+					this.numb = 1;
+					numVectorShapes = 1;
+					this.m_VectorShapeFrameIndices[0] = 0;
+				}
+			
+				for(var i = 0; i < numVectorShapes; i++)
+				{
+					// Read in the header details                            
+					var fileVersion = dataView.getUint32(byteOffset, littleEndian);
+					byteOffset += 4;
+
+					this.m_VectorShapes[i] = new yySWFShape(eDIType_Shape, 0);
+					byteOffset = this.m_VectorShapes[i].BuildShapeData(dataView, byteOffset, littleEndian, null, true);                					
+				}
 
 				// Sort out any collision masks                
 				byteOffset = this.SetupVectorCollisionMasks(dataView, byteOffset, littleEndian);
@@ -937,10 +1000,22 @@ yySprite.prototype.BuildVectorData = function (_vecIndex, _xo, _yo) {
 				}
                 
                 if (!this.m_LoadedFromChunk && this.colcheck === yySprite_CollisionType.AXIS_ALIGNED_RECT) {
-                    this.bbox.left = this.m_VectorShape.minX;
-		            this.bbox.right = this.m_VectorShape.maxX;
-		            this.bbox.top = this.m_VectorShape.minY;
-		            this.bbox.bottom = this.m_VectorShape.maxY;
+					if (this.m_VectorShapes.length > 0)
+					{
+						this.bbox.left = this.m_VectorShapes[0].minX;
+						this.bbox.right = this.m_VectorShapes[0].maxX;
+						this.bbox.top = this.m_VectorShapes[0].minY;
+						this.bbox.bottom = this.m_VectorShapes[0].maxY;
+
+						for(var i = 1; i < this.m_VectorShapes.length; i++)
+						{
+							this.bbox.left = yymin(this.bbox.left, this.m_VectorShapes[i].minX);
+							this.bbox.right = yymax(this.bbox.right, this.m_VectorShapes[i].maxX);
+							this.bbox.top = yymin(this.bbox.top, this.m_VectorShapes[i].minY);
+							this.bbox.bottom = yymax(this.bbox.bottom, this.m_VectorShapes[i].maxY);
+						}
+					}
+
 		            this.xOrigin = _xo;
 		            this.yOrigin = _yo;
                 }                
@@ -1348,6 +1423,13 @@ function SphereIsVisible(position, radius)
 	return frustum.IntersectsSphere(worldMat.TransformVec3(position), radius * cullScale);
 }
 
+function sphere_is_visible(_x,_y,_z,_r)
+{
+	var frustum = GetViewFrustum();
+	return frustum.IntersectsSphere(new Vector3(yyGetReal(_x),yyGetReal(_y),yyGetReal(_z)), yyGetReal(_r));
+}
+
+
 yySprite.prototype.CreateMask = function(){
 
 	var i = 0;
@@ -1521,6 +1603,35 @@ yySprite.prototype.Draw = function (_ind, _x, _y, _xscale, _yscale, _angle, _col
 	}
 };
 
+yySprite.prototype.DrawTiled = function(_ind, _x, _y, _xscale, _yscale, _htile, _vtile, _tile_xr, _tile_yr, _tile_wr, _tile_hr, _colour, _alpha) {
+
+	if (this.numb <= 0) {
+		return;
+	}
+
+	if (this.sequence != null) {
+		if (_ind < 0)
+			return; // denotes empty space in the sequence
+	}
+
+	if ((this.nineslicedata != null) && this.nineslicedata.GetEnabled())
+	{
+		yyError("This function can't be used to draw sprites that have nine-slice drawing enabled");
+	}
+	else
+	{
+		// get current frame and round (it will be a fraction), then MOD to number of frames
+		_ind = (~~_ind) % this.ppTPE.length;
+
+		const pTPE = this.ppTPE[_ind];
+		if (!pTPE) {
+			console.log("Error: Texture page for " + this.pName + " is not loaded");
+		}
+		else {
+			Graphics_TextureDrawTiled(pTPE, this.xOrigin, this.yOrigin, _x, _y, _xscale, _yscale, _htile, _vtile, _tile_xr, _tile_yr, _tile_wr, _tile_hr, _colour, _alpha);
+		}
+	}
+};
 
 yySprite.prototype.GetSkeletonSlotsAtPoint = function(_inst, _x, _y, _list)
 {
@@ -1545,8 +1656,6 @@ yySprite.prototype.GetSkeletonSlotsAtPoint = function(_inst, _x, _y, _list)
     this.m_skeletonSprite.GetSlotsAtWorldPos(_inst, undefined, undefined, ind, x, y, xscale, yscale, angle, _x, _y, _list);
 	// @endif spine
 };
-
-
 
 // #############################################################################################
 /// Function:<summary>
@@ -1746,7 +1855,6 @@ yySprite.prototype.PreciseCollisionTilemapRect= function ( tMaskData, bb2, t_ibb
 	return false;
 
 };
-
 
 yySprite.prototype.PreciseCollisionTilemapLine= function ( tMaskData, bb2, t_ibbox,  xl,  yl,  xr, yr)
 {
@@ -2715,9 +2823,10 @@ yySprite.prototype.PreciseCollisionLine = function (_img1, _bb1, _x1, _y1, _scal
 		{
 			var xx = Math.floor((cc * (i - _x1) + ss * (_yl + (i - _xl) * dd - _y1)) / _scalex + this.xOrigin);
 			var yy = Math.floor((cc * (_yl + (i - _xl) * dd - _y1) - ss * (i - _x1)) / _scaley + this.yOrigin);
-			if ((xx < 0) || (xx >= this.width)) continue;
-			if ((yy < 0) || (yy >= this.height)) continue;
-			if (this.colmask[_img1][xx + (yy * this.width)]) return true;
+
+
+			if(this.ColMaskSet(xx,  yy,this.colmask[_img1]))
+				return true;
 		}
 	}
 	else
@@ -2740,9 +2849,9 @@ yySprite.prototype.PreciseCollisionLine = function (_img1, _bb1, _x1, _y1, _scal
 		{
 			var xx = Math.floor((cc * (_xl + (i - _yl) * dd - _x1) + ss * (i - _y1)) / _scalex + this.xOrigin);
 			var yy = Math.floor((cc * (i - _y1) - ss * (_xl + (i - _yl) * dd - _x1)) / _scaley + this.yOrigin);
-			if ((xx < 0) || (xx >= this.width)) continue;
-			if ((yy < 0) || (yy >= this.height)) continue;
-			if (this.colmask[_img1][xx + (yy * this.width)]) return true;
+
+			if(this.ColMaskSet(xx,  yy,this.colmask[_img1]))
+				return true;
 		}
 	}
 
@@ -2854,6 +2963,10 @@ yySpriteManager.prototype.GetImageCount = function (_spr_number) {
 	// @if feature("swf")
 	if ((sprite.SWFTimeline !== null) && (sprite.SWFTimeline !== undefined)) {
 	    return sprite.SWFTimeline.numFrames;
+	}
+	else if (sprite.m_VectorShapeFrameIndices !== null)
+	{
+		return sprite.numb;
 	}
 	// @endif
 	return sprite.ppTPE.length;
@@ -3076,7 +3189,7 @@ yySpriteManager.prototype.VecLoad = function (_data) {
             // Get the version code, header size and sprite count
             this.vectorSpriteData = [];
 
-            // Extract each SWF            
+            // Extract each chunk of vector data            
             var dataOffset = headerSize;
             for (var i = 0; i < spriteCount; i++) {
                                                

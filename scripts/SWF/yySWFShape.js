@@ -429,6 +429,11 @@ yySWFShape.prototype.BuildSubShapes = function (_styleGroup, _dataView, _byteOff
 
     var i, m;
 
+	if (_isVectorSprite === undefined)
+	{
+		_isVectorSprite = false;
+	}
+
     _styleGroup.SubShapes = [];
     for (i = 0; i < _styleGroup.numSubShapes; i++) {
     
@@ -444,6 +449,15 @@ yySWFShape.prototype.BuildSubShapes = function (_styleGroup, _dataView, _byteOff
 
 		pSubShape.numPoints = _dataView.getInt32(_byteOffset, _littleEndian);
 		_byteOffset+=4;
+		if (((_isVectorSprite == true) && (g_VectorSpriteVersion.version >= 2)) || (g_SWFVersion.version >= 4))
+		{
+			pSubShape.numPointColours = _dataView.getInt32(_byteOffset, _littleEndian);
+			_byteOffset+=4;
+		}
+		else
+		{
+			pSubShape.numPointColours = 0;
+		}
 		pSubShape.numLines = _dataView.getInt32(_byteOffset, _littleEndian);
 		_byteOffset+=4;
 		pSubShape.numTriangles = _dataView.getInt32(_byteOffset, _littleEndian);
@@ -453,11 +467,6 @@ yySWFShape.prototype.BuildSubShapes = function (_styleGroup, _dataView, _byteOff
 		_byteOffset+=4;
 		pSubShape.numLineTriangles = _dataView.getInt32(_byteOffset, _littleEndian);
 		_byteOffset+=4;
-
-		if (_isVectorSprite === undefined)
-		{
-			_isVectorSprite = false;
-		}
 		
 		if ((_isVectorSprite == true) || (g_SWFVersion.version >= 2))
 		{
@@ -477,6 +486,7 @@ yySWFShape.prototype.BuildSubShapes = function (_styleGroup, _dataView, _byteOff
 		}
 
         pSubShape.Points = (pSubShape.numPoints > 0) ? [] : null;
+		pSubShape.PointColours = (pSubShape.numPointColours > 0) ? [] : null;
         pSubShape.Line = (pSubShape.numLines > 0) ? [] : null;
         pSubShape.Triangles = (pSubShape.numTriangles > 0) ? [] : null;
         pSubShape.LinePoints = (pSubShape.numLinePoints > 0) ? [] : null;		
@@ -488,6 +498,11 @@ yySWFShape.prototype.BuildSubShapes = function (_styleGroup, _dataView, _byteOff
 
 		for (m = 0; m < pSubShape.numPoints*2; m++) {
 			pSubShape.Points[m] = _dataView.getFloat32(_byteOffset, _littleEndian);
+			_byteOffset+=4;
+		}
+
+		for (m = 0; m < pSubShape.numPointColours; m++) {
+			pSubShape.PointColours[m] = _dataView.getUint32(_byteOffset, _littleEndian);
 			_byteOffset+=4;
 		}
 

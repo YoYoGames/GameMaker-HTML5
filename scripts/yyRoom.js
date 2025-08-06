@@ -15,6 +15,10 @@
 // 
 // **********************************************************************************************************************
 
+//Room creation order list should only be done on first visit to first room, thereafter ui layer
+// instances have been created and it is left to the order of instances in the room
+var g_DoneFirstRoomCreation = false;
+
 // #############################################################################################
 /// Function:<summary>
 ///             Game Maker "ACTIVE" Room class
@@ -78,6 +82,7 @@ yyRoom.prototype.Init = function () {
 
 	// RK :: Used to reduce the amount of memory used when loading rooms
 	this.m_pStorage = null;
+	this.m_creationOrder = [];
 
 	this.m_pName = "Room";
 	
@@ -285,6 +290,7 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
     
 		// Instances
         this.m_pStorage.pInstances = new Array(_pStorage.pInstances.length);
+        this.m_creationOrder = new Array();
         for (var i = 0; i < _pStorage.pInstances.length; i++) 
         {
             var sourceInstance = _pStorage.pInstances[i];
@@ -304,8 +310,10 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
                     pCode: sourceInstance.pCode,
                     pPreCreateCode: sourceInstance.pPreCreateCode
                 };
+
+                this.m_creationOrder.push(this.m_pStorage.pInstances[i]);
             }
-        }        
+        }
 
 		// Layers
         this.m_pStorage.layers = new Array( _pStorage.layers.length );
@@ -485,6 +493,7 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
 								sBlend: srcTextitem.sBlend,
 								sXOrigin: srcTextitem.sXOrigin,
 								sYOrigin: srcTextitem.sYOrigin,
+								sOrigin: srcTextitem.sOrigin,
 								sText: srcTextitem.sText,
 								sAlignment: srcTextitem.sAlignment,
 								sCharSpacing: srcTextitem.sCharSpacing,
@@ -492,6 +501,7 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
 								sFrameW: srcTextitem.sFrameW,
 								sFrameH: srcTextitem.sFrameH,
 								sWrap: srcTextitem.sWrap,
+								sWrapMode: srcTextitem.sWrapMode,
 								sName: srcTextitem.sName,								
 							};
 						}
@@ -560,6 +570,50 @@ yyRoom.prototype.CreateRoomFromStorage = function (_pRoomStorage)
 	        g_pLayerManager.BuildRoomLayers(this,_pRoomStorage.layers);
 	    }
 	}
+
+	/* The first room written by the asset compiler includes a 'creationOrderIds' property
+	 * which defines the creation order of any room instances *and* UI layer instances, after
+	 * the first room has been constructed we stop using it since the UI layer instances have
+	 * already been created.
+	*/
+	if(!g_DoneFirstRoomCreation && _pRoomStorage.creationOrderIds !== undefined)
+	{
+		for(var i = 0; i < _pRoomStorage.creationOrderIds.length; ++i)
+		{
+			var found_in_room = false;
+
+			/* Find the correct element from m_pStorage.pInstances */
+			for(var j = 0; j < this.m_pStorage.pInstances.length; ++j)
+			{
+				var p = this.m_pStorage.pInstances[j];
+
+				if(p !== undefined && p.id == _pRoomStorage.creationOrderIds[i])
+				{
+					this.m_creationOrder.push(p);
+					found_in_room = true;
+					break;
+				}
+			}
+
+			if(!found_in_room)
+			{
+				/* Didn't find the instance in the room... must be on a UI layer. */
+
+				this.m_creationOrder.push({
+					id: _pRoomStorage.creationOrderIds[i],
+					uiLayer: true,
+				});
+			}
+		}
+	}
+	else{
+		for(var j = 0; j < this.m_pStorage.pInstances.length; ++j)
+		{
+			this.m_creationOrder.push(this.m_pStorage.pInstances[j]);
+		}
+	}
+
+	g_DoneFirstRoomCreation = true;
 };
 
 // #############################################################################################
@@ -596,6 +650,12 @@ yyRoom.prototype.ClearInstances = function (do_delete_events) {
 	for (i = this.m_Active.length - 1; i >= 0; i--)
 	{
 		var inst = this.m_Active.Get(0);
+
+		if(inst.GetOnUILayer())
+		{
+			continue;
+		}
+
 		if (do_delete_events)
 		{
 			inst.PerformEvent( EVENT_CLEAN_UP,0, inst, inst );
@@ -605,7 +665,14 @@ yyRoom.prototype.ClearInstances = function (do_delete_events) {
 
 	for (i = this.m_Deactive.length - 1; i >= 0; i--)
 	{
-		this.DeleteInstance(this.m_Deactive.Get(0));
+		var inst = this.m_Deactive.Get(0);
+
+		if(inst.GetOnUILayer())
+		{
+			continue;
+		}
+
+		this.DeleteInstance(inst);
 	}
 };
 
@@ -618,6 +685,7 @@ yyRoom.prototype.ClearInstances = function (do_delete_events) {
 // #############################################################################################
 yyRoom.prototype.ClearInstancesFromStorage = function () {
     this.m_pStorage.pInstances = [];
+    this.m_creationOrder = [];
 };
 
 yyRoom.prototype.GetView= function(index) {
@@ -1152,7 +1220,6 @@ yyRoom.prototype.DrawLayerBackgroundElement = function(_rect,_layer,_el)
 	
 	var bcol = back.blend;
 
-
     // Does this background have a sprite?	
 	// @if feature("sprites")
 	if (sprite_exists(back.index))
@@ -1161,20 +1228,33 @@ yyRoom.prototype.DrawLayerBackgroundElement = function(_rect,_layer,_el)
         var pImage = g_pSpriteManager.Get( back.index );
         if (!pImage) return;
         
-        // get current frame and round (it will be a fraction), then MOD to number of frames
-        var vindex = (~~back.image_index) % pImage.ppTPE.length;
-        if(pImage.ppTPE[vindex]!=undefined){
-        
-            if(back.stretch)
-            {
-                var xscale = g_RunRoom.GetWidth()/pImage.width;
-                var yscale = g_RunRoom.GetHeight()/pImage.height;
-            
-                Graphics_TextureDrawTiled(pImage.ppTPE[vindex], _layer.m_xoffset, _layer.m_yoffset, xscale, yscale, back.vtiled, back.htiled, bcol, back.alpha);
-            }
-            else
-                Graphics_TextureDrawTiled(pImage.ppTPE[vindex], _layer.m_xoffset, _layer.m_yoffset, back.xscale, back.yscale, back.vtiled, back.htiled, bcol, back.alpha);
-        }
+		var xr = g_roomExtents.left;
+		var yr = g_roomExtents.top;
+		var wr = (g_roomExtents.right - g_roomExtents.left);
+		var hr = (g_roomExtents.bottom - g_roomExtents.top);
+
+		//Backgrounds ignore sprite origin
+		var origxorig = pImage.GetXOrigin();
+		var origyorig = pImage.GetYOrigin();
+
+		pImage.xOrigin = 0;
+		pImage.yOrigin = 0;
+
+		if(back.stretch)
+		{
+			var xscale = g_RunRoom.GetWidth()/pImage.width;
+			var yscale = g_RunRoom.GetHeight()/pImage.height;
+		
+			pImage.DrawTiled(back.image_index, _layer.m_xoffset, _layer.m_yoffset, xscale, yscale, back.htiled, back.vtiled, xr, yr, wr, hr, bcol, back.alpha);
+		}
+		else 
+		{
+			pImage.DrawTiled(back.image_index, _layer.m_xoffset, _layer.m_yoffset, back.xscale, back.yscale, back.htiled, back.vtiled, xr, yr, wr, hr, bcol, back.alpha);
+		}
+
+		//Restore origin back
+		pImage.xOrigin = origxorig;
+		pImage.yOrigin = origyorig;
 	}
 	else
 	// @endif sprites
@@ -1206,7 +1286,28 @@ yyRoom.prototype.DrawLayerSpriteElement = function(_rect,_layer,_el)
 	{
 	    var pImage = g_pSpriteManager.Get( _el.m_spriteIndex );
 		if (!pImage) return;
-		
+	
+		// This only exists for UILayers
+		if (_layer.IsUILayer()) {
+			if (_el.m_htile || _el.m_vtile) {
+				pImage.DrawTiled(
+					_el.m_imageIndex,
+					_el.m_x + _layer.m_xoffset,
+					_el.m_y + _layer.m_yoffset,
+					_el.m_imageScaleX,
+					_el.m_imageScaleY,
+					_el.m_htile,
+					_el.m_vtile,
+					_el.m_tile_xr,
+					_el.m_tile_yr,
+					_el.m_tile_wr,
+					_el.m_tile_hr,
+					_el.m_imageBlend,
+					_el.m_imageAlpha);
+				return;
+			}
+		}
+
 		if(pImage.m_skeletonSprite !== undefined)
 		{
 			if ((_el.m_imageScaleX == 1.0) && (_el.m_imageScaleY == 1.0) && (_el.m_imageAngle == 0.0) && (_el.m_imageBlend == 0xffffff)) // &&  (pInst.image_alpha == 1.0))
@@ -1240,6 +1341,7 @@ yyRoom.prototype.DrawLayerTextElement = function(_rect,_layer,_el)
 		return;	// empty string so nothing to draw
 
 	var wrap = _el.m_wrap;
+	var wrapMode = _el.m_wrapMode;
 	var alignment = _el.m_alignment;
 	var fontID = _el.m_fontIndex;
 
@@ -1261,6 +1363,26 @@ yyRoom.prototype.DrawLayerTextElement = function(_rect,_layer,_el)
 	var angle = _el.m_angle;
 	var originX = _el.m_originX;
 	var originY = _el.m_originY;
+	var origin = _el.m_origin;
+	if (origin != 0)
+	{
+		var textW;
+		var textH;
+		if (wrap) {
+			textW = frameWidth;
+			textH = frameHeight;
+		}
+		else  //have to measure the text *before* draw to set origin correctly :( 
+		{ 
+			g_pFontManager.GR_Text_Measure_IDEStyle(pText, fontID, charSpacing, lineSpacing, paraSpacing);
+			textW = g_ActualTextWidth;
+			textH = g_ActualTextHeight;
+		}
+		var ox = (origin % 3) * textW * 0.5;
+		var oy = Math.floor(origin / 3) * textH * 0.5;
+		originX += ox;
+		originY += oy; 
+	}
 
 	var mats = [];	
 	var currmat = 0;	
@@ -1316,7 +1438,7 @@ yyRoom.prototype.DrawLayerTextElement = function(_rect,_layer,_el)
 		WebGL_SetMatrix(MATRIX_WORLD, newWorldMat);		
 	}
 
-	this.DrawTextItem(pText, fontID, drawcol, a, frameWidth, frameHeight, alignment, wrap, charSpacing, lineSpacing, paraSpacing, pFontParams, false);
+	this.DrawTextItem(pText, fontID, drawcol, a, frameWidth, frameHeight, alignment, wrap, wrapMode, charSpacing, lineSpacing, paraSpacing, pFontParams, false);
 
 	if (currmat > 0)
 	{
@@ -2118,24 +2240,7 @@ yyRoom.prototype.DrawLayerParticleSystem = function(_rect,_layer,_el)
 
 	var matWorldOld = WebGL_GetMatrix(MATRIX_WORLD);
 
-	var matRot = new Matrix();
-	matRot.SetZRotation(_el.m_imageAngle + pSystem.angle);
-
-	var matScale = new Matrix();
-	matScale.SetScale(_el.m_imageScaleX, _el.m_imageScaleY, 1.0);
-
-	var matScaleRot = new Matrix();
-	matScaleRot.Multiply(matScale, matRot);
-
-	var matPos = new Matrix();
-	matPos.SetTranslation(-pSystem.xdraw, -pSystem.ydraw, 0.0);
-	
-	var matWorldNew = new Matrix();
-	matWorldNew.Multiply(matPos, matScaleRot);
-	matWorldNew.Translation(pSystem.xdraw + _el.m_x, pSystem.ydraw + _el.m_y, 0.0);
-
-	WebGL_SetMatrix(MATRIX_WORLD, matWorldNew);
-	ParticleSystem_SetMatrix(ps, matWorldNew);
+	WebGL_SetMatrix(MATRIX_WORLD, pSystem.matrix);
 	ParticleSystem_Draw(ps, _el.m_imageBlend, _el.m_imageAlpha);
 	WebGL_SetMatrix(MATRIX_WORLD, matWorldOld);
 	// @endif
@@ -2970,7 +3075,7 @@ yyRoom.prototype.HandleSequenceParticle = function (_rect, _layer, _pSequenceEl,
 	}
 };
 
-yyRoom.prototype.DrawTextItem = function (_pText, _fontID, _drawcol, _drawalpha, _frameWidth, _frameHeight, _alignment, _wrap, _charSpacing, _lineSpacing, _paraSpacing, _pFontParams, _seqYOffset)
+yyRoom.prototype.DrawTextItem = function (_pText, _fontID, _drawcol, _drawalpha, _frameWidth, _frameHeight, _alignment, _wrap, _wrapMode, _charSpacing, _lineSpacing, _paraSpacing, _pFontParams, _seqYOffset)
 {
 	// @if feature("fonts")
 	var oldFontID = draw_get_font();
@@ -2982,7 +3087,7 @@ yyRoom.prototype.DrawTextItem = function (_pText, _fontID, _drawcol, _drawalpha,
 	draw_set_alpha(_drawalpha);
 
 	g_pFontManager.SetFont();
-	var sldata = g_pFontManager.Split_TextBlock_IDEstyle(_pText, _frameWidth, _frameHeight, _alignment, _wrap, _charSpacing, _lineSpacing, _paraSpacing);
+	var sldata = g_pFontManager.Split_TextBlock_IDEstyle(_pText, _frameWidth, _frameHeight, _alignment, _wrap, _wrapMode, _charSpacing, _lineSpacing, _paraSpacing);
 
 	var mask = _wrap && ((sldata.totalW > _frameWidth + 2) || (sldata.totalH > _frameHeight + 2));
 	if (mask)
@@ -3188,6 +3293,7 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 		return;
 
 	var wrap = pTextKey.m_channels[0].wrap;
+	var wrapMode = pTextKey.m_channels[0].wrapMode;
 	var alignment = pTextKey.m_channels[0].alignment;
 	var fontID = pTextKey.m_channels[0].fontIndex;
 
@@ -3230,16 +3336,43 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 
 	var pFontParams = _node.value.pFontEffectParams;
 
-	this.DrawTextItem(text, fontID, drawcol, a, frameWidth, frameHeight, alignment, wrap, charSpacing, lineSpacing, paraSpacing, pFontParams, true);	
+	this.DrawTextItem(text, fontID, drawcol, a, frameWidth, frameHeight, alignment, wrap, wrapMode, charSpacing, lineSpacing, paraSpacing, pFontParams, true);	
 };
 // @endif sequences
 
 
 
-yyRoom.prototype.DrawRoomLayers = function(_rect){
+function gui_x_to_mouse_x(guiX) {
+    // Make sure our canvas rect is updated.
+    CalcCanvasLocation(canvas, g_CanvasRect);
+    
+    var gui_width = g_GUIWidth;
+    if (gui_width < 0.0)
+        gui_width = window_get_width();
+    
+    // Invert the scaling: multiply by (g_AppSurfaceRect.w / gui_width)
+    var deviceX = guiX * (g_AppSurfaceRect.w / gui_width) + g_CanvasRect.left + g_AppSurfaceRect.x;
+    return deviceX;
+}
+
+function gui_y_to_mouse_y(guiY) {
+    CalcCanvasLocation(canvas, g_CanvasRect);
+    
+    var gui_height = g_GUIHeight;
+    if (gui_height < 0.0)
+        gui_height = window_get_height();
+    
+    var deviceY = guiY * (g_AppSurfaceRect.h / gui_height) + g_CanvasRect.top + g_AppSurfaceRect.y;
+    return deviceY;
+}
+
+yyRoom.prototype.DrawRoomLayers = function(_rect, _gui_mask){
 
     var oldtype = Current_Event_Type;
     var oldnumb = Current_Event_Number;
+
+	var old_scissor = g_scissorRect;
+	var current_rect = null;
 
     Current_Event_Type = EVENT_DRAW;
     Current_Event_Number = 0;
@@ -3249,11 +3382,11 @@ yyRoom.prototype.DrawRoomLayers = function(_rect){
 	    for (i = pool.length - 1; i >= 0; i--)
 	    {
 	        player =pool[i];
-	        if(player===null || player.m_visible<=0)
+	        if(player===null || player.m_visible<=0 || (player.m_gui_layer & _gui_mask) == 0)
 	        {
 	            continue;
 	        }
-	        
+
 	        if (g_pLayerManager.IsDepthForced())
 		    {
 			    WebGL_d3d_set_depth_RELEASE(g_pLayerManager.GetForcedDepth());
@@ -3262,6 +3395,7 @@ yyRoom.prototype.DrawRoomLayers = function(_rect){
 		    {
 			    WebGL_d3d_set_depth_RELEASE(player.depth);		
 		    }
+			player.SetView();
 
 			// @if feature("layerEffects")
 			if (player.m_effectEnabled)
@@ -3276,6 +3410,65 @@ yyRoom.prototype.DrawRoomLayers = function(_rect){
 	            el = player.m_elements.Get(j);
 	            if(el!=null)
 	            {
+
+					if (el.m_clippingRect == null && current_rect != null)
+					{
+						gpu_set_scissor(old_scissor.x, old_scissor.y, old_scissor.w, old_scissor.h);
+						current_rect = null;
+					}
+					else if (el.m_clippingRect != null && (current_rect == null || current_rect != el.m_clippingRect))
+					{
+						var scissor_xoff = 0;
+						var scissor_yoff = 0;
+						var xscale = 1;
+						var yscale = 1;
+		
+						if (player.IsUILayer() && !player.IsGUISpaceLayer())
+						{
+							var cam = g_pCameraManager.GetActiveCamera();
+							if (cam != null)
+							{
+								xscale = g_clipw / cam.GetViewWidth();
+								yscale = g_cliph / cam.GetViewHeight();
+							}
+						}
+		
+		
+						if (g_RunRoom.GetEnableViews())
+						{
+							/* Clipping rect is relative to the viewport. */
+							scissor_xoff = g_clipx;
+							scissor_yoff = g_clipy;
+						}
+		
+						var cx = el.m_clippingRect.left * xscale + scissor_xoff;
+						var cy = el.m_clippingRect.top * yscale + scissor_yoff;
+						var cw = el.m_clippingRect.GetWidth() * xscale;
+						var ch = el.m_clippingRect.GetHeight() * yscale;
+		
+						if (player.IsGUISpaceLayer())
+						{
+							gx = gui_x_to_mouse_x(cx);
+							// Flip the Y coordinate: subtract the computed device Y from the window height.
+							gy = window_get_height() - gui_y_to_mouse_y(cy);
+							egx = gui_x_to_mouse_x(cx + cw);
+							egy = window_get_height() - gui_y_to_mouse_y(cy + ch);
+							
+							// Determine the lower value as the bottom and the difference as the height.
+							var bottom = Math.min(gy, egy);
+							var top = Math.max(gy, egy);
+							
+							cx = gx;
+							cy = bottom;
+							cw = egx - gx;
+							ch = top - bottom;
+						}
+			
+						gpu_set_scissor(cx, cy, cw, ch);
+						current_rect = el.m_clippingRect;
+					}
+
+
 	                if(el.m_type === eLayerElementType_Background)
 	                {
 	                    this.DrawLayerBackgroundElement(_rect,player,el);
@@ -3321,6 +3514,12 @@ yyRoom.prototype.DrawRoomLayers = function(_rect){
 	            }
 	        }
 
+			if (current_rect != null)
+			{
+				gpu_set_scissor(old_scissor.x, old_scissor.y, old_scissor.w, old_scissor.h);
+				current_rect = null;
+			}
+
 	        ExecuteLayerScript(player.m_id, player.m_endScript);
 	        ResetLayerShader(player.m_shaderId);
 
@@ -3328,6 +3527,8 @@ yyRoom.prototype.DrawRoomLayers = function(_rect){
 			if (player.m_effectEnabled)
 				ExecuteEffectFunction(player, EFFECT_LAYER_END_FUNC, EVENT_DRAW, 0);
 			// @endif
+
+			player.RestoreView();
 	    }
 
 	    Current_Event_Type = oldtype;
@@ -3344,7 +3545,7 @@ yyRoom.prototype.DrawRoomLayers = function(_rect){
 ///				
 ///			 </returns>
 // #############################################################################################
-yyRoom.prototype.DrawTheRoom = function (_rect) {
+yyRoom.prototype.DrawTheRoom = function (_rect, _uiwidth, _uiheight) {
 
 	g_roomExtents = _rect;
     DirtyRoomExtents();
@@ -3357,12 +3558,18 @@ yyRoom.prototype.DrawTheRoom = function (_rect) {
 		Graphics_ClearScreen(ConvertGMColour(0xfff7ffff));
 	}
 
+	var uirect = new YYRECT();
+	uirect.right = _uiwidth;
+	uirect.bottom = _uiheight;
+
+	UILayers_Layout(uirect, eLAYER_GUI_IN_VIEW);
+
 	this.ExecuteDrawEvent(_rect, EVENT_DRAW_BEGIN);
 
     if(this.m_Layers!=null && this.m_Layers.length>0)
     {
         //Drawing as layers
-        this.DrawRoomLayers(_rect);
+        this.DrawRoomLayers(_rect, (eLAYER_NORMAL | eLAYER_GUI_IN_VIEW));
     }
    
     this.ExecuteDrawEvent(_rect, EVENT_DRAW_END);
@@ -3526,7 +3733,12 @@ function ResetLayerShader(shaderid)
 ///
 /// In:		 <param name="r">Rect to "fit" in</param>
 // #############################################################################################
-yyRoom.prototype.ExecuteDrawEvent = function (_rect, _event) {
+yyRoom.prototype.ExecuteDrawEvent = function (_rect, _event, _gui_mask) {
+	if(_gui_mask === undefined)
+	{
+		_gui_mask = eLAYER_NORMAL | eLAYER_GUI_IN_VIEW;
+	}
+
 	var pSprite, pInst, i, pool;
 	
 	Current_Event_Type = _event;
@@ -3542,13 +3754,14 @@ yyRoom.prototype.ExecuteDrawEvent = function (_rect, _event) {
 	    for (i = pool.length - 1; i >= 0; i--)
 	    {
 	        player =pool[i];
-	        if(player==null || player.m_visible==false)
+	        if(player==null || player.m_visible==false || (player.m_gui_layer & _gui_mask) == 0)
 	        {
 	            continue;
 	        }
 
 			Current_Event_Number = EVENT_DRAW_BEGIN;
 
+			player.SetView();
 			// @if feature("layerEffects")
 			if (player.m_effectEnabled)
 				ExecuteEffectFunction(player, EFFECT_LAYER_BEGIN_FUNC, EVENT_DRAW_BEGIN, 0);
@@ -3588,7 +3801,7 @@ yyRoom.prototype.ExecuteDrawEvent = function (_rect, _event) {
 			if (player.m_effectEnabled)
 				ExecuteEffectFunction(player, EFFECT_LAYER_END_FUNC, EVENT_DRAW_BEGIN, 0);
 			// @endif
-	    
+			player.RestoreView();
 	    }
 	}
 	else
@@ -3702,6 +3915,7 @@ yyRoom.prototype.DrawViews = function (r) {
 
     // Get a "VIEW" array... and if we don't have one, supply the "fake" one.
 	var pViews;
+	var pCam = null;
 	if (!this.m_enableviews) {
 	
 		pViews = g_DefaultViewArray;
@@ -3710,6 +3924,14 @@ yyRoom.prototype.DrawViews = function (r) {
          
 		g_DefaultView.cameraID = g_DefaultCameraID;
 		UpdateDefaultCamera(0, 0, g_RunRoom.m_width, g_RunRoom.m_height, 0);
+
+		pCam = g_pCameraManager.GetActiveCamera();
+		if(pCam)
+		{
+			pCam.Begin();
+			pCam.ApplyMatrices();
+		}
+
 	} 
 	else {
 	
@@ -3756,31 +3978,42 @@ yyRoom.prototype.DrawViews = function (r) {
 			        g_pCurrentView.WorldViewScaleX = g_pCurrentView.scaledportw / g_pCurrentView.worldw;
 			        g_pCurrentView.WorldViewScaleY = g_pCurrentView.scaledporth / g_pCurrentView.worldh;
 
+					var view_width;
+					var view_height;
 
 			        //view port in app surface...
 			        if (g_pCurrentView.surface_id != -1)
 			        {
 			            //fill surface with view
 			            Graphics_SetViewPort(0, 0, surface_get_width(g_pCurrentView.surface_id), surface_get_height(g_pCurrentView.surface_id) );
+
+						view_width = surface_get_width(g_pCurrentView.surface_id);
+						view_height = surface_get_height(g_pCurrentView.surface_id);
 			        }
 			        else
 			        {
                         // This appears to be overriding the application surface dimensions and view port
 			        	Graphics_SetViewPort( g_pCurrentView.portx * sx, g_pCurrentView.porty * sy,
                                               g_pCurrentView.portw * sx, g_pCurrentView.porth * sy );
+
+						view_width = g_pCurrentView.scaledportw;
+						view_height = g_pCurrentView.scaledporth;
                     }
 
 					g_pCameraManager.SetActiveCamera(g_pCurrentView.cameraID);
 					var pCam = g_pCameraManager.GetActiveCamera();
 					if(pCam!=null)
 					{
-						pCam.Begin();						
-						pCam.ApplyMatrices();												
+						pCam.Begin();
+						pCam.ApplyMatrices();
+
+						view_width = pCam.GetViewWidth();
+						view_height = pCam.GetViewHeight();
 		            }
 
                     
 					g_pBuiltIn.view_current = i;
-					this.DrawTheRoom(g_roomExtents);
+					this.DrawTheRoom(g_roomExtents, view_width, view_height);
 
 
 			        if (g_pCurrentView.surface_id != -1) {
@@ -3807,6 +4040,11 @@ yyRoom.prototype.DrawViews = function (r) {
 	//     this.DrawTheRoom(r);
 	//}
 	
+	if(pCam)
+	{
+		pCam.End();
+	}
+	g_pCameraManager.SetActiveCamera(-1);
 	// Restore the room extents to the pre-view handling state
 	g_roomExtents.Copy(roomExtents);
 	Graphics_Restore();
@@ -3925,8 +4163,13 @@ yyRoom.prototype.DrawGUI = function (r) {
         g_roomExtents.right=gui_width;
         g_roomExtents.bottom=gui_height;
 
+		UILayers_Layout(g_roomExtents, eLAYER_GUI_IN_GUI);
+
+	    this.ExecuteDrawEvent(r, EVENT_DRAW_BEGIN, eLAYER_GUI_IN_GUI);
 	    this.ExecuteDrawEvent(r, EVENT_DRAW_GUI_BEGIN);
+		this.DrawRoomLayers(r, eLAYER_GUI_IN_GUI);
 	    this.ExecuteDrawEvent(r, EVENT_DRAW_GUI);
+		this.ExecuteDrawEvent(r, EVENT_DRAW_END, eLAYER_GUI_IN_GUI);
 	    this.ExecuteDrawEvent(r, EVENT_DRAW_GUI_END);
 	    g_InGUI_Zone = false;
         g_roomExtents.Copy(roomExtents);
@@ -4000,6 +4243,112 @@ yyRoom.prototype.Draw = function () {
 	Graphics_Restore();
 };
 
+/**
+ * Calculates the GUI transform matrix and its inverse.
+ * Returns an object with the computed values: { sx, sy, tx, ty }.
+ *
+ * @param {Matrix} guiMat - The matrix which transforms from GUI space to screen space.
+ * @param {Matrix} invGuiMat - The inverse matrix that transforms from screen space back to GUI.
+ * @returns {{sx: number, sy: number, tx: number, ty: number}}
+ */
+function CalcGUITransformMat(guiMat, invGuiMat) {
+    // Reset both matrices to identity.
+    guiMat.unit();
+    invGuiMat.unit();
+    
+    // Determine the dimensions to work with.
+    var gui_width = g_GUIWidth;
+    var gui_height = g_GUIHeight;
+    if (gui_width < 0) {
+        gui_width = (g_ApplicationSurface < 0)
+            ? g_DisplayWidth
+            : surface_get_width(g_ApplicationSurface);
+    }
+    if (gui_height < 0) {
+        gui_height = (g_ApplicationSurface < 0)
+            ? g_DisplayHeight
+            : surface_get_height(g_ApplicationSurface);
+    }
+    
+    // Update AppSurfaceRect (look for 'g_AppSurfaceRect')
+    Get_FullScreenOffset();
+
+    // Cache width and height from the offsets.
+    var w = g_AppSurfaceRect.w;
+    var h = g_AppSurfaceRect.h;
+    
+    // Initialize scale and translation variables.
+    var sx, sy, tx, ty;
+    
+    if (g_GUI_Maximise) {
+        // Calculate xoffset and yoffset.
+        var xoffset = -Math.floor(g_DisplayWidth / 2.0); // g_DeviceWidth
+        var yoffset = -Math.floor(g_DisplayHeight / 2.0); // g_DeviceHeight
+        
+        // Only modify offsets if g_GUI_Xoffset / g_GUI_Yoffset is valid (not 0x80000000).
+        if (g_GUI_Xoffset !== 0x80000000) {
+            xoffset += g_GUI_Xoffset;
+        }
+        if (g_GUI_Yoffset !== 0x80000000) {
+            yoffset += g_GUI_Yoffset;
+        }
+        tx = xoffset;
+        ty = yoffset;
+        sx = g_GUI_X_Scale;
+        sy = g_GUI_Y_Scale;
+    } else {
+        sx = w / gui_width;
+        sy = h / gui_height;
+        tx = -(w / 2.0);
+        ty = -(h / 2.0);
+    }
+    
+    // Build the GUI-to-screen transform:
+    // First apply scaling then translation.
+    guiMat.SetScale(sx, sy, 1.0);
+    guiMat.Translation(tx, ty, 16000);
+    
+    // Build the inverse transform:
+    invGuiMat.SetScale(1.0 / sx, 1.0 / sy, 1.0);
+    invGuiMat.Translation( - (tx + (g_DisplayWidth / 2.0)) / sx, - (ty + (g_DisplayHeight / 2.0)) / sy, -1.0 );
+    
+    // Return the computed scaling and translation values.
+
+	var ret = { sx: sx, sy: sy, tx: tx, ty: ty };
+    return ret;
+}
+
+/**
+ * Calculates the GUI matrices (if needed) and returns the rectangle that maps the entire display.
+ * If guiMatrix or screenToGuiTransform are not provided, new Matrix instances are used.
+ *
+ * @param {Matrix} [guiMatrix] - Optional Matrix for the GUI transform.
+ * @param {Matrix} [screenToGuiTransform] - Optional Matrix for the inverse transform.
+ * @returns {YYRECT} A rectangle object.
+ */
+function Calc_GUI_Matrices_And_Rect(guiMatrix, screenToGuiTransform) {
+    // Use local matrices if none are provided.
+    guiMatrix = guiMatrix || new Matrix();
+    screenToGuiTransform = screenToGuiTransform || new Matrix();
+    
+    // Calculate the transform.
+    var trans = CalcGUITransformMat(guiMatrix, screenToGuiTransform);
+    var sx = trans.sx, sy = trans.sy, tx = trans.tx, ty = trans.ty;
+    
+    // Calculate half-width and half-height of the device.
+    var hw = g_DisplayWidth / 2.0; // g_DeviceWidth
+    var hh = g_DisplayHeight / 2.0; // g_DeviceHeight
+    
+    // Calculate the rectangle bounds.
+    var r = new YYRECT();
+    r.left = Math.floor((-hw - tx) / sx);
+    r.right = Math.ceil((hw - tx) / sx);
+    r.top = Math.floor((-hh - ty) / sy);
+    r.bottom = Math.ceil((hh - ty) / sy);
+    
+    return r;
+}
+
 // #############################################################################################
 /// Function:<summary>
 ///             Works out the GUI view matrix and scaling, and sets it
@@ -4069,8 +4418,6 @@ yyRoom.prototype.RemoveMarked = function () {
 	}
 };
 
-
-
 // #############################################################################################
 /// Function:<summary>
 ///             Delete an instance from the room
@@ -4106,7 +4453,6 @@ yyRoom.prototype.DeactivateInstance = function (_pInst) {
 		_pInst.active = false;
 	}
 };
-
 
 // #############################################################################################
 /// Property: <summary>
