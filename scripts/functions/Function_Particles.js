@@ -165,13 +165,12 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
         variable_struct_set(pEmitterI, "shape", emitter.shape);
         variable_struct_set(pEmitterI, "enabled", emitter.enabled);
 
-        var pPartTypeI = new GMLObject();
-        var particleType = g_ParticleTypes[emitter.parttype];
-
-        variable_struct_set(pPartTypeI, "ind", MAKE_REF(REFID_PART_TYPE, emitter.parttype));
-
-        if(particleType!==undefined)
+        if (emitter.parttype >= 0 && emitter.parttype < g_ParticleTypes.length)
         {
+            var pPartTypeI = new GMLObject();
+            var particleType = g_ParticleTypes[emitter.parttype];
+
+            variable_struct_set(pPartTypeI, "ind", MAKE_REF(REFID_PART_TYPE, emitter.parttype));
             variable_struct_set(pPartTypeI, "sprite", particleType.sprite);
             variable_struct_set(pPartTypeI, "frame", particleType.spritestart);
             variable_struct_set(pPartTypeI, "animate", particleType.spriteanim);
@@ -217,10 +216,13 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
             variable_struct_set(pPartTypeI, "alpha2", particleType.alphamiddle);
             variable_struct_set(pPartTypeI, "alpha3", particleType.alphaend);
             variable_struct_set(pPartTypeI, "additive", particleType.additiveblend);
+
+            variable_struct_set(pEmitterI, "parttype", pPartTypeI);
         }
-
-
-        variable_struct_set(pEmitterI, "parttype", pPartTypeI);
+        else
+        {
+            variable_struct_set(pEmitterI, "parttype", undefined);
+        }
 
         emittersArray.push(pEmitterI);
     }
