@@ -146,7 +146,7 @@ function    yyInstance( _xx, _yy, _id, _objectind, _AddObjectLink, _create_dummy
     }
 	this.m_nLayerID = -1;
 	this.m_bOnActiveLayer = false;
-	this.m_bOnUILayer = false;
+
 	this.m_bInGUISpace = false;
 }
 
@@ -801,6 +801,8 @@ yyInstance.prototype = {
 		}
 	},
 
+	get on_ui_layer() { return this.GetOnUILayer(); },
+
 	// in_sequence property
 	get in_sequence() { return this.GetInSequence(); },
 
@@ -836,6 +838,18 @@ yyInstance.prototype.GetDirty = function () { return this.bbox_dirty; };
 
 yyInstance.prototype.SetInSequence = function (flag) { this.fInSequence = flag; };
 yyInstance.prototype.GetInSequence = function () { return this.fInSequence; };
+
+
+yyInstance.prototype.GetOnUILayer = function () {
+
+	var layer = g_pLayerManager.GetLayerFromID(g_RunRoom, this.m_nLayerID );
+	if(layer!=null)
+	{
+		if(layer.m_gui_layer == eLAYER_GUI_IN_VIEW  || layer.m_gui_layer == eLAYER_GUI_IN_GUI)
+			return true;
+	}
+	return false;
+};
 
 yyInstance.prototype.SetOwnedBySequence = function (flag) { this.fOwnedBySequence = flag; };
 yyInstance.prototype.GetOwnedBySequence = function () { return this.fOwnedBySequence; };
@@ -3275,8 +3289,6 @@ yyInstance.prototype.GetLayerID=function()	{ return this.m_nLayerID; };
 yyInstance.prototype.SetLayerID=function(_layerID)	{ this.m_nLayerID = _layerID; };
 yyInstance.prototype.GetOnActiveLayer=function() { return this.m_bOnActiveLayer; };
 yyInstance.prototype.SetOnActiveLayer=function( _onLayer)	{ this.m_bOnActiveLayer = _onLayer; };
-yyInstance.prototype.GetOnUILayer = function() { return this.m_bOnUILayer; };
-yyInstance.prototype.SetOnUILayer = function(_onUILayer) { this.m_bOnUILayer = _onUILayer; };
 yyInstance.prototype.GetInGUISpace = function() { return this.m_bInGUISpace; };
 yyInstance.prototype.SetInGUISpace = function(_inGUISpace) { this.m_bInGUISpace = _inGUISpace; };
 
