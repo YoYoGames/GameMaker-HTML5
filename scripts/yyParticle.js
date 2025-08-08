@@ -3580,7 +3580,7 @@ function ParticleSystem_AddAllToLayers() {
 
 		// Add this particle system to the layer system
 		var pPartEl = new CLayerParticleElement();
-		pPartEl.m_systemID = i;
+		pPartEl.m_systemID = pSystem.id;
 
 		if (pTempLayer != null)
 		{
