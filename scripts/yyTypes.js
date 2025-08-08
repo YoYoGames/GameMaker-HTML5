@@ -27,8 +27,10 @@ var AT_None = -1,
     AT_Sequence = 9,
     AT_AnimCurve = 10,
     AT_ParticleSystem = 11,
-    AT_Tilemap = 12, 
-    AT_Tileset = 13;
+    AT_Tilemap = 12,
+    AT_Tileset = 13,
+    AT_Instance = 14, // Special case used for named instances
+    AT_ParticleSystemInstance = 15; // Special case used for named particle system instances
 
 var REFCAT_RESOURCE			= 0x01000000;
 var REFCAT_DATA_STRUCTURE	= 0x02000000;
@@ -86,17 +88,33 @@ function MAKE_REF(a, b)
 
 function YYASSET_REF(a)
 {
-    var index = a & 0x00ffffff;
-    var type = (a >> 24) & 0xff | REFCAT_RESOURCE;
+    var index = (a & 0x00ffffff);
+    var refType = ((a >> 24) & 0xff);
 
-    switch (type)
+    if (refType == AT_Instance)
+    {
+        refType = REFID_INSTANCE;
+    }
+    else if (refType == AT_ParticleSystemInstance)
+    {
+        refType = REFID_PART_SYSTEM;
+    }
+    else
+    {
+        refType |= REFCAT_RESOURCE;
+    }
+
+    switch (refType)
     {
     // TODO: Move resources to references
     case REFID_OBJECT:
     case REFID_PARTICLESYSTEM:
-        return MAKE_REF(type, index);
+    case REFID_PART_SYSTEM:
+        return MAKE_REF(refType, index);
     
     default:
+        // Note: For the rest we don't handle references across the codebase
+        // -> just return the index!
         return index;
     }
 }
