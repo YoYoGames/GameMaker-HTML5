@@ -758,9 +758,11 @@ LayerManager.prototype.BuildTilemapElementRuntimeData = function( _room ,_layer,
 LayerManager.prototype.BuildParticleElementRuntimeData = function( _room ,_layer,_element)
 {
     // @if feature("particles")
-    if (_element.m_ps != -1 && _element.m_systemID == -1)
+    if (_element.m_ps != -1)
     {
-        CParticleSystem.Get(_element.m_ps).MakeInstance(_layer.m_id, false, _element);
+        var particleSystem = g_ParticleSystemManager.Get(_element.m_systemID);
+        if (!particleSystem)
+            CParticleSystem.Get(_element.m_ps).MakeInstance(_layer.m_id, false, _element, _element.m_systemID);
     }
     // @endif
     _element.m_bRuntimeDataInitialised=true;
@@ -2191,7 +2193,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                         var pParticle = pLayer.particles[i];
                         var NewParticle = new CLayerParticleElement();
 
-                        NewParticle.m_systemID = -1;
+                        NewParticle.m_systemID = pParticle.sId;
                         NewParticle.m_ps = pParticle.sIndex;
                         NewParticle.m_imageScaleX = pParticle.sXScale;
                         NewParticle.m_imageScaleY = pParticle.sYScale;
@@ -2200,7 +2202,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                         NewParticle.m_imageAlpha = ((pParticle.sBlend>>24)&0xff) / 255.0;
                         NewParticle.m_x = pParticle.sX;
                         NewParticle.m_y = pParticle.sY;
-                        NewParticle.m_pName = pParticle.sName;
+                        NewParticle.m_name = pParticle.sName;
 
                         this.AddNewElement(_room, NewLayer, NewParticle, false);
                     }
@@ -3337,6 +3339,188 @@ function layer_sprite_get_y( arg1)
     return 0;
 
 };
+
+// Particle element funtions
+function layerParticleGetElement(_paricle_element_id)
+{
+    var room = g_pLayerManager.GetTargetRoomObj();
+    var el = g_pLayerManager.GetElementFromID(room, _paricle_element_id);
+    if ((el != null) && (el.m_type === eLayerElementType_ParticleSystem)) return el;
+    return null;
+}
+
+function layer_particle_xscale(_paricle_element_id, _scale)
+{
+    var el = layerParticleGetElement(_paricle_element_id);
+    if (el != null)
+    {
+        el.m_imageScaleX = yyGetReal(_scale);
+    }
+}
+
+function layer_particle_yscale(_paricle_element_id, _scale)
+{
+    var el = layerParticleGetElement(_paricle_element_id);
+    if (el != null)
+    {
+        el.m_imageScaleY = yyGetReal(_scale);
+    }
+}
+
+function layer_particle_angle(_paricle_element_id, _angle)
+{
+    var el = layerParticleGetElement(_paricle_element_id);
+    if (el != null)
+    {
+        el.m_imageAngle = yyGetReal(_angle);
+    }
+}
+
+function layer_particle_blend(_paricle_element_id, _col)
+{
+    var el = layerParticleGetElement(_paricle_element_id);
+    if (el != null)
+    {
+        el.m_imageBlend = ConvertGMColour(yyGetInt32(_col));
+    }
+}
+
+function layer_particle_alpha(_paricle_element_id, _alpha)
+{
+    var el = layerParticleGetElement(_paricle_element_id);
+    if (el != null)
+    {
+        el.m_imageAlpha = yyGetReal(_alpha);
+    }
+}
+
+function layer_particle_x(_paricle_element_id, _x)
+{
+    var el = layerParticleGetElement(_paricle_element_id);
+    if (el != null)
+    {
+        el.m_x = yyGetReal(_x);
+    }
+}
+
+function layer_particle_y(_paricle_element_id, _y)
+{
+    var el = layerParticleGetElement(_paricle_element_id);
+    if (el != null)
+    {
+        el.m_y = yyGetReal(_y);
+    }
+}
+
+function layer_particle_get_id(_layerid, _particlename)
+{
+    var room = g_pLayerManager.GetTargetRoomObj();
+    if (room === null) return -1;
+
+    var layer = layerGetObj(room, _layerid);
+
+    if (layer != null)
+    {
+        var element = g_pLayerManager.GetElementFromName(layer, yyGetString(_particlename));
+        if (element != null && element.m_type == eLayerElementType_ParticleSystem)
+        {
+            return element.m_id;
+        }
+    }
+    return -1;
+}
+
+function layer_particle_get_instance(_paricle_element_id)
+{
+    var el = layerParticleGetElement(_paricle_element_id);
+    var id = -1;
+    if (el != null)
+    {
+        id = el.m_systemID;
+    }
+    return MAKE_REF(REFID_PART_SYSTEM, (id != -1) ? id : 0xffffffff);
+}
+
+function layer_particle_get_system(_paricle_element_id)
+{
+    var el = layerParticleGetElement(_paricle_element_id);
+    var id = -1;
+    if (el != null)
+    {
+        id = el.m_ps;
+    }
+    return MAKE_REF(REFID_PARTICLESYSTEM, (id != -1) ? id : 0xffffffff);
+}
+
+function layer_particle_get_xscale(_paricle_element_id)
+{
+    var el = layerParticleGetElement(_paricle_element_id);
+    if (el != null)
+    {
+        return el.m_imageScaleX;
+    }
+    return 1;
+}
+
+function layer_particle_get_yscale(_paricle_element_id)
+{
+    var el = layerParticleGetElement(_paricle_element_id);
+    if (el != null)
+    {
+        return el.m_imageScaleY;
+    }
+    return 1;
+}
+
+function layer_particle_get_angle(_paricle_element_id)
+{
+    var el = layerParticleGetElement(_paricle_element_id);
+    if (el != null)
+    {
+        return el.m_imageAngle;
+    }
+    return 0;
+}
+
+function layer_particle_get_blend(_paricle_element_id)
+{
+    var el = layerParticleGetElement(_paricle_element_id);
+    if (el != null)
+    {
+        return el.m_imageBlend;
+    }
+    return 0;
+}
+
+function layer_particle_get_alpha(_paricle_element_id)
+{
+    var el = layerParticleGetElement(_paricle_element_id);
+    if (el != null)
+    {
+        return el.m_imageAlpha;
+    }
+    return 0;
+}
+
+function layer_particle_get_x(_paricle_element_id)
+{
+    var el = layerParticleGetElement(_paricle_element_id);
+    if (el != null)
+    {
+        return el.m_x;
+    }
+    return 0;
+}
+
+function layer_particle_get_y(_paricle_element_id)
+{
+    var el = layerParticleGetElement(_paricle_element_id);
+    if (el != null)
+    {
+        return el.m_y;
+    }
+    return 0;
+}
 
 // Text element functions
 function layerTextGetElement(_text_element_id) 
