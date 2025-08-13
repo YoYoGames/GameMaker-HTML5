@@ -1182,6 +1182,11 @@ function application_surface_draw_enable(_enable)
     g_Application_Surface_Autodraw = yyGetBool(_enable);
 }
 
+function application_surface_is_draw_enabled()
+{
+    return g_Application_Surface_Autodraw;
+}
+
 function application_surface_enable(_enable)
 {
     if( g_AppSurfaceEnabled )

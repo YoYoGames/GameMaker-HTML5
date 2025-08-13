@@ -382,6 +382,10 @@ function keyboard_unset_map()
 	}
 }
 
+function keyboard_virtual_set_position() {
+    ErrorFunction("keyboard_virtual_set_position()");
+}
+
 function keyboard_virtual_show() {
     ErrorFunction("keyboard_virtual_show()");
 }
