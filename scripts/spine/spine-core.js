@@ -3336,7 +3336,7 @@ var spine = (() => {
         } else {
           region = new TextureAtlasRegion();
           region.page = page;
-          region.name = line;
+          region.name = line.replace(/[\n\r\t]/gm, "");
           while (true) {
             let count = reader.readEntry(entry, line = reader.readLine());
             if (count == 0)
@@ -3381,7 +3381,7 @@ var spine = (() => {
     }
     findRegion(name) {
       for (let i = 0; i < this.regions.length; i++) {
-        if (this.regions[i].name == name) {
+        if (this.regions[i].name === name) {
           return this.regions[i];
         }
       }
