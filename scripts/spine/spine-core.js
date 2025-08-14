@@ -3336,7 +3336,9 @@ var spine = (() => {
         } else {
           region = new TextureAtlasRegion();
           region.page = page;
-          region.name = line.replace(/[\n\r\t]/gm, "");
+
+          var lnreg = new RegExp("[\n\r\t]","gm");
+          region.name = line.replace(lnreg, "");
           while (true) {
             let count = reader.readEntry(entry, line = reader.readLine());
             if (count == 0)
