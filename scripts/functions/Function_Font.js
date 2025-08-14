@@ -368,7 +368,7 @@ function string_width_ext(_string, _sep, _w) {
     if ( !g_pFontManager.thefont )
     	return 1;
 
-    g_pFontManager.GR_Text_Sizes(yyGetString(_string), 0, 0, yyGetInt32(_sep), yyGetInt32(_w), 0);
+    g_pFontManager.GR_Text_Sizes(yyGetString(_string), 0, 0, yyGetInt32(_sep), yyGetInt32(_w), 0,0);
 	return g_ActualTextWidth;
 }
 
@@ -391,7 +391,7 @@ function string_height_ext(_string, _sep, _w) {
     if ( !g_pFontManager.thefont )
     	return 1;
 
-    g_pFontManager.GR_Text_Sizes(yyGetString(_string), 0, 0, yyGetInt32(_sep), yyGetInt32(_w), 0);
+    g_pFontManager.GR_Text_Sizes(yyGetString(_string), 0, 0, yyGetInt32(_sep), yyGetInt32(_w), 0,0);
 	return g_ActualTextHeight;
 }
 

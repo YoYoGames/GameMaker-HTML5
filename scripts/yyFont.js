@@ -434,7 +434,7 @@ yyFont.prototype.TextHeight = function (_str) {
 ///				Width of the text string provided
 ///			 </returns>
 // #############################################################################################
-yyFont.prototype.TextWidth = function (_str, _prepared) {
+yyFont.prototype.TextWidth = function (_str, _prepared,_charSpacing) {
 
 	if ((!_str) || (0 === _str.length)) return 0;
 	
@@ -458,6 +458,7 @@ yyFont.prototype.TextWidth = function (_str, _prepared) {
 		        for (var j = 0; j < line.length; j++) {
 		        			        
 			    	lineLength += this.GetShift(line.charCodeAt(j));
+					lineLength += _charSpacing;
 			    }
 			    Result = yymax(Result, lineLength);
 			}
@@ -471,7 +472,8 @@ yyFont.prototype.TextWidth = function (_str, _prepared) {
 			    for (var i = 0; i < lines.length; i++) 
 			    {		
 			        var metrics = graphics.measureText(lines[i]);
-			        Result = yymax(Result, metrics.width);			    
+			        Result = yymax(Result, metrics.width);
+					lineLength += _charSpacing;			    
 			    }
 			}
 			return Result;
@@ -490,7 +492,8 @@ yyFont.prototype.TextWidth = function (_str, _prepared) {
 		    	if (!pGlyph) {
 		    	    pGlyph = this.glyphs[this.first];
 		    	}
-		    	lineLength += pGlyph.shift * this.scalex;		    	
+		    	lineLength += pGlyph.shift * this.scalex;
+				lineLength += _charSpacing;		    	
 		    }
 		    Result = yymax(Result, lineLength);
 		}
@@ -848,7 +851,7 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
 
     var bLerp=false;
     if ( (_col1 != _col2) || (_col3 != _col4) ) {
-        var strWidth = this.TextWidth(_pStr, true);
+        var strWidth = this.TextWidth(_pStr, true,0);
         var invStrWidth = 1/strWidth;
         var alpha = _col1 & 0xff000000;
         bLerp = true;
@@ -2485,8 +2488,8 @@ yyFontManager.prototype.GR_Text_Draw = function (_str, x, y, linesep, linewidth,
 
 				if (pStr != null)
 				{				
-					if (this.halign == 1) xoff = -(xscale * thefont.TextWidth(pStr, true) / 2);
-					if (this.halign == 2) xoff = -(xscale * thefont.TextWidth(pStr, true));
+					if (this.halign == 1) xoff = -(xscale * thefont.TextWidth(pStr, true,0) / 2);
+					if (this.halign == 2) xoff = -(xscale * thefont.TextWidth(pStr, true,0));
 
 					var xx = passx + (cc * xoff) + (ss * yoff);
 					var yy = passy - (ss * xoff) + (cc * yoff);
@@ -2731,7 +2734,7 @@ yyFontManager.prototype.GR_Text_Measure_IDEStyle = function (_str, _fontID, _cha
 ///           	Work out the width/height of a block of text.
 ///           </summary>
 // #############################################################################################
-yyFontManager.prototype.GR_Text_Sizes = function (_str, x, y, linesep, linewidth) {
+yyFontManager.prototype.GR_Text_Sizes = function (_str, x, y, linesep, linewidth, charspacing) {
 
 	g_ActualTextWidth = g_ActualTextHeight = 0;
 	
@@ -2755,7 +2758,7 @@ yyFontManager.prototype.GR_Text_Sizes = function (_str, x, y, linesep, linewidth
 	    for (i = 0; i < sl.length - 1; i++) {
 	    	pStr = sl[i];
 	    	if (pStr != null) {
-				w = thefont.TextWidth(pStr, true);
+				w = thefont.TextWidth(pStr, true,charspacing);
 	    		if (g_ActualTextWidth < w) {
 	    		    g_ActualTextWidth = w;
 	    		}
@@ -2766,7 +2769,7 @@ yyFontManager.prototype.GR_Text_Sizes = function (_str, x, y, linesep, linewidth
 	}
 	
 	pStr = sl[sl.length-1];
-	w = thefont.TextWidth(pStr, true);
+	w = thefont.TextWidth(pStr, true,charspacing);
 	if (g_ActualTextWidth < w) g_ActualTextWidth = w;	
 };
 // @endif fonts

@@ -2907,7 +2907,7 @@ UILayerTextElement.prototype._calc_base_text_size = function(element, font, max_
 		 * Element size is the extent of the text wrapped within the maximum available panel size.
 		*/
 
-		g_pFontManager.GR_Text_Sizes(element.m_text, -1, -1, linesep, max_container_width);
+		g_pFontManager.GR_Text_Sizes(element.m_text, -1, -1, linesep, max_container_width,element.m_charSpacing);
 		computed_width = g_ActualTextWidth;
 		computed_height = g_ActualTextHeight;
 	}
@@ -2917,7 +2917,7 @@ UILayerTextElement.prototype._calc_base_text_size = function(element, font, max_
 		 * Element size is the extent of the text wrapped within the defined frame width.
 		*/
 
-		g_pFontManager.GR_Text_Sizes(element.m_text, -1, -1, linesep, element.m_frameW);
+		g_pFontManager.GR_Text_Sizes(element.m_text, -1, -1, linesep, element.m_frameW,element.m_charSpacing);
 		computed_width = g_ActualTextWidth;
 		computed_height = g_ActualTextHeight;
 	}
@@ -2926,7 +2926,7 @@ UILayerTextElement.prototype._calc_base_text_size = function(element, font, max_
 		 * Element size is the extent of the text.
 		*/
 
-		g_pFontManager.GR_Text_Sizes(element.m_text, -1, -1, linesep, -1);
+		g_pFontManager.GR_Text_Sizes(element.m_text, -1, -1, linesep, -1,element.m_charSpacing);
 		computed_width = g_ActualTextWidth * this.textScaleX;
 		computed_height = g_ActualTextHeight * this.textScaleY;
 	}
