@@ -718,9 +718,11 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 	var LastEvent = g_LastEvent;
 	var LastEventArrayIndex = g_LastEventArrayIndex;
 	var LastEventpObject = g_LastEventpObject;
+    var LastEventInst = g_CallingInstance;
 	var oldrel = Argument_Relative;
 
 	g_LastEventpObject = this;
+    g_CallingInstance = _pInst;
 	g_LastEvent = _event;
 	g_LastEventArrayIndex = index;
 	Argument_Relative = false;
@@ -918,6 +920,7 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
 	g_LastEvent = LastEvent;
 	g_LastEventArrayIndex = LastEventArrayIndex;
 	g_LastEventpObject = LastEventpObject;
+    g_CallingInstance = LastEventInst;
 	return done;
 };
 
