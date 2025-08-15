@@ -966,6 +966,7 @@ Audio_WebAudio=1,
  
 	g_AsyncUserID =  0,
 	g_LastEventpObject = 0,
+	g_CallingInstance = 0,
 	g_LastEvent = 0,
 	g_LastEventArrayIndex = 0,
 	g_ArgumentCount = 0,
@@ -1244,6 +1245,7 @@ function    InitAboyneGlobals() {
     g_CurrentFrameBuffer =
     g_CurrentDepthBuffer =
     g_LastEventpObject = null;
+	g_CallingInstance = null;
 
     g_LastEvent =
     g_LastEventArrayIndex = -1;

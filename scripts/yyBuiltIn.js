@@ -330,11 +330,21 @@ yyBuiltIn.prototype.set_health_function = function (_health ) {
 
 yyBuiltIn.prototype.get_mouse_x = function () {
     //#29683 recalculate this value (as c++ runner) to reflect updates in views/cameras
-    return window_views_mouse_get_x();
+    if(g_CallingInstance!=null && g_CallingInstance.GetInGUISpace())
+    {
+        return device_mouse_x_to_gui(0);
+    }
+    else
+        return window_views_mouse_get_x();
 };
 
 yyBuiltIn.prototype.get_mouse_y = function () {
-    return window_views_mouse_get_y();
+    if(g_CallingInstance!=null && g_CallingInstance.GetInGUISpace())
+    {
+        return device_mouse_y_to_gui(0);
+    }
+    else
+        return window_views_mouse_get_y();
 };
 
 
