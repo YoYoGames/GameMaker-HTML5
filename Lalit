@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Infinite Runner - Mobile Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+        }
+        
+        body {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        #gameCanvas {
+            background-color: #E0F7FA;
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #startScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            z-index: 10;
+        }
+        
+        #startScreen h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            color: #FFD700;
+        }
+        
+        #gameOverScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            z-index: 10;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(to right, #FF416C, #FF4B2B);
+            color: white;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.1s;
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+        
+        #scoreContainer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #333;
+            font-size: 1.5rem;
+            font-weight: bold;
+            z-index: 5;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        
+        #adSpace {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+            display: none;
+            z-index: 5;
+        }
+        
+        @media (max-height: 600px) {
+            #startScreen h1 {
+                font-size: 1.8rem;
+            }
+            .btn {
+                padding: 8px 20px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="scoreContainer">Score: 0</div>
+        
+        <div id="startScreen">
+            <h1>Infinite Runner</h1>
+            <p>Tapping anywhere jumps over obstacles</p>
+            <p>Score more to get rewards!</p>
+            <button class="btn" id="startBtn">Start Game</button>
+        </div>
+        
+        <div id="gameOverScreen">
+            <h1>Game Over!</h1>
+            <p id="finalScore">Score: 0</p>
+            <button class="btn" id="restartBtn">Play Again</button>
+            <button class="btn" id="rewardBtn">Get Reward</button>
+            <div id="adSpace">
+                <p>Ad placeholder for itch.io monetization</p>
+                <!-- This would be replaced with actual ad code when deployed -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game elements
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const rewardBtn = document.getElementById('rewardBtn');
+        const scoreContainer = document.getElementById('scoreContainer');
+        const finalScore = document.getElementById('finalScore');
+        const adSpace = document.getElementById('adSpace');
+        
+        // Game variables
+        let gameRunning = false;
+        let score = 0;
+        let highScore = 0;
+        let speed = 5;
+        let gravity = 0.5;
+        let obstacleFrequency = 100;
+        let obstacleMinHeight = 50;
+        let obstacleMaxHeight = 150;
+        let lastObstacleTime = 0;
+        let frameCount = 0;
+        
+        // Player
+        const player = {
+            x: 50,
+            y: 0,
+            width: 30,
+            height: 50,
+            color: '#FF5722',
+            vy: 0,
+            isJumping: false,
+            
+            draw: function() {
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, canvas.height - this.y - this.height, this.width, this.height);
+                
+                // Draw eyes
+                ctx.fillStyle = 'white';
+                ctx.fillRect(this.x + 5, canvas.height - this.y - this.height + 10, 8, 8);
+                ctx.fillRect(this.x + 17, canvas.height - this.y - this.height + 10, 8, 8);
+            },
+            
+            jump: function() {
+                if (!this.isJumping) {
+                    this.vy = -12;
+                    this.isJumping = true;
+                }
+            },
+            
+            update: function() {
+                this.y += this.vy;
+                this.vy += gravity;
+                
+                // Ground collision
+                if (this.y < 0) {
+                    this.y = 0;
+                    this.vy = 0;
+                    this.isJumping = false;
+                }
+            }
+        };
+        
+        // Obstacles
+        let obstacles = [];
+        
+        function createObstacle() {
+            const height = Math.random() * (obstacleMaxHeight - obstacleMinHeight) + obstacleMinHeight;
+            obstacles.push({
+                x: canvas.width,
+                y: 0,
+                width: 20,
+                height: height,
+                color: '#4CAF50',
+                passed: false
+            });
+        }
+        
+        function drawObstacles() {
+            obstacles.forEach(obstacle => {
+                ctx.fillStyle = obstacle.color;
+                ctx.fillRect(obstacle.x, canvas.height - obstacle.height, obstacle.width, obstacle.height);
+            });
+        }
+        
+        function updateObstacles() {
+            // Remove off-screen obstacles
+            obstacles = obstacles.filter(obstacle => obstacle.x + obstacle.width > 0);
+            
+            // Move obstacles
+            obstacles.forEach(obstacle => {
+                obstacle.x -= speed;
+                
+                // Check collision with player
+                if (
+                    player.x + player.width > obstacle.x &&
+                    player.x < obstacle.x + obstacle.width &&
+                    canvas.height - player.y - player.height < canvas.height - obstacle.height
+                ) {
+                    gameOver();
+                }
+                
+                // Score counting
+                if (!obstacle.passed && obstacle.x + obstacle.width < player.x) {
+                    obstacle.passed = true;
+                    score++;
+                    scoreContainer.textContent = `Score: ${score}`;
+                }
+            });
+            
+            // Spawn new obstacles
+            frameCount++;
+            if (frameCount - lastObstacleTime > obstacleFrequency) {
+                createObstacle();
+                lastObstacleTime = frameCount;
+                
+                // Increase speed and difficulty
+                speed += 0.02;
+                obstacleFrequency = Math.max(50, obstacleFrequency - 1);
+            }
+        }
+        
+        // Ground
+        function drawGround() {
+            ctx.fillStyle = '#8BC34A';
+            ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
+        }
+        
+        // Game loop
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw and update game elements
+            drawGround();
+            player.update();
+            player.draw();
+            updateObstacles();
+            drawObstacles();
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Game state functions
+        function startGame() {
+            // Reset game state
+            obstacles = [];
+            score = 0;
+            speed = 5;
+            obstacleFrequency = 100;
+            lastObstacleTime = 0;
+            frameCount = 0;
+            
+            player.y = 0;
+            player.vy = 0;
+            player.isJumping = false;
+            
+            scoreContainer.textContent = `Score: ${score}`;
+            
+            // Show/hide screens
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            scoreContainer.style.display = 'block';
+            adSpace.style.display = 'none';
+            
+            // Set canvas size
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            // Start game
+            gameRunning = true;
+            gameLoop();
+        }
+        
+        function gameOver() {
+            gameRunning = false;
+            finalScore.textContent = `Score: ${score}`;
+            gameOverScreen.style.display = 'flex';
+            scoreContainer.style.display = 'none';
+            
+            // Show ad space if score is decent
+            if (score > 5) {
+                adSpace.style.display = 'block';
+            }
+            
+            // Update high score
+            if (score > highScore) {
+                highScore = score;
+            }
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', startGame);
+        
+        rewardBtn.addEventListener('click', function() {
+            // Placeholder for reward system - would use itch.io's API in real implementation
+            alert(`You scored ${score}! This would connect to itch.io's reward system in the published game.`);
+            startGame();
+        });
+        
+        // Touch/mouse controls
+        canvas.addEventListener('click', function() {
+            if (gameRunning) {
+                player.jump();
+            }
+        });
+        
+        canvas.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            if (gameRunning) {
+                player.jump();
+            }
+        });
+        
+        // Window resize
+        window.addEventListener('resize', function() {
+            if (gameRunning) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+        });
+    </script>
+</body>
+</html>
+
