@@ -1349,15 +1349,11 @@ LayerManager.prototype.RemoveLayer = function(_room,_layerID,_destroyInstances)
     if (layer!=null)
     {
         // Iterate through all the elements on the layer and remove them
-        for(var i = 0; i < layer.m_elements.length; i++)
+        var el;
+        while(el = layer.m_elements.Get(0) )
         {
-            var el = layer.m_elements.Get(i);
-            if (el != null)
-            {
-                this.RemoveElementFromLayer(_room, el, layer, false, _destroyInstances);
-            }
+             this.RemoveElementFromLayer(_room, el, layer, false, _destroyInstances);
         }
-
         _room.m_Layers.Delete(layer);
     }
 };
