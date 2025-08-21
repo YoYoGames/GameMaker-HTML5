@@ -343,11 +343,23 @@ function yyCacheBlock()
 	this.lastused = 0;
 }
 
-function Graphics_CacheBlock_Do(_texture, _pCacheObject, _x, _y, _w, _h, _colour) 
+function Graphics_CacheBlock_Do(_texture, _pCacheObject, _x, _y, _w, _h, _colour, _undoPremultiply) 
 {
+	var undoPremultiply = false;
+	if (_undoPremultiply != undefined)
+	{
+		undoPremultiply = _undoPremultiply;
+	}
+
+	var cachekey = _colour & 0xffffff;		// the alpha component isn't used by Graphics_ColouriseImage anyway
+	if (undoPremultiply)
+	{
+		cachekey |= 1 << 24;	// use space that used to contain alpha
+	}
+	
     var pCacheBlock = null;
     if (_pCacheObject.cache != undefined) {
-	    pCacheBlock = _pCacheObject.cache[_colour];
+	    pCacheBlock = _pCacheObject.cache[cachekey];
 	} // end if
 	else {
 	    _pCacheObject.cache = [];
@@ -390,9 +402,9 @@ function Graphics_CacheBlock_Do(_texture, _pCacheObject, _x, _y, _w, _h, _colour
 		if (FoundColour >= 0) delete _pCacheObject.cache[FoundColour];		
 	}
 
-	_pCacheObject.cache[_colour] = pCacheBlock;
+	_pCacheObject.cache[cachekey] = pCacheBlock;
 	pCacheBlock.lastused = g_GlobalFrameCount;
-	pCacheBlock.pImage = Graphics_ColouriseImage(_texture, _x, _y, _w, _h, _colour);
+	pCacheBlock.pImage = Graphics_ColouriseImage(_texture, _x, _y, _w, _h, _colour, _undoPremultiply);
 	return pCacheBlock.pImage;
 }
 
@@ -407,9 +419,9 @@ function Graphics_CacheBlock_Do(_texture, _pCacheObject, _x, _y, _w, _h, _colour
 ///				
 ///			</returns>
 // #############################################################################################
-function Graphics_CacheBlock(_pTPE, _colour) 
+function Graphics_CacheBlock(_pTPE, _colour, _undoPremultiply) 
 {
-    return Graphics_CacheBlock_Do( _pTPE.texture, _pTPE, _pTPE.x, _pTPE.y, _pTPE.w, _pTPE.h, _colour );
+    return Graphics_CacheBlock_Do( _pTPE.texture, _pTPE, _pTPE.x, _pTPE.y, _pTPE.w, _pTPE.h, _colour, _undoPremultiply );
 }
 
 // #############################################################################################
@@ -1307,7 +1319,7 @@ function    Graphics_TextureDraw_DEBUG( _pTPE, _xorig, _yorig, _x, _y, _xsc, _ys
 ///				
 ///			 </returns>
 // #############################################################################################
-function    Graphics_ColouriseImage( _texture, _x, _y, _w, _h, _col )
+function    Graphics_ColouriseImage( _texture, _x, _y, _w, _h, _col, _undoPremultiply )
 {
     var buffer = document.createElement(g_CanvasName);
     var pImg = buffer.getContext('2d');
@@ -1331,13 +1343,45 @@ function    Graphics_ColouriseImage( _texture, _x, _y, _w, _h, _col )
     	var g = ((_col >> 8) & 0xff) / 255;
     	var b = (_col & 0xff) / 255;
     	var total = (data.height * data.width * 4);
-    	for (var i = total - 4; i >= 0; i -= 4)
-    	{
-    		ddata[i] = (sdata[i] * r) | 0;
-    		ddata[i + 1] = (sdata[i + 1] * g) | 0;
-    		ddata[i + 2] = (sdata[i + 2] * b) | 0;
-    		ddata[i + 3] = (sdata[i + 3]);
-    	}
+
+		if ((_undoPremultiply != undefined) && (_undoPremultiply == true))
+		{
+			var rcpalpha;
+			var new_r, new_g, new_b;
+			for (var i = total - 4; i >= 0; i -= 4)
+			{
+				rcpalpha = sdata[i + 3];
+				if (rcpalpha <= 0)
+				{
+					rcpalpha = 1.0;
+				}
+				else
+				{
+					rcpalpha = 1.0 / (rcpalpha / 255.0);
+				}
+
+				new_r = sdata[i] * r * rcpalpha;
+				new_g = sdata[i + 1] * g * rcpalpha;
+				new_b = sdata[i + 2] * b * rcpalpha;
+
+				// We don't need to explicitly clamp the values to 255 as ddata is a Uint8ClampedArray which does the job for us
+
+				ddata[i] = new_r | 0;
+				ddata[i + 1] = new_g | 0;
+				ddata[i + 2] = new_b | 0;
+				ddata[i + 3] = (sdata[i + 3]);
+			}
+		}
+		else
+		{
+			for (var i = total - 4; i >= 0; i -= 4)
+			{
+				ddata[i] = (sdata[i] * r) | 0;
+				ddata[i + 1] = (sdata[i + 1] * g) | 0;
+				ddata[i + 2] = (sdata[i + 2] * b) | 0;
+				ddata[i + 3] = (sdata[i + 3]);
+			}
+		}
     	imageData.data = ddata;
     	pImg._putImageData(imageData, 0, 0);
     }

@@ -13,6 +13,7 @@
 // This is an exceptionally nasty way to keep a Sprite agnostic about which instance triggered its draw
 var g_skeletonDrawInstance = null;
 
+var g_SpineOverrideDefaultBlendmode = true;
 var g_SpinePerSlotBlendmodes = false;
 
 var g_SpineCurrUserShader = -1;
@@ -505,15 +506,19 @@ yySkeletonSprite.prototype.DrawSkeleton_RELEASE = function (_skeleton, _gmr, _gm
                 if (!tex.complete)
                     continue;
 
-                if (col != g_CacheWhite)
+                var page = region.region.renderObject.page;
+                var ispremultiplied = false;
+                if ((typeof page.pma !== 'undefined') && (page.pma != null) && (page.pma == true))
+                    ispremultiplied = true;
+
+                if ((col != g_CacheWhite) || (ispremultiplied == true))
                 {
 
                     if (!this.m_TPE[region.region.renderObject.page.name])
-                    {
-                        var page = region.region.renderObject.page;
+                    {                        
                         this.SetupTPE(page.name, page.width, page.height, page.rendererObject);
                     }
-                    tex = Graphics_CacheBlock(this.m_TPE[region.region.renderObject.page.name], col);
+                    tex = Graphics_CacheBlock(this.m_TPE[region.region.renderObject.page.name], col, ispremultiplied);
                 }
 
                 //var atlasPage = region.region.texture;
@@ -542,14 +547,18 @@ yySkeletonSprite.prototype.DrawSkeleton_RELEASE = function (_skeleton, _gmr, _gm
             if (!tex.complete)
                 continue;
 
-            if (col != g_CacheWhite)
+            var page = mesh.region.renderObject.page;
+            var ispremultiplied = false;
+                if ((typeof page.pma !== 'undefined') && (page.pma != null) && (page.pma == true))
+                    ispremultiplied = true;
+
+            if ((col != g_CacheWhite) || (ispremultiplied == true))
             {
                 if (!this.m_TPE[mesh.region.renderObject.page.name])
                 {
-                    var page = mesh.region.renderObject.page;
                     this.SetupTPE(page.name, page.width, page.height, mesh.region.renderObject.page.rendererObject);
                 }
-                tex = Graphics_CacheBlock(this.m_TPE[mesh.region.renderObject.page.name], col);
+                tex = Graphics_CacheBlock(this.m_TPE[mesh.region.renderObject.page.name], col, ispremultiplied);
             }
             tpe = this.m_TPE[mesh.region.renderObject.page.name];
         }
@@ -691,13 +700,27 @@ yySkeletonSprite.prototype.DrawSkeleton_WebGL = function (_skeleton, _gmr, _gmg,
 
     var oldsrcblend, olddestblend, oldsrcblenda, olddestblenda;
     var oldsepalpha;
-    if (g_SpinePerSlotBlendmodes == true)
+    var overrideBlendMode = false;
+    if ((g_SpinePerSlotBlendmodes == true) || (g_SpineOverrideDefaultBlendmode == true))
     {
         oldsrcblend = g_webGL.RSMan.GetRenderState(yyGL.RenderState_SrcBlend);
         olddestblend = g_webGL.RSMan.GetRenderState(yyGL.RenderState_DestBlend);
         oldsrcblenda = g_webGL.RSMan.GetRenderState(yyGL.RenderState_SrcBlendAlpha);
         olddestblenda = g_webGL.RSMan.GetRenderState(yyGL.RenderState_DestBlendAlpha);
         oldsepalpha = g_webGL.RSMan.GetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable);
+
+        if (g_SpinePerSlotBlendmodes == true)
+        {
+            overrideBlendMode = true;
+        }
+        else if (g_SpineOverrideDefaultBlendmode == true)
+        {            
+            if ((oldsrcblend == yyGL.Blend_SrcAlpha) && (olddestblend == yyGL.Blend_InvSrcAlpha) &&
+				(oldsrcblenda == yyGL.Blend_SrcAlpha) && (olddestblenda == yyGL.Blend_InvSrcAlpha))
+			{
+				overrideBlendMode = true;				
+			}
+        }
     }
 
     var darkcol = new spine.Color(0.0, 0.0, 0.0, 0.0);
@@ -714,6 +737,7 @@ yySkeletonSprite.prototype.DrawSkeleton_WebGL = function (_skeleton, _gmr, _gmg,
         }
     }
 
+    var wasPremultiplied = false;
     for (var i = 0, n = _skeleton.slots.length; i < n; i++)
     {
         var slot = _skeleton.drawOrder[i];
@@ -787,6 +811,7 @@ yySkeletonSprite.prototype.DrawSkeleton_WebGL = function (_skeleton, _gmr, _gmg,
 
         var tex = null;
 
+        var attachmentPremultiplied = false;
         if (slot.attachment instanceof spine.RegionAttachment)
         {
             var region = slot.attachment;
@@ -799,7 +824,11 @@ yySkeletonSprite.prototype.DrawSkeleton_WebGL = function (_skeleton, _gmr, _gmg,
             numVerts = 4;
             numIndices = 6;
 
-            tex = g_Textures[region.region.renderObject.page.texture.rendererObject];            
+            var page = region.region.renderObject.page;
+            tex = g_Textures[page.texture.rendererObject];           
+                        
+            if ((typeof page.pma !== 'undefined') && (page.pma != null) && (page.pma == true))
+                attachmentPremultiplied = true;
         }
         else if (slot.attachment instanceof spine.MeshAttachment)
         {
@@ -813,7 +842,11 @@ yySkeletonSprite.prototype.DrawSkeleton_WebGL = function (_skeleton, _gmr, _gmg,
             numVerts = mesh.worldVerticesLength;
             numIndices = mesh.triangles.length;
 
-            tex = g_Textures[mesh.region.renderObject.page.texture.rendererObject];            
+            var page = mesh.region.renderObject.page;
+            tex = g_Textures[page.texture.rendererObject];       
+            
+            if ((typeof page.pma !== 'undefined') && (page.pma != null) && (page.pma == true))
+                attachmentPremultiplied = true;
         }
         else if (slot.attachment instanceof spine.ClippingAttachment)
         {
@@ -856,6 +889,28 @@ yySkeletonSprite.prototype.DrawSkeleton_WebGL = function (_skeleton, _gmr, _gmg,
                 g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, convertedblend.dest);
                 g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, convertedblend.src);
                 g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, convertedblend.dest);
+            }
+            else if ((overrideBlendMode == true) && (g_SpineOverrideDefaultBlendmode == true))
+            {
+                if (wasPremultiplied != attachmentPremultiplied)
+                {
+                    if (attachmentPremultiplied == true)
+                    {
+                        g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_One);
+                        g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_InvSrcAlpha);
+                        g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_One);
+                        g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.Blend_InvSrcAlpha);
+                    }
+                    else
+                    {
+                        g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, yyGL.Blend_SrcAlpha);
+                        g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, yyGL.Blend_InvSrcAlpha);
+                        g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, yyGL.Blend_SrcAlpha);
+                        g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, yyGL.Blend_InvSrcAlpha);
+                    }
+
+                    wasPremultiplied = attachmentPremultiplied;
+                }
             }
 
             var pBuff = g_webGL.AllocVerts(yyGL.PRIM_TRIANGLE, tex.webgl_textureid, g_webGL.VERTEX_FORMAT_2D, numIndices);
@@ -900,13 +955,16 @@ yySkeletonSprite.prototype.DrawSkeleton_WebGL = function (_skeleton, _gmr, _gmg,
         this.m_clipper.clipEnd();
     }
 
-    if (g_SpinePerSlotBlendmodes == true)
+    if (overrideBlendMode == true)
     {
-        g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, oldsrcblend);
-        g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, olddestblend);
-        g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, oldsrcblenda);
-        g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, olddestblenda);
-        g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, oldsepalpha);
+        if ((g_SpinePerSlotBlendmodes == true) || ((wasPremultiplied == true) && (g_SpineOverrideDefaultBlendmode == true)))
+		{
+            g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlend, oldsrcblend);
+            g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlend, olddestblend);
+            g_webGL.RSMan.SetRenderState(yyGL.RenderState_SrcBlendAlpha, oldsrcblenda);
+            g_webGL.RSMan.SetRenderState(yyGL.RenderState_DestBlendAlpha, olddestblenda);
+            g_webGL.RSMan.SetRenderState(yyGL.RenderState_SeparateAlphaBlendEnable, oldsepalpha);
+        }
     }
 };
 
