@@ -1428,20 +1428,14 @@ function StartRoom( _numb, _starting )
             		pPreCreateCode = ui_element.instancePreCreate;
             	}
 
-            	if(!g_CreateEventOrderSwap && !g_isZeus) {
+                if(New_Room == -1 || (pInstance.persistent || g_RunRoom.m_persistent))
+                {
+                    pInstance.PerformEvent(EVENT_PRE_CREATE, 0, pInstance, pInstance);
+                    if (pPreCreateCode) pPreCreateCode(pInstance, pInstance);
+                    pInstance.PerformEvent(EVENT_CREATE, 0, pInstance, pInstance);
+                    if (pCode) pCode(pInstance, pInstance);
+                }
             	
-            		if (pCode) pCode(pInstance, pInstance);
-            		pInstance.PerformEvent(EVENT_PRE_CREATE, 0, pInstance, pInstance);
-            		if (pPreCreateCode) pPreCreateCode(pInstance, pInstance);
-            		pInstance.PerformEvent(EVENT_CREATE, 0, pInstance, pInstance);
-            	} 
-            	else {
-            	
-            		pInstance.PerformEvent(EVENT_PRE_CREATE, 0, pInstance, pInstance);
-            		if (pPreCreateCode) pPreCreateCode(pInstance, pInstance);
-            		pInstance.PerformEvent(EVENT_CREATE, 0, pInstance, pInstance);
-            		if (pCode) pCode(pInstance, pInstance);
-            	}
             }
         }
 	}
