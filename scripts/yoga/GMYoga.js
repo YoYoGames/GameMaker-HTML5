@@ -173,12 +173,12 @@ function FLEXPANEL_SetCSSValueEdge( _node, _value, _edge, _set, _setPercent )
 
 function FLEXPANEL_GetContext(_node)
 {
-	return g_contextYoga.get( _node["M"]["O"] );	
+	return g_contextYoga.get( _node["K"]["M"] );	
 }
 
 function FLEXPANEL_CreateContext(_node)
 {
-	g_contextYoga.set( _node["M"]["O"], {} );
+	g_contextYoga.set( _node["K"]["M"], {} );
 }
 
 function FLEXPANEL_AreNodeRefsEqual(_node1, _node2)
@@ -187,7 +187,7 @@ function FLEXPANEL_AreNodeRefsEqual(_node1, _node2)
 	 * just compare node references for equality.
 	*/
 
-	return _node1["M"]["O"] == _node2["M"]["O"];
+	return _node1["K"]["M"] == _node2["K"]["M"];
 }
 
 // #######################################################################################
@@ -1134,8 +1134,18 @@ function flexpanel_node_style_set_gap(_node, _gutter, _value)
 // #######################################################################################
 function flexpanel_node_style_set_position(_node, _edge, _value, _unit)
 {	
+
+	if(_unit==undefined)
+	{
+		_node.setPositionUndefined();
+		return;
+	}
+
 	switch( _unit )
 	{
+	case YGUnitUndefined:
+		_node.setPositionUndefined();
+		break;
 	case YGUnitPoint:
 		_node.setPosition( _edge, yyGetReal(_value) );
 		break;
@@ -1218,8 +1228,17 @@ function flexpanel_node_style_set_position_type(_node, _value)
 // #######################################################################################
 function flexpanel_node_style_set_min_width(_node, _value, _unit)
 {	
+	if(_unit === undefined)
+	{
+		_node.setMinWidthUndefined();
+		return;
+	}
 	switch( _unit )
 	{
+	case YGUnitUndefined:
+		_node.setMinWidthUndefined();
+		break;
+
 	case YGUnitPoint:
 		_node.setMinWidth( yyGetReal(_value) );
 		break;
@@ -1232,8 +1251,17 @@ function flexpanel_node_style_set_min_width(_node, _value, _unit)
 // #######################################################################################
 function flexpanel_node_style_set_max_width(_node, _value, _unit)
 {	
+	if(_unit === undefined)
+	{
+		_node.setMaxWidthUndefined();
+		return;
+	}
+
 	switch( _unit )
 	{
+	case YGUnitUndefined:
+		_node.setMaxWidthUndefined();
+		break;
 	case YGUnitPoint:
 		_node.setMaxWidth( yyGetReal(_value) );
 		break;
@@ -1246,8 +1274,16 @@ function flexpanel_node_style_set_max_width(_node, _value, _unit)
 // #######################################################################################
 function flexpanel_node_style_set_min_height(_node, _value, _unit)
 {	
+	if(_unit === undefined)
+	{
+		_node.setMinHeightUndefined();
+		return;
+	}
 	switch( _unit )
 	{
+	case YGUnitUndefined:
+		_node.setMinHeightUndefined();
+		break;
 	case YGUnitPoint:
 		_node.setMinHeight( yyGetReal(_value) );
 		break;
@@ -1260,8 +1296,18 @@ function flexpanel_node_style_set_min_height(_node, _value, _unit)
 // #######################################################################################
 function flexpanel_node_style_set_max_height(_node, _value, _unit)
 {	
+
+	if(_unit === undefined)
+	{
+		_node.setMaxHeightUndefined();
+		return;
+	}
+
 	switch( _unit )
 	{
+	case YGUnitUndefined:
+		_node.setMaxHeightUndefined();
+		break;
 	case YGUnitPoint:
 		_node.setMaxHeight( yyGetReal(_value) );
 		break;
