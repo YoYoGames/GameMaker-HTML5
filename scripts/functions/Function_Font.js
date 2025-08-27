@@ -345,7 +345,7 @@ function string_height(_text) {
 // #############################################################################################
 function string_width(_text) {
 	g_pFontManager.SetFont();
-	return g_pFontManager.thefont ? g_pFontManager.thefont.TextWidth(yyGetString(_text)) : 1;
+	return g_pFontManager.thefont ? g_pFontManager.thefont.TextWidth(yyGetString(_text), undefined, 0) : 1;
 }
 
 

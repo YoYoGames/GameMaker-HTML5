@@ -851,7 +851,7 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
 
     var bLerp=false;
     if ( (_col1 != _col2) || (_col3 != _col4) ) {
-        var strWidth = this.TextWidth(_pStr, true,0);
+        var strWidth = this.TextWidth(_pStr, true, 0);
         var invStrWidth = 1/strWidth;
         var alpha = _col1 & 0xff000000;
         bLerp = true;
@@ -2488,8 +2488,8 @@ yyFontManager.prototype.GR_Text_Draw = function (_str, x, y, linesep, linewidth,
 
 				if (pStr != null)
 				{				
-					if (this.halign == 1) xoff = -(xscale * thefont.TextWidth(pStr, true,0) / 2);
-					if (this.halign == 2) xoff = -(xscale * thefont.TextWidth(pStr, true,0));
+					if (this.halign == 1) xoff = -(xscale * thefont.TextWidth(pStr, true, 0) / 2);
+					if (this.halign == 2) xoff = -(xscale * thefont.TextWidth(pStr, true, 0));
 
 					var xx = passx + (cc * xoff) + (ss * yoff);
 					var yy = passy - (ss * xoff) + (cc * yoff);
