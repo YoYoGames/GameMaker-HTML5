@@ -1681,8 +1681,9 @@ function instance_activate_object(_inst, _objindex)
 	    }
 	} else {	    
 	    for (var i = 0; i < pDeactiveList.pool.length; i++) {
-	        var pInst = pDeactiveList.pool[i];
-	        if (pInst.object_index == _objindex || pInst.id == _objindex) {
+			var pInst = pDeactiveList.pool[i];
+	        var instObjIndex = yyGetRef(pInst.object_index, REFID_OBJECT, undefined, undefined, true);
+	        if (instObjIndex == _objindex || pInst.id == _objindex) {
 	            keep[keep.length] = pInst;
 	        }
 	        else if (object_has_parent(g_pObjectManager.Get(pInst.object_index), _objindex)) {
@@ -1721,8 +1722,9 @@ function instance_deactivate_object(_inst, _objindex)
 	} 
 	else {	    
 	    for (var i = 0; i < pActiveList.pool.length; i++) {
-	        var pInst = pActiveList.pool[i];
-	        if (pInst.object_index == _objindex || pInst.id == _objindex) {
+			var pInst = pActiveList.pool[i];
+	        var instObjIndex = yyGetRef(pInst.object_index, REFID_OBJECT, undefined, undefined, true);
+			if (instObjIndex == _objindex || pInst.id == _objindex) {
 	            keep[keep.length] = pInst;
 	        }
 	        else if (object_has_parent(g_pObjectManager.Get(pInst.object_index), _objindex)) {
