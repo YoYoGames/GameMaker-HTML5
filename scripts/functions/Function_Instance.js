@@ -984,7 +984,7 @@ function Tilemap_PointPlace( _x, _y, tilemapind, instlist,prec)
 				if ((ui < 0) || (ui >= spr.GetWidth())) return false;
 				if ((vi < 0) || (vi >= spr.GetHeight())) return false;
 
-				if(spr.ColMaskSet(ui,vi,tmaskdata))
+				if(spr.ColMaskSet(ui,vi,tmaskdata, 1.0, 1.0))
 				{
 					if (instlist != null)
 					{
