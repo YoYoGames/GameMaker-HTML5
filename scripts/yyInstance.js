@@ -1547,6 +1547,9 @@ yyInstance.prototype.Compute_BoundingBox = function() {
 
 				bbox.top += this.y;
 				bbox.bottom += this.y;
+
+				bbox.right += 1;
+				bbox.bottom += 1;
 			} else // ->
 			// @endif
 			{
