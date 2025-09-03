@@ -498,6 +498,7 @@ yyRoom.prototype.CloneStorage = function (_pStorage) {
 								sAlignment: srcTextitem.sAlignment,
 								sCharSpacing: srcTextitem.sCharSpacing,
 								sLineSpacing: srcTextitem.sLineSpacing,
+								sParagraphSpacing: srcTextitem.sParagraphSpacing,
 								sFrameW: srcTextitem.sFrameW,
 								sFrameH: srcTextitem.sFrameH,
 								sWrap: srcTextitem.sWrap,
@@ -1349,7 +1350,7 @@ yyRoom.prototype.DrawLayerTextElement = function(_rect,_layer,_el)
 	var frameHeight = _el.m_frameH;
 	var charSpacing = _el.m_charSpacing;
 	var lineSpacing = _el.m_lineSpacing;
-	var paraSpacing = 0.0;
+	var paraSpacing = _el.m_paragraphSpacing;
 
 	var drawcol = _el.m_blend;
 	var a = _el.m_alpha;

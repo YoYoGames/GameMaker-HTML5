@@ -386,6 +386,7 @@ function CLayerTextElement()
     this.m_alignment=0;          // alignment   
     this.m_charSpacing=0;          // character spacing value
     this.m_lineSpacing=0;          // line spacing value
+    this.m_paragraphSpacing=0;          // para spacing value
     this.m_frameW=-1;          // x scale factor
     this.m_frameH=-1;          // y scale factor
     this.m_wrap = false;
@@ -2227,6 +2228,7 @@ LayerManager.prototype.BuildRoomLayers = function(_room,_roomLayers)
                         NewTextItem.m_alignment = pLayer.textitems[i].sAlignment;
                         NewTextItem.m_charSpacing = pLayer.textitems[i].sCharSpacing;
                         NewTextItem.m_lineSpacing = pLayer.textitems[i].sLineSpacing;
+                        NewTextItem.m_paragraphSpacing = pLayer.textitems[i].sParagraphSpacing;
                         NewTextItem.m_frameW = pLayer.textitems[i].sFrameW;
                         NewTextItem.m_frameH = pLayer.textitems[i].sFrameH;
                         NewTextItem.m_wrap = (pLayer.textitems[i].sWrap != 0) ? true : false;
@@ -3759,6 +3761,15 @@ function layer_text_linespacing( _textelID,_linespacing)
     }
 };
 
+function layer_text_paragraphspacing( _textelID,_paragraphspacing) 
+{
+    var el = layerTextGetElement(_textelID);
+    if (el != null)
+    {
+        el.m_paragraphSpacing = yyGetReal(_paragraphspacing);
+    }
+};
+
 function layer_text_framew( _textelID,_framew) 
 {
     var el = layerTextGetElement(_textelID);
@@ -3949,6 +3960,17 @@ function layer_text_get_linespacing( _textelID)
     if (el != null)
     {
         return el.m_lineSpacing;
+    }
+    return 0;
+};
+
+
+function layer_text_get_paragraphspacing( _textelID) 
+{
+    var el = layerTextGetElement(_textelID);
+    if (el != null)
+    {
+        return el.m_paragraphSpacing;
     }
     return 0;
 };

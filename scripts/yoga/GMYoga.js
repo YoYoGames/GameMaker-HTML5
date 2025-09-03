@@ -2693,6 +2693,7 @@ function UILayerTextElement(element_data, from_wad)
 		this.textAlignment        = element_data.textAlignment;
 		this.textCharacterSpacing = element_data.textCharacterSpacing;
 		this.textLineSpacing      = element_data.textLineSpacing;
+		this.textParagraphSpacing = element_data.textParagraphSpacing;
 		this.textFrameWidth       = element_data.textFrameWidth;
 		this.textFrameHeight      = element_data.textFrameHeight;
 		this.textWrap			  = element_data.textWrap;
@@ -2721,6 +2722,7 @@ function UILayerTextElement(element_data, from_wad)
 		this.textAlignment        = yyGetReal(variable_struct_get(element_data, "textAlignment"));
 		this.textCharacterSpacing = yyGetReal(variable_struct_get(element_data, "textCharacterSpacing"));
 		this.textLineSpacing      = yyGetReal(variable_struct_get(element_data, "textLineSpacing"));
+		this.textParagraphSpacing = yyGetReal(variable_struct_get(element_data, "textParagraphSpacing"));
 		this.textFrameWidth       = yyGetReal(variable_struct_get(element_data, "textFrameWidth"));
 		this.textFrameHeight      = yyGetReal(variable_struct_get(element_data, "textFrameHeight"));
 		this.textWrap			  = yyGetBool(variable_struct_get(element_data, "textWrap"));
@@ -2761,6 +2763,7 @@ UILayerTextElement.prototype.create_element = function(target_layer, run_instanc
 	NewTextItem.m_alignment = this.textAlignment;
 	NewTextItem.m_charSpacing = this.textCharacterSpacing;
 	NewTextItem.m_lineSpacing = this.textLineSpacing;
+	NewTextItem.m_paragraphSpacing = this.textParagraphSpacing;
 	NewTextItem.m_frameW = this.textFrameWidth;
 	NewTextItem.m_frameH = this.textFrameHeight;
 	NewTextItem.m_wrap = this.textWrap;
@@ -3005,6 +3008,7 @@ UILayerTextElement.prototype.serialise = function()
 	variable_struct_set(ret, "textAlignment",        this.textAlignment);
 	variable_struct_set(ret, "textCharacterSpacing", this.textCharacterSpacing);
 	variable_struct_set(ret, "textLineSpacing",      this.textLineSpacing);
+	variable_struct_set(ret, "textParagraphSpacing", this.textParagraphSpacing);
 	variable_struct_set(ret, "textFrameWidth",       this.textFrameWidth);
 	variable_struct_set(ret, "textFrameHeight",      this.textFrameHeight);
 	variable_struct_set(ret, "textWrap",			 this.textWrap);
