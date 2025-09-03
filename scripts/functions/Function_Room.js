@@ -354,6 +354,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                     variable_struct_set( element, "v_align", (sourceLayer.textitems[assetIdx].sAlignment >> 8) & 0xff);
                                     variable_struct_set( element, "char_spacing", sourceLayer.textitems[assetIdx].sCharSpacing);
                                     variable_struct_set( element, "line_spacing", sourceLayer.textitems[assetIdx].sLineSpacing);
+                                    variable_struct_set( element, "paragraph_spacing", sourceLayer.textitems[assetIdx].sParagraphSpacing);
                                     variable_struct_set( element, "frame_width", sourceLayer.textitems[assetIdx].sFrameW);
                                     variable_struct_set( element, "frame_height", sourceLayer.textitems[assetIdx].sFrameH);
                                     variable_struct_set(element, "wrap", sourceLayer.textitems[assetIdx].sWrap);
