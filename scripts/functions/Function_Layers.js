@@ -3445,7 +3445,9 @@ function layer_particle_get_system(_paricle_element_id)
     var id = -1;
     if (el != null)
     {
-        id = el.m_ps;
+        var particleSystem = g_ParticleSystemManager.Get(el.m_systemID);
+        if (particleSystem)
+            id = particleSystem.m_resourceID;
     }
     return MAKE_REF(REFID_PARTICLESYSTEM, (id != -1) ? id : 0xffffffff);
 }
