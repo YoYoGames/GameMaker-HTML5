@@ -2488,6 +2488,16 @@ function draw_get_enable_skeleton_blendmodes()
     return g_SpinePerSlotBlendmodes;
 }
 
+function draw_enable_skeleton_blend_override(_enable)
+{
+    g_SpineOverrideDefaultBlendmode = yyGetBool(_enable);
+}
+
+function draw_get_enable_skeleton_blend_override()
+{
+    return g_SpineOverrideDefaultBlendmode;
+}
+
 // #############################################################################################
 /// Function:<summary>
 ///             Dump out the list of animations belonging to a skeleton sprite
