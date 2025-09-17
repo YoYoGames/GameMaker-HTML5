@@ -2939,48 +2939,27 @@ UILayerTextElement.prototype.measure_item = function(node, max_width, max_height
 
 UILayerTextElement.prototype._calc_base_text_size = function(element, font, max_container_width)
 {
-	var old_font = g_pFontManager.fontid;
-	g_pFontManager.fontid = this.textFontIndex;
-
-	/* The "linesep" parameter to yyFontManager.GR_Text_Sizes() is actually the pitch
-	 * (i.e. height + line spacing) to add for each line after the first line, so we need to
-	 * grab the font and copy what it does to calculate that correctly.
-	*/
-	var linesep = font.TextHeight("M") + element.m_lineSpacing;
-	var computed_width;
-	var computed_height;
-
-	if (element.m_wrap && this.stretchWidth)
+	var fontId = this.textFontIndex;
+	var computed_width = 0;
+	var computed_height = 0;
+	if (element.m_wrap) {
+		var boundsWidth;
+		if (this.stretchWidth) {
+			boundsWidth = max_container_width; //Element size is the extent of the text wrapped within the maximum available panel size.
+			if (this.textScaleX != 0)
+				boundsWidth /= this.textScaleX;
+		}
+		else {
+			boundsWidth = element.m_frameW; //Element size is the extent of the text wrapped within the defined frame width
+		}
+		g_pFontManager.GR_Text_Measure_IDEStyleW(element.m_text, fontId, boundsWidth, element.m_wrap, element.m_wrapMode, element.m_charSpacing, element.m_lineSpacing, element.m_paragraphSpacing);
+	}
+	else
 	{
-		/* Wrapped text, stretched to flexpanel width.
-		 * Element size is the extent of the text wrapped within the maximum available panel size.
-		*/
-
-		g_pFontManager.GR_Text_Sizes(element.m_text, -1, -1, linesep, max_container_width,element.m_charSpacing);
-		computed_width = g_ActualTextWidth;
-		computed_height = g_ActualTextHeight;
+		g_pFontManager.GR_Text_Measure_IDEStyle(element.m_text, fontId, element.m_charSpacing, element.m_lineSpacing, element.m_paragraphSpacing);
 	}
-	else if (element.m_wrap)
-	{
-		/* Wrapped text.
-		 * Element size is the extent of the text wrapped within the defined frame width.
-		*/
-
-		g_pFontManager.GR_Text_Sizes(element.m_text, -1, -1, linesep, element.m_frameW,element.m_charSpacing);
-		computed_width = g_ActualTextWidth;
-		computed_height = g_ActualTextHeight;
-	}
-	else {
-		/* Non-wrapped text.
-		 * Element size is the extent of the text.
-		*/
-
-		g_pFontManager.GR_Text_Sizes(element.m_text, -1, -1, linesep, -1,element.m_charSpacing);
-		computed_width = g_ActualTextWidth * this.textScaleX;
-		computed_height = g_ActualTextHeight * this.textScaleY;
-	}
-
-	g_pFontManager.fontid = old_font;
+	computed_width = g_ActualTextWidth * this.textScaleX;
+	computed_height = g_ActualTextHeight * this.textScaleY;
 
 	var ret = { width: computed_width, height: computed_height };
 	return ret;

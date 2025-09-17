@@ -2139,6 +2139,7 @@ yyFontManager.prototype.Split_TextBlock_IDEstyle = function (_pStr, _boundsWidth
 									//add line with this chunk
 									var chunkEnd = chunkStart + chunkLen;
 
+									totalW = yymax(totalW, chunkWidth);
 									lineData = new Object();
 									lineData.pString = str.substring(chunkStart, chunkEnd);
 									lineData.x = xpos;
@@ -2723,6 +2724,17 @@ yyFontManager.prototype.GR_Text_Measure_IDEStyle = function (_str, _fontID, _cha
 	draw_set_font(_fontID);
 	g_pFontManager.SetFont();
 	var sldata = g_pFontManager.Split_TextBlock_IDEstyle(_str, 0, 0, 0, false, 0, _charSpacing, _lineSpacing, _paraSpacing);
+	draw_set_font(oldFontID);
+	g_ActualTextWidth = sldata.totalW;
+	g_ActualTextHeight = sldata.totalH;
+};
+
+yyFontManager.prototype.GR_Text_Measure_IDEStyleW = function (_str, _fontID, _boundsWidth, _wrap, _wrapMode, _charSpacing, _lineSpacing, _paraSpacing) {
+	g_ActualTextWidth = g_ActualTextHeight = 0;
+	var oldFontID = draw_get_font();
+	draw_set_font(_fontID);
+	g_pFontManager.SetFont();
+	var sldata = g_pFontManager.Split_TextBlock_IDEstyle(_str, _boundsWidth, 0, 0, _wrap, _wrapMode, _charSpacing, _lineSpacing, _paraSpacing);
 	draw_set_font(oldFontID);
 	g_ActualTextWidth = sldata.totalW;
 	g_ActualTextHeight = sldata.totalH;
