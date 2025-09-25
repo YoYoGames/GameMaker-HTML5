@@ -703,7 +703,7 @@ yyObject.prototype.PerformEvent = function (_event, index, _pInst, _pOther, _is_
         && (_event != EVENT_CLEAN_UP)
         && New_Room != -1
         && !(
-                (_pInst.persistent || g_RunRoom.m_persistent)
+                (_pInst.persistent || g_RunRoom.m_persistent || _pInst.on_ui_layer)
                 && (
                     eventType == EVENT_CREATE
                     || eventType == EVENT_PRE_CREATE

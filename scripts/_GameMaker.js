@@ -1428,7 +1428,7 @@ function StartRoom( _numb, _starting )
             		pPreCreateCode = ui_element.instancePreCreate;
             	}
 
-                if(New_Room == -1 || (pInstance.persistent || g_RunRoom.m_persistent))
+                if(New_Room == -1 || pInstance.persistent || g_RunRoom.m_persistent || pInstance.on_ui_layer)
                 {
                     pInstance.PerformEvent(EVENT_PRE_CREATE, 0, pInstance, pInstance);
                     if (pPreCreateCode) pPreCreateCode(pInstance, pInstance);
