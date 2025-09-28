@@ -688,25 +688,36 @@ function WebGL_d3d_set_fog_RELEASE(enable,colour,start,end) {
 ///				
 ///			</returns>
 // #############################################################################################
-function WebGL_Matrix_Get(_type) {
+function WebGL_Matrix_Get(_type, _resmat) {
     // Assume a sensible index and matrix (won't break it if not, but it'd be wasteful)
 
     _type = yyGetInt32(_type);
 
-    var m = [];
     if (_type < 0 || _type > 2) {
-        yyError('ERROR: Invalid matrix type (matrix_get)');
+        var m = [];
+        yyError('ERROR: Invalid matrix type (matrix_get)'); 
         for (var i = 0; i < 16; i++) {
             m[i] = 0;
         }
-        return m;
+        return m; 
     }
 
     var mat = g_Matrix[_type];
-    for (var i = 0; i < 16; i++) {
-        m[i] = mat.m[i];
+    
+    if (_resmat == undefined) {
+        var m = [];
+        for (var i = 0; i < 16; i++) {
+            m[i] = mat.m[i];
+        }
+        return m;
+    } else {
+        if(!Array.isArray(_resmat) )
+            yyError("matrix_build_lookat : result_matrix is not an array");
+
+        for (var i = 0; i < 16; i++) {
+            _resmat[i] = mat.m[i];
+        } 
     }
-    return m;
 }
 // #############################################################################################
 /// Function:<summary>
@@ -772,7 +783,7 @@ function WebGL_matrix_build_identity() {
     			0, 0, 0, 1,
     		];
 }
-function WebGL_matrix_build_lookat( xfrom, yfrom, zfrom, xto, yto, zto, xup, yup, zup) {
+function WebGL_matrix_build_lookat( xfrom, yfrom, zfrom, xto, yto, zto, xup, yup, zup, _resmat) {
     var m = new Matrix();
     var vFrom = new Vector3( yyGetReal(xfrom), yyGetReal(yfrom), yyGetReal(zfrom) );
     var vTo = new Vector3( yyGetReal(xto), yyGetReal(yto), yyGetReal(zto) );
@@ -786,41 +797,85 @@ function WebGL_matrix_build_lookat( xfrom, yfrom, zfrom, xto, yto, zto, xup, yup
     flipped.Multiply(m, flipYMatrix);
     */
 
-    var mat = [];
-    for (var i = 0; i < 16; i++) {
-        mat[i] = m.m[i];
+    if (_resmat == undefined) {
+        var mat = [];
+        for (var i = 0; i < 16; i++) {
+            mat[i] = m.m[i];
+        }
+        return mat;
     }
-    return mat;
+    else 
+    {
+        if(!Array.isArray(_resmat) )
+            yyError("matrix_build_lookat : result_matrix is not an array");
+
+        for (var i = 0; i < 16; i++) {
+            _resmat[i] = m.m[i];
+        }
+    }
 }
-function WebGL_matrix_build_projection_ortho(width, height, znear, zfar ) {
+function WebGL_matrix_build_projection_ortho(width, height, znear, zfar, _resmat ) {
     var m = new Matrix();
     m.OrthoLH( yyGetReal(width), yyGetReal(height), yyGetReal(znear), yyGetReal(zfar) );
 
-    var mat = [];
-    for (var i = 0; i < 16; i++) {
-        mat[i] = m.m[i];
+    if (_resmat == undefined) {
+        var mat = [];
+        for (var i = 0; i < 16; i++) {
+            mat[i] = m.m[i];
+        }
+        return mat;
     }
-    return mat;
+    else 
+    {
+        if(!Array.isArray(_resmat) )
+            yyError("matrix_build_projection_ortho : result_matrix is not an array");
+
+        for (var i = 0; i < 16; i++) {
+            _resmat[i] = m.m[i];
+        }
+    }
 }
-function WebGL_matrix_build_projection_perspective(width, height, znear, zfar) {
+function WebGL_matrix_build_projection_perspective(width, height, znear, zfar, _resmat) {
     var m = new Matrix();
     m.PerspectiveLH( yyGetReal(width), yyGetReal(height), yyGetReal(znear), yyGetReal(zfar) );
 
-    var mat = [];
-    for (var i = 0; i < 16; i++) {
-        mat[i] = m.m[i];
+    if (_resmat == undefined) {
+        var mat = [];
+        for (var i = 0; i < 16; i++) {
+            mat[i] = m.m[i];
+        }
+        return mat;
     }
-    return mat;
+    else 
+    {
+        if(!Array.isArray(_resmat) )
+            yyError("matrix_build_projection_perspective : result_matrix is not an array");
+
+        for (var i = 0; i < 16; i++) {
+            _resmat[i] = m.m[i];
+        }
+    }
 }
-function WebGL_matrix_build_projection_perspective_fov(fov, aspect, znear, zfar) {
+function WebGL_matrix_build_projection_perspective_fov(fov, aspect, znear, zfar, _resmat) {
     var m = new Matrix();
     m.PerspectiveFovLH( yyGetReal(fov), yyGetReal(aspect), yyGetReal(znear), yyGetReal(zfar) );
 
-    var mat = [];
-    for (var i = 0; i < 16; i++) {
-        mat[i] = m.m[i];
+    if (_resmat == undefined) {
+        var mat = [];
+        for (var i = 0; i < 16; i++) {
+            mat[i] = m.m[i];
+        }
+        return mat;
     }
-    return mat;
+    else 
+    {
+        if(!Array.isArray(_resmat) )
+            yyError("matrix_build_projection_perspective_fov : result_matrix is not an array");
+
+        for (var i = 0; i < 16; i++) {
+            _resmat[i] = m.m[i];
+        }
+    }
 }
 
 
@@ -835,7 +890,7 @@ function WebGL_matrix_build_projection_perspective_fov(fov, aspect, znear, zfar)
 ///				
 ///			</returns>
 // #############################################################################################
-function WebGL_Matrix_Build(_x,_y,_z, _xrot,_yrot,_zrot, _xscale,_yscale,_zscale) {
+function WebGL_Matrix_Build(_x,_y,_z, _xrot,_yrot,_zrot, _xscale,_yscale,_zscale,_resmat) {
 
     var m = new Matrix();
     var pi_180 = (Math.PI/180.0);
@@ -844,11 +899,22 @@ function WebGL_Matrix_Build(_x,_y,_z, _xrot,_yrot,_zrot, _xscale,_yscale,_zscale
     _zrot = (pi_180 * -yyGetReal(_zrot));
     m.BuildMatrix(yyGetReal(_x), yyGetReal(_y), yyGetReal(_z), _xrot, _yrot, _zrot, yyGetReal(_xscale), yyGetReal(_yscale), yyGetReal(_zscale));
 
-    var mat = [];
-    for (var i = 0; i < 16; i++) {
-        mat[i] = m.m[i];
+    if (_resmat == undefined) {
+        var mat = [];
+        for (var i = 0; i < 16; i++) {
+            mat[i] = m.m[i];
+        }
+        return mat;
     }
-    return mat;
+    else 
+    {
+        if(!Array.isArray(_resmat) )
+            yyError("matrix_build : result_matrix is not an array");
+
+        for (var i = 0; i < 16; i++) {
+            _resmat[i] = m.m[i];
+        }
+    }
 }
 
 
@@ -875,7 +941,7 @@ function WebGL_Matrix_Multiply(_s1,_s2,_resmat) {
     }
     s3.Multiply(s1, s2);
 
-    if(_resmat ==undefined)
+    if(_resmat == undefined)
     {
 
         var mat = [];
@@ -901,31 +967,40 @@ function WebGL_Matrix_Transform_Vertex(_mat, _x, _y, _z)
     _y = yyGetReal(_y);
     _z = yyGetReal(_z);
 
-    var res;
     if (arguments.length == 4)
     {
         var xx = (_mat[_11]*_x) + (_mat[_21]*_y) + (_mat[_31]*_z) + _mat[_41];
         var yy = (_mat[_12]*_x) + (_mat[_22]*_y) + (_mat[_32]*_z) + _mat[_42];
         var zz = (_mat[_13]*_x) + (_mat[_23]*_y) + (_mat[_33]*_z) + _mat[_43];
 
-        res = [xx, yy, zz];
+        return [xx, yy, zz];
     }
-    else
+    else if (arguments.length == 5 || arguments.length == 6)
     {
-        var _w = yyGetReal(arguments[4]);
+        var _w = arguments[4] == undefined ? 1 : yyGetReal(arguments[4]);
 
         var xx = (_mat[_11]*_x) + (_mat[_21]*_y) + (_mat[_31]*_z) + (_mat[_41]*_w);
         var yy = (_mat[_12]*_x) + (_mat[_22]*_y) + (_mat[_32]*_z) + (_mat[_42]*_w);
         var zz = (_mat[_13]*_x) + (_mat[_23]*_y) + (_mat[_33]*_z) + (_mat[_43]*_w);
         var ww = (_mat[_14]*_x) + (_mat[_24]*_y) + (_mat[_34]*_z) + (_mat[_44]*_w);
 
-        res = [xx, yy, zz, ww];
-    }
+        if (arguments[6] != undefined) {
+            var _res = arguments[6];
 
-    return res;
+            if(!Array.isArray(_res) )
+                yyError("matrix_inverse : result_matrix is not an array");
+
+            _res[0] = xx;
+            _res[1] = yy;
+            _res[2] = zz;
+            _res[3] = ww;
+        } else {
+           return [xx, yy, zz, ww];
+        }
+    }
 }
 
-function WebGL_Matrix_Inverse(_s1) {
+function WebGL_Matrix_Inverse(_s1,_resmat) {
 
     var s1 = new Matrix();
     var inv_s1 = new Matrix();    
@@ -939,11 +1014,23 @@ function WebGL_Matrix_Inverse(_s1) {
         return undefined;
     }
 
-    var mat = [];
-    for (var i = 0; i < 16; i++) {
-        mat[i] = inv_s1.m[i];
+    
+    if (_resmat == undefined) {
+        var mat = [];
+        for (var i = 0; i < 16; i++) {
+            mat[i] = inv_s1.m[i];
+        }
+        return mat;
     }
-    return mat;
+    else
+    {
+        if(!Array.isArray(_resmat) )
+            yyError("matrix_inverse : result_matrix is not an array");
+
+        for (var i = 0; i < 16; i++) {
+            _resmat[i] = inv_s1.m[i];
+        }
+    }
 }
 
 function WebGL_matrix_stack_push(_matrix)
