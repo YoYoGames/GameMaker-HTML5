@@ -988,7 +988,7 @@ function WebGL_Matrix_Transform_Vertex(_mat, _x, _y, _z)
             var _res = arguments[6];
 
             if(!Array.isArray(_res) )
-                yyError("matrix_inverse : result_matrix is not an array");
+                yyError("matrix_transform_vertex : result_array is not an array");
 
             _res[0] = xx;
             _res[1] = yy;
