@@ -23,7 +23,8 @@ var vertex_format_begin,
     vertex_format_add_texcoord,
     vertex_format_add_textcoord,
     vertex_format_add_custom,
-    vertex_format_get_info;
+    vertex_format_get_info,
+    vertex_format_exists;
 
 // @if feature("2d")
 (() => {
@@ -40,6 +41,7 @@ var vertex_format_begin,
     vertex_format_add_textcoord = _stub("vertex_format_add_textcoord");
     vertex_format_add_custom = _stub("vertex_format_add_custom");
     vertex_format_get_info = _stub("vertex_format_get_info");
+    vertex_format_exists = _stub("vertex_format_exists");
 })();
 // @endif 2d
 
@@ -69,6 +71,7 @@ function InitFVFFunctions() {
     vertex_format_add_textcoord = WebGL_vertex_format_add_texcoord_RELEASE; //This was in wrongly, add both spellings...
     vertex_format_add_custom = WebGL_vertex_format_add_custom_RELEASE;
     vertex_format_get_info = WebGL_vertex_format_get_info_RELEASE;
+    vertex_format_exists = WebGL_vertex_format_exists;
 }
 
 // #############################################################################################
@@ -227,6 +230,20 @@ function WebGL_vertex_format_get_info_RELEASE(_format_id)
     variable_struct_set(pVFI, "elements", elementsArray);
 
     return pVFI;
+}
+
+// #############################################################################################
+/// Function:<summary>
+///          </summary>
+// #############################################################################################
+function WebGL_vertex_format_exists(_format_id)
+{
+    var format = g_webGL.GetVertexFormat(yyGetInt32(_format_id));
+
+    if (!format) 
+        return false;
+
+    return true;
 }
 // @endif gl
 
