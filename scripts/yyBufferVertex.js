@@ -46,7 +46,7 @@ var vertex_create_buffer,
     vertex_create_buffer_from_buffer_ext,
     vertex_update_buffer_from_buffer,
     vertex_update_buffer_from_vertex,
-    vertex_exists,
+    vertex_buffer_exists,
     draw_flush;
 
 // @if feature("2d")
@@ -79,7 +79,7 @@ var vertex_create_buffer,
     vertex_create_buffer_from_buffer_ext = _stub("vertex_create_buffer_from_buffer_ext", -1);
     vertex_update_buffer_from_buffer = _stub("vertex_update_buffer_from_buffer", -1);
     vertex_update_buffer_from_vertex = _stub("vertex_update_buffer_from_vertex", -1);
-    vertex_exists = _stub("vertex_exists", -1);
+    vertex_buffer_exists = _stub("vertex_buffer_exists", -1);
     draw_flush = ()=>{};
 })();
 // @endif
@@ -124,7 +124,7 @@ function InitBufferVertexFunctions() {
     vertex_submit_ext = WebGL_vertex_submit_ext_RELEASE;
     vertex_get_number = WebGL_vertex_get_number_RELEASE;
     vertex_get_buffer_size = WebGL_vertex_get_buffer_size_RELEASE;
-    vertex_exists = WebGL_vertex_exists;
+    vertex_buffer_exists = WebGL_vertex_buffer_exists;
     draw_flush = WebGL_draw_flush_RELEASE;
 }
 
@@ -770,7 +770,7 @@ function WebGL_vertex_get_number_RELEASE(_buffer)
 ///				Bool of vertex buffer existence.
 ///			</returns>
 // #############################################################################################
-function WebGL_vertex_exists(_buffer)
+function WebGL_vertex_buffer_exists(_buffer)
 {
     var vertexBuffer = g_vertexBuffers[yyGetInt32(_buffer)];
     if (vertexBuffer)
