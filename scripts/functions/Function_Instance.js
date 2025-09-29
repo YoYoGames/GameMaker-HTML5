@@ -386,6 +386,11 @@ function Tilemap_CollisionRectangle(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 		}
 
 		var spr = g_pSpriteManager.Get(pBack.spriteindex);
+
+		if(el.m_colMask!=-1)
+			spr = g_pSpriteManager.Get(el.m_colMask);
+
+
 		if ((spr == null) || (spr.count == 0)) {
 			return false;
 		}
@@ -544,6 +549,11 @@ function Tilemap_CollisionLine(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 		}
 
 		var spr = g_pSpriteManager.Get(pBack.spriteindex);
+
+		if(el.m_colMask!=-1)
+			spr = g_pSpriteManager.Get(el.m_colMask);
+
+
 		if ((spr == null) || (spr.count == 0)) {
 			return false;
 		}
@@ -709,6 +719,10 @@ function Tilemap_CollisionEllipse(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 		}
 
 		var spr = g_pSpriteManager.Get(pBack.spriteindex);
+
+		if(el.m_colMask!=-1)
+			spr = g_pSpriteManager.Get(el.m_colMask);
+
 		if ((spr == null) || (spr.count == 0)) {
 			return false;
 		}
@@ -872,6 +886,10 @@ function Tilemap_PointPlace( _x, _y, tilemapind, instlist,prec)
 		}
 
 		var spr = g_pSpriteManager.Get(pBack.spriteindex);
+
+		if(el.m_colMask!=-1)
+			spr = g_pSpriteManager.Get(el.m_colMask);
+
 		if ((spr == null) || (spr.count == 0)) {
 			return false;
 		}
@@ -1087,6 +1105,10 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 		}
 
 		var spr = g_pSpriteManager.Get(pBack.spriteindex);
+
+		if(el.m_colMask!=-1)
+			spr = g_pSpriteManager.Get(el.m_colMask);
+
 		if ((spr == null) || (spr.count == 0)) {
 			return false;
 		}

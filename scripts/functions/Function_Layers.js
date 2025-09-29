@@ -269,6 +269,7 @@ function CLayerTilemapElement()
     this.m_bRuntimeDataInitialised = false;
     this.m_name = "";
     this.m_id=0;
+    this.m_colMask = -1;
     this.m_tiledataMask=~TileInherit_Mask;
 };
 /** @constructor */
@@ -4097,6 +4098,75 @@ function layer_tilemap_create( arg1,arg2,arg3,arg4,arg5,arg6)
     }
     return MAKE_REF(REFID_TILEMAP,-1);
 };
+
+function layer_tilemap_set_colmask(tilemap_element,colmask)
+{
+
+    var pRoom = g_pLayerManager.GetTargetRoomObj();
+
+	var pLayer = null;
+	var el = null;
+	var elementAndLayer = g_pLayerManager.GetElementFromID( pRoom,yyGetInt32(tilemap_element));
+	if (elementAndLayer != null)
+	{
+		pLayer = elementAndLayer.m_layer;
+		el = elementAndLayer;
+	}
+
+    if((el!=null) && (el.m_type ===eLayerElementType_Tilemap)&& (el.m_pTiles != null )&& (pLayer!=null))
+	{
+        var pBack = g_pBackgroundManager.GetImage(el.m_backgroundIndex);
+
+        var spr = g_pSpriteManager.Get(colmask);
+
+
+
+		if (spr!=null && pBack != null)
+        {
+            var basespr = g_pSpriteManager.Get(pBack.spriteindex);
+
+            if(basespr!=null)
+            {
+                if(spr.GetWidth() != basespr.GetWidth() || spr.GetHeight() != basespr.GetWidth())
+                {
+                    yyError("layer_tilemap_set_colmask size mismatch, expecting " + basespr.GetWidth() + " by "+basespr.GetHeight() + " and received " +spr.GetWidth() + " by " +spr.GetHeight()); 
+                }
+                el.m_colMask = colmask;
+                return 0
+            }
+
+        }
+    }
+    return -1;
+}
+
+function layer_tilemap_get_colmask(tilemap_element)
+{
+    var pRoom = g_pLayerManager.GetTargetRoomObj();
+
+	var pLayer = null;
+	var el = null;
+	var elementAndLayer = g_pLayerManager.GetElementFromID( pRoom,yyGetInt32(tilemap_element));
+	if (elementAndLayer != null)
+	{
+		pLayer = elementAndLayer.m_layer;
+		el = elementAndLayer;
+	}
+
+    if((el!=null) && (el.m_type ===eLayerElementType_Tilemap)&& (el.m_pTiles != null )&& (pLayer!=null))
+	{
+        if(el.m_colMask>=0)
+            return el.m_colMask;
+
+        var pBack = g_pBackgroundManager.GetImage(el.m_backgroundIndex);
+
+		if (pBack != null)
+            return pBack.spriteindex;
+
+    }
+    return -1;
+}
+
 function layer_tilemap_destroy( arg1) 
 {
     var room = g_pLayerManager.GetTargetRoomObj();
