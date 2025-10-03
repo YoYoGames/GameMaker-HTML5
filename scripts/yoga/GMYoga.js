@@ -1723,8 +1723,8 @@ function UILayers_Calculate_Initial_View_Rect()
 			{
 				//drawing view to surface-ignore the views port settings, as we just want to fill the surface with the view
 				
-				view_width = surface_get_width(view.surface_id);
-				view_height = surface_get_height(view.surface_id);
+				viewWidth = surface_get_width(view.surface_id);
+				viewHeight = surface_get_height(view.surface_id);
 
 			}
 			else
