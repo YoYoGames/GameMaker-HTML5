@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(**/.env*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/.ssh/**)",
+      "Read(**/.gcp*.json)",
+      "Read(**/oauth2/**)",
+      "Read(**/freedom/**)",
+      "Read(**/stats/**)",
+      "Read(**/auth/**)",
+      "Read(**/avro/**)",
+      "Read(**/crypto/**)",
+      "Read(**/flow/**)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)",
+      "Read(**/.aws/**)",
+      "Read(**/.azure/**)",
+      "Read(**/*.crt)",
+      "Read(**/*.csr)",
+      "Read(**/.config/gcloud/**)",
+      "Read(**/secrets/**)",
+      "Read(**/.kube/config)",
+      "Read(**/.docker/config.json)",
+      "Read(**/*.pkcs*)",
+      "Read(**/.npmrc)",
+      "Read(**/.pypirc)",
+      "Read(**/*.token)",
+      "Read(**/.credentials)",
+      "Read(**/.password*)",
+      "Read(**/*.secret*)",
+      "Read(**/.git-credentials)",
+      "Read(**/.netrc)"
+    ]
+  }
+}
