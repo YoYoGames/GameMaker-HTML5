@@ -1706,6 +1706,63 @@ function UILayers_Get_By_Name(layer_name)
 	return null;
 }
 
+function UILayers_Calculate_Initial_View_Rect()
+{
+	if (g_RunRoom.m_enableviews)
+	{
+		/* Views are enabled in this room, search for the first enabled viewport. */
+		var pViews =  g_RunRoom.m_Views;
+		for (var i = 0; i < pViews.length; i++) 
+		{
+			var view = pViews[i];
+			if (!view.visible) continue;
+
+			var viewWidth, viewHeight;
+
+			if (view.surface_id != -1 && GR_Surface_Exists(view.surface_id))
+			{
+				//drawing view to surface-ignore the views port settings, as we just want to fill the surface with the view
+				
+				view_width = surface_get_width(view.surface_id);
+				view_height = surface_get_height(view.surface_id);
+
+			}
+			else
+			{
+				viewWidth = view.portw;
+				viewHeight = view.porth;
+			}
+
+
+		    var pCam = g_pCameraManager.GetCamera(view.cameraID);
+			if (pCam )
+			{
+				viewWidth = pCam.GetViewWidth();
+				viewHeight = pCam.GetViewHeight();
+			}
+
+			var r = new YYRECT();
+			r.left = 0;
+			r.top = 0;
+			r.right = viewWidth;
+			r.bottom = viewHeight;
+
+			return r;
+		}
+	}
+
+	/* Fallback to the room width/height if no views are enabled. */
+
+	var r = new YYRECT();
+	r.left = 0;
+	r.top = 0;
+	r.right = g_RunRoom.GetWidth();
+	r.bottom = g_RunRoom.GetHeight();
+
+	return r;
+}
+
+
 function UILayers_Get_By_Node(node)
 {
 	if(g_UILayers === null)
