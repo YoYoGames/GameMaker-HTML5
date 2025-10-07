@@ -1548,8 +1548,8 @@ function DrawTile(_rect,_back,_indexdata,_frame,_x,_y,_depth)
                 tilewidth = pBack.tilewidth*uscale/tex.width;
                 tileheight = pBack.tileheight*vscale/tex.height;
                 
-                var tilehsep = pBack.tilehsep*uscale/tex.width;
-                var tilevsep = pBack.tilevsep*vscale/tex.height;
+                var tilehsep = pBack.tileborderx*uscale/tex.width;
+                var tilevsep = pBack.tilebordery*vscale/tex.height;
                 
                 origu = tilehsep +TPE.x/tex.width;
                 origv = tilevsep +TPE.y/tex.height;
@@ -1921,8 +1921,8 @@ yyRoom.prototype.DrawLayerTilemapElement = function(_rect,_layer,_el,_xpos,_ypos
                 tilewidth = pBack.tilewidth*uscale/tex.width;
                 tileheight = pBack.tileheight*vscale/tex.height;
                 
-                var tilehsep = pBack.tilehsep*uscale/tex.width;
-                var tilevsep = pBack.tilevsep*vscale/tex.height;
+                var tilehsep = pBack.tileborderx*uscale/tex.width;
+                var tilevsep = pBack.tilebordery*vscale/tex.height;
                 
                 origu = tilehsep +TPE.x/tex.width;
                 origv = tilevsep +TPE.y/tex.height;
