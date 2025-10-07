@@ -38,6 +38,8 @@ function    yyBackgroundImage()
 	this.tileheight=0;
 	this.tilehsep=0;
 	this.tilevsep=0;
+	this.tileborderx=0;
+	this.tilebordery=0;
 	this.tilecolumns=0;
 	
 	this.frames=0;
@@ -71,6 +73,8 @@ function CreateBackgroundImageFromStorage(_pStorage) {
     if (_pStorage.tileheight != undefined) pImage.tileheight = _pStorage.tileheight;
     if (_pStorage.tilehsep != undefined) pImage.tilehsep = _pStorage.tilehsep;
     if (_pStorage.tilevsep != undefined) pImage.tilevsep = _pStorage.tilevsep;
+	if (_pStorage.tileborderx != undefined) pImage.tileborderx = _pStorage.tileborderx;
+    if (_pStorage.tilebordery != undefined) pImage.tilebordery = _pStorage.tilebordery;
     if (_pStorage.tilecolumns != undefined) pImage.tilecolumns = _pStorage.tilecolumns;
 	
 	
@@ -123,6 +127,10 @@ function    yyBackground( _pStorage )
     if (_pStorage.tileheight != undefined) this.tileheight = _pStorage.tileheight;
     if (_pStorage.tilehsep != undefined) this.tilehsep = _pStorage.tilehsep;
     if (_pStorage.tilevsep != undefined) this.tilevsep = _pStorage.tilevsep;
+
+	if (_pStorage.tileborderx != undefined) this.tileborderx = _pStorage.tileborderx;
+    if (_pStorage.tilebordery != undefined) this.tilebordery = _pStorage.tilebordery;
+
     if (_pStorage.tilecolumns != undefined) this.tilecolumns = _pStorage.tilecolumns;
     
     if (_pStorage.frames!= undefined) this.frames = _pStorage.frames;
