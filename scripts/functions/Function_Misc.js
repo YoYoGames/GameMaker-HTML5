@@ -140,3 +140,13 @@ function gc_get_stats()
 
     return resobj;
 }
+
+function gc_target_frame_time(_time)
+{
+
+}
+
+function gc_get_target_frame_time()
+{
+    return 0;
+}
