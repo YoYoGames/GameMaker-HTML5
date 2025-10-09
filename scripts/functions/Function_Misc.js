@@ -109,16 +109,17 @@ function extension_get_options(_extension_name)
 
 function gc_collect()
 {
-
+    ErrorFunction("gc_collect");
 }
 
 function gc_enable(_enable)
 {
-
+    ErrorFunction("gc_enable");
 }
 
 function gc_is_enabled()
 {
+    ErrorFunction("gc_is_enabled");
     return true;
 }
 
@@ -143,10 +144,11 @@ function gc_get_stats()
 
 function gc_target_frame_time(_time)
 {
-
+    ErrorFunction("gc_target_frame_time");
 }
 
 function gc_get_target_frame_time()
 {
+    ErrorFunction("gc_get_target_frame_time");
     return 0;
 }

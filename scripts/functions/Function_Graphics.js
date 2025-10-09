@@ -2724,46 +2724,52 @@ function draw_get_svg_aa_level() {
 
 function vector_sprite_cache_limit(_limit)
 {
-    
+    ErrorFunction("vector_sprite_cache_limit");
 }
 
 function vector_sprite_cache_prune_fraction(_fraction)
 {
-    
+    ErrorFunction("vector_sprite_cache_prune_fraction");
 }
 
 function vector_sprite_cache_prune_age(_frames)
 {
-
+    ErrorFunction("vector_sprite_cache_prune_age");
 }
 
 function vector_sprite_cache_get_limit()
 {
+    ErrorFunction("vector_sprite_cache_get_limit");
     return 0;
 }
 
 function vector_sprite_cache_get_prune_fraction()
 {
+    ErrorFunction("vector_sprite_cache_get_prune_fraction");
     return 0;
 }
 
 function vector_sprite_cache_get_prune_age()
 {
+    ErrorFunction("vector_sprite_cache_get_prune_age");
     return 0;
 }
 
 function vector_sprite_cache_get_used()
 {
+    ErrorFunction("vector_sprite_cache_get_used");
     return 0;
 }
 
 function vector_sprite_cache_get_max_used()
 {
+    ErrorFunction("vector_sprite_cache_get_max_used");
     return 0;
 }
 
 function vector_sprite_cache_get_oldest_entry_age()
 {
+    ErrorFunction("vector_sprite_cache_get_oldest_entry_age");
     return 0;
 }
 
