@@ -2722,6 +2722,52 @@ function draw_get_svg_aa_level() {
     return GR_SVGAAScale;
 };
 
+function vector_sprite_cache_limit(_limit)
+{
+    
+}
+
+function vector_sprite_cache_prune_fraction(_fraction)
+{
+    
+}
+
+function vector_sprite_cache_prune_age(_frames)
+{
+
+}
+
+function vector_sprite_cache_get_limit()
+{
+    return 0;
+}
+
+function vector_sprite_cache_get_prune_fraction()
+{
+    return 0;
+}
+
+function vector_sprite_cache_get_prune_age()
+{
+    return 0;
+}
+
+function vector_sprite_cache_get_used()
+{
+    return 0;
+}
+
+function vector_sprite_cache_get_max_used()
+{
+    return 0;
+}
+
+function vector_sprite_cache_get_oldest_entry_age()
+{
+    return 0;
+}
+
+
 
 function SetViewExtents(xview, yview, wview, hview,  angle)
 {
