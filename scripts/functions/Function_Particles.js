@@ -247,7 +247,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
 ///				
 ///			</returns>
 // #############################################################################################
-function particle_create(_info)
+function particle_add(_info)
 {
     var system = CParticleSystem.Create();
 
