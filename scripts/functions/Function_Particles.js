@@ -1257,7 +1257,7 @@ function particle_create(_info)
 ///				
 ///			</returns>
 // #############################################################################################
-function particle_destroy(_ind)
+function particle_delete(_ind)
 {
     var ps = GetParticleSystemResourceIndex(_ind);
     CParticleSystem.Get(ps).Destroy();
