@@ -1032,13 +1032,41 @@ function parseRef( _s )
         var indexOfLBrack = _s.indexOf( "(", 5 );
         var handleTypeString = _s.substring( 5, indexOfLBrack );
 
+        // convert the handleTypeString to the Reference type
+        var type = Name2Ref( handleTypeString );        
+
         // get the index of the handle
         var indexOfRBrack = _s.indexOf( ")", indexOfLBrack );
         var numberString = _s.substring(indexOfLBrack+1, indexOfRBrack);
-        var handleIndex = Number(numberString);
+        var handleIndex = parseInt(numberString);
+        // failed conversion to a number so could be a string
+        if (Number.isNaN(handleIndex) && ((type & 0xff000000)==REFCAT_RESOURCE)) {
 
-        // convert the handleTypeString to the Reference type
-        var type = Name2Ref( handleTypeString );
+
+            // convert the resource name to a string
+            var resInfo = ResourceGetTypeIndex( numberString );
+            handleIndex = (resInfo.type == (type&0x00ffffff)) ? resInfo.id : -1;
+
+            // check to see if the name is a builtin script
+            if ((handleIndex == -1) && (type == REFID_SCRIPT)) {
+
+                var funcRef = "";
+                if (typeof g_var2obf !== "undefined") {
+                    funcRef=window[ g_var2obf[numberString] ];
+                } // end if
+                else {
+                    funcRef=window[ numberString ];
+                } // end else
+
+                if (typeof funcRef == "function") {
+                    global_scripts_init();
+                    if (funcRef.__yy_scriptIndex != undefined)
+                        handleIndex = funcRef.__yy_scriptIndex;
+                    else
+                        return funcRef;
+                } // end if
+            } // end if
+        } // end if
 
         // get the reference type
         ret = MAKE_REF( type, handleIndex );
@@ -1185,8 +1213,30 @@ function _json_encode_value(value) {
 			}
 
 			if (value instanceof YYRef) {
-				return "@ref " + RefName(value.type) + "(" + value.value + ")";
-			}
+				if ((value.type & 0xff000000) == REFCAT_RESOURCE) {
+		            var name = ResourceGetName(value.value, value.type&0x00ffffff);
+		            if ((name == "") && (value.type == REFID_SCRIPT)) {
+		                var func = g_globalScripts[ value.value];
+		                if (func != undefined) {
+		                    name = func.name;
+		                    if (typeof g_obf2var !== "undefined") {
+		                        name = g_obf2var[ name ];
+		                    } // end if
+		                } // end if
+		            } // end if
+		            if ((name != undefined) && (name != "")) {
+		                if (name.startsWith("gml_GlobalScript_")) name = name.substring(17);
+		                else
+		                if (name.startsWith("gml_Script_")) name = name.substring(11);
+		                return "ref " + RefName(value.type) + "(" + name + ")";
+		            } // end if
+		            else {
+		                return "ref " + RefName(value.type) + "(" + value.value + ")";
+		            } // end else
+		        } else {				
+					return "@ref " + RefName(value.type) + "(" + value.value + ")";
+				} // end else
+			} // end if
 
 			// The value is a pointer_null
 			if (value == g_pBuiltIn.pointer_null) return null;
@@ -1324,11 +1374,33 @@ function _json_replacer(_selfinst, key, value)
 			// It's an long value return it's number format
 			if (value instanceof Long) {
 				return "@i64@" + value.toString(16) + "$i64$";
-			}
+			} 
 
 			if (value instanceof YYRef) {
-				return "@ref " + RefName(value.type) + "(" + value.value + ")";
-			}
+				if ((value.type & 0xff000000) == REFCAT_RESOURCE) {
+		            var name = ResourceGetName(value.value, value.type&0x00ffffff);
+		            if ((name == "") && (value.type == REFID_SCRIPT)) {
+		                var func = g_globalScripts[ value.value];
+		                if (func != undefined) {
+		                    name = func.name;
+		                    if (typeof g_obf2var !== "undefined") {
+		                        name = g_obf2var[ name ];
+		                    } // end if
+		                } // end if
+		            } // end if
+		            if ((name != undefined) && (name != "")) {
+		                if (name.startsWith("gml_GlobalScript_")) name = name.substring(17);
+		                else
+		                if (name.startsWith("gml_Script_")) name = name.substring(11);
+		                return "ref " + RefName(value.type) + "(" + name + ")";
+		            } // end if
+		            else {
+		                return "ref " + RefName(value.type) + "(" + value.value + ")";
+		            } // end else
+		        } else {				
+					return "@ref " + RefName(value.type) + "(" + value.value + ")";
+				} // end else
+			} // end if
 
 			// The value is a pointer_null
 			if (value == g_pBuiltIn.pointer_null) return null;
