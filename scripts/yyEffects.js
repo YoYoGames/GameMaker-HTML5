@@ -637,6 +637,19 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 
 	// Draw textured rectangle
 	GR_Depth = 0.0;
+
+	if (g_RunRoom.GetEnableViews())
+	{
+		var view = g_pCurrentView;
+        if ((view.surface_id != -1) && (surface_exists(view.surface_id)))
+		{
+			gpu_set_scissor(0, 0, surface_get_width(view.surface_id), surface_get_height(view.surface_id));
+		}
+		else
+		{
+			gpu_set_scissor(view.scaledportx, view.scaledporty, view.scaledportw, view.scaledporth);
+		}
+	}
 	draw_surface_stretched(currsurfaceId, -1, -1, 2, 2, clWhite, 1.0);
 	//g_webGL.FlushAll(); //Graphics::Flush();
 
@@ -649,6 +662,14 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 	{	
 		// Reset surface
 		surface_reset_target();
+
+		// Store off current viewport settings so we can restore them after drawing the surface
+		var currViewPortX = g_clipx;
+		var currViewPortY = g_clipy;
+		var currViewPortW = g_clipw;
+		var currViewPortH = g_cliph;
+
+		Graphics_SetViewPort(0, 0, surfwidth, surfheight);
 
 		// Need to re-set matrices
 		WebGL_SetMatrix(MATRIX_WORLD, newWorld);
@@ -663,6 +684,9 @@ yyFilterHost.prototype.LayerEnd = function (_layerID)
 		//g_webGL.FlushAll(); //Graphics::Flush();
 
 		g_pEffectsManager.ReleaseTempSurface(scratchSurface);
+
+		// Restore original viewport
+		Graphics_SetViewPort(currViewPortX, currViewPortY, currViewPortW, currViewPortH);
 	}
 
 	// Restore state
