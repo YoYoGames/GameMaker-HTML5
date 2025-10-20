@@ -98,7 +98,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
 
             var resource = CParticleSystem.Get(pPS.m_resourceID);
 
-            variable_struct_set(pPSI, "name", resource ? resource.name : "");
+            variable_struct_set(pPSI, "name", (resource && resource.name) ? resource.name : "");
             variable_struct_set(pPSI, "xorigin", pPS.xdraw);
             variable_struct_set(pPSI, "yorigin", pPS.ydraw);
             variable_struct_set(pPSI, "oldtonew", pPS.oldtonew ? true : false);
@@ -123,7 +123,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
         {
             pPSI = new GMLObject();
 
-            variable_struct_set(pPSI, "name", pPS.name);
+            variable_struct_set(pPSI, "name", pPS.name ? pPS.name : "");
             variable_struct_set(pPSI, "xorigin", pPS.originX);
             variable_struct_set(pPSI, "yorigin", pPS.originY);
             variable_struct_set(pPSI, "oldtonew", (pPS.drawOrder == 0));
@@ -152,7 +152,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
         var pEmitterI = new GMLObject();
 
         variable_struct_set(pEmitterI, "ind", MAKE_REF(REFID_PART_EMITTER, i));
-        variable_struct_set(pEmitterI, "name", emitter.name);
+        variable_struct_set(pEmitterI, "name", emitter.name ? emitter.name : "");
         variable_struct_set(pEmitterI, "mode", emitter.mode);
         variable_struct_set(pEmitterI, "number", emitter.number);
         variable_struct_set(pEmitterI, "delay_min", emitter.delayMin);
@@ -194,9 +194,9 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
             variable_struct_set(pPartTypeI, "yscale", particleType.yscale);
             variable_struct_set(pPartTypeI, "life_min", particleType.lifemin);
             variable_struct_set(pPartTypeI, "life_max", particleType.lifemax);
-            variable_struct_set(pPartTypeI, "death_type", particleType.deathtype);
+            variable_struct_set(pPartTypeI, "death_type", MAKE_REF(REFID_PART_TYPE, (particleType.deathtype != -1) ? particleType.deathtype : 0xffffffff));
             variable_struct_set(pPartTypeI, "death_number", particleType.deathnumber);
-            variable_struct_set(pPartTypeI, "step_type", particleType.steptype);
+            variable_struct_set(pPartTypeI, "step_type", MAKE_REF(REFID_PART_TYPE, (particleType.steptype != -1) ? particleType.steptype : 0xffffffff));
             variable_struct_set(pPartTypeI, "step_number", particleType.stepnumber);
             variable_struct_set(pPartTypeI, "speed_min", particleType.spmin);
             variable_struct_set(pPartTypeI, "speed_max", particleType.spmax);
@@ -239,16 +239,1028 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
 // @if feature("particles")
 // #############################################################################################
 /// Function:<summary>
+///          	Creates a new particle system asset from given info struct.
+///          </summary>
+///
+/// In:		<param name="_info"></param>
+/// Out:	<returns>
+///				
+///			</returns>
+// #############################################################################################
+function particle_add(_info)
+{
+    var system = CParticleSystem.Create();
+
+    if (arguments.length != 1)
+    {
+        yyError('Illegal argument count expected 1 got ' + arguments.length);
+        return;
+    }
+
+    if (YYTypeof(_info) !== 'struct')
+    {
+        yyError('argument 0 invalid type (' + YYTypeof(_info) + ') needs to be a struct');
+        return;
+    }
+
+    // Apply particle system info
+
+    // Ignore name so we don't have to deal with duplicates...
+    //if (variable_struct_exists(_info, 'name'))
+    //{
+    //    var name = variable_struct_get(_info, 'name');
+    //    if (YYTypeof(name) !== 'string')
+    //    {
+    //        system.Destroy();
+    //        yyError('name invalid type (' + YYTypeof(name) + ') needs to be a string');
+    //        return;
+    //    }
+    //    system.name = name;
+    //}
+
+    if (variable_struct_exists(_info, 'xorigin'))
+    {
+        var xorigin = variable_struct_get(_info, 'xorigin');
+        if (YYTypeof(xorigin) !== 'number')
+        {
+            system.Destroy();
+            yyError('xorigin invalid type (' + YYTypeof(xorigin) + ') needs to be a number');
+            return;
+        }
+        system.originX = xorigin;
+    }
+
+    if (variable_struct_exists(_info, 'yorigin'))
+    {
+        var yorigin = variable_struct_get(_info, 'yorigin');
+        if (YYTypeof(yorigin) !== 'number')
+        {
+            system.Destroy();
+            yyError('yorigin invalid type (' + YYTypeof(yorigin) + ') needs to be a number');
+            return;
+        }
+        system.originY = yorigin;
+    }
+
+    if (variable_struct_exists(_info, 'oldtonew'))
+    {
+        var oldtonew = variable_struct_get(_info, 'oldtonew');
+        if (YYTypeof(oldtonew) !== 'bool' && YYTypeof(oldtonew) !== 'number')
+        {
+            system.Destroy();
+            yyError('oldtonew invalid type (' + YYTypeof(oldtonew) + ') needs to be a bool');
+            return;
+        }
+        system.drawOrder = oldtonew ? 0 : 1;
+    }
+
+    if (variable_struct_exists(_info, 'global_space'))
+    {
+        var globalSpace = variable_struct_get(_info, 'global_space');
+        if (YYTypeof(globalSpace) !== 'bool' && YYTypeof(globalSpace) !== 'number')
+        {
+            system.Destroy();
+            yyError('global_space invalid type (' + YYTypeof(globalSpace) + ') needs to be a bool');
+            return;
+        }
+        system.globalSpaceParticles = globalSpace ? true : false;
+    }
+
+    // Apply emitters info
+
+    if (variable_struct_exists(_info, 'emitters'))
+    {
+        var emitters = variable_struct_get(_info, 'emitters');
+        if (YYTypeof(emitters) !== 'array')
+        {
+            system.Destroy();
+            yyError('emitters invalid type (' + YYTypeof(emitters) + ') needs to be an array');
+            return;
+        }
+
+        for (var i = 0; i < emitters.length; ++i)
+        {
+            var emitterObj = emitters[i];
+            if (YYTypeof(emitterObj) !== 'struct')
+            {
+                system.Destroy();
+                yyError('emitters[' + i + '] invalid type (' + YYTypeof(emitterObj) + ') needs to be a struct');
+                return;
+            }
+
+            var emitter = new yyEmitter();
+
+            // Emitter names don't have to be unique, so we can just use ones provided...
+            if (variable_struct_exists(emitterObj, 'name'))
+            {
+                var emitterName = variable_struct_get(emitterObj, 'name');
+                if (YYTypeof(emitterName) !== 'string')
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].name invalid type (' + YYTypeof(emitterName) + ') needs to be a string');
+                    return;
+                }
+                emitter.name = emitterName;
+            }
+
+            if (variable_struct_exists(emitterObj, 'mode'))
+            {
+                var emitterMode = variable_struct_get(emitterObj, 'mode');
+                if (YYTypeof(emitterMode) !== 'number')
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].mode invalid type (' + YYTypeof(emitterMode) + ') needs to be a number');
+                    return;
+                }
+
+                if (emitterMode != PT_MODE_UNDEFINED
+                    && emitterMode != PT_MODE_STREAM
+                    && emitterMode != PT_MODE_BURST)
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].mode invalid value (' + emitterMode + ') needs to be a valid particle emitter mode constant');
+                    return;
+                }
+
+                emitter.mode = emitterMode;
+            }
+
+            if (variable_struct_exists(emitterObj, 'number'))
+            {
+                var emitterNumber = variable_struct_get(emitterObj, 'number');
+                if (YYTypeof(emitterNumber) !== 'number')
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].number invalid type (' + YYTypeof(emitterNumber) + ') needs to be a number');
+                    return;
+                }
+                emitter.number = emitterNumber;
+            }
+
+            if (variable_struct_exists(emitterObj, 'relative'))
+            {
+                var emitterRelative = variable_struct_get(emitterObj, 'relative');
+                if (YYTypeof(emitterRelative) !== 'bool' && YYTypeof(emitterRelative) !== 'number')
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].relative invalid type (' + YYTypeof(emitterRelative) + ') needs to be a bool');
+                    return;
+                }
+                emitter.relative = emitterRelative ? true : false;
+            }
+
+            if (variable_struct_exists(emitterObj, 'delay_min'))
+            {
+                var emitterDelayMin = variable_struct_get(emitterObj, 'delay_min');
+                if (YYTypeof(emitterDelayMin) !== 'number')
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].delay_min invalid type (' + YYTypeof(emitterDelayMin) + ') needs to be a number');
+                    return;
+                }
+                emitter.delayMin = emitterDelayMin;
+            }
+
+            if (variable_struct_exists(emitterObj, 'delay_max'))
+            {
+                var emitterDelayMax = variable_struct_get(emitterObj, 'delay_max');
+                if (YYTypeof(emitterDelayMax) !== 'number')
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].delay_max invalid type (' + YYTypeof(emitterDelayMax) + ') needs to be a number');
+                    return;
+                }
+                emitter.delayMax = emitterDelayMax;
+            }
+
+            if (variable_struct_exists(emitterObj, 'delay_unit'))
+            {
+                var emitterDelayUnit = variable_struct_get(emitterObj, 'delay_unit');
+                if (YYTypeof(emitterDelayUnit) !== 'number')
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].delay_unit invalid type (' + YYTypeof(emitterDelayUnit) + ') needs to be a number');
+                    return;
+                }
+
+                if (emitterDelayUnit != 0 && emitterDelayUnit != 1)
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].delay_unit invalid value (' + emitterDelayUnit + ') needs to be a valid time source unit constant');
+                    return;
+                }
+
+                emitter.delayUnit = emitterDelayUnit;
+            }
+
+            if (variable_struct_exists(emitterObj, 'interval_min'))
+            {
+                var emitterIntervalMin = variable_struct_get(emitterObj, 'interval_min');
+                if (YYTypeof(emitterIntervalMin) !== 'number')
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].interval_min invalid type (' + YYTypeof(emitterIntervalMin) + ') needs to be a number');
+                    return;
+                }
+                emitter.intervalMin = emitterIntervalMin;
+            }
+
+            if (variable_struct_exists(emitterObj, 'interval_max'))
+            {
+                var emitterIntervalMax = variable_struct_get(emitterObj, 'interval_max');
+                if (YYTypeof(emitterIntervalMax) !== 'number')
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].interval_max invalid type (' + YYTypeof(emitterIntervalMax) + ') needs to be a number');
+                    return;
+                }
+                emitter.intervalMax = emitterIntervalMax;
+            }
+
+            if (variable_struct_exists(emitterObj, 'interval_unit'))
+            {
+                var emitterIntervalUnit = variable_struct_get(emitterObj, 'interval_unit');
+                if (YYTypeof(emitterIntervalUnit) !== 'number')
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].interval_unit invalid type (' + YYTypeof(emitterIntervalUnit) + ') needs to be a number');
+                    return;
+                }
+
+                if (emitterIntervalUnit != 0 && emitterIntervalUnit != 1)
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].interval_unit invalid value (' + emitterIntervalUnit + ') needs to be a valid time source unit constant');
+                    return;
+                }
+
+                emitter.intervalUnit = emitterIntervalUnit;
+            }
+
+            if (variable_struct_exists(emitterObj, 'xmin'))
+            {
+                var emitterXMin = variable_struct_get(emitterObj, 'xmin');
+                if (YYTypeof(emitterXMin) !== 'number')
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].xmin invalid type (' + YYTypeof(emitterXMin) + ') needs to be a number');
+                    return;
+                }
+                emitter.xmin = emitterXMin;
+            }
+
+            if (variable_struct_exists(emitterObj, 'xmax'))
+            {
+                var emitterXMax = variable_struct_get(emitterObj, 'xmax');
+                if (YYTypeof(emitterXMax) !== 'number')
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].xmax invalid type (' + YYTypeof(emitterXMax) + ') needs to be a number');
+                    return;
+                }
+                emitter.xmax = emitterXMax;
+            }
+
+            if (variable_struct_exists(emitterObj, 'ymin'))
+            {
+                var emitterYMin = variable_struct_get(emitterObj, 'ymin');
+                if (YYTypeof(emitterYMin) !== 'number')
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].ymin invalid type (' + YYTypeof(emitterYMin) + ') needs to be a number');
+                    return;
+                }
+                emitter.ymin = emitterYMin;
+            }
+
+            if (variable_struct_exists(emitterObj, 'ymax'))
+            {
+                var emitterYMax = variable_struct_get(emitterObj, 'ymax');
+                if (YYTypeof(emitterYMax) !== 'number')
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].ymax invalid type (' + YYTypeof(emitterYMax) + ') needs to be a number');
+                    return;
+                }
+                emitter.ymax = emitterYMax;
+            }
+
+            if (variable_struct_exists(emitterObj, 'distribution'))
+            {
+                var emitterDistribution = variable_struct_get(emitterObj, 'distribution');
+                if (YYTypeof(emitterDistribution) !== 'number')
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].distribution invalid type (' + YYTypeof(emitterDistribution) + ') needs to be a number');
+                    return;
+                }
+
+                if (emitterDistribution != PART_EDISTR_LINEAR
+                    && emitterDistribution != PART_EDISTR_GAUSSIAN
+                    && emitterDistribution != PART_EDISTR_INVGAUSSIAN)
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].distribution invalid value (' + emitterDistribution + ') needs to be a valid particle emitter distribution constant');
+                    return;
+                }
+
+                emitter.posdistr = emitterDistribution;
+            }
+
+            if (variable_struct_exists(emitterObj, 'shape'))
+            {
+                var emitterShape = variable_struct_get(emitterObj, 'shape');
+                if (YYTypeof(emitterShape) !== 'number')
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].shape invalid type (' + YYTypeof(emitterShape) + ') needs to be a number');
+                    return;
+                }
+
+                if (emitterShape != PART_ESHAPE_RECTANGLE
+                    && emitterShape != PART_ESHAPE_ELLIPSE
+                    && emitterShape != PART_ESHAPE_DIAMOND
+                    && emitterShape != PART_ESHAPE_LINE)
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].shape invalid value (' + emitterShape + ') needs to be a valid particle emitter shape constant');
+                    return;
+                }
+
+                emitter.shape = emitterShape;
+            }
+
+            if (variable_struct_exists(emitterObj, 'enabled'))
+            {
+                var emitterEnabled = variable_struct_get(emitterObj, 'enabled');
+                if (YYTypeof(emitterEnabled) !== 'bool' && YYTypeof(emitterEnabled) !== 'number')
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i + '].enabled invalid type (' + YYTypeof(emitterEnabled) + ') needs to be a bool');
+                    return;
+                }
+                emitter.enabled = emitterEnabled ? true : false;
+            }
+
+            // Apply particle type info
+
+            if (variable_struct_exists(emitterObj, 'parttype'))
+            {
+                var emitterParttype = variable_struct_get(emitterObj, 'parttype');
+                if (emitterParttype instanceof YYRef)
+                {
+                    if (emitterParttype.type != REFID_PART_TYPE)
+                    {
+                        system.Destroy();
+                        yyError('emitters[' + i +'].parttype invalid type (' + YYTypeof(emitterParttype) + ') needs to be a particle type ref');
+                        return;
+                    }
+                    emitter.parttype = emitterParttype.value;
+                }
+                else if (YYTypeof(emitterParttype) === 'struct')
+                {
+                    var typeInd = part_type_create().value;
+                    var type = g_ParticleTypes[typeInd];
+
+                    if (variable_struct_exists(emitterParttype, 'sprite'))
+                    {
+                        var typeSprite = variable_struct_get(emitterParttype, 'sprite');
+                        // Note: We don't have sprite refs in the HTML5 runner...
+                        if (YYTypeof(typeSprite) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.sprite invalid type (' + YYTypeof(typeSprite) + ') needs to be a number');
+                            return;
+                        }
+                        type.sprite = typeSprite;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'frame'))
+                    {
+                        var typeFrame = variable_struct_get(emitterParttype, 'frame');
+                        if (YYTypeof(typeFrame) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.frame invalid type (' + YYTypeof(typeFrame) + ') needs to be a number');
+                            return;
+                        }
+                        type.spritestart = typeFrame;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'animate'))
+                    {
+                        var typeAnimate = variable_struct_get(emitterParttype, 'animate');
+                        if (YYTypeof(typeAnimate) !== 'bool' && YYTypeof(typeAnimate) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.animate invalid type (' + YYTypeof(typeAnimate) + ') needs to be a bool');
+                            return;
+                        }
+                        type.spriteanim = typeAnimate ? true : false;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'stretch'))
+                    {
+                        var typeStretch = variable_struct_get(emitterParttype, 'stretch');
+                        if (YYTypeof(typeStretch) !== 'bool' && YYTypeof(typeStretch) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.stretch invalid type (' + YYTypeof(typeStretch) + ') needs to be a bool');
+                            return;
+                        }
+                        type.spritestretch = typeStretch ? true : false;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'random'))
+                    {
+                        var typeRandom = variable_struct_get(emitterParttype, 'random');
+                        if (YYTypeof(typeRandom) !== 'bool' && YYTypeof(typeRandom) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.random invalid type (' + YYTypeof(typeRandom) + ') needs to be a bool');
+                            return;
+                        }
+                        type.spriterandom = typeRandom ? true : false;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'shape'))
+                    {
+                        var typeShape = variable_struct_get(emitterParttype, 'shape');
+                        if (YYTypeof(typeShape) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.shape invalid type (' + YYTypeof(typeShape) + ') needs to be a number');
+                            return;
+                        }
+
+                        if (typeShape < 0 || typeShape > PT_SHAPE_MAX)
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.shape invalid value (' + typeShape + ') needs to be a valid particle shape constant');
+                            return;
+                        }
+
+                        type.shape = typeShape;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'size_xmin'))
+                    {
+                        var typeSizeXMin = variable_struct_get(emitterParttype, 'size_xmin');
+                        if (YYTypeof(typeSizeXMin) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.size_xmin invalid type (' + YYTypeof(typeSizeXMin) + ') needs to be a number');
+                            return;
+                        }
+                        type.sizeMinX = typeSizeXMin;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'size_xmax'))
+                    {
+                        var typeSizeXMax = variable_struct_get(emitterParttype, 'size_xmax');
+                        if (YYTypeof(typeSizeXMax) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.size_xmax invalid type (' + YYTypeof(typeSizeXMax) + ') needs to be a number');
+                            return;
+                        }
+                        type.sizeMaxX = typeSizeXMax;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'size_ymin'))
+                    {
+                        var typeSizeYMin = variable_struct_get(emitterParttype, 'size_ymin');
+                        if (YYTypeof(typeSizeYMin) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.size_ymin invalid type (' + YYTypeof(typeSizeYMin) + ') needs to be a number');
+                            return;
+                        }
+                        type.sizeMinY = typeSizeYMin;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'size_ymax'))
+                    {
+                        var typeSizeYMax = variable_struct_get(emitterParttype, 'size_ymax');
+                        if (YYTypeof(typeSizeYMax) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.size_ymax invalid type (' + YYTypeof(typeSizeYMax) + ') needs to be a number');
+                            return;
+                        }
+                        type.sizeMaxY = typeSizeYMax;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'size_xincr'))
+                    {
+                        var typeSizeXIncr = variable_struct_get(emitterParttype, 'size_xincr');
+                        if (YYTypeof(typeSizeXIncr) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.size_xincr invalid type (' + YYTypeof(typeSizeXIncr) + ') needs to be a number');
+                            return;
+                        }
+                        type.sizeIncrX = typeSizeXIncr;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'size_yincr'))
+                    {
+                        var typeSizeYIncr = variable_struct_get(emitterParttype, 'size_yincr');
+                        if (YYTypeof(typeSizeYIncr) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.size_yincr invalid type (' + YYTypeof(typeSizeYIncr) + ') needs to be a number');
+                            return;
+                        }
+                        type.sizeIncrY = typeSizeYIncr;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'size_xwiggle'))
+                    {
+                        var typeSizeXWiggle = variable_struct_get(emitterParttype, 'size_xwiggle');
+                        if (YYTypeof(typeSizeXWiggle) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.size_xwiggle invalid type (' + YYTypeof(typeSizeXWiggle) + ') needs to be a number');
+                            return;
+                        }
+                        type.sizeRandX = typeSizeXWiggle;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'size_ywiggle'))
+                    {
+                        var typeSizeYWiggle = variable_struct_get(emitterParttype, 'size_ywiggle');
+                        if (YYTypeof(typeSizeYWiggle) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.size_ywiggle invalid type (' + YYTypeof(typeSizeYWiggle) + ') needs to be a number');
+                            return;
+                        }
+                        type.sizeRandY = typeSizeYWiggle;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'xscale'))
+                    {
+                        var typeXScale = variable_struct_get(emitterParttype, 'xscale');
+                        if (YYTypeof(typeXScale) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.xscale invalid type (' + YYTypeof(typeXScale) + ') needs to be a number');
+                            return;
+                        }
+                        type.xscale = typeXScale;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'yscale'))
+                    {
+                        var typeYScale = variable_struct_get(emitterParttype, 'yscale');
+                        if (YYTypeof(typeYScale) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.yscale invalid type (' + YYTypeof(typeYScale) + ') needs to be a number');
+                            return;
+                        }
+                        type.yscale = typeYScale;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'life_min'))
+                    {
+                        var typeLifeMin = variable_struct_get(emitterParttype, 'life_min');
+                        if (YYTypeof(typeLifeMin) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.life_min invalid type (' + YYTypeof(typeLifeMin) + ') needs to be a number');
+                            return;
+                        }
+                        type.lifemin = typeLifeMin;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'life_max'))
+                    {
+                        var typeLifeMax = variable_struct_get(emitterParttype, 'life_max');
+                        if (YYTypeof(typeLifeMax) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.life_max invalid type (' + YYTypeof(typeLifeMax) + ') needs to be a number');
+                            return;
+                        }
+                        type.lifemin = typeLifeMax;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'death_type'))
+                    {
+                        var typeDeathType = variable_struct_get(emitterParttype, 'death_type');
+                        if (!(typeDeathType instanceof YYRef) || typeDeathType.type != REFID_PART_TYPE)
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.death_type invalid type (' + YYTypeof(typeDeathType) + ') needs to be a particle type ref');
+                            return;
+                        }
+                        type.deathtype = typeDeathType.value;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'death_number'))
+                    {
+                        var typeDeathNumber = variable_struct_get(emitterParttype, 'death_number');
+                        if (YYTypeof(typeDeathNumber) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.death_number invalid type (' + YYTypeof(typeDeathNumber) + ') needs to be a number');
+                            return;
+                        }
+                        type.deathnumber = typeDeathNumber;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'step_type'))
+                    {
+                        var typeStepType = variable_struct_get(emitterParttype, 'step_type');
+                        if (!(typeStepType instanceof YYRef) || typeStepType.type != REFID_PART_TYPE)
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.step_type invalid type (' + YYTypeof(typeStepType) + ') needs to be a particle type ref');
+                            return;
+                        }
+                        type.steptype = typeStepType.value;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'step_number'))
+                    {
+                        var typeStepNumber = variable_struct_get(emitterParttype, 'step_number');
+                        if (YYTypeof(typeStepNumber) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.step_number invalid type (' + YYTypeof(typeStepNumber) + ') needs to be a number');
+                            return;
+                        }
+                        type.stepnumber = typeStepNumber;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'speed_min'))
+                    {
+                        var typeSpeedMin = variable_struct_get(emitterParttype, 'speed_min');
+                        if (YYTypeof(typeSpeedMin) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.speed_min invalid type (' + YYTypeof(typeSpeedMin) + ') needs to be a number');
+                            return;
+                        }
+                        type.spmin = typeSpeedMin;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'speed_max'))
+                    {
+                        var typeSpeedMax = variable_struct_get(emitterParttype, 'speed_max');
+                        if (YYTypeof(typeSpeedMax) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.speed_max invalid type (' + YYTypeof(typeSpeedMax) + ') needs to be a number');
+                            return;
+                        }
+                        type.spmax = typeSpeedMax;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'speed_incr'))
+                    {
+                        var typeSpeedIncr = variable_struct_get(emitterParttype, 'speed_incr');
+                        if (YYTypeof(typeSpeedIncr) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.speed_incr invalid type (' + YYTypeof(typeSpeedIncr) + ') needs to be a number');
+                            return;
+                        }
+                        type.spincr = typeSpeedIncr;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'speed_wiggle'))
+                    {
+                        var typeSpeedWiggle = variable_struct_get(emitterParttype, 'speed_wiggle');
+                        if (YYTypeof(typeSpeedWiggle) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.speed_wiggle invalid type (' + YYTypeof(typeSpeedWiggle) + ') needs to be a number');
+                            return;
+                        }
+                        type.sprand = typeSpeedWiggle;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'dir_min'))
+                    {
+                        var typeDirMin = variable_struct_get(emitterParttype, 'dir_min');
+                        if (YYTypeof(typeDirMin) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.dir_min invalid type (' + YYTypeof(typeDirMin) + ') needs to be a number');
+                            return;
+                        }
+                        type.dirmin = typeDirMin;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'dir_max'))
+                    {
+                        var typeDirMax = variable_struct_get(emitterParttype, 'dir_max');
+                        if (YYTypeof(typeDirMax) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.dir_max invalid type (' + YYTypeof(typeDirMax) + ') needs to be a number');
+                            return;
+                        }
+                        type.dirmax = typeDirMax;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'dir_incr'))
+                    {
+                        var typeDirIncr = variable_struct_get(emitterParttype, 'dir_incr');
+                        if (YYTypeof(typeDirIncr) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.dir_incr invalid type (' + YYTypeof(typeDirIncr) + ') needs to be a number');
+                            return;
+                        }
+                        type.dirincr = typeDirIncr;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'dir_wiggle'))
+                    {
+                        var typeDirWiggle = variable_struct_get(emitterParttype, 'dir_wiggle');
+                        if (YYTypeof(typeDirWiggle) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.dir_wiggle invalid type (' + YYTypeof(typeDirWiggle) + ') needs to be a number');
+                            return;
+                        }
+                        type.dirrand = typeDirWiggle;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'grav_amount'))
+                    {
+                        var typeGravAmount = variable_struct_get(emitterParttype, 'grav_amount');
+                        if (YYTypeof(typeGravAmount) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.grav_amount invalid type (' + YYTypeof(typeGravAmount) + ') needs to be a number');
+                            return;
+                        }
+                        type.grav = typeGravAmount;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'grav_dir'))
+                    {
+                        var typeGravDir = variable_struct_get(emitterParttype, 'grav_dir');
+                        if (YYTypeof(typeGravDir) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.grav_dir invalid type (' + YYTypeof(typeGravDir) + ') needs to be a number');
+                            return;
+                        }
+                        type.gravdir = typeGravDir;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'ang_min'))
+                    {
+                        var typeAngMin = variable_struct_get(emitterParttype, 'ang_min');
+                        if (YYTypeof(typeAngMin) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.ang_min invalid type (' + YYTypeof(typeAngMin) + ') needs to be a number');
+                            return;
+                        }
+                        type.angmin = typeAngMin;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'ang_max'))
+                    {
+                        var typeAngMax = variable_struct_get(emitterParttype, 'ang_max');
+                        if (YYTypeof(typeAngMax) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.ang_max invalid type (' + YYTypeof(typeAngMax) + ') needs to be a number');
+                            return;
+                        }
+                        type.angmax = typeAngMax;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'ang_incr'))
+                    {
+                        var typeAngIncr = variable_struct_get(emitterParttype, 'ang_incr');
+                        if (YYTypeof(typeAngIncr) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.ang_incr invalid type (' + YYTypeof(typeAngIncr) + ') needs to be a number');
+                            return;
+                        }
+                        type.angincr = typeAngIncr;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'ang_wiggle'))
+                    {
+                        var typeAngWiggle = variable_struct_get(emitterParttype, 'ang_wiggle');
+                        if (YYTypeof(typeAngWiggle) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.ang_wiggle invalid type (' + YYTypeof(typeAngWiggle) + ') needs to be a number');
+                            return;
+                        }
+                        type.angrand = typeAngWiggle;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'ang_relative'))
+                    {
+                        var typeAngRelative = variable_struct_get(emitterParttype, 'ang_relative');
+                        if (YYTypeof(typeAngRelative) !== 'bool' && YYTypeof(typeAngRelative) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.ang_relative invalid type (' + YYTypeof(typeAngRelative) + ') needs to be a bool');
+                            return;
+                        }
+                        type.angdir = typeAngRelative ? true : false;
+                    }
+
+                    type.colmode = COLMODE_THREE;
+
+                    if (variable_struct_exists(emitterParttype, 'color1'))
+                    {
+                        var typeColor1 = variable_struct_get(emitterParttype, 'color1');
+                        if (YYTypeof(typeColor1) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.color1 invalid type (' + YYTypeof(typeColor1) + ') needs to be a number');
+                            return;
+                        }
+                        type.colpar[0] = typeColor1;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'color2'))
+                    {
+                        var typeColor2 = variable_struct_get(emitterParttype, 'color2');
+                        if (YYTypeof(typeColor2) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.color2 invalid type (' + YYTypeof(typeColor2) + ') needs to be a number');
+                            return;
+                        }
+                        type.colpar[1] = typeColor2;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'color3'))
+                    {
+                        var typeColor3 = variable_struct_get(emitterParttype, 'color3');
+                        if (YYTypeof(typeColor3) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.color3 invalid type (' + YYTypeof(typeColor3) + ') needs to be a number');
+                            return;
+                        }
+                        type.colpar[2] = typeColor3;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'alpha1'))
+                    {
+                        var typeAlpha1 = variable_struct_get(emitterParttype, 'alpha1');
+                        if (YYTypeof(typeAlpha1) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.alpha1 invalid type (' + YYTypeof(typeAlpha1) + ') needs to be a number');
+                            return;
+                        }
+                        type.alphastart = typeAlpha1;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'alpha2'))
+                    {
+                        var typeAlpha2 = variable_struct_get(emitterParttype, 'alpha2');
+                        if (YYTypeof(typeAlpha2) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.alpha2 invalid type (' + YYTypeof(typeAlpha2) + ') needs to be a number');
+                            return;
+                        }
+                        type.alphamiddle = typeAlpha2;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'alpha3'))
+                    {
+                        var typeAlpha3 = variable_struct_get(emitterParttype, 'alpha3');
+                        if (YYTypeof(typeAlpha3) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.alpha3 invalid type (' + YYTypeof(typeAlpha3) + ') needs to be a number');
+                            return;
+                        }
+                        type.alphaend = typeAlpha3;
+                    }
+
+                    if (variable_struct_exists(emitterParttype, 'additive'))
+                    {
+                        var typeAdditive = variable_struct_get(emitterParttype, 'additive');
+                        if (YYTypeof(typeAdditive) !== 'bool' && YYTypeof(typeAdditive) !== 'number')
+                        {
+                            system.Destroy();
+                            part_type_destroy(typeInd);
+                            yyError('emitters[' + i + '].parttype.additive invalid type (' + YYTypeof(typeAdditive) + ') needs to be a bool');
+                            return;
+                        }
+                        type.additiveblend = typeAdditive ? true : false;
+                    }
+
+                    emitter.parttype = typeInd;
+
+                    // Destroy the particle types when the system is destroyed
+                    system.typesOwned.push(typeInd);
+                }
+                else
+                {
+                    system.Destroy();
+                    yyError('emitters[' + i +'].parttype invalid type (' + YYTypeof(emitterParttype) + ') needs to be a particle type ref or a struct');
+                    return;
+                }
+            }
+
+            // Add created emitter into the global array
+            var emitterIndex;
+            for (emitterIndex = 0; emitterIndex < g_PSEmitters.length; ++emitterIndex)
+            {
+                if (g_PSEmitters[emitterIndex] == null)
+                {
+                    break;
+                }
+            }
+
+            if (emitterIndex == g_PSEmitters.length)
+            {
+                g_PSEmitters.push(emitter);
+            }
+            else
+            {
+                g_PSEmitters[emitterIndex] = emitter;
+            }
+
+            // Add created emitter into the system
+            system.emitters.push(emitterIndex);
+            system.emittersOwned.push(emitterIndex); // Destroy the emitter when the system is destroyed
+        }
+    }
+
+    return MAKE_REF(REFID_PARTICLESYSTEM, system.GetIndex());
+}
+
+// #############################################################################################
+/// Function:<summary>
+///          	Destroys a particle system asset.
 ///          </summary>
 ///
 /// In:		<param name="_ind"></param>
 /// Out:	<returns>
+///				
 ///			</returns>
 // #############################################################################################
-function particle_get_info(_ind)
+function particle_delete(_ind)
 {
-    var isInstance = ((_ind instanceof YYRef) && (_ind.type == REFID_PART_SYSTEM));
-    return ParticleSystemGetInfoImpl(_ind, isInstance);
+    var ps = GetParticleSystemResourceIndex(_ind);
+    CParticleSystem.Get(ps).Destroy();
 }
 
 // #############################################################################################
@@ -265,6 +1277,20 @@ function particle_exists(_ind)
 {
     var ps = GetParticleSystemResourceIndex(_ind, true);
     return (CParticleSystem.Get(ps) != null);
+}
+
+// #############################################################################################
+/// Function:<summary>
+///          </summary>
+///
+/// In:		<param name="_ind"></param>
+/// Out:	<returns>
+///			</returns>
+// #############################################################################################
+function particle_get_info(_ind)
+{
+    var isInstance = ((_ind instanceof YYRef) && (_ind.type == REFID_PART_SYSTEM));
+    return ParticleSystemGetInfoImpl(_ind, isInstance);
 }
 
 // #############################################################################################

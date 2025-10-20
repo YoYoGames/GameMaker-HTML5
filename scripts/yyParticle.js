@@ -32,6 +32,7 @@ var PT_MODE_UNDEFINED	= -1,
 	PT_SHAPE_CLOUD		= 11,
 	PT_SHAPE_SMOKE		= 12,
 	PT_SHAPE_SNOW		= 13,
+	PT_SHAPE_MAX		= PT_SHAPE_SNOW,
 	PART_SPRITE_NUMB	= 14,
 
 	COLMODE_ONE			= 0,                 // using just one color
@@ -291,6 +292,8 @@ function CParticleSystem()
 	this.originY = 0;
 	this.drawOrder = 0;
 	this.globalSpaceParticles = false;
+	this.typesOwned = [];
+	this.emittersOwned = [];
 
 	/// The index within instances where the particle system is stored.
 	this.index = -1;
@@ -379,10 +382,13 @@ CParticleSystem.Find = function (name)
 /// <returns>An array of all particle system asset IDs.</returns>
 CParticleSystem.List = function ()
 {
-	var ids = Array(CParticleSystem.GetCount());
-	for (var i = 0; i < ids.length; ++i)
+	var ids = [];
+	for (var i = 0; i < CParticleSystem.instances.length; ++i)
 	{
-		ids[i] = i;
+		if (CParticleSystem.instances[i] != null)
+		{
+			ids.push(CParticleSystem.instances[i].index);
+		}
 	}
 	return ids;
 };
@@ -393,6 +399,17 @@ CParticleSystem.prototype.GetIndex = function ()
 	return this.index;
 };
 
+/// <summary>
+/// Destroys the particle system asset.
+/// </summary>
+CParticleSystem.prototype.Destroy = function ()
+{
+	if (this.index >= 0)
+	{
+		CParticleSystem.instances[this.index] = null;
+	}
+	this.emitters = [];
+};
 
 /// <summary>
 /// Creates an instance of the particle system.
