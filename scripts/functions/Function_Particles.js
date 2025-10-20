@@ -378,7 +378,7 @@ function particle_add(_info)
                     && emitterMode != PT_MODE_BURST)
                 {
                     system.Destroy();
-                    yyError('emitters[' + i + '].mode invalid value (' + YYTypeof(emitterMode) + ') needs to be a valid particle emitter mode constant",');
+                    yyError('emitters[' + i + '].mode invalid value (' + emitterMode + ') needs to be a valid particle emitter mode constant');
                     return;
                 }
 
@@ -391,7 +391,7 @@ function particle_add(_info)
                 if (YYTypeof(emitterNumber) !== 'number')
                 {
                     system.Destroy();
-                    yyError('emitters[' + i + '].name invalid type (' + YYTypeof(emitterNumber) + ') needs to be a number');
+                    yyError('emitters[' + i + '].number invalid type (' + YYTypeof(emitterNumber) + ') needs to be a number');
                     return;
                 }
                 emitter.number = emitterNumber;
