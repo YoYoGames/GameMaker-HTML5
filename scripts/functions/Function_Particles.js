@@ -99,8 +99,10 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
             var resource = CParticleSystem.Get(pPS.m_resourceID);
 
             variable_struct_set(pPSI, "name", (resource && resource.name) ? resource.name : "");
-            variable_struct_set(pPSI, "xorigin", pPS.xdraw);
-            variable_struct_set(pPSI, "yorigin", pPS.ydraw);
+            variable_struct_set(pPSI, "xorigin", pPS.xorigin);
+            variable_struct_set(pPSI, "yorigin", pPS.yorigin);
+            variable_struct_set(pPSI, "xdraw", pPS.xdraw);
+            variable_struct_set(pPSI, "ydraw", pPS.ydraw);
             variable_struct_set(pPSI, "oldtonew", pPS.oldtonew ? true : false);
             variable_struct_set(pPSI, "global_space", pPS.globalSpaceParticles);
 
@@ -126,6 +128,8 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
             variable_struct_set(pPSI, "name", pPS.name ? pPS.name : "");
             variable_struct_set(pPSI, "xorigin", pPS.originX);
             variable_struct_set(pPSI, "yorigin", pPS.originY);
+            variable_struct_set(pPSI, "xdraw", 0);
+            variable_struct_set(pPSI, "ydraw", 0);
             variable_struct_set(pPSI, "oldtonew", (pPS.drawOrder == 0));
             variable_struct_set(pPSI, "global_space", pPS.globalSpaceParticles);
 
