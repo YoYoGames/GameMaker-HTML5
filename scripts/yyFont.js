@@ -434,7 +434,7 @@ yyFont.prototype.TextHeight = function (_str) {
 ///				Width of the text string provided
 ///			 </returns>
 // #############################################################################################
-yyFont.prototype.TextWidth = function (_str, _prepared,_charSpacing) {
+yyFont.prototype.TextWidth = function (_str, _prepared, _charSpacing = 0) {
 
 	if ((!_str) || (0 === _str.length)) return 0;
 	
