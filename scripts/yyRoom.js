@@ -606,6 +606,10 @@ yyRoom.prototype.CreateRoomFromStorage = function (_pRoomStorage)
 				});
 			}
 		}
+
+		// instances added through room_instance_add that would not be present in creationOrderIds
+		const newInstances = this.m_pStorage.pInstances.filter(inst => !_pRoomStorage.creationOrderIds.includes(inst.id));
+		this.m_creationOrder.push(...newInstances);
 	}
 	else{
 		for(var j = 0; j < this.m_pStorage.pInstances.length; ++j)
