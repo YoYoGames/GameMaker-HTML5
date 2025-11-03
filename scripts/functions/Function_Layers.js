@@ -5098,7 +5098,7 @@ function ShallowCopyVars( _dest, _other)
 {
     if (_other != undefined) {
         var props = Object.getOwnPropertyNames(_other);
-        props = props.filter(prop => prop.startsWith("gml") || (typeof g_obf2var!=="undefined" && g_obf2var[prop] != null));
+        props = props.filter(prop => prop.startsWith("gml") || (typeof g_obf2var!=="undefined" && g_obf2var[prop] != null) || g_instance_names[prop] != null);
         for (var i = 0; i < props.length; i++)
         {
             var prop = props[i];
