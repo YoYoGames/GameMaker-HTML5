@@ -2857,6 +2857,7 @@ function __internal_variable_clone(_val, _depth) {
         if (_val instanceof Array) {
 
             var clone = new Array(_val.length);
+			__yy_gml_array_create(clone);
             g_CLONE_VISITED_LIST.set(_val, clone);
 
             for (var n = 0; n < _val.length; ++n) {
@@ -2913,4 +2914,5 @@ function variable_clone(_val, _depth) {
 
     return clone;
 } // end variable_clone
+
 
