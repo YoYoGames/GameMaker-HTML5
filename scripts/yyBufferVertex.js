@@ -508,7 +508,7 @@ function WebGL_vertex_create_buffer_ext_RELEASE(_size) {
 
     // Get a free slot within the vertex buffer array    
     var vertexBufferIndex = g_vertexBuffers.length;
-    for (var i = 0; i < g_vertexBuffers; i++) {
+    for (var i = 0; i < g_vertexBuffers.length; i++) {
         if ((g_vertexBuffers[i] === null) || (g_vertexBuffers[i] === undefined)) {
             vertexBufferIndex = i;
             break;
@@ -805,3 +805,4 @@ function WebGL_vertex_get_buffer_size_RELEASE(_buffer)
 // @endif gl
 
 // @endif vertex_
+
