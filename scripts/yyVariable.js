@@ -2842,6 +2842,11 @@ function __internal_variable_clone(_val, _depth) {
     }
 
     if (typeof _val === "object") {
+
+		// Handle pointer constants
+		if (_val === g_pBuiltIn.pointer_null || _val === g_pBuiltIn.pointer_invalid) {
+            return _val;
+        }
         
         // Are we an int64?
         if (_val instanceof Long) {
@@ -2914,5 +2919,6 @@ function variable_clone(_val, _depth) {
 
     return clone;
 } // end variable_clone
+
 
 
