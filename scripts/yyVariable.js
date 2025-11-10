@@ -2853,6 +2853,11 @@ function __internal_variable_clone(_val, _depth) {
             return _val;
         }
 
+        // Are we an asset ref?
+        if (_val instanceof YYRef) {
+            return _val;
+        }
+
         // We shouldn't clone anymore (just copy OR use reference)
         if (_depth <= 0) {
             return _val;
