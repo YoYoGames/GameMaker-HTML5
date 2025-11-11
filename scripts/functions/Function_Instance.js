@@ -291,12 +291,12 @@ function instance_furthest( _inst, _x,_y,_obj )
 	return i;
 }
 
-function GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata)
+function GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata,pBack)
 {
-	CTVert[3].u = CTVert[0].u  = rcol * tilewidth;
+	CTVert[3].u = CTVert[0].u  = rcol * (tilewidth+pBack.tilehsep);
 	CTVert[1].u = CTVert[2].u = CTVert[0].u + tilewidth;
 
-	CTVert[0].v = CTVert[1].v = trow * tileheight;
+	CTVert[0].v = CTVert[1].v = trow * (tileheight+pBack.tilevsep);
 	CTVert[2].v = CTVert[3].v = CTVert[0].v + tileheight;
 
 
@@ -395,7 +395,8 @@ function Tilemap_CollisionRectangle(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 			return false;
 		}
 
-		var numtilesperrow = spr.GetWidth() / pBack.tilewidth;
+		var numtilesperrow = spr.GetWidth() / pBack.tilewidth; 
+
 		var sprwidth = spr.GetWidth();
 
 		var tilewidth, tileheight;
@@ -500,7 +501,7 @@ function Tilemap_CollisionRectangle(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 
 						var trow = ~~(tileindex / numtilesperrow);
 						var rcol = ~~(tileindex % numtilesperrow);
-						GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata);
+						GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata,pBack);
 						
 						
 						if (spr.PreciseCollisionTilemapRect(tmaskdata, CVert, CTVert, x1, y1, x2, y2))
@@ -670,7 +671,7 @@ function Tilemap_CollisionLine(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 						var trow = ~~(tileindex / numtilesperrow);
 						var rcol = ~~(tileindex % numtilesperrow);
 
-						GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata);
+						GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata,pBack);
 						
 						if (spr.PreciseCollisionTilemapLine(tmaskdata, CVert, CTVert, x1, y1, x2, y2, spr.GetWidth()))
 						{
@@ -832,7 +833,7 @@ function Tilemap_CollisionEllipse(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 						var trow = ~~(tileindex / numtilesperrow);
 						var rcol = ~~(tileindex % numtilesperrow);
 
-						GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata);
+						GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata,pBack);
 						
 						if (spr.PreciseCollisionTilemapEllipse(tmaskdata, CVert, CTVert, x1, y1, x2, y2, spr.GetWidth()))
 						{
@@ -989,7 +990,7 @@ function Tilemap_PointPlace( _x, _y, tilemapind, instlist,prec)
 				var trow = ~~(tileindex / numtilesperrow);
 				var rcol = ~~(tileindex % numtilesperrow);
 
-				GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata);
+				GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata,pBack);
 				
 				var xfrac = ((_x+0.5) - CVert[0].x) / tilewidth;
 				var yfrac = ((_y+0.5) - CVert[0].y) / tileheight;
@@ -1201,7 +1202,7 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 						var trow = ~~(tileindex / numtilesperrow);
 						var rcol = ~~(tileindex % numtilesperrow);
 
-						GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata);
+						GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata,pBack);
 						
 
 						if (spr2.PreciseCollisionTilemap(inst.image_index, bb1, inst.x, inst.y, inst.image_xscale, inst.image_yscale, inst.image_angle, CVert,  CTVert, tmaskdata,spr))
@@ -1703,8 +1704,9 @@ function instance_activate_object(_inst, _objindex)
 	    }
 	} else {	    
 	    for (var i = 0; i < pDeactiveList.pool.length; i++) {
-	        var pInst = pDeactiveList.pool[i];
-	        if (pInst.object_index == _objindex || pInst.id == _objindex) {
+			var pInst = pDeactiveList.pool[i];
+	        var instObjIndex = yyGetRef(pInst.object_index, REFID_OBJECT, undefined, undefined, true);
+	        if (instObjIndex == _objindex || pInst.id == _objindex) {
 	            keep[keep.length] = pInst;
 	        }
 	        else if (object_has_parent(g_pObjectManager.Get(pInst.object_index), _objindex)) {
@@ -1743,8 +1745,9 @@ function instance_deactivate_object(_inst, _objindex)
 	} 
 	else {	    
 	    for (var i = 0; i < pActiveList.pool.length; i++) {
-	        var pInst = pActiveList.pool[i];
-	        if (pInst.object_index == _objindex || pInst.id == _objindex) {
+			var pInst = pActiveList.pool[i];
+	        var instObjIndex = yyGetRef(pInst.object_index, REFID_OBJECT, undefined, undefined, true);
+			if (instObjIndex == _objindex || pInst.id == _objindex) {
 	            keep[keep.length] = pInst;
 	        }
 	        else if (object_has_parent(g_pObjectManager.Get(pInst.object_index), _objindex)) {

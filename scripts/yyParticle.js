@@ -32,6 +32,7 @@ var PT_MODE_UNDEFINED	= -1,
 	PT_SHAPE_CLOUD		= 11,
 	PT_SHAPE_SMOKE		= 12,
 	PT_SHAPE_SNOW		= 13,
+	PT_SHAPE_MAX		= PT_SHAPE_SNOW,
 	PART_SPRITE_NUMB	= 14,
 
 	COLMODE_ONE			= 0,                 // using just one color
@@ -265,6 +266,8 @@ function ParticleSystem_ClearClass()
 	
 	this.oldtonew = true;					// whether drawing from old to new
 	this.depth = 0.0;                		// the depth of the particle system
+	this.xorigin = 0.0;
+	this.yorigin = 0.0;
 	this.xdraw = 0.0;						// drawing position
 	this.ydraw = 0.0;               
 	this.automaticupdate = true;       	 	// whether to update automatically
@@ -291,6 +294,8 @@ function CParticleSystem()
 	this.originY = 0;
 	this.drawOrder = 0;
 	this.globalSpaceParticles = false;
+	this.typesOwned = [];
+	this.emittersOwned = [];
 
 	/// The index within instances where the particle system is stored.
 	this.index = -1;
@@ -379,10 +384,13 @@ CParticleSystem.Find = function (name)
 /// <returns>An array of all particle system asset IDs.</returns>
 CParticleSystem.List = function ()
 {
-	var ids = Array(CParticleSystem.GetCount());
-	for (var i = 0; i < ids.length; ++i)
+	var ids = [];
+	for (var i = 0; i < CParticleSystem.instances.length; ++i)
 	{
-		ids[i] = i;
+		if (CParticleSystem.instances[i] != null)
+		{
+			ids.push(CParticleSystem.instances[i].index);
+		}
 	}
 	return ids;
 };
@@ -393,6 +401,17 @@ CParticleSystem.prototype.GetIndex = function ()
 	return this.index;
 };
 
+/// <summary>
+/// Destroys the particle system asset.
+/// </summary>
+CParticleSystem.prototype.Destroy = function ()
+{
+	if (this.index >= 0)
+	{
+		CParticleSystem.instances[this.index] = null;
+	}
+	this.emitters = [];
+};
 
 /// <summary>
 /// Creates an instance of the particle system.
@@ -421,6 +440,8 @@ CParticleSystem.prototype.MakeInstance = function (_layerID, _persistent, _pPart
 
 	var system = g_ParticleSystemManager.Get(ps);
 	system.m_resourceID = this.index;
+	system.xorigin = this.originX;
+	system.yorigin = this.originY;
 	system.oldtonew = (this.drawOrder == 0);
 	system.globalSpaceParticles = this.globalSpaceParticles;
 
@@ -2621,6 +2642,8 @@ function ParticleSystem_Clear(_ps, _reset_element_depth)
 
 	pPartSys.oldtonew = true;
 	pPartSys.depth = 0.0;
+	pPartSys.xorigin = 0.0;
+	pPartSys.yorigin = 0.0;
 	pPartSys.xdraw = 0.0;
 	pPartSys.ydraw = 0.0;
 	pPartSys.automaticupdate = true;
@@ -3200,6 +3223,9 @@ function ParticleSystem_Update(_ps)
 	{
 		var pParticleEl = elementAndLayer.element;
 
+		var matOrigin = new Matrix();
+		matOrigin.SetTranslation(-pPartSys.xorigin, -pPartSys.yorigin, 0.0);
+
 		var matRot = new Matrix();
 		matRot.SetZRotation(pParticleEl.m_imageAngle + pPartSys.angle);
 
@@ -3209,25 +3235,34 @@ function ParticleSystem_Update(_ps)
 		var matScaleRot = new Matrix();
 		matScaleRot.Multiply(matScale, matRot);
 
+		var matOriginScaleRot = new Matrix();
+		matOriginScaleRot.Multiply(matOrigin, matScaleRot);
+
 		var matPos = new Matrix();
 		matPos.SetTranslation(-pPartSys.xdraw, -pPartSys.ydraw, 0.0);
 		
 		var matWorldNew = new Matrix();
-		matWorldNew.Multiply(matPos, matScaleRot);
+		matWorldNew.Multiply(matPos, matOriginScaleRot);
 		matWorldNew.Translation(pPartSys.xdraw + pParticleEl.m_x, pPartSys.ydraw + pParticleEl.m_y, 0.0);
 
 		ParticleSystem_SetMatrix(_ps, matWorldNew);
 	}
 	else
 	{
+		var matOrigin = new Matrix();
+		matPos.SetTranslation(-pPartSys.xorigin, -pPartSys.yorigin, 0.0);
+
 		var matRot = new Matrix();
 		matRot.SetZRotation(pPartSys.angle);
 
 		var matPos = new Matrix();
 		matPos.SetTranslation(-pPartSys.xdraw, -pPartSys.ydraw, 0.0);
 		
+		var matRotPos = new Matrix();
+		matRotPos.Multiply(matPos, matRot);
+
 		var matParticle = new Matrix();
-		matParticle.Multiply(matPos, matRot);
+		matParticle.Multiply(matOrigin, matRotPos);
 		matParticle.Translation(pPartSys.xdraw, pPartSys.ydraw, 0.0);
 
 		ParticleSystem_SetMatrix(_ps, matParticle);

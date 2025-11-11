@@ -325,7 +325,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                     element.__yyIsGMLObject = true;
                                     variable_struct_set( element, "type", 6 );
                                     variable_struct_set( element, "id", srcParticle.sName );
-                                    variable_struct_set( element, "ps", MAKE_REF(REFID_PART_SYSTEM, srcParticle.sIndex) );
+                                    variable_struct_set( element, "ps", MAKE_REF(REFID_PARTICLESYSTEM, srcParticle.sIndex) );
                                     variable_struct_set( element, "x", srcParticle.sX);
                                     variable_struct_set( element, "y", srcParticle.sY);
                                     variable_struct_set( element, "xscale", srcParticle.sXScale);
@@ -738,6 +738,11 @@ function room_instance_add(_ind,_x,_y,_obj)
             index: yyGetInt32(_obj), 
             id: instance_id };
 
+        if(!g_DoneFirstRoomCreation)
+        {
+            var storageIndex = pRoom.m_pStorage.creationOrderIds.length;
+            pRoom.m_pStorage.creationOrderIds[storageIndex] = instance_id;
+        }  
         pRoom.m_creationOrder.push(pRoom.m_pStorage.pInstances[instanceIndex]);
 
 		return MAKE_REF(REFID_INSTANCE, instance_id);
