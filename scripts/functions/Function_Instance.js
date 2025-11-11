@@ -323,7 +323,7 @@ function GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata,pBack
 			CTVert[2] = CTVert[1];
 			CTVert[1] = temp;
 		}
-		var _TileRotate_Mask = (3 << TileRotate_Shift);
+		var _TileRotate_Mask = (1 << TileRotate_Shift);
 		var rot = (tiledata & _TileRotate_Mask)>> TileRotate_Shift;
 		if (rot==1)
 		{
@@ -334,30 +334,6 @@ function GenerateTileMapUVs(CTVert,trow,rcol,tilewidth,tileheight,tiledata,pBack
 			CTVert[1] = CTVert[0];
 			CTVert[0] = temp;
 			
-		}
-		else if (rot == 2)
-		{
-			var  temp= new ColVertTex();
-			var  temp2= new ColVertTex();
-			temp = CTVert[3];
-			temp2 = CTVert[0];
-			CTVert[3] = CTVert[1];
-			CTVert[0] = CTVert[2];
-			CTVert[2] = temp2;
-			CTVert[1] = temp;
-
-		}
-		else if (rot == 3)
-		{
-			var  temp= new ColVertTex();
-			var  temp2= new ColVertTex();
-			temp = CTVert[3];
-			temp2 = CTVert[0];
-			CTVert[1] = CTVert[2];
-			CTVert[0] = CTVert[1];
-			CTVert[3] = temp2;
-			CTVert[2] = temp;
-
 		}
 	}
 }
@@ -395,7 +371,7 @@ function Tilemap_CollisionRectangle(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 			return false;
 		}
 
-		var numtilesperrow = spr.GetWidth() / pBack.tilewidth; 
+		var numtilesperrow = spr.GetWidth() / (pBack.tilewidth+pBack.tilehsep);
 
 		var sprwidth = spr.GetWidth();
 
@@ -559,7 +535,7 @@ function Tilemap_CollisionLine(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 			return false;
 		}
 
-		var numtilesperrow = spr.GetWidth() / pBack.tilewidth;
+		var numtilesperrow = spr.GetWidth() / (pBack.tilewidth+pBack.tilehsep);
 		var sprwidth = spr.GetWidth();
 
 		var tilewidth, tileheight;
@@ -728,7 +704,7 @@ function Tilemap_CollisionEllipse(_x, _y, _x2, _y2, tilemapind, instlist,prec)
 			return false;
 		}
 
-		var numtilesperrow = spr.GetWidth() / pBack.tilewidth;
+		var numtilesperrow = spr.GetWidth() / (pBack.tilewidth+pBack.tilehsep);
 		var sprwidth = spr.GetWidth();
 
 		var tilewidth, tileheight;
@@ -895,7 +871,7 @@ function Tilemap_PointPlace( _x, _y, tilemapind, instlist,prec)
 			return false;
 		}
 
-		var numtilesperrow = spr.GetWidth() / pBack.tilewidth;
+		var numtilesperrow = spr.GetWidth() / (pBack.tilewidth+pBack.tilehsep);
 		var sprwidth = spr.GetWidth();
 
 		var tilewidth, tileheight;
@@ -1113,7 +1089,7 @@ function Tilemap_InstancePlace(inst, _x, _y, tilemapind,instlist,prec)
 		if ((spr == null) || (spr.count == 0)) {
 			return false;
 		}
-		var numtilesperrow = spr.GetWidth() / pBack.tilewidth;
+		var numtilesperrow = spr.GetWidth() / (pBack.tilewidth+pBack.tilehsep);
 		var sprwidth = spr.GetWidth();
 
 		var tilewidth, tileheight;
