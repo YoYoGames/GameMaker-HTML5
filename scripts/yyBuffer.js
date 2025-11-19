@@ -656,6 +656,7 @@ function BufferSizeOf(_type) {
             sizeneeded = 1;
             break;
 
+        case eBuffer_F16:
         case eBuffer_U16:
         case eBuffer_S16:
             sizeneeded = 2;
@@ -1765,6 +1766,9 @@ yyBuffer.prototype.yyb_poke = function(_type, _offset, _value) {
             break;
         case eBuffer_S16:
             this.m_DataView.setInt16(_offset, _value, true);
+            break;
+      case eBuffer_F16:
+            this.m_DataView.setFloat16(_offset, _value, true);
             break;
 
         case eBuffer_S32:
