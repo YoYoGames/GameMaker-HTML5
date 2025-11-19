@@ -887,11 +887,17 @@ function flexpanel_node_layout_get_position( _node, _relative )
 function flexpanel_set_rounding_scale( _scaleFactor )
 {
 	var roundingScale = yyGetReal(_scaleFactor);
-	if (roundingScale < 0) {
-		yyError("rounding scale factor should not be less than zero");
+	if (roundingScale < 0 || !isFinite(roundingScale)) {
+		yyError("rounding scale factor must be a finite non-negative number");
+		return;
 	}
 
     g_yogaConfig.setPointScaleFactor(roundingScale);
+}
+
+function flexpanel_get_rounding_scale()
+{
+	return g_yogaConfig.getPointScaleFactor();
 }
 
 // #######################################################################################
