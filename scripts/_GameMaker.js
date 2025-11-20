@@ -88,6 +88,18 @@ window.addEventListener(
 	"message",
 (event) => {
 
+
+    if(g_ActiveMaps==undefined)
+    {
+        console.log("Event received before GameMaker initialised, ignoring");
+        if(event.origin!=undefined)
+            console.log("Event received from:" + event.origin);
+
+        if(typeof event.data === 'string')
+	        console.log("Event data:" + event.data);
+        return;
+    }
+
 	  //console.log("Event received from " + event.origin);
 	  //console.log("Event data " + event.data);
       const map = ds_map_create();
