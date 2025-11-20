@@ -89,10 +89,10 @@ window.addEventListener(
 (event) => {
 
 
-    if(g_ActiveMaps==undefined)
+    if(!g_ActiveMaps)
     {
         console.log("Event received before GameMaker initialised, ignoring");
-        if(event.origin!=undefined)
+        if(event.origin!==undefined)
             console.log("Event received from:" + event.origin);
 
         if(typeof event.data === 'string')
