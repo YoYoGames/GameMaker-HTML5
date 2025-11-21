@@ -1,6 +1,7 @@
 // @if feature("flexpanel")
 const Yoga = require('/yoga-wasm-base64-csm.js');
 var g_yoga = null;
+var g_yogaConfig = null;
 var g_UILayers = null;
 
 /// Global flag: **true** after the first UI-layer layout pass has completed.
@@ -9,6 +10,7 @@ var g_UILayersInit = false;
 async function flexpanel_init()
 {
 	g_yoga = await Yoga();
+    g_yogaConfig = g_yoga["Config"]["create"]();
 }
 flexpanel_init();
 
@@ -218,7 +220,7 @@ function FLEXPANEL_Init_From_Struct(_node, _struct, _from_wad)
 			flexpanel_node_remove_all_children(_node);
 			for( var n=0; n<value.length; ++n) {
 
-				var child = g_yoga["Node"]["createDefault"]();
+				var child = g_yoga["Node"]["createWithConfig"](g_yogaConfig);
 				FLEXPANEL_CreateContext( child );
 				_node.insertChild( child, n );
 
@@ -484,7 +486,7 @@ function FLEXPANEL_Handle_Struct( _node, _struct, _from_wad)
 // #######################################################################################
 function flexpanel_create_node( _struct )
 {	
-	var ret = g_yoga[ "Node" ]["createDefault"]();
+	var ret = g_yoga["Node"]["createWithConfig"](g_yogaConfig);
 	FLEXPANEL_CreateContext(ret);
 	FLEXPANEL_Handle_Struct( ret, _struct, false );
 	return ret;
@@ -880,6 +882,22 @@ function flexpanel_node_layout_get_position( _node, _relative )
     variable_struct_set(ret, "right", right + x);
 
 	return ret;
+}
+
+function flexpanel_set_rounding_scale( _scaleFactor )
+{
+	var roundingScale = yyGetReal(_scaleFactor);
+	if (roundingScale < 0 || !isFinite(roundingScale)) {
+		yyError("rounding scale factor must be a finite non-negative number");
+		return;
+	}
+
+    g_yogaConfig.setPointScaleFactor(roundingScale);
+}
+
+function flexpanel_get_rounding_scale()
+{
+	return g_yogaConfig.getPointScaleFactor();
 }
 
 // #######################################################################################
@@ -1415,7 +1433,7 @@ function UILayers_Create()
 			layer_type = eLAYER_GUI_IN_VIEW;
 		}
 
-		var node = g_yoga[ "Node" ]["createDefault"]();
+		var node = g_yoga["Node"]["createWithConfig"](g_yogaConfig);
 		FLEXPANEL_CreateContext(node);
 		FLEXPANEL_Handle_Struct(node, layer_data, true);
 
