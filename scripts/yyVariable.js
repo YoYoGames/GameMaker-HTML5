@@ -61,8 +61,7 @@ function array_get_2D( _a, _d1, _d2 )
     _d2 = yyGetInt32(_d2);
 
     if (!(_a instanceof Array)) yyError("array_get_2D() : argument 0 must be an array");
-    if (typeof _d1 != "number") yyError( "array_get_2D() : index 1 must be a number" );
-    if (typeof _d2 != "number") yyError( "array_get_2D() : index 2 must be a number" );
+
     if ((_d1 < 0) || (_d1 >= _a.length)) yyError( "array_get_2D() : index 1 out of range" );
     if (!(_a[_d1] instanceof Array)) yyError( "array_get_2D() : second dimension is not an array" );
     if ((_d2 < 0) || (_d2 >= _a[_d1].length)) yyError( "array_get_2D() : index 2 out of range" );
@@ -71,9 +70,11 @@ function array_get_2D( _a, _d1, _d2 )
 
 function array_set_2D( _a, _d1, _d2, _v )
 {
+
+    _d1 = yyGetInt32(_d1);
+    _d2 = yyGetInt32(_d2);
     if (!(_a instanceof Array)) yyError( "array_set_2D() : argument 0 must be an array" );
-    if (typeof _d1 != "number") yyError( "array_set_2D() : index 1 must be a number" );
-    if (typeof _d2 != "number") yyError( "array_set_2D() : index 2 must be a number" );
+
     if (!(_a[_d1] instanceof Array)) _a[_d1] = [];
     _a[_d1][_d2] = _v;
 }
