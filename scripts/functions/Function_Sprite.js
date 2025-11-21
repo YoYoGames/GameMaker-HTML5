@@ -1557,7 +1557,7 @@ function sprite_get_uvs(_spriteIndex, _frameIndex)
     if (sprite_exists(_spriteIndex)) {
     
         var spr = g_pSpriteManager.Get(_spriteIndex);
-        var pTPE = spr.GetTPE(yyGetInt32(yyGetInt32(_frameIndex)));
+        var pTPE = spr.GetTPE(yyGetInt32(_frameIndex));
 	    
 	    var texture = pTPE.texture;
 	    
