@@ -783,6 +783,7 @@ yyFont.prototype.Draw_String_GL = function (_x, _y, _pStr, _xscale, _yscale, _an
     //tizen optimised
     var cached_image;
 	var TP = this.TPEntry; 
+	if(!TP || !TP.texture) return;
 	if (!TP.texture.complete) return;                   // if texture hasn't loaded, return...
 	var len = _pStr.length;
     

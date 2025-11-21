@@ -1471,10 +1471,7 @@ function sprite_set_cache_size_ext(_ind, _index, _max) {
 function sprite_get_tpe(_index, _subimage)
 {
     _index = yyGetRef(_index, REFID_SPRITE, g_pSpriteManager.Sprites.length, g_pSpriteManager.Sprites);
-	if(typeof _subimage != "number")
-	{
-		yyError("sprite_get_tpe() subimg argument should be a Real!");
-	}
+
     _subimage = yyGetInt32(_subimage);
 
 	var pSpr = g_pSpriteManager.Get(_index);
@@ -1521,10 +1518,7 @@ function sprite_get_tpe(_index, _subimage)
 function sprite_get_texture(_spriteIndex, _frameIndex)
 {
     _spriteIndex = yyGetRef(_spriteIndex, REFID_SPRITE, g_pSpriteManager.Sprites.length, g_pSpriteManager.Sprites);
-	if(typeof _frameIndex != "number")
-	{
-		yyError("sprite_get_texture() subimg argument should be a Real!");
-	}
+
 	
     if (sprite_exists(_spriteIndex)) {
     
@@ -1559,10 +1553,7 @@ function sprite_get_texture(_spriteIndex, _frameIndex)
 function sprite_get_uvs(_spriteIndex, _frameIndex)
 {
     _spriteIndex = yyGetRef(_spriteIndex, REFID_SPRITE, g_pSpriteManager.Sprites.length, g_pSpriteManager.Sprites);
-	if(typeof _frameIndex != "number")
-	{
-		yyError("sprite_get_uvs() subimg argument should be a Real!");
-	}
+
     if (sprite_exists(_spriteIndex)) {
     
         var spr = g_pSpriteManager.Get(_spriteIndex);
