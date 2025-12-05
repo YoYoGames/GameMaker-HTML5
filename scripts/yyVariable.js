@@ -36,6 +36,7 @@ var VALUE_REF = 15;		// Reference value (uses the ptr to point at a RefBase stru
 
 var g_CurrentArrayOwner = 0;
 
+Array.prototype.__yy_owner = g_CurrentArrayOwner;
 
 // #############################################################################################
 /// Function:<summary>
