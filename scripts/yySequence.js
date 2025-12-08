@@ -1989,11 +1989,14 @@ function yySequenceBaseTrack(_pStorage) {
             {
                 if(_val instanceof Array)
                 {
-                    this.m_tracks.length = 0;                                        
-                    for (var i = 0; i < _val.length; i++)
+                    if (_val != this.m_tracks)
                     {
-                        _val[i].m_parent = this;
-                        this.m_tracks[i] = _val[i];
+                        this.m_tracks.length = 0;                                        
+                        for (var i = 0; i < _val.length; i++)
+                        {
+                            _val[i].m_parent = this;
+                            this.m_tracks[i] = _val[i];
+                        }
                     }                         
                 }
                 else
@@ -2043,9 +2046,12 @@ function yySequenceBaseTrack(_pStorage) {
             {
                 if(_val instanceof Array)
                 {
-                    this.m_keyframeStore.keyframes.length = 0;
-                    for (var i = 0; i < _val.length; i++) {                        
-                        this.m_keyframeStore.keyframes[i] = _val[i];
+                    if (_val != this.m_keyframeStore.keyframes)
+                    {
+                        this.m_keyframeStore.keyframes.length = 0;
+                        for (var i = 0; i < _val.length; i++) {                        
+                            this.m_keyframeStore.keyframes[i] = _val[i];
+                        }
                     }                    
                 }
                 else
@@ -2924,6 +2930,15 @@ function yyColorTrackKey(_pStorage)
                 yyError("Array index " + _index + " out of range of colour array");
                 return false;
             }
+            
+            var realVal = yyGetReal(_val);
+            realVal *= 255.0;
+
+            // We're expecting values in a 0 to 255 range here, so clamp this
+            if (realVal < 0.0)
+                realVal = 0.0;
+            if (realVal > 255.0)
+                realVal = 255.0;            
 
             var shift = 0;
             if (_index == 0)
@@ -2932,7 +2947,7 @@ function yyColorTrackKey(_pStorage)
                 shift = (_index - 1) * 8;
 
             this.self.m_color &= ~(0xff << shift);
-            this.self.m_color |= ((yyGetReal(_val) * 255.0) & 0xff) << shift;            
+            this.self.m_color |= (realVal & 0xff) << shift;            
 
             return true;   // see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/set#return_value 
         };
@@ -3525,12 +3540,15 @@ function yyKeyframe(_type, _pStorage) {
             {
                 if(_val instanceof Array)
                 {
-                    //this.m_channels = {};
-                    this.m_channels.length = 0;
-                    for(var channelIndex = 0; channelIndex < _val.length; channelIndex++)
+                    if (_val != this.m_channels)
                     {
-                        var key = _val[channelIndex].m_channel;
-                        this.m_channels[key] = _val[channelIndex];
+                        //this.m_channels = {};
+                        this.m_channels.length = 0;
+                        for(var channelIndex = 0; channelIndex < _val.length; channelIndex++)
+                        {
+                            var key = _val[channelIndex].m_channel;
+                            this.m_channels[key] = _val[channelIndex];
+                        }
                     }
                 }
                 else
@@ -4304,14 +4322,17 @@ function yySequence(_pStorage) {
             set: function (_val)
             {
                 if(_val instanceof Array)
-                {                    
-                    // We have to copy the tracks one-by-one because this.m_tracks isn't a normal array
-                    this.m_tracks.length = 0;
-                    for (var i = 0; i < _val.length; i++)
-                    {
-                        _val[i].m_parent = this;
-                        this.m_tracks[i] = _val[i];
-                    }                    
+                { 
+                    if (_val != this.m_tracks)
+                    {                   
+                        // We have to copy the tracks one-by-one because this.m_tracks isn't a normal array
+                        this.m_tracks.length = 0;
+                        for (var i = 0; i < _val.length; i++)
+                        {
+                            _val[i].m_parent = this;
+                            this.m_tracks[i] = _val[i];
+                        }                    
+                    }
                 }
                 else
                 {
@@ -4326,9 +4347,12 @@ function yySequence(_pStorage) {
             {
                 if(_val instanceof Array)
                 {
-                    this.m_messageEventKeyframeStore.keyframes.length = 0;
-                    for (var i = 0; i < _val.length; i++) {
-                        this.m_messageEventKeyframeStore.keyframes[i] = _val[i];
+                    if (_val != this.m_messageEventKeyframeStore.keyframes)
+                    {
+                        this.m_messageEventKeyframeStore.keyframes.length = 0;
+                        for (var i = 0; i < _val.length; i++) {
+                            this.m_messageEventKeyframeStore.keyframes[i] = _val[i];
+                        }
                     }                    
                 }
                 else
@@ -4344,10 +4368,13 @@ function yySequence(_pStorage) {
                 {
                 if (_val instanceof Array)
                 {
-                    this.m_momentEventKeyframeStore.keyframes.length = 0;
-                    for (var i = 0; i < _val.length; i++) {
-                        this.m_momentEventKeyframeStore.keyframes[i] = _val[i];
-                    }                    
+                    if (_val != this.m_momentEventKeyframeStore.keyframes)
+                    {
+                        this.m_momentEventKeyframeStore.keyframes.length = 0;
+                        for (var i = 0; i < _val.length; i++) {
+                            this.m_momentEventKeyframeStore.keyframes[i] = _val[i];
+                        }                    
+                    }
                 }
                 else
                 {

@@ -86,6 +86,16 @@ function yyAnimCurveChannel(_pStorage) {
     this.m_curveType = 0;
     this.m_iterations = 16;
     this.m_numPoints = 0;
+
+    // #############################################################################################
+    /// Function:<summary>
+    ///             Resets the cached points count
+    ///          </summary>
+    // #############################################################################################
+    this.ScrubCachedPoints = function () {
+        // The garbage collector will clean up unreferenced points
+        this.numCachedPoints = 0;
+    };
     
     this.setupNewPointArray = function () {
         this.m_points = new EnhancedArray();
@@ -166,13 +176,16 @@ function yyAnimCurveChannel(_pStorage) {
             {
                 if(_val instanceof Array)
                 {                    
-                    this.m_points.length = 0;
-                    for (var i = 0; i < _val.length; i++) {
-                        this.m_points[i] = _val[i];
-                    }                    
+                    if (_val != this.m_points)
+                    {
+                        this.m_points.length = 0;
+                        for (var i = 0; i < _val.length; i++) {
+                            this.m_points[i] = _val[i];
+                        }                    
 
-                    this.ScrubCachedPoints();
-                    this.changeIndex = GetNextSeqObjChangeIndex();
+                        this.ScrubCachedPoints();
+                        this.changeIndex = GetNextSeqObjChangeIndex();
+                    }
                 }
                 else
                 {
@@ -437,18 +450,7 @@ function yyAnimCurveChannel(_pStorage) {
 	    var pPoint = this.AllocNewCachedPoint();
 	    pPoint.m_x = pLast.m_x;
 	    pPoint.m_value = pLast.m_value;
-    };
-
-    // #############################################################################################
-    /// Function:<summary>
-    ///             Resets the cached points count
-    ///          </summary>
-    // #############################################################################################
-    this.ScrubCachedPoints = function()
-    {
-        // The garbage collector will clean up unreferenced points
-        this.numCachedPoints = 0;
-    };
+    };    
 
     // #############################################################################################
     /// Function:<summary>
@@ -629,15 +631,18 @@ function yyAnimCurve(_pStorage) {
             get: function () { return this.m_channels; },
             set: function (_val)
             {
-                if(_val instanceof Array)
+                if (_val instanceof Array)
                 {                    
-                    this.m_channels.length = 0;
-                    for (var channelIndex = 0; channelIndex < _val.length; channelIndex++) {                        
-                        this.m_channels[channelIndex] = _val[channelIndex];
-                    }                    
+                    if (_val != this.m_channels)
+                    {
+                        this.m_channels.length = 0;
+                        for (var channelIndex = 0; channelIndex < _val.length; channelIndex++) {                        
+                            this.m_channels[channelIndex] = _val[channelIndex];
+                        }                    
 
-                    this.IsDirty(this.changeIndex); // check linked data to get things up to date
-                    this.changeIndex = GetNextSeqObjChangeIndex();
+                        this.IsDirty(this.changeIndex); // check linked data to get things up to date
+                        this.changeIndex = GetNextSeqObjChangeIndex();
+                    }
                 }
                 else
                 {
