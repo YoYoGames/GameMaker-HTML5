@@ -32,8 +32,8 @@ function isIndex(_val)
     if (_val.match('^\\d+$'))
         return true;
     else
-        return false    
-};
+        return false;
+}
 
 function EnhancedArray()
 {    
