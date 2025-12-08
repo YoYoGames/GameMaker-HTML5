@@ -3230,7 +3230,19 @@ function layer_sprite_x( arg1,arg2)
     var el = layerSpriteGetElement(arg1);
     if (el != null)
     {
-        el.m_x = yyGetReal(arg2);
+        if (!el.m_layer.IsUILayer()) {
+            el.m_x = yyGetReal(arg2);
+        }
+        else {
+
+            var ui_layer = UILayers_Get_By_Name(el.m_layer.m_pName);
+            if(ui_layer)
+                UILayer_UpdateLayout(ui_layer);
+
+            var dx = yyGetReal(arg2)-el.m_x; 
+            el.m_uiNode.spriteOffsetX += dx;
+        }
+
     }
 };
 function layer_sprite_y( arg1,arg2) 
@@ -3238,7 +3250,19 @@ function layer_sprite_y( arg1,arg2)
     var el = layerSpriteGetElement(arg1);
     if (el != null)
     {
-        el.m_y = yyGetReal(arg2);
+        if (!el.m_layer.IsUILayer()) {
+            el.m_y = yyGetReal(arg2);
+        }
+        else {
+            
+            var ui_layer = UILayers_Get_By_Name(el.m_layer.m_pName);
+            if(ui_layer)
+                UILayer_UpdateLayout(ui_layer);
+
+            var dy = yyGetReal(arg2)-el.m_y; 
+            el.m_uiNode.spriteOffsetY += dy;
+        }
+
     }
 };
 
@@ -3646,7 +3670,13 @@ function layer_text_x( _textelID,_x)
             el.m_x = yyGetReal(_x);
         }
         else {
-            el.m_uiNode.textOffsetX = _xscale;
+
+            var ui_layer = UILayers_Get_By_Name(el.m_layer.m_pName);
+            if(ui_layer)
+                UILayer_UpdateLayout(ui_layer);
+
+            var dx = yyGetReal(_x)-el.m_x; 
+            el.m_uiNode.textOffsetX += dx;
         }
     }
 };
@@ -3660,7 +3690,13 @@ function layer_text_y( _textelID,_y)
             el.m_y = yyGetReal(_y);
         }
         else {
-            el.m_uiNode.textOffsetY = yyGetReal(_y);
+
+            var ui_layer = UILayers_Get_By_Name(el.m_layer.m_pName);
+            if(ui_layer)
+                UILayer_UpdateLayout(ui_layer);
+
+            var dy = yyGetReal(_y)-el.m_y; 
+            el.m_uiNode.textOffsetY += dy;
         }
     }
 };
