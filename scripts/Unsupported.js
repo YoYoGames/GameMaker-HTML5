@@ -324,4 +324,8 @@ function uwp_device_touchscreen_available() { ErrorFunction("uwp_device_touchscr
 function external_define() { ErrorFunction("external_define()"); return -1; }
 function external_call() { ErrorFunction("external_call()"); return -1; }
 function external_free() { ErrorFunction("external_free()"); return -1; }
+
+
+function wallpaper_set_config(config)                       { ErrorFunction("wallpaper_set_config()"); }
+function wallpaper_set_subscriptions(subscriptions)         { ErrorFunction("wallpaper_set_subscriptions()"); }
 //-------
