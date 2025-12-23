@@ -1725,7 +1725,7 @@ function DrawTile(_rect,_back,_indexdata,_frame,_x,_y,_depth)
                     pCoords[v5 + 1] = bottomrightY;	
                     pCoords[v5 + 2] = depth;
                 	
-					pColours[v0] = col1;
+					pColours[v0] = col;
 					pColours[v1] = pColours[v4] = col2;
 					pColours[v5] = col3;
 					pColours[v2] = pColours[v3] = col4;
