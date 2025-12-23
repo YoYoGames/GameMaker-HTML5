@@ -128,6 +128,8 @@ function    yyBuiltIn()
     this.event_data = -1;
     this.iap_event_data = -1;
     this.debug_mode = false;
+    this.wallpaper_config = -1;
+    this.wallpaper_subscription_data = -1;
 
     this.application_surface = -1;
 
@@ -190,6 +192,8 @@ yyBuiltIn.prototype.get_async_load = function () { return this.async_load; };
 yyBuiltIn.prototype.get_event_data = function () { return this.event_data; };
 yyBuiltIn.prototype.get_display_aa = function () { return 0; };
 yyBuiltIn.prototype.get_iap_data = function () { return this.iap_event_data; };
+yyBuiltIn.prototype.get_wallpaper_config = function () { return this.wallpaper_config; };
+yyBuiltIn.prototype.get_wallpaper_subscription_data = function () { return this.wallpaper_subscription_data; };
 
 yyBuiltIn.prototype.set_current_room = function (_room) { room_goto(yyGetInt32(_room)); };
 yyBuiltIn.prototype.get_current_room = function () { return g_RunRoom.id; };
