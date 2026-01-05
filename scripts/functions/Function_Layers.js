@@ -4163,7 +4163,7 @@ function layer_tilemap_set_colmask(tilemap_element,colmask)
 
             if(basespr!=null)
             {
-                if(spr.GetWidth() != basespr.GetWidth() || spr.GetHeight() != basespr.GetWidth())
+                if(spr.GetWidth() != basespr.GetWidth() || spr.GetHeight() != basespr.GetHeight())
                 {
                     yyError("layer_tilemap_set_colmask size mismatch, expecting " + basespr.GetWidth() + " by "+basespr.GetHeight() + " and received " +spr.GetWidth() + " by " +spr.GetHeight()); 
                 }
