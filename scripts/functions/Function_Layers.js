@@ -4553,8 +4553,8 @@ function tileset_get_info(_ind) {
 
         var pTPE = pDest.TPEntry;        
         var texture = pTPE.texture;
-        variable_struct_set(ret, "width", texture.width); 
-        variable_struct_set(ret, "height", texture.height); 
+        variable_struct_set(ret, "width", pTPE.ow); 
+        variable_struct_set(ret, "height", pTPE.oh); 
         variable_struct_set(ret, "texture", pTPE.tp); 
         variable_struct_set(ret, "tile_width", pDest.tilewidth); 
         variable_struct_set(ret, "tile_height", pDest.tileheight); 
