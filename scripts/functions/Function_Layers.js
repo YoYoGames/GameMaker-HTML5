@@ -4558,13 +4558,15 @@ function tileset_get_info(_ind) {
         variable_struct_set(ret, "texture", pTPE.tp); 
         variable_struct_set(ret, "tile_width", pDest.tilewidth); 
         variable_struct_set(ret, "tile_height", pDest.tileheight); 
-        variable_struct_set(ret, "tile_horizontal_separator", pDest.tilehsep); 
-        variable_struct_set(ret, "tile_vertical_separator", pDest.tilevsep); 
+        variable_struct_set(ret, "tile_horizontal_separator", pDest.tilehsep);
+        variable_struct_set(ret, "tile_vertical_separator", pDest.tilevsep);
+        variable_struct_set(ret, "tile_border_x", pDest.tileborderx);
+        variable_struct_set(ret, "tile_border_y", pDest.tilebordery);
         variable_struct_set(ret, "tile_columns", pDest.tilecolumns); 
         variable_struct_set(ret, "tile_count", pDest.tilecount); 
         variable_struct_set(ret, "sprite_index", pDest.spriteindex); 
         variable_struct_set(ret, "frame_count", pDest.frames); 
-        variable_struct_set(ret, "frame_length_ms", pDest.framelength); 
+        variable_struct_set(ret, "frame_length_ms", pDest.framelength / 1000); 
 
         var frames = new GMLObject();
         for( var t = 0; t < pDest.tilecount; ++t) {
