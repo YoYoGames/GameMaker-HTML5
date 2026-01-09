@@ -123,7 +123,7 @@ function yyAnimCurveChannel(_pStorage) {
         this.m_curveType = _pStorage.function;
         this.m_iterations = _pStorage.iterations;
         this.m_numPoints = _pStorage.points.length;        
-        for (var pointIndex = 0; pointIndex < this.m_numPoints; ++pointIndex) {
+        for (var pointIndex = 0; pointIndex < _pStorage.points.length; ++pointIndex) {
             this.m_points[pointIndex] = new yyAnimCurvePoint(_pStorage.points[pointIndex]);
         }
     }
@@ -597,7 +597,7 @@ function yyAnimCurve(_pStorage) {
         this.pName = _pStorage.pName;
         this.m_graphType = _pStorage.graphType;
         this.m_numChannels = _pStorage.channels.length;        
-        for (var channelIndex = 0; channelIndex < this.m_numChannels; ++channelIndex) {
+        for (var channelIndex = 0; channelIndex < _pStorage.channels.length; ++channelIndex) {
             this.m_channels[channelIndex] = new yyAnimCurveChannel(_pStorage.channels[channelIndex]);
         }
         this.fromWAD = true;

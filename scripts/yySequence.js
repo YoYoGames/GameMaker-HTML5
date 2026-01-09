@@ -2548,17 +2548,18 @@ function yyTrackKeyBase()
         },        
     });
 
-    this.UpdateDirtiness = function()
-    {
-        var currChangeIndex = this.changeIndex;
-        for(var channel in this.m_channels)
-        {
-            if (channel.IsDirty(currChangeIndex))
-            {
-                this.changeIndex = yymax(this.changeIndex, channel.changeIndex);
-            }
-        }
-    };
+    // Not sure why this was here, yyTrackKeyBase doesn't have channels (it's the data for a single channel)
+    //this.UpdateDirtiness = function()
+    //{
+    //    var currChangeIndex = this.changeIndex;
+    //    for(var channel in this.m_channels)
+    //    {
+    //        if (channel.IsDirty(currChangeIndex))
+    //        {
+    //            this.changeIndex = yymax(this.changeIndex, channel.changeIndex);
+    //        }
+    //    }
+    //};
 }
 
 // #############################################################################################
@@ -2800,15 +2801,12 @@ function yyRealTrackKey(_pStorage)
 
     this.UpdateDirtiness = function()
     {
-        var currChangeIndex = this.changeIndex;
-        for(var channel in this.m_channels)
+        var currChangeIndex = this.changeIndex;        
+        var pCurve = g_pAnimCurveManager.GetCurveFromID(this.m_curveIndex);
+
+        if ((pCurve != null) && (pCurve.IsDirty(currChangeIndex)))
         {
-            var pCurve = g_pAnimCurveManager.GetCurveFromID(channel.m_curveIndex);
-    
-            if ((pCurve != null) && (pCurve.IsDirty(currChangeIndex)))
-            {
-                this.changeIndex = yymax(this.changeIndex, pCurve.changeIndex);			
-            }
+            this.changeIndex = yymax(this.changeIndex, pCurve.changeIndex);			
         }
     };
 
@@ -3191,14 +3189,11 @@ function yyAudioEffectTrackKey(_pStorage)
     this.UpdateDirtiness = function()
     {
         var currChangeIndex = this.changeIndex;
-        for(var channel in this.m_channels)
+        var pCurve = g_pAnimCurveManager.GetCurveFromID(this.m_curveIndex);
+
+        if ((pCurve != null) && (pCurve.IsDirty(currChangeIndex)))
         {
-            var pCurve = g_pAnimCurveManager.GetCurveFromID(channel.m_curveIndex);
-    
-            if ((pCurve != null) && (pCurve.IsDirty(currChangeIndex)))
-            {
-                this.changeIndex = yymax(this.changeIndex, pCurve.changeIndex);			
-            }
+            this.changeIndex = yymax(this.changeIndex, pCurve.changeIndex);
         }
     };
 
@@ -3499,6 +3494,21 @@ function yyKeyframe(_type, _pStorage) {
     }
 
     this.SignalChange();
+
+    this.UpdateDirtiness = function () {
+        var currChangeIndex = this.changeIndex;        
+        for(var channelIndex = 0; channelIndex < this.m_channels.length; channelIndex++)
+        {
+            var channel = this.m_channels[channelIndex];
+            if (channel === undefined)
+                continue;	// handle sparse arrays
+
+            if (channel.IsDirty(currChangeIndex)) {
+                this.changeIndex = yymax(this.changeIndex, channel.changeIndex);
+            }
+        }
+    };
+
     // @if feature("sequences")
     Object.defineProperties(this, {
         gmlframe: {
@@ -3546,6 +3556,9 @@ function yyKeyframe(_type, _pStorage) {
                         this.m_channels.length = 0;
                         for(var channelIndex = 0; channelIndex < _val.length; channelIndex++)
                         {
+                            if (_val[channelIndex] === undefined)
+                                continue;   // support sparse arrays
+
                             var key = _val[channelIndex].m_channel;
                             this.m_channels[key] = _val[channelIndex];
                         }
@@ -4461,10 +4474,13 @@ yySequence.prototype.GetObjectIDsFromTrack = function(_tracks, _ids) {
 				{
 					var pKey = pInstTrack.m_keyframeStore.keyframes[i];
 
-					// Check key channels
-                    for(var channelKey in pKey.m_channels)
-                    {
-                        var ppKey = pKey.m_channels[channelKey];
+					// Check key channels                    
+                    for(var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+                    {                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
 
 						if (ppKey.m_objectIndex != -1)
 						{
@@ -4494,10 +4510,13 @@ yySequence.prototype.GetObjectIDsFromTrack = function(_tracks, _ids) {
 				{
 					var pKey = pSeqTrack.m_keyframeStore.keyframes[i];
 
-					// Check key channels
-                    for(var channelKey in pKey.m_channels)
-                    {
-                        var ppKey = pKey.m_channels[channelKey];
+					// Check key channels                    
+                    for(var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+                    {                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
 
 						if (ppKey.m_index != -1)
 						{
@@ -5915,10 +5934,13 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
         if (pAudioKey != null)
         {
             g_SeqStack.push(pAudioKey);
+            
+            for(var channelIndex = 0; channelIndex < pAudioKey.m_channels.length; channelIndex++)
+            {                
+                var ppChanKey = pAudioKey.m_channels[channelIndex];
 
-            for (var channelKey in pAudioKey.m_channels)
-            {
-                var ppChanKey = pAudioKey.m_channels[channelKey];
+                if (ppChanKey === undefined)
+                    continue;	// handle sparse arrays
 
                 g_SeqStack.push(ppChanKey);
 
@@ -6084,10 +6106,13 @@ yySequenceManager.prototype.HandleInstanceTrackUpdate = function (_pEl, _pSeq, _
 		if (pKey != null)
 		{
             g_SeqStack.push(pKey);
+            
+            for(var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+            {                
+                var ppKey = pKey.m_channels[channelIndex];
 
-            for(var channelKey in pKey.m_channels)
-            {
-                var ppKey = pKey.m_channels[channelKey];
+                if (ppKey === undefined)
+                    continue;  	// handle sparse arrays
 
                 g_SeqStack.push(ppKey);
 
@@ -6703,10 +6728,13 @@ CSequenceInstance.prototype.SetupInstances = function(_tracks, _objectToOverride
                     
                     g_SeqStack.push(pKey);
 
-					// Check key channels
-                    for(var channelKey in pKey.m_channels)
-                    {
-                        var ppKey = pKey.m_channels[channelKey];
+					// Check key channels                    
+                    for(var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+                    {                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
                         
 						if (ppKey.m_objectIndex != -1)
 						{
@@ -6820,10 +6848,13 @@ CSequenceInstance.prototype.SetupInstances = function(_tracks, _objectToOverride
                     
                     g_SeqStack.push(pKey);
 
-					// Check key channels
-                    for(var channelKey in pKey.m_channels)
-                    {
-                        var ppKey = pKey.m_channels[channelKey];
+					// Check key channels                    
+                    for (var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+                    {                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
 
                         g_SeqStack.push(ppKey);
 
@@ -6905,10 +6936,13 @@ CSequenceInstance.prototype.SetupAudioEmitters = function (_tracks)
 
                     g_SeqStack.push(pKey);
 
-                    // Check key channels
-                    for (var channelKey in pKey.m_channels)
-{
-                        var ppKey = pKey.m_channels[channelKey];
+                    // Check key channels                    
+                    for (var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+{                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
 
                         if (ppKey.m_soundIndex != -1)
                         {
@@ -6957,10 +6991,13 @@ CSequenceInstance.prototype.SetupAudioEmitters = function (_tracks)
 
                     g_SeqStack.push(pKey);
 
-                    // Check key channels
-                    for (var channelKey in pKey.m_channels)
-{
-                        var ppKey = pKey.m_channels[channelKey];
+                    // Check key channels                    
+                    for (var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+{                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
 
                         g_SeqStack.push(ppKey);
 
