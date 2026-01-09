@@ -1,4 +1,4 @@
-﻿
+
 // **********************************************************************************************************************
 // 
 // Copyright (c)2011, YoYo Games Ltd. All Rights reserved.
@@ -2882,6 +2882,9 @@ function __internal_variable_clone(_val, _depth) {
 
         var clone = new GMLObject();
         g_CLONE_VISITED_LIST.set(_val, clone);
+
+        Object.setPrototypeOf(clone, Object.getPrototypeOf(_val));
+        clone.__type = _val.__type;
 
         // Go through all the property in the struct
         for (var name in _val) {
