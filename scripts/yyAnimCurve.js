@@ -123,7 +123,8 @@ function yyAnimCurveChannel(_pStorage) {
         this.m_curveType = _pStorage.function;
         this.m_iterations = _pStorage.iterations;
         this.m_numPoints = _pStorage.points.length;        
-        for (var pointIndex = 0; pointIndex < this.m_numPoints; ++pointIndex) {
+        let numPoints = this.m_numPoints;
+        for (var pointIndex = 0; pointIndex < numPoints; ++pointIndex) {
             this.m_points[pointIndex] = new yyAnimCurvePoint(_pStorage.points[pointIndex]);
         }
     }
