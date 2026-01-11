@@ -597,8 +597,9 @@ function yyAnimCurve(_pStorage) {
     if ((_pStorage != null) && (_pStorage != undefined)) {
         this.pName = _pStorage.pName;
         this.m_graphType = _pStorage.graphType;
-        this.m_numChannels = _pStorage.channels.length;        
-        for (var channelIndex = 0; channelIndex < this.m_numChannels; ++channelIndex) {
+        this.m_numChannels = _pStorage.channels.length;
+        let numChannels = this.m_numChannels;       
+        for (var channelIndex = 0; channelIndex < numChannels; ++channelIndex) {
             this.m_channels[channelIndex] = new yyAnimCurveChannel(_pStorage.channels[channelIndex]);
         }
         this.fromWAD = true;
