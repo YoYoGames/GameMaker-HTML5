@@ -29,7 +29,8 @@ function CHashMapCalculateHash(snap)
 
 function isIndex(_val)
 {
-    if (_val.match('^\\d+$'))
+    //if (_val.match('^\\d+$'))
+    if (+_val == +_val)
         return true;
     else
         return false;
@@ -38,13 +39,10 @@ function isIndex(_val)
 function EnhancedArray()
 {    
     return new Proxy(new Array(), 
-        {
-            // It might be worth having a variation of EnhancedArray that omits the getter
-            // to save the overhead of checking to see if the property is a numerical index
-            // for situations where we don't need to do custom handling of the get operation.
+        {            
             get(target, prop, receiver)
-            {
-                if (isIndex(prop))
+            {                                    
+                if ((target.GetIndex != undefined) && (isIndex(prop)))
                 {
                     var index = yyGetInt32(prop);
                     return target.GetIndex(index);
@@ -56,7 +54,7 @@ function EnhancedArray()
             },
             set(target, prop, value, receiver)
             {
-                if (isIndex(prop))
+                if ((target.SetIndex != undefined) && (isIndex(prop)))
                 {
                     var index = yyGetInt32(prop);
                     return target.SetIndex(index, value);
@@ -70,6 +68,24 @@ function EnhancedArray()
     );    
 }
 
+// Version of EnhancedArray that doesn't support a custom getter to reduce overhead
+// This is for cases where we're just returning the value of the underlying array without any special handling
+// It avoids calls to the isIndex() function
+function EnhancedArrayNoGet() {
+    return new Proxy(new Array(),
+        {            
+            set(target, prop, value, receiver) {
+                if ((target.SetIndex != undefined) && (isIndex(prop))) {
+                    var index = yyGetInt32(prop);
+                    return target.SetIndex(index, value);
+                }
+                else {
+                    return Reflect.set(target, prop, value, receiver);
+                }
+            }
+        }
+    );
+}
 
 
 // #############################################################################################
@@ -1900,11 +1916,11 @@ function yySequenceBaseTrack(_pStorage) {
 
     this.setupTrackArray = function()
     {
-        this.m_tracks = new EnhancedArray();
+        this.m_tracks = new EnhancedArrayNoGet();
         this.m_tracks.self = this;
-        this.m_tracks.GetIndex = function (_index) {            
-            return this[_index];
-        };
+        //this.m_tracks.GetIndex = function (_index) {            
+        //    return this[_index];
+        //};
         this.m_tracks.SetIndex = function (_index, _track) {
             if ((_index < 0) || (_index > this.length)) {
                 yyError("Array index " + _index + " passed to tracks property is invalid\nYou can only overwrite an existing entry or add a new one just following the existing entries");
@@ -2548,17 +2564,18 @@ function yyTrackKeyBase()
         },        
     });
 
-    this.UpdateDirtiness = function()
-    {
-        var currChangeIndex = this.changeIndex;
-        for(var channel in this.m_channels)
-        {
-            if (channel.IsDirty(currChangeIndex))
-            {
-                this.changeIndex = yymax(this.changeIndex, channel.changeIndex);
-            }
-        }
-    };
+    // Not sure why this was here, yyTrackKeyBase doesn't have channels (it's the data for a single channel)
+    //this.UpdateDirtiness = function()
+    //{
+    //    var currChangeIndex = this.changeIndex;
+    //    for(var channel in this.m_channels)
+    //    {
+    //        if (channel.IsDirty(currChangeIndex))
+    //        {
+    //            this.changeIndex = yymax(this.changeIndex, channel.changeIndex);
+    //        }
+    //    }
+    //};
 }
 
 // #############################################################################################
@@ -2800,15 +2817,12 @@ function yyRealTrackKey(_pStorage)
 
     this.UpdateDirtiness = function()
     {
-        var currChangeIndex = this.changeIndex;
-        for(var channel in this.m_channels)
+        var currChangeIndex = this.changeIndex;        
+        var pCurve = g_pAnimCurveManager.GetCurveFromID(this.m_curveIndex);
+
+        if ((pCurve != null) && (pCurve.IsDirty(currChangeIndex)))
         {
-            var pCurve = g_pAnimCurveManager.GetCurveFromID(channel.m_curveIndex);
-    
-            if ((pCurve != null) && (pCurve.IsDirty(currChangeIndex)))
-            {
-                this.changeIndex = yymax(this.changeIndex, pCurve.changeIndex);			
-            }
+            this.changeIndex = yymax(this.changeIndex, pCurve.changeIndex);			
         }
     };
 
@@ -3191,14 +3205,11 @@ function yyAudioEffectTrackKey(_pStorage)
     this.UpdateDirtiness = function()
     {
         var currChangeIndex = this.changeIndex;
-        for(var channel in this.m_channels)
+        var pCurve = g_pAnimCurveManager.GetCurveFromID(this.m_curveIndex);
+
+        if ((pCurve != null) && (pCurve.IsDirty(currChangeIndex)))
         {
-            var pCurve = g_pAnimCurveManager.GetCurveFromID(channel.m_curveIndex);
-    
-            if ((pCurve != null) && (pCurve.IsDirty(currChangeIndex)))
-            {
-                this.changeIndex = yymax(this.changeIndex, pCurve.changeIndex);			
-            }
+            this.changeIndex = yymax(this.changeIndex, pCurve.changeIndex);
         }
     };
 
@@ -3419,10 +3430,10 @@ function yyKeyframe(_type, _pStorage) {
     this.m_disabled = false;    
 
     this.setupChannelArray = function () {
-        this.m_channels = new EnhancedArray();
-        this.m_channels.GetIndex = function (_index) {            
-            return this[_index];
-        };
+        this.m_channels = new EnhancedArrayNoGet();
+        //this.m_channels.GetIndex = function (_index) {            
+        //    return this[_index];
+        //};
         this.m_channels.SetIndex = function (_index, _channel) {
             _channel.m_channel = _index;            
             this[_index] = _channel;
@@ -3499,6 +3510,21 @@ function yyKeyframe(_type, _pStorage) {
     }
 
     this.SignalChange();
+
+    this.UpdateDirtiness = function () {
+        var currChangeIndex = this.changeIndex;        
+        for(var channelIndex = 0; channelIndex < this.m_channels.length; channelIndex++)
+        {
+            var channel = this.m_channels[channelIndex];
+            if (channel === undefined)
+                continue;	// handle sparse arrays
+
+            if (channel.IsDirty(currChangeIndex)) {
+                this.changeIndex = yymax(this.changeIndex, channel.changeIndex);
+            }
+        }
+    };
+
     // @if feature("sequences")
     Object.defineProperties(this, {
         gmlframe: {
@@ -3546,6 +3572,9 @@ function yyKeyframe(_type, _pStorage) {
                         this.m_channels.length = 0;
                         for(var channelIndex = 0; channelIndex < _val.length; channelIndex++)
                         {
+                            if (_val[channelIndex] === undefined)
+                                continue;   // support sparse arrays
+
                             var key = _val[channelIndex].m_channel;
                             this.m_channels[key] = _val[channelIndex];
                         }
@@ -3576,11 +3605,11 @@ function yyKeyframeStore(_type, _pStorage) {
     this.numKeyframes = 0;
 
     this.setupKeyframesArray = function () {
-        this.keyframes = new EnhancedArray();
+        this.keyframes = new EnhancedArrayNoGet();
         this.keyframes.self = this;
-        this.keyframes.GetIndex = function (_index) {            
-            return this[_index];
-        };
+        //this.keyframes.GetIndex = function (_index) {            
+        //    return this[_index];
+        //};
         this.keyframes.SetIndex = function (_index, _keyframe) {
             if ((_index < 0) || (_index > this.length)) {
                 yyError("Array index " + _index + " passed to keyframes property is invalid\nYou can only overwrite an existing entry or add a new one just following the existing entries");
@@ -4123,11 +4152,11 @@ function yySequence(_pStorage) {
     this.m_numEvents = 0;
 
     this.setupTrackArray = function () {
-        this.m_tracks = new EnhancedArray();
+        this.m_tracks = new EnhancedArrayNoGet();
         this.m_tracks.self = this;
-        this.m_tracks.GetIndex = function (_index) {            
-            return this[_index];
-        };
+        //this.m_tracks.GetIndex = function (_index) {            
+        //    return this[_index];
+        //};
         this.m_tracks.SetIndex = function (_index, _track) {
             if ((_index < 0) || (_index > this.length)) {
                 yyError("Array index " + _index + " passed to tracks property is invalid\nYou can only overwrite an existing entry or add a new one just following the existing entries");
@@ -4461,10 +4490,13 @@ yySequence.prototype.GetObjectIDsFromTrack = function(_tracks, _ids) {
 				{
 					var pKey = pInstTrack.m_keyframeStore.keyframes[i];
 
-					// Check key channels
-                    for(var channelKey in pKey.m_channels)
-                    {
-                        var ppKey = pKey.m_channels[channelKey];
+					// Check key channels                    
+                    for(var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+                    {                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
 
 						if (ppKey.m_objectIndex != -1)
 						{
@@ -4494,10 +4526,13 @@ yySequence.prototype.GetObjectIDsFromTrack = function(_tracks, _ids) {
 				{
 					var pKey = pSeqTrack.m_keyframeStore.keyframes[i];
 
-					// Check key channels
-                    for(var channelKey in pKey.m_channels)
-                    {
-                        var ppKey = pKey.m_channels[channelKey];
+					// Check key channels                    
+                    for(var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+                    {                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
 
 						if (ppKey.m_index != -1)
 						{
@@ -5915,10 +5950,13 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
         if (pAudioKey != null)
         {
             g_SeqStack.push(pAudioKey);
+            
+            for(var channelIndex = 0; channelIndex < pAudioKey.m_channels.length; channelIndex++)
+            {                
+                var ppChanKey = pAudioKey.m_channels[channelIndex];
 
-            for (var channelKey in pAudioKey.m_channels)
-            {
-                var ppChanKey = pAudioKey.m_channels[channelKey];
+                if (ppChanKey === undefined)
+                    continue;	// handle sparse arrays
 
                 g_SeqStack.push(ppChanKey);
 
@@ -6084,10 +6122,13 @@ yySequenceManager.prototype.HandleInstanceTrackUpdate = function (_pEl, _pSeq, _
 		if (pKey != null)
 		{
             g_SeqStack.push(pKey);
+            
+            for(var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+            {                
+                var ppKey = pKey.m_channels[channelIndex];
 
-            for(var channelKey in pKey.m_channels)
-            {
-                var ppKey = pKey.m_channels[channelKey];
+                if (ppKey === undefined)
+                    continue;  	// handle sparse arrays
 
                 g_SeqStack.push(ppKey);
 
@@ -6703,10 +6744,13 @@ CSequenceInstance.prototype.SetupInstances = function(_tracks, _objectToOverride
                     
                     g_SeqStack.push(pKey);
 
-					// Check key channels
-                    for(var channelKey in pKey.m_channels)
-                    {
-                        var ppKey = pKey.m_channels[channelKey];
+					// Check key channels                    
+                    for(var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+                    {                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
                         
 						if (ppKey.m_objectIndex != -1)
 						{
@@ -6820,10 +6864,13 @@ CSequenceInstance.prototype.SetupInstances = function(_tracks, _objectToOverride
                     
                     g_SeqStack.push(pKey);
 
-					// Check key channels
-                    for(var channelKey in pKey.m_channels)
-                    {
-                        var ppKey = pKey.m_channels[channelKey];
+					// Check key channels                    
+                    for (var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+                    {                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
 
                         g_SeqStack.push(ppKey);
 
@@ -6905,10 +6952,13 @@ CSequenceInstance.prototype.SetupAudioEmitters = function (_tracks)
 
                     g_SeqStack.push(pKey);
 
-                    // Check key channels
-                    for (var channelKey in pKey.m_channels)
-{
-                        var ppKey = pKey.m_channels[channelKey];
+                    // Check key channels                    
+                    for (var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+{                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
 
                         if (ppKey.m_soundIndex != -1)
                         {
@@ -6957,10 +7007,13 @@ CSequenceInstance.prototype.SetupAudioEmitters = function (_tracks)
 
                     g_SeqStack.push(pKey);
 
-                    // Check key channels
-                    for (var channelKey in pKey.m_channels)
-{
-                        var ppKey = pKey.m_channels[channelKey];
+                    // Check key channels                    
+                    for (var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+{                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
 
                         g_SeqStack.push(ppKey);
 

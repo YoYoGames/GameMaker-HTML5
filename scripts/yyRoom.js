@@ -2966,10 +2966,13 @@ yyRoom.prototype.HandleSequenceInstance = function (_rect, _layer, _pSequenceEl,
 			var idmat = new Matrix();
 			idmat.unit();
 			WebGL_SetMatrix(MATRIX_WORLD, idmat);
+			
+			for(var channelIndex = 0; channelIndex < pInstKey.m_channels.length; channelIndex++)
+			{								
+				var ppKey = pInstKey.m_channels[channelIndex];
 
-			for (var channelKey in pInstKey.m_channels)
-			{
-				var ppKey = pInstKey.m_channels[channelKey];
+				if (ppKey === undefined)
+					continue;	// handle sparse arrays
 
 				g_SeqStack.push(ppKey);
 
