@@ -98,11 +98,11 @@ function yyAnimCurveChannel(_pStorage) {
     };
     
     this.setupNewPointArray = function () {
-        this.m_points = new EnhancedArray();
+        this.m_points = new EnhancedArrayNoGet();
         this.m_points.self = this;
-        this.m_points.GetIndex = function (_index) {
-            return this[_index];
-        };
+        //this.m_points.GetIndex = function (_index) {
+        //    return this[_index];
+        //};
         this.m_points.SetIndex = function (_index, _point) {
             this[_index] = _point;
 
@@ -574,11 +574,11 @@ function yyAnimCurve(_pStorage) {
     this.m_numChannels = 0;    
 
     this.setupNewChannelArray = function () {
-        this.m_channels = new EnhancedArray();
+        this.m_channels = new EnhancedArrayNoGet();
         this.m_channels.self = this;
-        this.m_channels.GetIndex = function (_index) {            
-            return this[_index];
-        };
+        //this.m_channels.GetIndex = function (_index) {            
+        //    return this[_index];
+        //};
         this.m_channels.SetIndex = function (_index, _channel) {                        
             this[_index] = _channel;
 

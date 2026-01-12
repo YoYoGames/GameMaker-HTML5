@@ -29,7 +29,8 @@ function CHashMapCalculateHash(snap)
 
 function isIndex(_val)
 {
-    if (_val.match('^\\d+$'))
+    //if (_val.match('^\\d+$'))
+    if (+_val == +_val)
         return true;
     else
         return false;
@@ -38,13 +39,10 @@ function isIndex(_val)
 function EnhancedArray()
 {    
     return new Proxy(new Array(), 
-        {
-            // It might be worth having a variation of EnhancedArray that omits the getter
-            // to save the overhead of checking to see if the property is a numerical index
-            // for situations where we don't need to do custom handling of the get operation.
+        {            
             get(target, prop, receiver)
-            {
-                if (isIndex(prop))
+            {                                    
+                if ((target.GetIndex != undefined) && (isIndex(prop)))
                 {
                     var index = yyGetInt32(prop);
                     return target.GetIndex(index);
@@ -56,7 +54,7 @@ function EnhancedArray()
             },
             set(target, prop, value, receiver)
             {
-                if (isIndex(prop))
+                if ((target.SetIndex != undefined) && (isIndex(prop)))
                 {
                     var index = yyGetInt32(prop);
                     return target.SetIndex(index, value);
@@ -70,6 +68,24 @@ function EnhancedArray()
     );    
 }
 
+// Version of EnhancedArray that doesn't support a custom getter to reduce overhead
+// This is for cases where we're just returning the value of the underlying array without any special handling
+// It avoids calls to the isIndex() function
+function EnhancedArrayNoGet() {
+    return new Proxy(new Array(),
+        {            
+            set(target, prop, value, receiver) {
+                if ((target.SetIndex != undefined) && (isIndex(prop))) {
+                    var index = yyGetInt32(prop);
+                    return target.SetIndex(index, value);
+                }
+                else {
+                    return Reflect.set(target, prop, value, receiver);
+                }
+            }
+        }
+    );
+}
 
 
 // #############################################################################################
@@ -1900,11 +1916,11 @@ function yySequenceBaseTrack(_pStorage) {
 
     this.setupTrackArray = function()
     {
-        this.m_tracks = new EnhancedArray();
+        this.m_tracks = new EnhancedArrayNoGet();
         this.m_tracks.self = this;
-        this.m_tracks.GetIndex = function (_index) {            
-            return this[_index];
-        };
+        //this.m_tracks.GetIndex = function (_index) {            
+        //    return this[_index];
+        //};
         this.m_tracks.SetIndex = function (_index, _track) {
             if ((_index < 0) || (_index > this.length)) {
                 yyError("Array index " + _index + " passed to tracks property is invalid\nYou can only overwrite an existing entry or add a new one just following the existing entries");
@@ -3414,10 +3430,10 @@ function yyKeyframe(_type, _pStorage) {
     this.m_disabled = false;    
 
     this.setupChannelArray = function () {
-        this.m_channels = new EnhancedArray();
-        this.m_channels.GetIndex = function (_index) {            
-            return this[_index];
-        };
+        this.m_channels = new EnhancedArrayNoGet();
+        //this.m_channels.GetIndex = function (_index) {            
+        //    return this[_index];
+        //};
         this.m_channels.SetIndex = function (_index, _channel) {
             _channel.m_channel = _index;            
             this[_index] = _channel;
@@ -3589,11 +3605,11 @@ function yyKeyframeStore(_type, _pStorage) {
     this.numKeyframes = 0;
 
     this.setupKeyframesArray = function () {
-        this.keyframes = new EnhancedArray();
+        this.keyframes = new EnhancedArrayNoGet();
         this.keyframes.self = this;
-        this.keyframes.GetIndex = function (_index) {            
-            return this[_index];
-        };
+        //this.keyframes.GetIndex = function (_index) {            
+        //    return this[_index];
+        //};
         this.keyframes.SetIndex = function (_index, _keyframe) {
             if ((_index < 0) || (_index > this.length)) {
                 yyError("Array index " + _index + " passed to keyframes property is invalid\nYou can only overwrite an existing entry or add a new one just following the existing entries");
@@ -4136,11 +4152,11 @@ function yySequence(_pStorage) {
     this.m_numEvents = 0;
 
     this.setupTrackArray = function () {
-        this.m_tracks = new EnhancedArray();
+        this.m_tracks = new EnhancedArrayNoGet();
         this.m_tracks.self = this;
-        this.m_tracks.GetIndex = function (_index) {            
-            return this[_index];
-        };
+        //this.m_tracks.GetIndex = function (_index) {            
+        //    return this[_index];
+        //};
         this.m_tracks.SetIndex = function (_index, _track) {
             if ((_index < 0) || (_index > this.length)) {
                 yyError("Array index " + _index + " passed to tracks property is invalid\nYou can only overwrite an existing entry or add a new one just following the existing entries");
