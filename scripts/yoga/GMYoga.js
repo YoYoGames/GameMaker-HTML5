@@ -1419,6 +1419,9 @@ function UILayers_Create()
 
 	g_UILayers = [];
 
+	var gui_rect = Calc_GUI_Matrices_And_Rect();
+	var view_rect = UILayers_Calculate_Initial_View_Rect();
+
 	for(var i = 0; i < g_pGMFile.GMUILayers.length; ++i)
 	{
 		var layer_data = g_pGMFile.GMUILayers[i];
@@ -1444,6 +1447,10 @@ function UILayers_Create()
 			node: node,
 			layer: layer,
 
+ 			layout_rect :new YYRECT(0,0,0,0),
+			layout_mask:0,
+
+
 			x_offset: 0.0,
 			y_offset: 0.0,
 		});
@@ -1453,6 +1460,13 @@ function UILayers_Create()
 		node_context.IsUILayerRoot = true;
 
 		UILayers_Create_node_elements(node, layer, false);
+
+		if(layer_data.drawSpace === "GUI")
+		{
+			UILayers_Layout_layer(g_UILayers[g_UILayers.length-1], gui_rect, layer_type);
+		}
+		else
+			UILayers_Layout_layer(g_UILayers[g_UILayers.length-1], view_rect, layer_type);
 	}
 }
 
@@ -1510,6 +1524,13 @@ function UILayers_Destroy_node_elements(node)
 	}
 }
 
+
+function UILayer_UpdateLayout(ui_layer)
+{
+	if(ui_layer)
+		UILayers_Layout_layer(ui_layer,ui_layer.layout_rect,ui_layer.layout_mask);
+}
+
 function UILayers_Layout(rect, gui_mask)
 {
 	for(var i = 0; i < g_UILayers.length; ++i)
@@ -1533,6 +1554,9 @@ function UILayers_Layout_layer(ui_layer, rect, gui_mask) {
 	{
 		return;
 	}
+
+	ui_layer.layout_rect = rect;
+	ui_layer.layout_mask = gui_mask;
 
 	/* Mark leaf nodes dirty so Yoga will rediscover their sizes. */
 	UILayers_Layout_node_prepare(ui_layer.node);

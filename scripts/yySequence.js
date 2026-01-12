@@ -27,6 +27,66 @@ function CHashMapCalculateHash(snap)
 	return hash;
 }
 
+function isIndex(_val)
+{
+    //if (_val.match('^\\d+$'))
+    if (+_val == +_val)
+        return true;
+    else
+        return false;
+}
+
+function EnhancedArray()
+{    
+    return new Proxy(new Array(), 
+        {            
+            get(target, prop, receiver)
+            {                                    
+                if ((target.GetIndex != undefined) && (isIndex(prop)))
+                {
+                    var index = yyGetInt32(prop);
+                    return target.GetIndex(index);
+                }
+                else
+                {
+                    return Reflect.get(target, prop, receiver);
+                }
+            },
+            set(target, prop, value, receiver)
+            {
+                if ((target.SetIndex != undefined) && (isIndex(prop)))
+                {
+                    var index = yyGetInt32(prop);
+                    return target.SetIndex(index, value);
+                }
+                else
+                {
+                    return Reflect.set(target, prop, value, receiver);
+                }
+            }
+        }
+    );    
+}
+
+// Version of EnhancedArray that doesn't support a custom getter to reduce overhead
+// This is for cases where we're just returning the value of the underlying array without any special handling
+// It avoids calls to the isIndex() function
+function EnhancedArrayNoGet() {
+    return new Proxy(new Array(),
+        {            
+            set(target, prop, value, receiver) {
+                if ((target.SetIndex != undefined) && (isIndex(prop))) {
+                    var index = yyGetInt32(prop);
+                    return target.SetIndex(index, value);
+                }
+                else {
+                    return Reflect.set(target, prop, value, receiver);
+                }
+            }
+        }
+    );
+}
+
 
 // #############################################################################################
 /// Function:<summary>
@@ -1809,6 +1869,30 @@ function yySequenceBoolTrack(_pStorage) {
 
 // @endif
 
+function RemoveTrackFromParent(_track)
+{
+    if ((_track == null) || (_track == undefined))
+        return;
+
+    if ((_track.m_parent == null) || (_track.m_parent == undefined))
+        return;
+
+    if ((_track.m_parent instanceof yySequenceBaseTrack) || (_track.m_parent instanceof yySequence))
+    {
+        var parenttracks = _track.m_parent.m_tracks;
+        // Search for this track in the parent's track list
+        for (var i = 0; i < parenttracks.length; i++)
+        {
+            if (parenttracks[i] == _track)
+            {
+                parenttracks.splice(i, 1);
+                _track.m_parent = null;
+                break;
+            }
+        }
+    }    
+}
+
 // #############################################################################################
 /// Function:<summary>
 ///             Create a new Track object
@@ -1828,8 +1912,31 @@ function yySequenceBaseTrack(_pStorage) {
     this.m_traits = 0;
     this.m_isCreationTrack = false;
     this.m_tags = [];
-    this.m_numTracks = 0;
-    this.m_tracks = [];
+    this.m_numTracks = 0;    
+
+    this.setupTrackArray = function()
+    {
+        this.m_tracks = new EnhancedArrayNoGet();
+        this.m_tracks.self = this;
+        //this.m_tracks.GetIndex = function (_index) {            
+        //    return this[_index];
+        //};
+        this.m_tracks.SetIndex = function (_index, _track) {
+            if ((_index < 0) || (_index > this.length)) {
+                yyError("Array index " + _index + " passed to tracks property is invalid\nYou can only overwrite an existing entry or add a new one just following the existing entries");
+                return false;
+            }
+            RemoveTrackFromParent(_track);
+            _track.m_parent = this.self;            
+            this[_index] = _track;
+
+            this.self.m_numTracks = this.length;
+
+            return true;   // see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/set#return_value 
+        };
+    };
+
+    this.setupTrackArray();
     this.m_numResources = 0;
     this.m_ownedResources = [];
     this.m_keyframeStore = new yyKeyframeStore();
@@ -1850,11 +1957,9 @@ function yySequenceBaseTrack(_pStorage) {
                 this.m_tags[_pStorage.tags[tagI].UniqueTagTypeId] = _pStorage.tags[tagI];
             }
         }
-
-        this.m_numTracks = _pStorage.tracks.length;
-        this.m_tracks = [];
-        for (var trackIndex = 0; trackIndex < this.m_numTracks; ++trackIndex) {
-            this.m_tracks[trackIndex] = SequenceBaseTrack_Load(_pStorage.tracks[this.m_numTracks - 1 - trackIndex]);
+        
+        for (var trackIndex = 0; trackIndex < _pStorage.tracks.length; ++trackIndex) {
+            this.m_tracks[trackIndex] = SequenceBaseTrack_Load(_pStorage.tracks[_pStorage.tracks.length - 1 - trackIndex]);
             this.m_tracks[trackIndex].m_parent = this;
         }
 
@@ -1900,8 +2005,15 @@ function yySequenceBaseTrack(_pStorage) {
             {
                 if(_val instanceof Array)
                 {
-                    _val.forEach(_track => { _track.m_parent = this; });
-                    this.m_tracks = _val;
+                    if (_val != this.m_tracks)
+                    {
+                        this.m_tracks.length = 0;                                        
+                        for (var i = 0; i < _val.length; i++)
+                        {
+                            _val[i].m_parent = this;
+                            this.m_tracks[i] = _val[i];
+                        }
+                    }                         
                 }
                 else
                 {
@@ -1950,8 +2062,13 @@ function yySequenceBaseTrack(_pStorage) {
             {
                 if(_val instanceof Array)
                 {
-                    this.m_keyframeStore.keyframes = _val;
-                    this.m_keyframeStore.numKeyframes = _val.length;
+                    if (_val != this.m_keyframeStore.keyframes)
+                    {
+                        this.m_keyframeStore.keyframes.length = 0;
+                        for (var i = 0; i < _val.length; i++) {                        
+                            this.m_keyframeStore.keyframes[i] = _val[i];
+                        }
+                    }                    
                 }
                 else
                 {
@@ -2447,17 +2564,18 @@ function yyTrackKeyBase()
         },        
     });
 
-    this.UpdateDirtiness = function()
-    {
-        var currChangeIndex = this.changeIndex;
-        for(var channel in this.m_channels)
-        {
-            if (channel.IsDirty(currChangeIndex))
-            {
-                this.changeIndex = yymax(this.changeIndex, channel.changeIndex);
-            }
-        }
-    };
+    // Not sure why this was here, yyTrackKeyBase doesn't have channels (it's the data for a single channel)
+    //this.UpdateDirtiness = function()
+    //{
+    //    var currChangeIndex = this.changeIndex;
+    //    for(var channel in this.m_channels)
+    //    {
+    //        if (channel.IsDirty(currChangeIndex))
+    //        {
+    //            this.changeIndex = yymax(this.changeIndex, channel.changeIndex);
+    //        }
+    //    }
+    //};
 }
 
 // #############################################################################################
@@ -2699,15 +2817,12 @@ function yyRealTrackKey(_pStorage)
 
     this.UpdateDirtiness = function()
     {
-        var currChangeIndex = this.changeIndex;
-        for(var channel in this.m_channels)
+        var currChangeIndex = this.changeIndex;        
+        var pCurve = g_pAnimCurveManager.GetCurveFromID(this.m_curveIndex);
+
+        if ((pCurve != null) && (pCurve.IsDirty(currChangeIndex)))
         {
-            var pCurve = g_pAnimCurveManager.GetCurveFromID(channel.m_curveIndex);
-    
-            if ((pCurve != null) && (pCurve.IsDirty(currChangeIndex)))
-            {
-                this.changeIndex = yymax(this.changeIndex, pCurve.changeIndex);			
-            }
+            this.changeIndex = yymax(this.changeIndex, pCurve.changeIndex);			
         }
     };
 
@@ -2804,6 +2919,56 @@ function yyColorTrackKey(_pStorage)
     this.m_curveIndex = -1;
     this.m_pEmbeddedCurve = null;
 
+    this.setupColourArray = function () {
+        var colObj = new EnhancedArray();
+        colObj.self = this;
+
+        colObj.GetIndex = function (_index) {
+
+            if ((_index < 0) || (_index > 3)) {
+                yyError("Array index " + _index + " out of range of colour array");
+                return 0;
+            }
+
+            // Need to change from RGBA to ARGB order according to http://jira.yoyogames.lan:8080/browse/SEQ-1324	                        
+            var shift = 0;
+            if (_index == 0)
+                shift = 24;
+            else
+                shift = (_index - 1) * 8;
+
+            return ((this.self.m_color >> shift) & 0xff) / 255.0;
+        };
+        colObj.SetIndex = function (_index, _val) {
+            if ((_index < 0) || (_index > 3)) {
+                yyError("Array index " + _index + " out of range of colour array");
+                return false;
+            }
+            
+            var realVal = yyGetReal(_val);
+            realVal *= 255.0;
+
+            // We're expecting values in a 0 to 255 range here, so clamp this
+            if (realVal < 0.0)
+                realVal = 0.0;
+            if (realVal > 255.0)
+                realVal = 255.0;            
+
+            var shift = 0;
+            if (_index == 0)
+                shift = 24;
+            else
+                shift = (_index - 1) * 8;
+
+            this.self.m_color &= ~(0xff << shift);
+            this.self.m_color |= (realVal & 0xff) << shift;            
+
+            return true;   // see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/set#return_value 
+        };
+
+        return colObj;
+    };
+
     if ((_pStorage != null) && (_pStorage != undefined)) {
         this.m_color = _pStorage.color;
         this.m_hasEmbeddedCurve = _pStorage.hasEmbeddedCurve;
@@ -2823,11 +2988,13 @@ function yyColorTrackKey(_pStorage)
                 //return this.m_color;
 
                 // Need to change from RGBA to ARGB order according to http://jira.yoyogames.lan:8080/browse/SEQ-1324	
-                var col = [];
-                col[1] = (this.m_color & 0xff) / 255.0;
-                col[2] = ((this.m_color >> 8) & 0xff) / 255.0;
-                col[3] = ((this.m_color >> 16) & 0xff) / 255.0;
-                col[0] = ((this.m_color >> 24) & 0xff) / 255.0;
+                //var col = [];
+                //col[1] = (this.m_color & 0xff) / 255.0;
+                //col[2] = ((this.m_color >> 8) & 0xff) / 255.0;
+                //col[3] = ((this.m_color >> 16) & 0xff) / 255.0;
+                //col[0] = ((this.m_color >> 24) & 0xff) / 255.0;
+
+                var col = this.setupColourArray();
 
                 return col;
             },
@@ -2862,11 +3029,13 @@ function yyColorTrackKey(_pStorage)
                 //return this.m_color;
 
                 // Need to change from RGBA to ARGB order according to http://jira.yoyogames.lan:8080/browse/SEQ-1324	
-                var col = [];
-                col[1] = (this.m_color & 0xff) / 255.0;
-                col[2] = ((this.m_color >> 8) & 0xff) / 255.0;
-                col[3] = ((this.m_color >> 16) & 0xff) / 255.0;
-                col[0] = ((this.m_color >> 24) & 0xff) / 255.0;
+                //var col = [];
+                //col[1] = (this.m_color & 0xff) / 255.0;
+                //col[2] = ((this.m_color >> 8) & 0xff) / 255.0;
+                //col[3] = ((this.m_color >> 16) & 0xff) / 255.0;
+                //col[0] = ((this.m_color >> 24) & 0xff) / 255.0;
+
+                var col = this.setupColourArray();
 
                 return col;
             },
@@ -3036,14 +3205,11 @@ function yyAudioEffectTrackKey(_pStorage)
     this.UpdateDirtiness = function()
     {
         var currChangeIndex = this.changeIndex;
-        for(var channel in this.m_channels)
+        var pCurve = g_pAnimCurveManager.GetCurveFromID(this.m_curveIndex);
+
+        if ((pCurve != null) && (pCurve.IsDirty(currChangeIndex)))
         {
-            var pCurve = g_pAnimCurveManager.GetCurveFromID(channel.m_curveIndex);
-    
-            if ((pCurve != null) && (pCurve.IsDirty(currChangeIndex)))
-            {
-                this.changeIndex = yymax(this.changeIndex, pCurve.changeIndex);			
-            }
+            this.changeIndex = yymax(this.changeIndex, pCurve.changeIndex);
         }
     };
 
@@ -3261,16 +3427,28 @@ function yyKeyframe(_type, _pStorage) {
     this.m_key = 0;
     this.m_length = 0;
     this.m_stretch = false;
-    this.m_disabled = false;
-    this.m_channels = {};
+    this.m_disabled = false;    
+
+    this.setupChannelArray = function () {
+        this.m_channels = new EnhancedArrayNoGet();
+        //this.m_channels.GetIndex = function (_index) {            
+        //    return this[_index];
+        //};
+        this.m_channels.SetIndex = function (_index, _channel) {
+            _channel.m_channel = _index;            
+            this[_index] = _channel;
+
+            return true;
+        };
+    };
+    this.setupChannelArray();
 
     if ((_pStorage != null) && (_pStorage != undefined)) {
         this.m_key = _pStorage.key;
         this.m_length = _pStorage.length;
         this.m_stretch = _pStorage.stretch;
         this.m_disabled = _pStorage.disabled;
-
-        this.m_channels = {};
+        
         for(var channelKey in _pStorage.channels)
         {
             var data = _pStorage.channels[channelKey];
@@ -3332,6 +3510,21 @@ function yyKeyframe(_type, _pStorage) {
     }
 
     this.SignalChange();
+
+    this.UpdateDirtiness = function () {
+        var currChangeIndex = this.changeIndex;        
+        for(var channelIndex = 0; channelIndex < this.m_channels.length; channelIndex++)
+        {
+            var channel = this.m_channels[channelIndex];
+            if (channel === undefined)
+                continue;	// handle sparse arrays
+
+            if (channel.IsDirty(currChangeIndex)) {
+                this.changeIndex = yymax(this.changeIndex, channel.changeIndex);
+            }
+        }
+    };
+
     // @if feature("sequences")
     Object.defineProperties(this, {
         gmlframe: {
@@ -3358,7 +3551,8 @@ function yyKeyframe(_type, _pStorage) {
             enumerable: true,
             get: function ()
             {
-                var channelsArray = [];
+                return this.m_channels;
+                /*var channelsArray = [];
                 for(var channelKey in this.m_channels)
                 {
                     channelsArray.push(this.m_channels[channelKey]);
@@ -3366,22 +3560,29 @@ function yyKeyframe(_type, _pStorage) {
 
                 channelsArray.sort(function(a, b) {return Number(a.key) - Number(b.key);});
 
-                return channelsArray;
+                return channelsArray;*/
             },
             set: function (_val)
             {
                 if(_val instanceof Array)
                 {
-                    this.m_channels = {};
-                    for(var channelIndex = 0; channelIndex < _val.length; channelIndex++)
+                    if (_val != this.m_channels)
                     {
-                        var key = _val[channelIndex].m_channel;
-                        this.m_channels[key] = _val[channelIndex];
+                        //this.m_channels = {};
+                        this.m_channels.length = 0;
+                        for(var channelIndex = 0; channelIndex < _val.length; channelIndex++)
+                        {
+                            if (_val[channelIndex] === undefined)
+                                continue;   // support sparse arrays
+
+                            var key = _val[channelIndex].m_channel;
+                            this.m_channels[key] = _val[channelIndex];
+                        }
                     }
                 }
                 else
                 {
-                    throw new Error("value must be an array of keyframes");
+                    throw new Error("value must be an array of channels");
                 }
             }
         }
@@ -3402,7 +3603,26 @@ function yyKeyframeStore(_type, _pStorage) {
     this.__type = "[KeyframeStore]";
 
     this.numKeyframes = 0;
-    this.keyframes = [];
+
+    this.setupKeyframesArray = function () {
+        this.keyframes = new EnhancedArrayNoGet();
+        this.keyframes.self = this;
+        //this.keyframes.GetIndex = function (_index) {            
+        //    return this[_index];
+        //};
+        this.keyframes.SetIndex = function (_index, _keyframe) {
+            if ((_index < 0) || (_index > this.length)) {
+                yyError("Array index " + _index + " passed to keyframes property is invalid\nYou can only overwrite an existing entry or add a new one just following the existing entries");
+                return false;
+            }                                    
+            this[_index] = _keyframe;
+            this.self.numKeyframes = this.length;
+
+            return true;
+        };
+    };
+
+    this.setupKeyframesArray();    
 
     if ((_pStorage != null) && (_pStorage != undefined)) {
         var numKeyframeDatas = _pStorage.length;
@@ -3450,7 +3670,7 @@ yyKeyframeStore.prototype.AddKeyframe = function(_keyframe)
     }
 
     this.keyframes.splice(currindex, 0, _keyframe);
-    this.numKeyframes++;
+    //this.numKeyframes++;      // this is automatically updated inside the this.keyframes set handler
 
     this.SignalChange();
 };
@@ -3926,15 +4146,33 @@ function yySequence(_pStorage) {
     this.m_yorigin = 0;
     this.m_width = undefined;
     this.m_height = undefined;
-    this.m_messageEventKeyframeStore = new yyKeyframeStore();
-    this.m_messageEventKeyframeStore.numKeyframes = 0;
-    this.m_messageEventKeyframeStore.keyframes = [];
-    this.m_momentEventKeyframeStore = new yyKeyframeStore();
-    this.m_momentEventKeyframeStore.numKeyframes = 0;
-    this.m_momentEventKeyframeStore.keyframes = [];
+    this.m_messageEventKeyframeStore = new yyKeyframeStore();    
+    this.m_momentEventKeyframeStore = new yyKeyframeStore();    
     this.m_numTracks = 0;
     this.m_numEvents = 0;
-    this.m_tracks = [];
+
+    this.setupTrackArray = function () {
+        this.m_tracks = new EnhancedArrayNoGet();
+        this.m_tracks.self = this;
+        //this.m_tracks.GetIndex = function (_index) {            
+        //    return this[_index];
+        //};
+        this.m_tracks.SetIndex = function (_index, _track) {
+            if ((_index < 0) || (_index > this.length)) {
+                yyError("Array index " + _index + " passed to tracks property is invalid\nYou can only overwrite an existing entry or add a new one just following the existing entries");
+                return false;
+            }
+            RemoveTrackFromParent(_track);
+            _track.m_parent = this.self;            
+            this[_index] = _track;
+
+            this.self.m_numTracks = this.length;
+
+            return true;   // see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy/set#return_value 
+        };
+    };
+    this.setupTrackArray();
+
     this["event_create"] = null;
     this["event_destroy"] = null;
     this["event_clean_up"] = null;
@@ -3959,9 +4197,7 @@ function yySequence(_pStorage) {
         this.m_height = _pStorage.height;
 
         // Create Message Event Keyframe Store and Keys
-        this.m_messageEventKeyframeStore = new yyKeyframeStore();
-        this.m_messageEventKeyframeStore.numKeyframes = 0;
-        this.m_messageEventKeyframeStore.keyframes = [];
+        this.m_messageEventKeyframeStore = new yyKeyframeStore();        
         for (var keyframeIndex = 0; keyframeIndex < _pStorage.keyframeStore.length; ++keyframeIndex) {
             
             var keyframeStoreData = _pStorage.keyframeStore[keyframeIndex];
@@ -3976,7 +4212,7 @@ function yySequence(_pStorage) {
             keyframe.m_stretch = keyframeStoreData.stretch;
             keyframe.m_disabled = keyframeStoreData.disabled;
 
-            keyframe.m_channels = {};
+            //keyframe.m_channels = [];
             for(var channelKey in keyframeStoreData.channels)
             {
                 var channelData = keyframeStoreData.channels[channelKey];
@@ -3987,15 +4223,12 @@ function yySequence(_pStorage) {
         }
 
         // Create Code Event keyframe store
-        this.m_momentEventKeyframeStore = new yyKeyframeStore();
-        this.m_momentEventKeyframeStore.numKeyframes = 0;
-        this.m_momentEventKeyframeStore.keyframes = [];
+        this.m_momentEventKeyframeStore = new yyKeyframeStore();        
         
         // Create tracks list
-        this.m_numTracks = _pStorage.tracks.length;
-        this.m_tracks = [];
-        for (var trackIndex = 0; trackIndex < this.m_numTracks; ++trackIndex) {
-            this.m_tracks[trackIndex] = SequenceBaseTrack_Load(_pStorage.tracks[this.m_numTracks - 1 - trackIndex]);
+        this.m_numTracks = _pStorage.tracks.length;        
+        for (var trackIndex = 0; trackIndex < _pStorage.tracks.length; ++trackIndex) {
+            this.m_tracks[trackIndex] = SequenceBaseTrack_Load(_pStorage.tracks[_pStorage.tracks.length - 1 - trackIndex]);
             this.m_tracks[trackIndex].m_parent = this;
         }
 
@@ -4011,9 +4244,7 @@ function yySequence(_pStorage) {
         }
 
         // Create Moment Event Keyframe Store and Keys
-        this.m_momentEventKeyframeStore = new yyKeyframeStore();
-        this.m_momentEventKeyframeStore.numKeyframes = 0;
-        this.m_momentEventKeyframeStore.keyframes = [];
+        this.m_momentEventKeyframeStore = new yyKeyframeStore();        
         for (var keyframeIndex = 0; keyframeIndex < _pStorage.momentsKeystore.length; ++keyframeIndex) {
             
             var keyframeStoreData = _pStorage.momentsKeystore[keyframeIndex];
@@ -4027,8 +4258,7 @@ function yySequence(_pStorage) {
             keyframe.m_length = 0;//keyframeStoreData.length; Message Event Keyframes should be of length 0
             keyframe.m_stretch = keyframeStoreData.stretch;
             keyframe.m_disabled = keyframeStoreData.disabled;
-        
-            keyframe.m_channels = {};
+                    
             for(var channelKey in keyframeStoreData.channels)
             {
                 var channelData = keyframeStoreData.channels[channelKey];
@@ -4121,9 +4351,17 @@ function yySequence(_pStorage) {
             set: function (_val)
             {
                 if(_val instanceof Array)
-                {
-                    _val.forEach(_track => { _track.m_parent = this; });
-                    this.m_tracks = _val;
+                { 
+                    if (_val != this.m_tracks)
+                    {                   
+                        // We have to copy the tracks one-by-one because this.m_tracks isn't a normal array
+                        this.m_tracks.length = 0;
+                        for (var i = 0; i < _val.length; i++)
+                        {
+                            _val[i].m_parent = this;
+                            this.m_tracks[i] = _val[i];
+                        }                    
+                    }
                 }
                 else
                 {
@@ -4138,8 +4376,13 @@ function yySequence(_pStorage) {
             {
                 if(_val instanceof Array)
                 {
-                    this.m_messageEventKeyframeStore.keyframes = _val;
-                    this.m_messageEventKeyframeStore.numKeyframes = _val.length;
+                    if (_val != this.m_messageEventKeyframeStore.keyframes)
+                    {
+                        this.m_messageEventKeyframeStore.keyframes.length = 0;
+                        for (var i = 0; i < _val.length; i++) {
+                            this.m_messageEventKeyframeStore.keyframes[i] = _val[i];
+                        }
+                    }                    
                 }
                 else
                 {
@@ -4154,8 +4397,13 @@ function yySequence(_pStorage) {
                 {
                 if (_val instanceof Array)
                 {
-                    this.m_momentEventKeyframeStore.keyframes = _val;
-                    this.m_momentEventKeyframeStore.numKeyframes = _val.length;
+                    if (_val != this.m_momentEventKeyframeStore.keyframes)
+                    {
+                        this.m_momentEventKeyframeStore.keyframes.length = 0;
+                        for (var i = 0; i < _val.length; i++) {
+                            this.m_momentEventKeyframeStore.keyframes[i] = _val[i];
+                        }                    
+                    }
                 }
                 else
                 {
@@ -4242,10 +4490,13 @@ yySequence.prototype.GetObjectIDsFromTrack = function(_tracks, _ids) {
 				{
 					var pKey = pInstTrack.m_keyframeStore.keyframes[i];
 
-					// Check key channels
-                    for(var channelKey in pKey.m_channels)
-                    {
-                        var ppKey = pKey.m_channels[channelKey];
+					// Check key channels                    
+                    for(var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+                    {                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
 
 						if (ppKey.m_objectIndex != -1)
 						{
@@ -4275,10 +4526,13 @@ yySequence.prototype.GetObjectIDsFromTrack = function(_tracks, _ids) {
 				{
 					var pKey = pSeqTrack.m_keyframeStore.keyframes[i];
 
-					// Check key channels
-                    for(var channelKey in pKey.m_channels)
-                    {
-                        var ppKey = pKey.m_channels[channelKey];
+					// Check key channels                    
+                    for(var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+                    {                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
 
 						if (ppKey.m_index != -1)
 						{
@@ -5696,10 +5950,13 @@ yySequenceManager.prototype.HandleAudioTrackUpdate = function (_pEl, _pSeq, _pIn
         if (pAudioKey != null)
         {
             g_SeqStack.push(pAudioKey);
+            
+            for(var channelIndex = 0; channelIndex < pAudioKey.m_channels.length; channelIndex++)
+            {                
+                var ppChanKey = pAudioKey.m_channels[channelIndex];
 
-            for (var channelKey in pAudioKey.m_channels)
-            {
-                var ppChanKey = pAudioKey.m_channels[channelKey];
+                if (ppChanKey === undefined)
+                    continue;	// handle sparse arrays
 
                 g_SeqStack.push(ppChanKey);
 
@@ -5865,10 +6122,13 @@ yySequenceManager.prototype.HandleInstanceTrackUpdate = function (_pEl, _pSeq, _
 		if (pKey != null)
 		{
             g_SeqStack.push(pKey);
+            
+            for(var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+            {                
+                var ppKey = pKey.m_channels[channelIndex];
 
-            for(var channelKey in pKey.m_channels)
-            {
-                var ppKey = pKey.m_channels[channelKey];
+                if (ppKey === undefined)
+                    continue;  	// handle sparse arrays
 
                 g_SeqStack.push(ppKey);
 
@@ -6484,10 +6744,13 @@ CSequenceInstance.prototype.SetupInstances = function(_tracks, _objectToOverride
                     
                     g_SeqStack.push(pKey);
 
-					// Check key channels
-                    for(var channelKey in pKey.m_channels)
-                    {
-                        var ppKey = pKey.m_channels[channelKey];
+					// Check key channels                    
+                    for(var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+                    {                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
                         
 						if (ppKey.m_objectIndex != -1)
 						{
@@ -6601,10 +6864,13 @@ CSequenceInstance.prototype.SetupInstances = function(_tracks, _objectToOverride
                     
                     g_SeqStack.push(pKey);
 
-					// Check key channels
-                    for(var channelKey in pKey.m_channels)
-                    {
-                        var ppKey = pKey.m_channels[channelKey];
+					// Check key channels                    
+                    for (var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+                    {                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
 
                         g_SeqStack.push(ppKey);
 
@@ -6686,10 +6952,13 @@ CSequenceInstance.prototype.SetupAudioEmitters = function (_tracks)
 
                     g_SeqStack.push(pKey);
 
-                    // Check key channels
-                    for (var channelKey in pKey.m_channels)
-{
-                        var ppKey = pKey.m_channels[channelKey];
+                    // Check key channels                    
+                    for (var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+{                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
 
                         if (ppKey.m_soundIndex != -1)
                         {
@@ -6738,10 +7007,13 @@ CSequenceInstance.prototype.SetupAudioEmitters = function (_tracks)
 
                     g_SeqStack.push(pKey);
 
-                    // Check key channels
-                    for (var channelKey in pKey.m_channels)
-{
-                        var ppKey = pKey.m_channels[channelKey];
+                    // Check key channels                    
+                    for (var channelIndex = 0; channelIndex < pKey.m_channels.length; channelIndex++)
+{                        
+                        var ppKey = pKey.m_channels[channelIndex];
+
+                        if (ppKey === undefined)
+                            continue;	// handle sparse arrays
 
                         g_SeqStack.push(ppKey);
 
