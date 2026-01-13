@@ -538,7 +538,10 @@ function move_and_collide(selfinst,dx,dy,ind,_iterations,xoff,yoff,_x_constraint
 
 	var res = PerformColTest(selfinst,selfinst.x,selfinst.y,ind);
 	if(res>=0)
+	{
+		ret[0]= res;
 		return ret;
+	}
 
 	if ((dx == 0) && (dy == 0))
 	{

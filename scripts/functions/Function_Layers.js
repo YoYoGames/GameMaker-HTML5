@@ -3230,7 +3230,19 @@ function layer_sprite_x( arg1,arg2)
     var el = layerSpriteGetElement(arg1);
     if (el != null)
     {
-        el.m_x = yyGetReal(arg2);
+        if (!el.m_layer.IsUILayer()) {
+            el.m_x = yyGetReal(arg2);
+        }
+        else {
+
+            var ui_layer = UILayers_Get_By_Name(el.m_layer.m_pName);
+            if(ui_layer)
+                UILayer_UpdateLayout(ui_layer);
+
+            var dx = yyGetReal(arg2)-el.m_x; 
+            el.m_uiNode.spriteOffsetX += dx;
+        }
+
     }
 };
 function layer_sprite_y( arg1,arg2) 
@@ -3238,7 +3250,19 @@ function layer_sprite_y( arg1,arg2)
     var el = layerSpriteGetElement(arg1);
     if (el != null)
     {
-        el.m_y = yyGetReal(arg2);
+        if (!el.m_layer.IsUILayer()) {
+            el.m_y = yyGetReal(arg2);
+        }
+        else {
+            
+            var ui_layer = UILayers_Get_By_Name(el.m_layer.m_pName);
+            if(ui_layer)
+                UILayer_UpdateLayout(ui_layer);
+
+            var dy = yyGetReal(arg2)-el.m_y; 
+            el.m_uiNode.spriteOffsetY += dy;
+        }
+
     }
 };
 
@@ -3646,7 +3670,13 @@ function layer_text_x( _textelID,_x)
             el.m_x = yyGetReal(_x);
         }
         else {
-            el.m_uiNode.textOffsetX = _xscale;
+
+            var ui_layer = UILayers_Get_By_Name(el.m_layer.m_pName);
+            if(ui_layer)
+                UILayer_UpdateLayout(ui_layer);
+
+            var dx = yyGetReal(_x)-el.m_x; 
+            el.m_uiNode.textOffsetX += dx;
         }
     }
 };
@@ -3660,7 +3690,13 @@ function layer_text_y( _textelID,_y)
             el.m_y = yyGetReal(_y);
         }
         else {
-            el.m_uiNode.textOffsetY = yyGetReal(_y);
+
+            var ui_layer = UILayers_Get_By_Name(el.m_layer.m_pName);
+            if(ui_layer)
+                UILayer_UpdateLayout(ui_layer);
+
+            var dy = yyGetReal(_y)-el.m_y; 
+            el.m_uiNode.textOffsetY += dy;
         }
     }
 };
@@ -4127,7 +4163,7 @@ function layer_tilemap_set_colmask(tilemap_element,colmask)
 
             if(basespr!=null)
             {
-                if(spr.GetWidth() != basespr.GetWidth() || spr.GetHeight() != basespr.GetWidth())
+                if(spr.GetWidth() != basespr.GetWidth() || spr.GetHeight() != basespr.GetHeight())
                 {
                     yyError("layer_tilemap_set_colmask size mismatch, expecting " + basespr.GetWidth() + " by "+basespr.GetHeight() + " and received " +spr.GetWidth() + " by " +spr.GetHeight()); 
                 }
@@ -4517,18 +4553,20 @@ function tileset_get_info(_ind) {
 
         var pTPE = pDest.TPEntry;        
         var texture = pTPE.texture;
-        variable_struct_set(ret, "width", texture.width); 
-        variable_struct_set(ret, "height", texture.height); 
+        variable_struct_set(ret, "width", pTPE.ow); 
+        variable_struct_set(ret, "height", pTPE.oh); 
         variable_struct_set(ret, "texture", pTPE.tp); 
         variable_struct_set(ret, "tile_width", pDest.tilewidth); 
         variable_struct_set(ret, "tile_height", pDest.tileheight); 
-        variable_struct_set(ret, "tile_horizontal_separator", pDest.tilehsep); 
-        variable_struct_set(ret, "tile_vertical_separator", pDest.tilevsep); 
+        variable_struct_set(ret, "tile_horizontal_separator", pDest.tilehsep);
+        variable_struct_set(ret, "tile_vertical_separator", pDest.tilevsep);
+        variable_struct_set(ret, "tile_border_x", pDest.tileborderx);
+        variable_struct_set(ret, "tile_border_y", pDest.tilebordery);
         variable_struct_set(ret, "tile_columns", pDest.tilecolumns); 
         variable_struct_set(ret, "tile_count", pDest.tilecount); 
         variable_struct_set(ret, "sprite_index", pDest.spriteindex); 
         variable_struct_set(ret, "frame_count", pDest.frames); 
-        variable_struct_set(ret, "frame_length_ms", pDest.framelength); 
+        variable_struct_set(ret, "frame_length_ms", pDest.framelength / 1000); 
 
         var frames = new GMLObject();
         for( var t = 0; t < pDest.tilecount; ++t) {
