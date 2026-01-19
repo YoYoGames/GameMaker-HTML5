@@ -84,9 +84,37 @@ function yyAnimCurveChannel(_pStorage) {
 
     this.m_name = "";
     this.m_curveType = 0;
-    this.m_iterations = 0;
+    this.m_iterations = 16;
     this.m_numPoints = 0;
-    this.m_points = [];
+
+    // #############################################################################################
+    /// Function:<summary>
+    ///             Resets the cached points count
+    ///          </summary>
+    // #############################################################################################
+    this.ScrubCachedPoints = function () {
+        // The garbage collector will clean up unreferenced points
+        this.numCachedPoints = 0;
+    };
+    
+    this.setupNewPointArray = function () {
+        this.m_points = new EnhancedArrayNoGet();
+        this.m_points.self = this;
+        //this.m_points.GetIndex = function (_index) {
+        //    return this[_index];
+        //};
+        this.m_points.SetIndex = function (_index, _point) {
+            this[_index] = _point;
+
+            this.self.m_numPoints = this.length;
+
+            this.self.ScrubCachedPoints();
+            this.self.changeIndex = GetNextSeqObjChangeIndex();
+            
+            return true;
+        };
+    };
+    this.setupNewPointArray();
     this.numCachedPoints = 0;
     this.cachedPoints = [];
 
@@ -94,9 +122,8 @@ function yyAnimCurveChannel(_pStorage) {
         this.m_name = _pStorage.name;
         this.m_curveType = _pStorage.function;
         this.m_iterations = _pStorage.iterations;
-        this.m_numPoints = _pStorage.points.length;
-        this.m_points = [];
-        for (var pointIndex = 0; pointIndex < this.m_numPoints; ++pointIndex) {
+        this.m_numPoints = _pStorage.points.length;        
+        for (var pointIndex = 0; pointIndex < _pStorage.points.length; ++pointIndex) {
             this.m_points[pointIndex] = new yyAnimCurvePoint(_pStorage.points[pointIndex]);
         }
     }
@@ -148,12 +175,17 @@ function yyAnimCurveChannel(_pStorage) {
             set: function (_val)
             {
                 if(_val instanceof Array)
-                {
-                    this.m_points = _val;
-                    this.m_numPoints = _val.length;
+                {                    
+                    if (_val != this.m_points)
+                    {
+                        this.m_points.length = 0;
+                        for (var i = 0; i < _val.length; i++) {
+                            this.m_points[i] = _val[i];
+                        }                    
 
-                    this.ScrubCachedPoints();
-                    this.changeIndex = GetNextSeqObjChangeIndex();
+                        this.ScrubCachedPoints();
+                        this.changeIndex = GetNextSeqObjChangeIndex();
+                    }
                 }
                 else
                 {
@@ -255,7 +287,7 @@ function yyAnimCurveChannel(_pStorage) {
         }
 
         // Reset change index of the curve channel (this will allow us to detect dirty points in future)
-        for (var i = 0; i < numPoints; i++)
+        for (var i = 0; i < this.m_numPoints; i++)
         {
             this.changeIndex = yymax(this.changeIndex, this.m_points[i].changeIndex);
         }
@@ -418,18 +450,7 @@ function yyAnimCurveChannel(_pStorage) {
 	    var pPoint = this.AllocNewCachedPoint();
 	    pPoint.m_x = pLast.m_x;
 	    pPoint.m_value = pLast.m_value;
-    };
-
-    // #############################################################################################
-    /// Function:<summary>
-    ///             Resets the cached points count
-    ///          </summary>
-    // #############################################################################################
-    this.ScrubCachedPoints = function()
-    {
-        // The garbage collector will clean up unreferenced points
-        this.numCachedPoints = 0;
-    };
+    };    
 
     // #############################################################################################
     /// Function:<summary>
@@ -550,16 +571,33 @@ function yyAnimCurve(_pStorage) {
 
     this.pName = "";
     this.m_graphType = 0;
-    this.m_numChannels = 0;
-    this.m_channels = [];    
+    this.m_numChannels = 0;    
+
+    this.setupNewChannelArray = function () {
+        this.m_channels = new EnhancedArrayNoGet();
+        this.m_channels.self = this;
+        //this.m_channels.GetIndex = function (_index) {            
+        //    return this[_index];
+        //};
+        this.m_channels.SetIndex = function (_index, _channel) {                        
+            this[_index] = _channel;
+
+            this.self.m_numChannels = this.length;
+
+            this.self.IsDirty(this.self.changeIndex); // check linked data to get things up to date
+            this.self.changeIndex = GetNextSeqObjChangeIndex();
+
+            return true;
+        };
+    };
+    this.setupNewChannelArray();
     this.fromWAD = false;
 
     if ((_pStorage != null) && (_pStorage != undefined)) {
         this.pName = _pStorage.pName;
         this.m_graphType = _pStorage.graphType;
-        this.m_numChannels = _pStorage.channels.length;
-        this.m_channels = [];
-        for (var channelIndex = 0; channelIndex < this.m_numChannels; ++channelIndex) {
+        this.m_numChannels = _pStorage.channels.length;        
+        for (var channelIndex = 0; channelIndex < _pStorage.channels.length; ++channelIndex) {
             this.m_channels[channelIndex] = new yyAnimCurveChannel(_pStorage.channels[channelIndex]);
         }
         this.fromWAD = true;
@@ -593,13 +631,18 @@ function yyAnimCurve(_pStorage) {
             get: function () { return this.m_channels; },
             set: function (_val)
             {
-                if(_val instanceof Array)
-                {
-                    this.m_channels = _val;
-                    this.m_numChannels = _val.length;
+                if (_val instanceof Array)
+                {                    
+                    if (_val != this.m_channels)
+                    {
+                        this.m_channels.length = 0;
+                        for (var channelIndex = 0; channelIndex < _val.length; channelIndex++) {                        
+                            this.m_channels[channelIndex] = _val[channelIndex];
+                        }                    
 
-                    this.IsDirty(this.changeIndex); // check linked data to get things up to date
-                    this.changeIndex = GetNextSeqObjChangeIndex();
+                        this.IsDirty(this.changeIndex); // check linked data to get things up to date
+                        this.changeIndex = GetNextSeqObjChangeIndex();
+                    }
                 }
                 else
                 {

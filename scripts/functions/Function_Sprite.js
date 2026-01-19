@@ -1942,9 +1942,14 @@ function sprite_get_info( _spriteIndex )
             if (pStore != undefined) {
                 for(var n=0; n<pStore.numKeyframes; ++n ) {
                     var pKey = pStore.keyframes[n];
-                    var time = pKey.m_key;
-                    for( var k in pKey.m_channels) {
+                    var time = pKey.m_key;                    
+					for (var k = 0; k < pKey.m_channels.length; k++)
+					{
                         var tk = pKey.m_channels[k];
+
+						if (tk === undefined)
+							continue;	// handle sparse arrays
+
                         if (tk.m_events != undefined) {
                             for( var e=0; e<tk.m_events.length; ++e) {
                                 var entry = new GMLObject();
@@ -1968,9 +1973,14 @@ function sprite_get_info( _spriteIndex )
                     var time = pKey.m_key;
                     var entry = new GMLObject();
                     variable_struct_set(entry, "frame", time); //entry.gmlframe = time;
-                    variable_struct_set(entry, "duration", pKey.m_length);
-                    for( var k in pKey.m_channels) {
+                    variable_struct_set(entry, "duration", pKey.m_length);                    
+					for (var k = 0; k < pKey.m_channels.length; k++)
+					{
                         var tk = pKey.m_channels[k];
+
+						if (tk === undefined)
+							continue;	// handle sparse arrays
+
                         variable_struct_set(entry, "image_index", tk.m_imageIndex); //entry.gmlimage_index = tk.m_imageIndex;
                         break;
                     } // end for

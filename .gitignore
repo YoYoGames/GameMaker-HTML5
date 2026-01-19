@@ -1,3 +1,6 @@
 node_modules
 .vscode
 *~
+
+# Claude development files
+.claude/settings.local.json
