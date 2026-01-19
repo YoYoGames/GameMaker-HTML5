@@ -226,7 +226,7 @@ function yyWebSocketClient_closure(index, url, port, prefix) {
     var wrap = yyWebSocketList[index];
     if (wrap == null || wrap.socket != null) return -1;
     try {
-        /* URL format: (ws://|wss://)?hostname(:port)?(/path)?
+        /* URL format: (ws://|wss://)?(hostname|ipv4|[ipv6])(:port)?(/path)?
          *
          * The protocol specifies whether to use plaintext or HTTPS, unless network_socket_wss is
          * in use, which will override it and force wss:// always.
@@ -264,18 +264,42 @@ function yyWebSocketClient_closure(index, url, port, prefix) {
             url = url.substring(0, path_at);
         }
 
-        var port_at = url.indexOf(":");
-        if(port_at != -1)
+        var host;
+        var host_end;
+
+        if(url.charAt(0) == "[" && (host_end = url.indexOf("]")) != -1)
         {
-            if(port == 0)
+            /* Looks like an IPv6 address. */
+            host = url.substring(0, (host_end + 1));
+            url = url.substring(host_end + 1);
+        }
+        else{
+            /* Looks like a hostname or IPv4 address... */
+
+            var port_at = url.indexOf(":");
+
+            if(port_at == -1)
             {
-                port = url.substring(port_at + 1);
+                /* ...without an explicit port number. */
+
+                host = url;
+                url = "";
             }
-            
-            url = url.substring(0, port_at);
+            else{
+                /* ...with an explicit port number. */
+
+                host = url.substring(0, port_at);
+                url = url.substring(port_at);
+            }
         }
 
-        url = (secure ? "wss://" : "ws://") + url + (port != 0 ? ":" + port : "") + path;
+        /* Now 'url' should either be empty, or just a port number preceeded by ":" */
+        if(url.charAt(0) == ":" && port == 0)
+        {
+            port = url.substring(1);
+        }
+
+        url = (secure ? "wss://" : "ws://") + host + (port != 0 ? ":" + port : "") + path;
 
         var skt = new yyWebSocketClient(url);
         var sktState = prefix ? -1 : 1;
