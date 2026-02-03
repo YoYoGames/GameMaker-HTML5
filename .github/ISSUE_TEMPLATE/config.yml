@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: GameMaker Account Support
+    url: https://contact.gamemaker.io/contact-us
+    about: Contact the Helpdesk for questions about your account, any errors when signing-in to GameMaker, or because you cannot see all the platforms you expected inside Target Manager
+  - name: GameMaker Community
+    url: https://forum.gamemaker.io/index.php?forums/tech-support.24/
+    about: We do not offer coding advice/support on this bug-reporting service and so we will not fix any issues with your code and send the project back - if you want to ask a coding question, please ask the community instead of sending your question here.
