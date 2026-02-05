@@ -174,7 +174,11 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
         variable_struct_set(pEmitterI, "shape", emitter.shape);
         variable_struct_set(pEmitterI, "enabled", emitter.enabled);
 
-        if (emitter.parttype >= 0 && emitter.parttype < g_ParticleTypes.length)
+        // Note: For particle system instances, this info is valid only while the emitter is *streaming*
+        // particles (part_emitter_stream)!
+        if ((!isInstance || emitter.number > 0)
+            && emitter.parttype >= 0
+            && emitter.parttype < g_ParticleTypes.length)
         {
             var pPartTypeI = new GMLObject();
             var particleType = g_ParticleTypes[emitter.parttype];
