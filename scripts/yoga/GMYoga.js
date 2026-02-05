@@ -1373,7 +1373,7 @@ function flexpanel_node_style_set_height(_node, _value, _unit)
 function flexpanel_node_set_measure_function( _selfinst, _node, _func )
 {
 	
-	if((_node.getChildCount() == 0) && !_func)
+	if((_node.getChildCount() == 0) && _func===undefined)
 	{
 
 		_node.setMeasureFunc( null);
