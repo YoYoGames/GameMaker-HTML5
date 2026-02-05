@@ -1372,8 +1372,19 @@ function flexpanel_node_style_set_height(_node, _value, _unit)
 // #######################################################################################
 function flexpanel_node_set_measure_function( _selfinst, _node, _func )
 {
+	
+	if((_node.getChildCount() == 0) && _func===undefined)
+	{
+
+		_node.setMeasureFunc( null);
+		_node.markDirty();
+		return;
+	}
+
+
 	var func = getFunction(_func, 1);
 	if ((_node.getChildCount() == 0) && (typeof(func) == "function")) {
+		
 		var context = FLEXPANEL_GetContext(_node);
 		context.measureFunc = func;
 		var obj = func.boundObject ?? _selfinst;
