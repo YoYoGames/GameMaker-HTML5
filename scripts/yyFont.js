@@ -415,10 +415,10 @@ yyFont.prototype.TextHeight = function (_str) {
     if ((!_str) || (0 === _str.length)) return 0;
     
 	if (this.runtime_created) {
-		return this.size * this.scalex;
+		return this.size * this.scaley;
 	} 
 	else {	    
-	    return this.max_glyph_height * this.scalex;
+	    return this.max_glyph_height * this.scaley;
 	}
 };
 
