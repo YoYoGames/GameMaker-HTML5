@@ -157,7 +157,7 @@ function draw_set_alpha_test_ref_value()        { ErrorFunction("draw_set_alpha_
 function draw_get_alpha_test()                  { ErrorFunction("draw_get_alpha_test()"); return 0; }
 function draw_get_alpha_test_ref_value()        { ErrorFunction("draw_get_alpha_test_ref_value()"); return 0; }
 
-
+function gx_share()								{ErrorFunction("gx_share");}
 
 function zip_unzip()                                { ErrorFunction("zip_unzip()"); }
 function zip_create()                               { ErrorFunction("zip_create()"); }
