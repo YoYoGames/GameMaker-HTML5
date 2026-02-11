@@ -413,7 +413,7 @@ var state = []; 					// initialize state to random bits
 var g_RndIndex = 0;						// reset anyway
 var g_nRandSeed = InitRandom(0);	// init should also reset this to 0
 var g_nRandomPoly = 0xDA442D24;
-
+var rand = randReal;
 
 // #############################################################################################
 /// Function:<summary>
@@ -433,7 +433,21 @@ function InitRandom( _seed ) {
 	}
 	g_RndIndex = 0;
 	g_nRandSeed = _seed;
+    rand = randReal;
 	return g_nRandSeed;
+}
+
+function InitRandomExt( _seed ) {
+    var s = BigInt(_seed);
+    for (var i = 0; i < 16; i++)
+    {
+        s = ((s * 214013n + 2531011n) & 0x7fffffffn) | 0n;
+        state[i] = ~ ~s; //i ;
+    }
+    g_RndIndex = 0;
+    g_nRandSeed = _seed;
+    rand = randBigInt;
+    return g_nRandSeed;
 }
 
 
@@ -457,9 +471,9 @@ function random_use_old_version(_true_false) {
 ///             other reading http://stackoverflow.com/questions/1046714/what-is-a-good-random-number-generator-for-a-game
 ///          </summary>
 // #############################################################################################
-function rand() {
+function randReal() {
 
-//	return Math.random();
+//  return Math.random();
 
     var a, b, c, d;
     a = state[g_RndIndex];
@@ -468,13 +482,29 @@ function rand() {
     c = state[(g_RndIndex + 9) & 15];
     c ^= (c>>11);
     a = state[g_RndIndex] = b ^ c;
-    d = a ^ ((a << 5) & g_nRandomPoly);
+    d = a ^ ((a << 5) & (g_nRandomPoly));
     g_RndIndex = (g_RndIndex + 15) & 15;
     a = state[g_RndIndex];
     state[g_RndIndex] = a ^ b ^ d ^ (a << 2) ^ (b << 18) ^ (c << 28);
-    return ((state[g_RndIndex] & 0x7fffffff) / 2147483647.0); 		// between 0 and 1
-    //return ((state[g_RndIndex] >> 4) & 0xfffffff) / 268435456.0; 		// between 0 and 1
-    //return state[g_RndIndex]; 		// between 0 and 1
+    return ((state[g_RndIndex] & 0x7fffffff) / 2147483647.0);        // between 0 and 1
+  }
+
+function randBigInt() {
+
+//	return Math.random();
+
+    var a, b, c, d;
+    a = state[g_RndIndex];
+    c = state[(g_RndIndex + 13) & 15];
+    b = a^c^(a<<16n)^(c<<15n);
+    c = state[(g_RndIndex + 9) & 15];
+    c ^= (c>>11n);
+    a = state[g_RndIndex] = b ^ c;
+    d = a ^ ((a << 5n) & BigInt(g_nRandomPoly));
+    g_RndIndex = (g_RndIndex + 15) & 15;
+    a = state[g_RndIndex];
+    state[g_RndIndex] = a ^ b ^ d ^ (a << 2n) ^ (b << 18n) ^ (c << 28n);
+    return (Number(state[g_RndIndex] & 0x7fffffffn) / 2147483647.0); 		// between 0 and 1
   }
 
 
@@ -568,7 +598,10 @@ function random_range(val0, val1) {
 // #############################################################################################
 function random_set_seed( _val )
 {
-    InitRandom(yyGetInt32(_val));
+    if (arguments.length == 1)
+        InitRandom(yyGetInt32(_val));
+    else
+        InitRandomExt(yyGetInt32(_val));
 }
 
 
@@ -580,9 +613,9 @@ function random_set_seed( _val )
 function randomize() 
 {
 	var d =  new Date();
-	var t = d.getMilliseconds();
+	var t = d.getMilliseconds() * 1000;
 	t = (t & 0xffffffff) ^ ((t >> 16) & 0xffff) ^ ((t << 16) & 0xffff0000);
-    return InitRandom( t );
+    return InitRandomExt( t );
 }
 var randomise = randomize;
 
