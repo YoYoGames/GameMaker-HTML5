@@ -622,6 +622,9 @@ yyNineSliceData.prototype.GenerateCacheData = function (_width, _height, _ind, _
                     localY[0] += ypos;
                     localY[1] += ypos;
 
+                    if (localY[0] > tempY[1])
+						continue;				// no part of this segment is visible
+
                     if (localY[1] > tempY[1])
                     {
                         // Clip
@@ -669,6 +672,9 @@ yyNineSliceData.prototype.GenerateCacheData = function (_width, _height, _ind, _
 
                         localX[0] += xpos;
                         localX[1] += xpos;
+
+                        if (localX[0] > tempX[1])
+							continue;				// no part of this segment is visible
 
                         if (localX[1] > tempX[1])
                         {
