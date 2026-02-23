@@ -176,7 +176,7 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
 
         // Note: For particle system instances, this info is valid only while the emitter is *streaming*
         // particles (part_emitter_stream)!
-        if ((!isInstance || emitter.number > 0)
+        if ((!_isInstance || emitter.number > 0)
             && emitter.parttype >= 0
             && emitter.parttype < g_ParticleTypes.length)
         {
@@ -221,10 +221,25 @@ function ParticleSystemGetInfoImpl(_ind, _isInstance)
             variable_struct_set(pPartTypeI, "ang_incr", particleType.angincr);
             variable_struct_set(pPartTypeI, "ang_wiggle", particleType.angrand);
             variable_struct_set(pPartTypeI, "ang_relative", particleType.angdir);
-            // variable_struct_set(pPartTypeI, "color_mode", particleType.colmode);
+            variable_struct_set(pPartTypeI, "color_mode", particleType.colmode);
             variable_struct_set(pPartTypeI, "color1", particleType.colpar[0]);
             variable_struct_set(pPartTypeI, "color2", particleType.colpar[1]);
             variable_struct_set(pPartTypeI, "color3", particleType.colpar[2]);
+            if(particleType.colpar.length>=6) //These are used in some colour modes
+            {
+                variable_struct_set(pPartTypeI, "color4", particleType.colpar[3]);
+                variable_struct_set(pPartTypeI, "color5", particleType.colpar[4]);
+                variable_struct_set(pPartTypeI, "color6", particleType.colpar[5]);
+            }
+            else
+            {
+                variable_struct_set(pPartTypeI, "color4", 0);
+                variable_struct_set(pPartTypeI, "color5", 0);
+                variable_struct_set(pPartTypeI, "color6", 0);
+            }
+
+
+
             variable_struct_set(pPartTypeI, "alpha1", particleType.alphastart);
             variable_struct_set(pPartTypeI, "alpha2", particleType.alphamiddle);
             variable_struct_set(pPartTypeI, "alpha3", particleType.alphaend);
