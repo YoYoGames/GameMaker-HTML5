@@ -3340,7 +3340,7 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 
 	var pFontParams = _node.value.pFontEffectParams;
 
-	this.DrawTextItem(text, fontID, drawcol, a, frameWidth, frameHeight, alignment, wrap, wrapMode, charSpacing, lineSpacing, paraSpacing, pFontParams, true);	
+	this.DrawTextItem(text, fontID, drawcol, a, frameWidth, frameHeight, alignment, wrap, wrapMode, charSpacing, lineSpacing, paraSpacing, pFontParams, false);	
 };
 // @endif sequences
 
