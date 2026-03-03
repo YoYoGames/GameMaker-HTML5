@@ -488,7 +488,8 @@ function flexpanel_create_node( _struct )
 {	
 	var ret = g_yoga["Node"]["createWithConfig"](g_yogaConfig);
 	FLEXPANEL_CreateContext(ret);
-	FLEXPANEL_Handle_Struct( ret, _struct, false );
+	if(_struct!==undefined)
+		FLEXPANEL_Handle_Struct( ret, _struct, false );
 	return ret;
 }
 
@@ -820,6 +821,11 @@ function flexpanel_node_get_struct( _node )
 		} // end for
     	variable_struct_set(ret, "nodes", nodes);		
 	} // end if
+
+	if(context.clip_content!==undefined)
+	{
+		variable_struct_set(ret, "clipContent", context.clip_content);
+	}
 
 	if(context.elements !== undefined && context.elements.length > 0)
 	{
