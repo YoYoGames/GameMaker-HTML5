@@ -210,12 +210,43 @@ function FLEXPANEL_AreNodeRefsEqual(_node1, _node2)
 	return _node1["K"]["M"] == _node2["K"]["M"];
 }
 
+
+function FLEXPANEL_node_set_visibility(_node,_visible)
+{
+	var context = FLEXPANEL_GetContext(_node);
+
+	if(context)
+	{
+		if(context.elements !== undefined)
+		{
+			for(var i = 0; i < context.elements.length; ++i)
+			{
+				context.elements[i].m_Visible = _visible;
+				var element = g_pLayerManager.GetElementFromID(g_RunRoom, context.elements[i].m_element_id);
+				if(element !== null)
+				{
+					element.m_Visible = _visible;
+				}
+			}
+		}
+	}
+
+	for(var i = 0; i < _node.getChildCount(); ++i)
+	{
+		var child = _node.getChild(i);
+		FLEXPANEL_node_set_visibility(child,_visible);
+	}
+
+
+}
+
 // #######################################################################################
 function FLEXPANEL_Init_From_Struct(_node, _struct, _from_wad)
 {
 	var context = FLEXPANEL_GetContext(_node);
 
 	var layerElements = undefined;
+	var hide_elements = false;
 
 	for( var key in _struct) {
 		if (!_struct.hasOwnProperty(key)) continue;
@@ -259,7 +290,10 @@ function FLEXPANEL_Init_From_Struct(_node, _struct, _from_wad)
 			_node.setAspectRatio( yyGetReal(value) );
 			break;
 		case "display":
-			_node.setDisplay( FLEXPANEL_StringToEnum(g_displayType, value) );
+			var disp = FLEXPANEL_StringToEnum(g_displayType, value);
+			_node.setDisplay(  disp);
+			if(disp==YGDisplayNone)
+				hide_elements=true;
 			break;
 		case "flex":
 			value = yyGetReal(value);
@@ -486,7 +520,12 @@ function FLEXPANEL_Init_From_Struct(_node, _struct, _from_wad)
 				context.elements.push(new UILayerTextElement(element_data, _from_wad));
 			}
 		}
+
+
+		if(hide_elements)
+			FLEXPANEL_node_set_visibility(_node,false);
 	}
+
 }
 
 // #######################################################################################
@@ -1115,6 +1154,15 @@ function flexpanel_node_style_set_aspect_ratio(_node, _value)
 function flexpanel_node_style_set_display(_node, _value)
 {	
 	_node.setDisplay( yyGetInt32(_value) );
+
+	if(_value == YGDisplayNone)
+	{
+		FLEXPANEL_node_set_visibility(_node,false);
+	}
+	else
+		FLEXPANEL_node_set_visibility(_node,true);
+
+
 }
 
 // #######################################################################################
@@ -2120,6 +2168,15 @@ UILayerInstanceElement.prototype.create_element = function(target_layer, run_ins
 
 	this.m_element_id = g_pLayerManager.AddInstanceToLayer(g_RunRoom, target_layer, instance, this.elementOrder);
 
+	if(this.m_Visible==false)
+	{
+		var element = g_pLayerManager.GetElementFromID(g_RunRoom, this.m_element_id);
+		if(element !== null)
+		{
+			element.m_Visible = false;
+		}
+	}
+
 	g_RunRoom.m_Active.Add(instance);
 	g_pInstanceManager.Add(instance);
 
@@ -2390,6 +2447,15 @@ UILayerSequenceElement.prototype.create_element = function(target_layer, run_ins
 	}
 
 	this.m_element_id = g_pLayerManager.AddNewElement(g_RunRoom, target_layer, NewSequence, true);
+
+	if(this.m_Visible==false)
+	{
+		var element = g_pLayerManager.GetElementFromID(g_RunRoom, this.m_element_id);
+		if(element !== null)
+		{
+			element.m_Visible = false;
+		}
+	}
 };
 
 UILayerSequenceElement.prototype.destroy_element = function()
@@ -2595,6 +2661,15 @@ UILayerSpriteElement.prototype.create_element = function(target_layer, run_insta
 	}
 
 	this.m_element_id = g_pLayerManager.AddNewElement(g_RunRoom, target_layer, NewSprite, true);
+
+	if(this.m_Visible==false)
+	{
+		var element = g_pLayerManager.GetElementFromID(g_RunRoom, this.m_element_id);
+		if(element !== null)
+		{
+			element.m_Visible = false;
+		}
+	}
 };
 
 UILayerSpriteElement.prototype.destroy_element = function()
@@ -2912,6 +2987,14 @@ UILayerTextElement.prototype.create_element = function(target_layer, run_instanc
 	}
 
 	this.m_element_id = g_pLayerManager.AddNewElement(g_RunRoom, target_layer, NewTextItem, true);
+	if(this.m_Visible==false)
+	{
+		var element = g_pLayerManager.GetElementFromID(g_RunRoom, this.m_element_id);
+		if(element !== null)
+		{
+			element.m_Visible = false;
+		}
+	}
 };
 
 UILayerTextElement.prototype.destroy_element = function()
