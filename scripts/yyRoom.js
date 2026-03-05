@@ -3414,6 +3414,8 @@ yyRoom.prototype.DrawRoomLayers = function(_rect, _gui_mask){
 	            el = player.m_elements.Get(j);
 	            if(el!=null)
 	            {
+					if(el.m_Visible==false)
+						continue;
 
 					if (el.m_clippingRect == null && current_rect != null)
 					{
