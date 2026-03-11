@@ -1150,7 +1150,7 @@ yyPhysicsWorld.prototype.CreateWeldJoint = function (
 		_bodyA.m_physicsBody, 
 	    _bodyB.m_physicsBody,
 		new yyBox2D.Vec2(_anchor_x * scale, _anchor_y * scale));	    
-	jointDef.referenceAngle = (-_refAngle * 180.0) / Math.PI;
+	jointDef.referenceAngle = (-_refAngle *Math.PI) / 180.0;
 	jointDef.frequencyHz = _freqHz;
 	jointDef.dampingRatio = _dampingRatio;
 	jointDef.collideConnected = _collideConnected;
