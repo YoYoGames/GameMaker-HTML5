@@ -1963,10 +1963,13 @@ yyInstance.prototype.Collision_Ellipse = function (_x1, _y1, _x2, _y2, _prec) {
     if (this.bbox_dirty) this.Compute_BoundingBox();
     
 	//var rr;
-	_x1 = Round(_x1);
-	_x2 = Round(_x2);
-	_y1 = Round(_y1);
-	_y2 = Round(_y2);
+	if(g_Collision_Compatibility_Mode)
+	{
+		_x1 = Round(_x1);
+		_x2 = Round(_x2);
+		_y1 = Round(_y1);
+		_y2 = Round(_y2);
+	}
 
 	var max_x1x2, max_y1y2, min_x1x2, min_y1y2;
 
