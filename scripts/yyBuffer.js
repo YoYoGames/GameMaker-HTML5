@@ -478,7 +478,7 @@ yyBuffer.prototype.yyb_UpdateUsedSize = function(_size, _reset)
 function UnicodeToUTF8(_str) {
     var txt = "";
     for (var i = 0; i < _str.length; i++) {
-        var charCode = _str.charCodeAt(i);
+        var charCode = _str.codePointAt(i);
         if (charCode < 0x80) {
             txt += String.fromCharCode(charCode & 0x7f);
         } else if (charCode < 0x0800) {
@@ -493,6 +493,7 @@ function UnicodeToUTF8(_str) {
             txt += String.fromCharCode(((charCode >> 12) & 0x3f) | 0x80);
             txt += String.fromCharCode(((charCode >> 6) & 0x3f) | 0x80);
             txt += String.fromCharCode((charCode & 0x3f) | 0x80);
+            i++;  // Skip the low surrogate in the next iteration
         }
     }
     return txt;
@@ -1790,9 +1791,10 @@ yyBuffer.prototype.yyb_poke = function(_type, _offset, _value) {
             break;
         case eBuffer_String:
         case eBuffer_Text:
-            {               
-                for (var i = 0; i < _value.length; i++) {
-                    var charCode = _value.charCodeAt(i) & 0xff;   // Now UTF8, so only a byte in size
+            {
+                var UTF8_String = UnicodeToUTF8(_value);
+                for (var i = 0; i < UTF8_String.length; i++) {
+                    var charCode = UTF8_String.charCodeAt(i) & 0xff;   // Now UTF8, so only a byte in size
                     this.m_DataView.setUint8(_offset++, charCode, true);
                 }
                 // "text" mode doesn't add a NULL at the end.
