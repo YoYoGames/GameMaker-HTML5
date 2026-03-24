@@ -5811,6 +5811,32 @@ function layer_sequence_yscale(sequence_element_id, yscale)
     return -1;
 };
 
+function layer_sequence_alpha(sequence_element_id, alpha) {
+    var el = layerSequenceGetInstance(yyGetInt32(sequence_element_id));
+    if (el != null) {
+        var seqInst = g_pSequenceManager.GetInstanceFromID(el.m_instanceIndex);
+        if (seqInst != null) {
+            el.m_imageAlpha = yyGetReal(alpha);
+            el.m_dirtyflags.SetBit(eT_BlendMultiply);
+        }
+    }
+
+    return -1;
+};
+
+function layer_sequence_blend(sequence_element_id, blend) {
+    var el = layerSequenceGetInstance(yyGetInt32(sequence_element_id));
+    if (el != null) {
+        var seqInst = g_pSequenceManager.GetInstanceFromID(el.m_instanceIndex);
+        if (seqInst != null) {
+            el.m_imageBlend = ConvertGMColour(yyGetInt32(blend));
+            el.m_dirtyflags.SetBit(eT_BlendMultiply);
+        }
+    }
+
+    return -1;
+};
+
 function layer_sequence_headpos(sequence_element_id, position)
 {
     var el = layerSequenceGetInstance(yyGetInt32(sequence_element_id));
