@@ -3340,7 +3340,7 @@ yyRoom.prototype.HandleSequenceText = function (_rect, _layer, _pSequenceEl, _no
 
 	var pFontParams = _node.value.pFontEffectParams;
 
-	this.DrawTextItem(text, fontID, drawcol, a, frameWidth, frameHeight, alignment, wrap, wrapMode, charSpacing, lineSpacing, paraSpacing, pFontParams, true);	
+	this.DrawTextItem(text, fontID, drawcol, a, frameWidth, frameHeight, alignment, wrap, wrapMode, charSpacing, lineSpacing, paraSpacing, pFontParams, false);	
 };
 // @endif sequences
 
@@ -3414,6 +3414,8 @@ yyRoom.prototype.DrawRoomLayers = function(_rect, _gui_mask){
 	            el = player.m_elements.Get(j);
 	            if(el!=null)
 	            {
+					if(el.m_Visible==false)
+						continue;
 
 					if (el.m_clippingRect == null && current_rect != null)
 					{

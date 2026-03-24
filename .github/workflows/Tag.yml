@@ -1,0 +1,27 @@
+
+name: Tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      RUNTIME_VERSION:
+        type: string
+        required: true
+      YY_BASE_NAME:
+        type: string
+        required: true       
+
+
+jobs:
+  Tags:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4      
+      - name: Create a GitHub release      
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.event.inputs.YY_BASE_NAME }}-${{ github.event.inputs.RUNTIME_VERSION }}
+          prerelease: false
+          commit: ${{ github.ref }}
+          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}

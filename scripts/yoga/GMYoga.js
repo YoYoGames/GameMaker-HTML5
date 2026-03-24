@@ -120,7 +120,25 @@ var g_directionType = {
 
 var g_contextYoga = new Map();
 
+function get_struct_value(_obj,_name,_func,_default_value)
+{
+	var ret=_default_value;
+	var val = variable_struct_get(_obj,_name);
+	if(val!==undefined)
+		ret = val;
 
+	return _func(ret);
+}
+
+function get_struct_ref_value(_obj,_name,_func,_default_value, _ref, _maxNum, _array, _allowOutOfRange)
+{
+	var ret=_default_value;
+	var val = variable_struct_get(_obj,_name);
+	if(val!==undefined)
+		ret = val;
+
+	return _func(ret,_ref, _maxNum, _array, _allowOutOfRange);
+}
 
 function FLEXPANEL_StringToEnum( _type, _value)
 {
@@ -192,12 +210,43 @@ function FLEXPANEL_AreNodeRefsEqual(_node1, _node2)
 	return _node1["K"]["M"] == _node2["K"]["M"];
 }
 
+
+function FLEXPANEL_node_set_visibility(_node,_visible)
+{
+	var context = FLEXPANEL_GetContext(_node);
+
+	if(context)
+	{
+		if(context.elements !== undefined)
+		{
+			for(var i = 0; i < context.elements.length; ++i)
+			{
+				context.elements[i].m_Visible = _visible;
+				var element = g_pLayerManager.GetElementFromID(g_RunRoom, context.elements[i].m_element_id);
+				if(element !== null)
+				{
+					element.m_Visible = _visible;
+				}
+			}
+		}
+	}
+
+	for(var i = 0; i < _node.getChildCount(); ++i)
+	{
+		var child = _node.getChild(i);
+		FLEXPANEL_node_set_visibility(child,_visible);
+	}
+
+
+}
+
 // #######################################################################################
 function FLEXPANEL_Init_From_Struct(_node, _struct, _from_wad)
 {
 	var context = FLEXPANEL_GetContext(_node);
 
 	var layerElements = undefined;
+	var hide_elements = false;
 
 	for( var key in _struct) {
 		if (!_struct.hasOwnProperty(key)) continue;
@@ -241,7 +290,10 @@ function FLEXPANEL_Init_From_Struct(_node, _struct, _from_wad)
 			_node.setAspectRatio( yyGetReal(value) );
 			break;
 		case "display":
-			_node.setDisplay( FLEXPANEL_StringToEnum(g_displayType, value) );
+			var disp = FLEXPANEL_StringToEnum(g_displayType, value);
+			_node.setDisplay(  disp);
+			if(disp==YGDisplayNone)
+				hide_elements=true;
 			break;
 		case "flex":
 			value = yyGetReal(value);
@@ -468,7 +520,12 @@ function FLEXPANEL_Init_From_Struct(_node, _struct, _from_wad)
 				context.elements.push(new UILayerTextElement(element_data, _from_wad));
 			}
 		}
+
+
+		if(hide_elements)
+			FLEXPANEL_node_set_visibility(_node,false);
 	}
+
 }
 
 // #######################################################################################
@@ -476,7 +533,7 @@ function FLEXPANEL_Handle_Struct( _node, _struct, _from_wad)
 {
 	var s = _struct;
 	if (typeof(_struct) != "object") {
-		s = json_parse(_struct)
+		s = json_parse(undefined, _struct)
 	} // end if
 
 	FLEXPANEL_Init_From_Struct(_node, s, _from_wad);
@@ -488,7 +545,8 @@ function flexpanel_create_node( _struct )
 {	
 	var ret = g_yoga["Node"]["createWithConfig"](g_yogaConfig);
 	FLEXPANEL_CreateContext(ret);
-	FLEXPANEL_Handle_Struct( ret, _struct, false );
+	if(_struct!==undefined)
+		FLEXPANEL_Handle_Struct( ret, _struct, false );
 	return ret;
 }
 
@@ -821,6 +879,11 @@ function flexpanel_node_get_struct( _node )
     	variable_struct_set(ret, "nodes", nodes);		
 	} // end if
 
+	if(context.clip_content!==undefined)
+	{
+		variable_struct_set(ret, "clipContent", context.clip_content);
+	}
+
 	if(context.elements !== undefined && context.elements.length > 0)
 	{
 		var layerElements = new Array(context.elements.length);
@@ -1091,6 +1154,15 @@ function flexpanel_node_style_set_aspect_ratio(_node, _value)
 function flexpanel_node_style_set_display(_node, _value)
 {	
 	_node.setDisplay( yyGetInt32(_value) );
+
+	if(_value == YGDisplayNone)
+	{
+		FLEXPANEL_node_set_visibility(_node,false);
+	}
+	else
+		FLEXPANEL_node_set_visibility(_node,true);
+
+
 }
 
 // #######################################################################################
@@ -1372,8 +1444,19 @@ function flexpanel_node_style_set_height(_node, _value, _unit)
 // #######################################################################################
 function flexpanel_node_set_measure_function( _selfinst, _node, _func )
 {
+	
+	if((_node.getChildCount() == 0) && _func===undefined)
+	{
+
+		_node.setMeasureFunc( null);
+		_node.markDirty();
+		return;
+	}
+
+
 	var func = getFunction(_func, 1);
 	if ((_node.getChildCount() == 0) && (typeof(func) == "function")) {
+		
 		var context = FLEXPANEL_GetContext(_node);
 		context.measureFunc = func;
 		var obj = func.boundObject ?? _selfinst;
@@ -2001,17 +2084,17 @@ function UILayerInstanceElement(element_data, from_wad)
 		g_UILayerInstanceElementsFromWAD[this.instanceId] = this;
 	}
 	else{
-		this.elementOrder        = yyGetReal(variable_struct_get(element_data, "elementOrder"));
-		this.instanceObjectIndex = yyGetRef(variable_struct_get(element_data, "instanceObjectIndex"), REFID_OBJECT, undefined, undefined, true);
+		this.elementOrder        = get_struct_value(element_data,"elementOrder",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "elementOrder"));
+		this.instanceObjectIndex = get_struct_ref_value(element_data,"instanceObjectIndex",yyGetRef,-1, REFID_OBJECT, undefined, undefined, true);//yyGetRef(variable_struct_get(element_data, "instanceObjectIndex"), REFID_OBJECT, undefined, undefined, true);
 		this.instanceVariables   = undefined;
-		this.instanceOffsetX     = yyGetReal(variable_struct_get(element_data, "instanceOffsetX"));
-		this.instanceOffsetY     = yyGetReal(variable_struct_get(element_data, "instanceOffsetY"));
-		this.instanceScaleX      = yyGetReal(variable_struct_get(element_data, "instanceScaleX"));
-		this.instanceScaleY      = yyGetReal(variable_struct_get(element_data, "instanceScaleY"));
-		this.instanceImageSpeed  = yyGetReal(variable_struct_get(element_data, "instanceImageSpeed"));
-		this.instanceImageIndex  = yyGetRef(variable_struct_get(element_data, "instanceImageIndex"));
-		this.instanceColour      = yyGetInt32(variable_struct_get(element_data, "instanceColour"));
-		this.instanceAngle       = yyGetReal(variable_struct_get(element_data, "instanceAngle"));
+		this.instanceOffsetX     = get_struct_value(element_data,"instanceOffsetX",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "instanceOffsetX"));
+		this.instanceOffsetY     = get_struct_value(element_data,"instanceOffsetY",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "instanceOffsetY"));
+		this.instanceScaleX      = get_struct_value(element_data,"instanceScaleX",yyGetReal,1);//yyGetReal(variable_struct_get(element_data, "instanceScaleX"));
+		this.instanceScaleY      = get_struct_value(element_data,"instanceScaleY",yyGetReal,1);//yyGetReal(variable_struct_get(element_data, "instanceScaleY"));
+		this.instanceImageSpeed  = get_struct_value(element_data,"instanceImageSpeed",yyGetReal,1);//yyGetReal(variable_struct_get(element_data, "instanceImageSpeed"));
+		this.instanceImageIndex  = get_struct_value(element_data,"instanceImageIndex",yyGetRef,0);//yyGetRef(variable_struct_get(element_data, "instanceImageIndex"));
+		this.instanceColour      = get_struct_value(element_data,"instanceColour",yyGetInt32,0xFFFFFFFF);//yyGetInt32(variable_struct_get(element_data, "instanceColour"));
+		this.instanceAngle       = get_struct_value(element_data,"instanceAngle",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "instanceAngle"));
 
 		var v = variable_struct_get(element_data, "instanceVariables");
 		for (var vkey in v)
@@ -2028,11 +2111,11 @@ function UILayerInstanceElement(element_data, from_wad)
 			}
 		}
 
-		this.flexVisible    = yyGetBool(variable_struct_get(element_data, "flexVisible"));
-		this.flexAnchor     = yyGetString(variable_struct_get(element_data, "flexAnchor"));
-		this.stretchWidth   = yyGetBool(variable_struct_get(element_data, "stretchWidth"));
-		this.stretchHeight  = yyGetBool(variable_struct_get(element_data, "stretchHeight"));
-		this.keepAspect     = yyGetBool(variable_struct_get(element_data, "keepAspect"));
+		this.flexVisible    = get_struct_value(element_data,"flexVisible",yyGetBool,true);//yyGetBool(variable_struct_get(element_data, "flexVisible"));
+		this.flexAnchor     = get_struct_value(element_data,"flexAnchor",yyGetString,"TopLeft");//yyGetString(variable_struct_get(element_data, "flexAnchor"));
+		this.stretchWidth   = get_struct_value(element_data,"stretchWidth",yyGetBool,false);//yyGetBool(variable_struct_get(element_data, "stretchWidth"));
+		this.stretchHeight  = get_struct_value(element_data,"stretchHeight",yyGetBool,false);//yyGetBool(variable_struct_get(element_data, "stretchHeight"));
+		this.keepAspect     = get_struct_value(element_data,"keepAspect",yyGetBool,false);//yyGetBool(variable_struct_get(element_data, "keepAspect"));
 
 		this.instanceId          = undefined;
 		this.instanceCreate      = undefined;
@@ -2084,6 +2167,15 @@ UILayerInstanceElement.prototype.create_element = function(target_layer, run_ins
 	instance.SetInGUISpace(target_layer.IsGUISpaceLayer());
 
 	this.m_element_id = g_pLayerManager.AddInstanceToLayer(g_RunRoom, target_layer, instance, this.elementOrder);
+
+	if(this.m_Visible==false)
+	{
+		var element = g_pLayerManager.GetElementFromID(g_RunRoom, this.m_element_id);
+		if(element !== null)
+		{
+			element.m_Visible = false;
+		}
+	}
 
 	g_RunRoom.m_Active.Add(instance);
 	g_pInstanceManager.Add(instance);
@@ -2297,26 +2389,26 @@ function UILayerSequenceElement(element_data, from_wad)
 		this.keepAspect     = element_data.keepAspect;
 	}
 	else{
-		this.elementOrder         = yyGetReal(variable_struct_get(element_data, "elementOrder"));
-		this.sequenceIndex        = yyGetRef(variable_struct_get(element_data, "sequenceIndex"), REFID_SPRITE, g_pSequenceManager.Sequences.length, g_pSequenceManager.Sequences);
-		this.sequenceOffsetX      = yyGetReal(variable_struct_get(element_data, "sequenceOffsetX"));
-		this.sequenceOffsetY      = yyGetReal(variable_struct_get(element_data, "sequenceOffsetY"));
-		this.sequenceScaleX       = yyGetReal(variable_struct_get(element_data, "sequenceScaleX"));
-		this.sequenceScaleY       = yyGetReal(variable_struct_get(element_data, "sequenceScaleY"));
-		this.sequenceColour       = yyGetInt32(variable_struct_get(element_data, "sequenceColour"));
-		this.sequenceImageSpeed   = yyGetReal(variable_struct_get(element_data, "sequenceImageSpeed"));
-		this.sequenceSpeedType    = yyGetReal(variable_struct_get(element_data, "sequenceSpeedType"));
-		this.sequenceHeadPosition = yyGetReal(variable_struct_get(element_data, "sequenceHeadPosition"));
-		this.sequenceAngle        = yyGetReal(variable_struct_get(element_data, "sequenceAngle"));
+		this.elementOrder         = get_struct_value(element_data,"elementOrder",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "elementOrder"));
+		this.sequenceIndex        = get_struct_ref_value(element_data,"sequenceIndex",yyGetRef,-1, REFID_SPRITE, g_pSequenceManager.Sequences.length, g_pSequenceManager.Sequences);//yyGetRef(variable_struct_get(element_data, "sequenceIndex"), REFID_SPRITE, g_pSequenceManager.Sequences.length, g_pSequenceManager.Sequences);
+		this.sequenceOffsetX      = get_struct_value(element_data,"sequenceOffsetX",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "sequenceOffsetX"));
+		this.sequenceOffsetY      = get_struct_value(element_data,"sequenceOffsetY",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "sequenceOffsetY"));
+		this.sequenceScaleX       = get_struct_value(element_data,"sequenceScaleX",yyGetReal,1);//yyGetReal(variable_struct_get(element_data, "sequenceScaleX"));
+		this.sequenceScaleY       = get_struct_value(element_data,"sequenceScaleY",yyGetReal,1);//yyGetReal(variable_struct_get(element_data, "sequenceScaleY"));
+		this.sequenceColour       = get_struct_value(element_data,"sequenceColour",yyGetInt32,0xFFFFFFFF);//yyGetInt32(variable_struct_get(element_data, "sequenceColour"));
+		this.sequenceImageSpeed   = get_struct_value(element_data,"sequenceImageSpeed",yyGetReal,1);//yyGetReal(variable_struct_get(element_data, "sequenceImageSpeed"));
+		this.sequenceSpeedType    = get_struct_value(element_data,"sequenceSpeedType",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "sequenceSpeedType"));
+		this.sequenceHeadPosition = get_struct_value(element_data,"sequenceHeadPosition",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "sequenceHeadPosition"));
+		this.sequenceAngle        = get_struct_value(element_data,"sequenceAngle",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "sequenceAngle"));
 		this.sequenceName         = undefined;
 
-		this.flexVisible    = yyGetBool(variable_struct_get(element_data, "flexVisible"));
-		this.flexAnchor     = yyGetString(variable_struct_get(element_data, "flexAnchor"));
-		this.stretchWidth   = yyGetBool(variable_struct_get(element_data, "stretchWidth"));
-		this.stretchHeight  = yyGetBool(variable_struct_get(element_data, "stretchHeight"));
-		this.tileHorizontal = yyGetBool(variable_struct_get(element_data, "tileHorizontal"));
-		this.tileVertical   = yyGetBool(variable_struct_get(element_data, "tileVertical"));
-		this.keepAspect     = yyGetBool(variable_struct_get(element_data, "keepAspect"));
+		this.flexVisible    = get_struct_value(element_data,"flexVisible",yyGetBool,true);//yyGetBool(variable_struct_get(element_data, "flexVisible"));
+		this.flexAnchor     = get_struct_value(element_data,"flexAnchor",yyGetString,"TopLeft");//yyGetString(variable_struct_get(element_data, "flexAnchor"));
+		this.stretchWidth   = get_struct_value(element_data,"stretchWidth",yyGetBool,false);//yyGetBool(variable_struct_get(element_data, "stretchWidth"));
+		this.stretchHeight  = get_struct_value(element_data,"stretchHeight",yyGetBool,false);//yyGetBool(variable_struct_get(element_data, "stretchHeight"));
+		this.tileHorizontal = get_struct_value(element_data,"tileHorizontal",yyGetBool,false);//yyGetBool(variable_struct_get(element_data, "tileHorizontal"));
+		this.tileVertical   = get_struct_value(element_data,"tileVertical",yyGetBool,false);//yyGetBool(variable_struct_get(element_data, "tileVertical"));
+		this.keepAspect     = get_struct_value(element_data,"keepAspect",yyGetBool,false);//yyGetBool(variable_struct_get(element_data, "keepAspect"));
 	}
 
 	this.m_element_id = undefined;
@@ -2355,6 +2447,15 @@ UILayerSequenceElement.prototype.create_element = function(target_layer, run_ins
 	}
 
 	this.m_element_id = g_pLayerManager.AddNewElement(g_RunRoom, target_layer, NewSequence, true);
+
+	if(this.m_Visible==false)
+	{
+		var element = g_pLayerManager.GetElementFromID(g_RunRoom, this.m_element_id);
+		if(element !== null)
+		{
+			element.m_Visible = false;
+		}
+	}
 };
 
 UILayerSequenceElement.prototype.destroy_element = function()
@@ -2471,6 +2572,7 @@ UILayerSequenceElement.prototype.serialise = function()
 	return ret;
 };
 
+
 function UILayerSpriteElement(element_data, from_wad)
 {
 	if(from_wad)
@@ -2497,26 +2599,26 @@ function UILayerSpriteElement(element_data, from_wad)
 		this.keepAspect     = element_data.keepAspect;
 	}
 	else{
-		this.elementOrder     = yyGetReal(variable_struct_get(element_data, "elementOrder"));
-		this.spriteIndex      = yyGetRef(variable_struct_get(element_data, "spriteIndex"), REFID_SPRITE, g_pSpriteManager.Sprites.length, g_pSpriteManager.Sprites);
-		this.spriteOffsetX    = yyGetReal(variable_struct_get(element_data, "spriteOffsetX"));
-		this.spriteOffsetY    = yyGetReal(variable_struct_get(element_data, "spriteOffsetY"));
-		this.spriteScaleX     = yyGetReal(variable_struct_get(element_data, "spriteScaleX"));
-		this.spriteScaleY     = yyGetReal(variable_struct_get(element_data, "spriteScaleY"));
-		this.spriteColour     = yyGetInt32(variable_struct_get(element_data, "spriteColour"));
-		this.spriteImageSpeed = yyGetReal(variable_struct_get(element_data, "spriteImageSpeed"));
-		this.spriteSpeedType  = yyGetReal(variable_struct_get(element_data, "spriteSpeedType"));
-		this.spriteImageIndex = yyGetReal(variable_struct_get(element_data, "spriteImageIndex"));
-		this.spriteAngle      = yyGetReal(variable_struct_get(element_data, "spriteAngle"));
+		this.elementOrder     = get_struct_value(element_data,"elementOrder",yyGetReal,0);// yyGetReal(variable_struct_get(element_data, "elementOrder"),true);
+		this.spriteIndex      = get_struct_ref_value(element_data,"spriteIndex",yyGetRef,-1, REFID_SPRITE, g_pSpriteManager.Sprites.length, g_pSpriteManager.Sprites,true);//yyGetRef(variable_struct_get(element_data, "spriteIndex"), REFID_SPRITE, g_pSpriteManager.Sprites.length, g_pSpriteManager.Sprites,true);
+		this.spriteOffsetX    = get_struct_value(element_data,"spriteOffsetX",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "spriteOffsetX"),true);
+		this.spriteOffsetY    = get_struct_value(element_data,"spriteOffsetY",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "spriteOffsetY"),true);
+		this.spriteScaleX     = get_struct_value(element_data,"spriteScaleX",yyGetReal,1);//yyGetReal(variable_struct_get(element_data, "spriteScaleX"),true);
+		this.spriteScaleY     = get_struct_value(element_data,"spriteScaleY",yyGetReal,1);//yyGetReal(variable_struct_get(element_data, "spriteScaleY"),true);
+		this.spriteColour     = get_struct_value(element_data,"spriteColour",yyGetInt32,0xFFFFFFFF);//yyGetInt32(variable_struct_get(element_data, "spriteColour"),true);
+		this.spriteImageSpeed = get_struct_value(element_data,"spriteImageSpeed",yyGetReal,1);//yyGetReal(variable_struct_get(element_data, "spriteImageSpeed"),true);
+		this.spriteSpeedType  = get_struct_value(element_data,"spriteSpeedType",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "spriteSpeedType"),true);
+		this.spriteImageIndex = get_struct_value(element_data,"spriteImageIndex",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "spriteImageIndex"),true);
+		this.spriteAngle      = get_struct_value(element_data,"spriteAngle",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "spriteAngle"),true);
 		this.spriteName       = undefined;
 
-		this.flexVisible    = yyGetBool(variable_struct_get(element_data, "flexVisible"));
-		this.flexAnchor     = yyGetString(variable_struct_get(element_data, "flexAnchor"));
-		this.stretchWidth   = yyGetBool(variable_struct_get(element_data, "stretchWidth"));
-		this.stretchHeight  = yyGetBool(variable_struct_get(element_data, "stretchHeight"));
-		this.tileHorizontal = yyGetBool(variable_struct_get(element_data, "tileHorizontal"));
-		this.tileVertical   = yyGetBool(variable_struct_get(element_data, "tileVertical"));
-		this.keepAspect     = yyGetBool(variable_struct_get(element_data, "keepAspect"));
+		this.flexVisible    = get_struct_value(element_data,"flexVisible",yyGetBool,true);//yyGetBool(variable_struct_get(element_data, "flexVisible"),true);
+		this.flexAnchor     = get_struct_value(element_data,"flexAnchor",yyGetString,"TopLeft");//yyGetString(variable_struct_get(element_data, "flexAnchor"));
+		this.stretchWidth   = get_struct_value(element_data,"stretchWidth",yyGetBool,false);//yyGetBool(variable_struct_get(element_data, "stretchWidth"),true);
+		this.stretchHeight  = get_struct_value(element_data,"stretchHeight",yyGetBool,false);//yyGetBool(variable_struct_get(element_data, "stretchHeight"),true);
+		this.tileHorizontal = get_struct_value(element_data,"tileHorizontal",yyGetBool,false);//yyGetBool(variable_struct_get(element_data, "tileHorizontal"),true);
+		this.tileVertical   = get_struct_value(element_data,"tileVertical",yyGetBool,false);//yyGetBool(variable_struct_get(element_data, "tileVertical"),true);
+		this.keepAspect     = get_struct_value(element_data,"keepAspect",yyGetBool,true);//yyGetBool(variable_struct_get(element_data, "keepAspect"),true);
 	}
 
 	this.m_element_id = undefined;
@@ -2559,6 +2661,15 @@ UILayerSpriteElement.prototype.create_element = function(target_layer, run_insta
 	}
 
 	this.m_element_id = g_pLayerManager.AddNewElement(g_RunRoom, target_layer, NewSprite, true);
+
+	if(this.m_Visible==false)
+	{
+		var element = g_pLayerManager.GetElementFromID(g_RunRoom, this.m_element_id);
+		if(element !== null)
+		{
+			element.m_Visible = false;
+		}
+	}
 };
 
 UILayerSpriteElement.prototype.destroy_element = function()
@@ -2806,33 +2917,33 @@ function UILayerTextElement(element_data, from_wad)
 		this.keepAspect     = element_data.keepAspect;
 	}
 	else{
-		this.elementOrder         = yyGetReal(variable_struct_get(element_data, "elementOrder"));
-		this.textFontIndex        = yyGetRef(variable_struct_get(element_data, "textFontIndex"), REFID_FONT, g_pFontManager.Fonts.length, g_pFontManager.Fonts);
-		this.textOffsetX          = yyGetReal(variable_struct_get(element_data, "textOffsetX"));
-		this.textOffsetY          = yyGetReal(variable_struct_get(element_data, "textOffsetY"));
-		this.textScaleX           = yyGetReal(variable_struct_get(element_data, "textScaleX"));
-		this.textScaleY           = yyGetReal(variable_struct_get(element_data, "textScaleY"));
-		this.textAngle            = yyGetReal(variable_struct_get(element_data, "textAngle"));
-		this.textColour           = yyGetInt32(variable_struct_get(element_data, "textColour"));
-		this.textOriginX          = yyGetReal(variable_struct_get(element_data, "textOriginX"));
-		this.textOriginY		  = yyGetReal(variable_struct_get(element_data, "textOriginY"));
-		this.textOrigin			  = yyGetInt32(variable_struct_get(element_data, "textOrigin"));
-		this.textText             = yyGetString(variable_struct_get(element_data, "textText"));
-		this.textAlignment        = yyGetReal(variable_struct_get(element_data, "textAlignment"));
-		this.textCharacterSpacing = yyGetReal(variable_struct_get(element_data, "textCharacterSpacing"));
-		this.textLineSpacing      = yyGetReal(variable_struct_get(element_data, "textLineSpacing"));
-		this.textParagraphSpacing = yyGetReal(variable_struct_get(element_data, "textParagraphSpacing"));
-		this.textFrameWidth       = yyGetReal(variable_struct_get(element_data, "textFrameWidth"));
-		this.textFrameHeight      = yyGetReal(variable_struct_get(element_data, "textFrameHeight"));
-		this.textWrap			  = yyGetBool(variable_struct_get(element_data, "textWrap"));
-		this.textWrapMode		  = yyGetInt32(variable_struct_get(element_data, "textWrapMode"));
+		this.elementOrder         = get_struct_value(element_data,"elementOrder",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "elementOrder"));
+		this.textFontIndex        = get_struct_ref_value(element_data,"textFontIndex",yyGetRef,-1, REFID_FONT, g_pFontManager.Fonts.length, g_pFontManager.Fonts);//yyGetRef(variable_struct_get(element_data, "textFontIndex"), REFID_FONT, g_pFontManager.Fonts.length, g_pFontManager.Fonts);
+		this.textOffsetX          = get_struct_value(element_data,"textOffsetX",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "textOffsetX"));
+		this.textOffsetY          = get_struct_value(element_data,"textOffsetY",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "textOffsetY"));
+		this.textScaleX           = get_struct_value(element_data,"textScaleX",yyGetReal,1);//yyGetReal(variable_struct_get(element_data, "textScaleX"));
+		this.textScaleY           = get_struct_value(element_data,"textScaleY",yyGetReal,1);//yyGetReal(variable_struct_get(element_data, "textScaleY"));
+		this.textAngle            = get_struct_value(element_data,"textAngle",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "textAngle"));
+		this.textColour           = get_struct_value(element_data,"textColour",yyGetInt32,0xFFFFFFFF);//yyGetInt32(variable_struct_get(element_data, "textColour"));
+		this.textOriginX          = get_struct_value(element_data,"textOriginX",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "textOriginX"));
+		this.textOriginY		  = get_struct_value(element_data,"textOriginY",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "textOriginY"));
+		this.textOrigin			  = get_struct_value(element_data,"textOrigin",yyGetInt32,0);//yyGetInt32(variable_struct_get(element_data, "textOrigin"));
+		this.textText             = get_struct_value(element_data,"textText",yyGetString,"");//yyGetString(variable_struct_get(element_data, "textText"));
+		this.textAlignment        = get_struct_value(element_data,"textAlignment",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "textAlignment"));
+		this.textCharacterSpacing = get_struct_value(element_data,"textCharacterSpacing",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "textCharacterSpacing"));
+		this.textLineSpacing      = get_struct_value(element_data,"textLineSpacing",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "textLineSpacing"));
+		this.textParagraphSpacing = get_struct_value(element_data,"textParagraphSpacing",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "textParagraphSpacing"));
+		this.textFrameWidth       = get_struct_value(element_data,"textFrameWidth",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "textFrameWidth"));
+		this.textFrameHeight      = get_struct_value(element_data,"textFrameHeight",yyGetReal,0);//yyGetReal(variable_struct_get(element_data, "textFrameHeight"));
+		this.textWrap			  = get_struct_value(element_data,"textWrap",yyGetBool,false);//yyGetBool(variable_struct_get(element_data, "textWrap"));
+		this.textWrapMode		  = get_struct_value(element_data,"textWrapMode",yyGetInt32,0);//yyGetInt32(variable_struct_get(element_data, "textWrapMode"));
 		this.textName             = undefined;
 
-		this.flexVisible    = yyGetBool(variable_struct_get(element_data, "flexVisible"));
-		this.flexAnchor     = yyGetString(variable_struct_get(element_data, "flexAnchor"));
-		this.stretchWidth   = yyGetBool(variable_struct_get(element_data, "stretchWidth"));
-		this.stretchHeight  = yyGetBool(variable_struct_get(element_data, "stretchHeight"));
-		this.keepAspect     = yyGetBool(variable_struct_get(element_data, "keepAspect"));
+		this.flexVisible    = get_struct_value(element_data,"flexVisible",yyGetBool,true);//yyGetBool(variable_struct_get(element_data, "flexVisible"));
+		this.flexAnchor     = get_struct_value(element_data,"flexAnchor",yyGetString,"TopLeft");//yyGetString(variable_struct_get(element_data, "flexAnchor"));
+		this.stretchWidth   = get_struct_value(element_data,"stretchWidth",yyGetBool,false);//yyGetBool(variable_struct_get(element_data, "stretchWidth"));
+		this.stretchHeight  = get_struct_value(element_data,"stretchHeight",yyGetBool,false);//yyGetBool(variable_struct_get(element_data, "stretchHeight"));
+		this.keepAspect     = get_struct_value(element_data,"keepAspect",yyGetBool,false);//yyGetBool(variable_struct_get(element_data, "keepAspect"));
 	}
 
 	this.m_element_id = undefined;
@@ -2876,6 +2987,14 @@ UILayerTextElement.prototype.create_element = function(target_layer, run_instanc
 	}
 
 	this.m_element_id = g_pLayerManager.AddNewElement(g_RunRoom, target_layer, NewTextItem, true);
+	if(this.m_Visible==false)
+	{
+		var element = g_pLayerManager.GetElementFromID(g_RunRoom, this.m_element_id);
+		if(element !== null)
+		{
+			element.m_Visible = false;
+		}
+	}
 };
 
 UILayerTextElement.prototype.destroy_element = function()
