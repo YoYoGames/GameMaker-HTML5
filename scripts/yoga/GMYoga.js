@@ -899,6 +899,25 @@ function flexpanel_node_get_struct( _node )
     return ret;
 }
 
+
+function MarkDirtyRecurseFunc(_node)
+{
+	if(_node=== undefined)
+		return;
+
+	//Can't see if it has a measureFunc at this point and it doesn't seem to care, you can just mark it dirty
+	if(_node.getParent()!=undefined)
+	{
+		_node.markDirty();
+	}
+
+	var childCount = _node.getChildCount();
+	for(var i = 0; i < childCount; ++i) {
+		var child = _node.getChild(i);
+		MarkDirtyRecurseFunc(child);
+	}
+}
+
 // #######################################################################################
 function flexpanel_calculate_layout( _node, _width, _height, _direction)
 {	
@@ -908,6 +927,8 @@ function flexpanel_calculate_layout( _node, _width, _height, _direction)
 
 	if(typeof(_height) != "undefined")
 		_height = yyGetReal(_height);
+
+	MarkDirtyRecurseFunc(_node);
 
 	_node.calculateLayout( _width, _height, _direction );
 }
