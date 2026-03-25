@@ -902,6 +902,9 @@ function flexpanel_node_get_struct( _node )
 
 function MarkDirtyRecurseFunc(_node)
 {
+	if(_node=== undefined)
+		return;
+
 	//Can't see if it has a measureFunc at this point and it doesn't seem to care, you can just mark it dirty
 	if(_node.getParent()!=undefined)
 	{
