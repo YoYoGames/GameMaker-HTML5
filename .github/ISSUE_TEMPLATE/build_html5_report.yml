@@ -60,7 +60,7 @@ body:
       description: If you are on an older version than the Monthly shown below (which includes the LTS), install this Monthly version and confirm your issue still exists before you report anything! If you are using a Beta newer than the Monthly, please also add the full version number into your Description text above.
       multiple: true
       options:
-        - 2024.14.3 Monthly
+        - 2024.14.4 Monthly
         - 2022.0.3 LTS
         - 2024.1400.4 Betas
     validations:
