@@ -441,8 +441,8 @@ function InitRandomExt( _seed ) {
     var s = BigInt(_seed);
     for (var i = 0; i < 16; i++)
     {
-        s = ((s * BigInt(214013) + BigInt(2531011)) & BigInt(0x7fffffff) )| BigInt(0);
-        state[i] = ~ ~s; //i ;
+        s = ((s * BigInt(214013) + BigInt(2531011)) & BigInt(0x7fffffff) );
+        state[i] = s; //i ;
     }
     g_RndIndex = 0;
     g_nRandSeed = _seed;
@@ -503,7 +503,7 @@ function randBigInt() {
     d = a ^ ((a << BigInt(5)) & BigInt(g_nRandomPoly));
     g_RndIndex = (g_RndIndex + 15) & 15;
     a = state[g_RndIndex];
-    state[g_RndIndex] = (a ^ b ^ d ^ (a << BigInt(2)) ^ (b << BigInt(18)) ^ (c << BigInt(28))) & BigInt(0xffffffffffffffff);
+    state[g_RndIndex] = (a ^ b ^ d ^ (a << BigInt(2)) ^ (b << BigInt(18)) ^ (c << BigInt(28))) & BigInt(0xffffffff);
     return (Number(state[g_RndIndex] & BigInt(0x7fffffff)) / 2147483647.0); 		// between 0 and 1
   }
 
