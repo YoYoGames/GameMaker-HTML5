@@ -919,8 +919,12 @@ function MarkDirtyRecurseFunc(_node)
 }
 
 // #######################################################################################
-function flexpanel_calculate_layout( _node, _width, _height, _direction)
+function flexpanel_calculate_layout( _node, _width, _height, _direction, _dirty)
 {	
+
+	if(_node == undefined)
+		yyError("flexpanel_calculate_layout requires a node parameter");
+
 
 	if(typeof(_width) != "undefined")
 		_width = yyGetReal(_width);
@@ -928,7 +932,14 @@ function flexpanel_calculate_layout( _node, _width, _height, _direction)
 	if(typeof(_height) != "undefined")
 		_height = yyGetReal(_height);
 
-	MarkDirtyRecurseFunc(_node);
+	var force_dirty = true;
+
+	if(_dirty != undefined)
+		if(!_dirty)
+			force_dirty = false;
+
+	if(force_dirty)
+		MarkDirtyRecurseFunc(_node);
 
 	_node.calculateLayout( _width, _height, _direction );
 }
