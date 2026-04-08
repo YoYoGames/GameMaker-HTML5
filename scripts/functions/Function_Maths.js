@@ -613,7 +613,7 @@ function random_set_seed( _val )
 function randomize() 
 {
 	var d =  new Date();
-	var t = d.getMilliseconds() * 1000;
+	var t = d.getTime();
 	t = (t & 0xffffffff) ^ ((t >> 16) & 0xffff) ^ ((t << 16) & 0xffff0000);
     return InitRandomExt( t );
 }
