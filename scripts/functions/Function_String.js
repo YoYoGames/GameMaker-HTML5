@@ -385,22 +385,9 @@ function string_byte_length(_str) {
 
     _str = yyGetString(_str);
 
-    var i = 0, len = _str.length;
-    var out = 0;
-    while (i < len) {
-        var c = _str.charCodeAt(i++);
-        if (c >= 0xD800 && c <= 0xD8FF) {
-            // (surrogate pair)
-            i += 1; out += 4;
-        } else if (c <= 0x7F) {
-            out += 1;
-        } else if (c <= 0x7FF) {
-            out += 2;
-        } else if (c <= 0xFFFF) {
-            out += 3;
-        } else out += 4;
-    }
-    return out;
+    var  len = _str.length;
+
+    return len*2;
 }
 
 function __yy_JSIndex2GMLIndex(str, jsIndex)
