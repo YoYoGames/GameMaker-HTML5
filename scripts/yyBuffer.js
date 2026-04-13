@@ -484,7 +484,7 @@ function UnicodeToUTF8(_str) {
         } else if (charCode < 0x0800) {
             txt += String.fromCharCode((((charCode >> 6) & 0x1f) | 0xc0));
             txt += String.fromCharCode((charCode & 0x3f) | 0x80);
-        } else if (charCode < 0x10000) {
+        } else if (charCode < 0xd800 || charCode >= 0xe000) {
             txt += String.fromCharCode(((charCode >> 12) & 0x0f) | 0xe0);
             txt += String.fromCharCode(((charCode >> 6) & 0x3f) | 0x80);
             txt += String.fromCharCode((charCode & 0x3f) | 0x80);
@@ -1329,7 +1329,7 @@ yyBuffer.prototype.yyb_write = function(_type, _value) {
 
     var sizeneeded = BufferSizeOf(_type);
     if( ( _type === eBuffer_String ) || ( _type === eBuffer_Text ) ){
-        UTF8_String = UnicodeToUTF8(_value);
+        UTF8_String = UTF16_to_UTF8(_value);
         sizeneeded = UTF8_String.length;
         if( _type === eBuffer_String )  sizeneeded++;  // null at the end of a string (not text)
     }
@@ -1375,7 +1375,7 @@ yyBuffer.prototype.yyb_write = function(_type, _value) {
         case eBuffer_Text:
             {               
                 for (var i = 0; i < UTF8_String.length; i++) {
-                    var charCode = UTF8_String.charCodeAt(i) & 0xff;   // Now UTF8, so only a byte in size
+                    var charCode = UTF8_String[i];   // Now UTF8, so only a byte in size
                     this.m_DataView.setUint8(this.m_BufferIndex++, charCode, true);
                 }
                 // "text" mode doesn't add a NULL at the end.

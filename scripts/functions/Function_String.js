@@ -385,9 +385,26 @@ function string_byte_length(_str) {
 
     _str = yyGetString(_str);
 
-    var  len = _str.length;
-
-    return len*2;
+    var i = 0, len = _str.length;
+    var out = 0;
+    while (i < len) {
+        var c = _str.codePointAt(i++);
+        if (c < 0x80) {
+            ++out;
+        }
+        else if (c < 0x800) {
+            out += 2;
+        }
+        else if (c < 0x10000) {
+            out += 3;
+        }
+        else {
+            // surrogate pair
+            ++i;
+            out += 4;
+        }
+    }
+    return out;
 }
 
 function __yy_JSIndex2GMLIndex(str, jsIndex)
@@ -660,11 +677,11 @@ function UTF16_to_UTF8(_str)
                       0x80 | (charCode & 0x3f));
         }
         else {
+            i++;
             utf8.push(0xf0 | (charCode >> 18),
                       0x80 | ((charCode >> 12) & 0x3f),
                       0x80 | ((charCode >> 6) & 0x3f),
                       0x80 | (charCode & 0x3f));
-            i++;  // Skip the low surrogate in the next iteration
         }
     }
     return utf8;
