@@ -385,9 +385,25 @@ function string_byte_length(_str) {
 
     _str = yyGetString(_str);
 
-    var  len = _str.length;
-
-    return len*2;
+    var i = 0, len = _str.length;
+    var out = 0;
+    while (i < len) {
+        var c = _str.charCodeAt(i++);
+        if (c < 0x80) {
+            ++out;
+        }
+        else if (c < 0x800) {
+            out += 2;
+        }
+        else if (c < 0xd800 || c >= 0xe000) {
+            out += 3;
+        }
+        else {
+            // surrogate pair
+            out += 4;
+        }
+    }
+    return out;
 }
 
 function __yy_JSIndex2GMLIndex(str, jsIndex)
@@ -646,7 +662,7 @@ function UTF16_to_UTF8(_str)
 {
     var utf8 = [];
     for (var i = 0; i < _str.length; i++) {
-        var charCode = _str.codePointAt(i);
+        var charCode = _str.charCodeAt(i);
         if (charCode < 0x80) {
             utf8.push(charCode);
         }
@@ -654,7 +670,7 @@ function UTF16_to_UTF8(_str)
             utf8.push(0xc0 | (charCode >> 6),
                       0x80 | (charCode & 0x3f));
         }
-        else if (charCode < 0x10000) {
+        else if (charCode < 0xd800 || charCode >= 0xe000) {
             utf8.push(0xe0 | (charCode >> 12),
                       0x80 | ((charCode >> 6) & 0x3f),
                       0x80 | (charCode & 0x3f));
@@ -664,7 +680,6 @@ function UTF16_to_UTF8(_str)
                       0x80 | ((charCode >> 12) & 0x3f),
                       0x80 | ((charCode >> 6) & 0x3f),
                       0x80 | (charCode & 0x3f));
-            i++;  // Skip the low surrogate in the next iteration
         }
     }
     return utf8;
