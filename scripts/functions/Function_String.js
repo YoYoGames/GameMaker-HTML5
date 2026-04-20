@@ -807,7 +807,7 @@ function string_delete(_str,_index,_count)
     if (inCount <= 0 || inIndex <= 0) return inStr;
     
     var steps = 0;
-    var startIndex = inIndex - 1;    
+    var startIndex = inIndex>0 ? inIndex - 1:inIndex;    
     var len = inStr.length;
     while ((startIndex > 0) && (steps < len)) {
         var code = inStr.charCodeAt(steps);
