@@ -2162,6 +2162,11 @@ UILayerInstanceElement.prototype.create_element = function(target_layer, run_ins
 	if(this.m_element_id !== undefined)
 	{
 		/* Element has already been created. */
+		var element = g_pLayerManager.GetElementFromID(g_RunRoom, this.m_element_id);
+		if(element !== null)
+		{
+			g_pLayerManager.MoveElement(g_RunRoom,element,target_layer);
+		}
 		return;
 	}
 
@@ -2451,6 +2456,11 @@ UILayerSequenceElement.prototype.create_element = function(target_layer, run_ins
 	if(this.m_element_id !== undefined)
 	{
 		/* Element has already been created. */
+		var element = g_pLayerManager.GetElementFromID(g_RunRoom, this.m_element_id);
+		if(element !== null)
+		{
+			g_pLayerManager.MoveElement(g_RunRoom,element,target_layer);
+		}
 		return;
 	}
 
@@ -2661,6 +2671,11 @@ UILayerSpriteElement.prototype.create_element = function(target_layer, run_insta
 	if(this.m_element_id !== undefined)
 	{
 		/* Element has already been created. */
+		var element = g_pLayerManager.GetElementFromID(g_RunRoom, this.m_element_id);
+		if(element !== null)
+		{
+			g_pLayerManager.MoveElement(g_RunRoom,element,target_layer);
+		}
 		return;
 	}
 
@@ -2986,6 +3001,11 @@ UILayerTextElement.prototype.create_element = function(target_layer, run_instanc
 	if(this.m_element_id !== undefined)
 	{
 		/* Element has already been created. */
+		var element = g_pLayerManager.GetElementFromID(g_RunRoom, this.m_element_id);
+		if(element !== null)
+		{
+			g_pLayerManager.MoveElement(g_RunRoom,element,target_layer);
+		}
 		return;
 	}
 
