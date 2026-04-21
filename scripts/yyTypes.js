@@ -387,7 +387,7 @@ function yyGetRef(_value, _ref, _maxNum, _array, _allowOutOfRange) {
     var ret = -1;
     if (_value instanceof YYRef) {
         var type = _value.type;
-        if (type != _ref) {
+        if ((type != _ref) && (_ref != undefined)) {
             if(!_allowOutOfRange)
                 yyError("incorrect type (" + RefName(type) + ") expecting a " + RefName(_ref));
         }
