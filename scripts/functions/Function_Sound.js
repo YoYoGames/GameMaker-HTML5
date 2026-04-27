@@ -1651,15 +1651,15 @@ function audio_sound_length(_soundid)
 	}
 
 	if (assetIndex !== -1) {
-		 if (IsSoundStreamed(assetIndex))
-			// Streamed sounds have their duration recorded by the asset compiler
-			return audio_sampledata[assetIndex].duration;
-         else if (IsSoundBuffered(assetIndex))
+		if (IsSoundBuffered(assetIndex)) {
             return buffer_sampledata[assetIndex - BASE_BUFFER_SOUND_INDEX].buffer.duration;
-		 else if (IsSoundQueued(assetIndex))
+        }
+		else if (IsSoundQueued(assetIndex)) {
             return 0.0;
-         else
-			return audio_sampledata[assetIndex].buffer.duration;
+        }
+        else {
+			return audio_sampledata[assetIndex].duration;
+        }
 	}
 
 	return -1.0;
