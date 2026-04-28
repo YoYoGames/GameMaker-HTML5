@@ -2336,6 +2336,7 @@ UILayerInstanceElement.prototype.measure_item = function(node, max_width, max_he
 			width: (((instance.bbox.right - instance.bbox.left) / instance.image_xscale) * this.instanceScaleX),
 			height: (((instance.bbox.bottom - instance.bbox.top) / instance.image_yscale) * this.instanceScaleY),
 		};
+		ret = stretch_item_size(node, max_width, max_height, this, ret);
 		return ret;
 	}
 	else{
@@ -2578,6 +2579,7 @@ UILayerSequenceElement.prototype.measure_item = function(node, max_width, max_he
 	{
 		/* Sequence width/height (at t=0) is calculated by the IDE for us. */
 		var ret = { width: sequence.m_width, height: sequence.m_height };
+		ret = stretch_item_size(node, max_width, max_height, this, ret);
 		return ret;
 	}
 
@@ -2895,6 +2897,8 @@ UILayerSpriteElement.prototype.measure_item = function(node, max_width, max_heig
 		}
 
 		ret = { width: sprite_width, height: sprite_height };
+		ret = stretch_item_size(node, max_width, max_height, this, ret);
+
 		return ret;
 	}
 	else{
@@ -3149,6 +3153,47 @@ UILayerTextElement.prototype.position = function(container, clipping_rect, set_c
 	}
 };
 
+function stretch_item_size(node, max_width, max_height, element, _size)
+{
+	var size = { width: _size.width, height: _size.height };
+	/* When stretch and keep aspect is enabled, we allow the text to grow to fit a fixed-size
+	 * container in one dimension and then grow the other (auto sized) dimension to fit via the
+	 * measure function...
+	 *
+	 * This logic is copied from RoomItemHelper.MeasureItemSize() in the IDE.
+	*/
+
+	if (element.keepAspect && (element.stretchWidth || element.stretchHeight)) {
+		var node_width = node.getWidth();
+		var node_height = node.getHeight();
+
+		var autoW = node_width.unit == YGUnitAuto;
+		var autoH = node_height.unit == YGUnitAuto;
+		var parentW = (autoW) ? Math.min(size.width, max_width) : max_width; //parent width = item width, when auto sized
+		var parentH = (autoH) ? Math.min(size.height, max_height) : max_height;
+		var contentAspect = size.width / size.height;
+		var adjustHeight = true;
+		if (autoW && autoH) {
+			var parentAspect = parentW / parentH; //parent size = item size in both dimensions
+			adjustHeight = (contentAspect > parentAspect);
+		}
+		else if (autoW) {
+			size.width = Math.abs(max_height * contentAspect); //we cannot adjust fixed height
+		}
+		else if (autoH) {
+			size.height = Math.abs(max_width / contentAspect); //we cannot adjust fixed width
+		}
+
+		if (adjustHeight)
+			size.height = Math.abs(parentW / contentAspect);
+		else
+			size.width = Math.abs(parentH * contentAspect);
+	}
+
+	return size;
+
+}
+
 UILayerTextElement.prototype.measure_item = function(node, max_width, max_height)
 {
 	var ret;
@@ -3177,37 +3222,10 @@ UILayerTextElement.prototype.measure_item = function(node, max_width, max_height
 	 * This logic is copied from RoomItemHelper.MeasureItemSize() in the IDE.
 	*/
 
-	if ((!element.m_wrap) && this.keepAspect && (this.stretchWidth || this.stretchHeight))
+	if ((!element.m_wrap))
 	{
-		var node_width = node.getWidth();
-		var node_height = node.getHeight();
-
-		var autoW = node_width.unit == YGUnitAuto;
-		var autoH = node_height.unit == YGUnitAuto;
-		var parentW = (autoW) ? size.width : max_width; //parent width = item width, when auto sized
-		var parentH = (autoH) ? size.height : max_height;
-		var contentAspect = size.width / size.height;
-		var adjustHeight = true;
-		if (autoW && autoH)
-		{
-			var parentAspect = parentW / parentH; //parent size = item size in both dimensions
-			adjustHeight = (contentAspect > parentAspect);
-		}
-		else if (autoW)
-		{
-			size.width = Math.abs(max_height * contentAspect); //we cannot adjust fixed height
-		}
-		else if (autoH)
-		{
-			size.height = Math.abs(max_width / contentAspect); //we cannot adjust fixed width
-		}
-
-		if (adjustHeight)
-			size.height = Math.abs(parentW / contentAspect);
-		else
-			size.width = Math.abs(parentH * contentAspect);
+		size = stretch_item_size(node, max_width, max_height, this, size);
 	}
-
 	return size;
 };
 
