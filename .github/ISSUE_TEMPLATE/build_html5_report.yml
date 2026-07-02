@@ -61,7 +61,7 @@ body:
       multiple: true
       options:
         - 2026.0.0 LTS
-        - 2024.1400.5 Betas
+        - 2026.100 Betas
         - 2024.14.4 Monthly
         - 2022.0.3 LTS
     validations:
