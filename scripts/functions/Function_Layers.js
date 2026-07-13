@@ -6005,6 +6005,24 @@ function layer_sequence_get_yscale(sequence_element_id)
     return -1;
 };
 
+function layer_sequence_get_alpha(sequence_element_id) {
+    var el = layerSequenceGetInstance(yyGetInt32(sequence_element_id));
+    if (el != null) {
+        return el.m_imageAlpha;
+    }
+
+    return -1;
+};
+
+function layer_sequence_get_blend(sequence_element_id) {
+    var el = layerSequenceGetInstance(yyGetInt32(sequence_element_id));
+    if (el != null) {
+        return ConvertGMColour(el.m_imageBlend);
+    }
+
+    return -1;
+};
+
 function layer_sequence_get_headpos(sequence_element_id)
 {
     var el = layerSequenceGetInstance(yyGetInt32(sequence_element_id));
