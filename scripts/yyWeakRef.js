@@ -87,7 +87,7 @@ function weak_ref_create(_pRef)
 
 function weak_ref_alive(_pWeakRef)
 {
-    if (_pWeakRef != undefined)
+    if (arguments.length > 0)
     {
         if ((typeof (_pWeakRef) == "object") && (_pWeakRef.__type != undefined) && (_pWeakRef.__type == "[weakref]"))
         {
