@@ -144,8 +144,11 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
             //unsafe fixes
 			inst.object_index = pObj.Name;
             inst.id = sourceInstance.id;
+                    
+                    //for some reason room instances now internally use the "rotation" variable, instead of angle
+                    variable_struct_set(inst, "angle", sourceInstance.rotation ? sourceInstance.rotation : 0);
+                    //variable_struct_set(inst, "angle", sourceInstance.angle ? sourceInstance.angle : 0);
 
-                    variable_struct_set(inst, "angle", sourceInstance.angle ? sourceInstance.angle : 0);
                     variable_struct_set(inst, "xscale", sourceInstance.scaleX ? sourceInstance.scaleX : 1);
                     variable_struct_set(inst, "yscale", sourceInstance.scaleY ? sourceInstance.scaleY : 1);
                     variable_struct_set(inst, "image_speed", sourceInstance.imageSpeed ? sourceInstance.imageSpeed : 1);
