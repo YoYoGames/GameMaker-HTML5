@@ -933,6 +933,14 @@ function os_powersave_enable(enable) {  }
 
 // #############################################################################################
 /// Function:<summary>
+///          	Respect or override the ring/silent switch
+///          </summary>
+///
+// #############################################################################################
+function os_respect_silent_switch(enable) { }
+
+// #############################################################################################
+/// Function:<summary>
 ///          	Lock the current orientation of the display
 ///          </summary>
 ///
