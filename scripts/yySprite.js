@@ -419,6 +419,7 @@ yySprite.prototype.ComputeBoundingBox = function(_tolerance)
 
 yySprite.prototype.GetScaledBoundingBox = function(_xscale, _yscale)
 {
+	var i;
 	var scaledBB = new YYRECT;
 
 	var abs_xscale = Math.abs(_xscale);
