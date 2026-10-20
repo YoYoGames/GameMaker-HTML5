@@ -488,6 +488,50 @@ yySprite.prototype.GetScaledBoundingBox = function(_xscale, _yscale)
 			{
 				sliceMidHeight = scaledSpriteHeight - (sliceTopHeight + sliceBottomHeight);
 			}
+
+			var vertsegstouched = [];
+			var horizsegstouched = [];
+			var numvertsegstouched = 0;
+			var numhorizsegstouched = 0;
+
+			if ((tempBB.left < this.nineslicedata.GetLeft()) && (tempBB.right > 0))
+				horizsegstouched[numhorizsegstouched++] = NINESLICE_LEFT;
+
+			if ((tempBB.left < (this.width - this.nineslicedata.GetRight())) && (tempBB.right > this.nineslicedata.GetLeft()))
+				horizsegstouched[numhorizsegstouched++] = NINESLICE_CENTRE;
+
+			if ((tempBB.left < this.width) && (tempBB.right > (this.width - this.nineslicedata.GetRight())))
+				horizsegstouched[numhorizsegstouched++] = NINESLICE_RIGHT;
+
+
+			if ((tempBB.top < this.nineslicedata.GetTop()) && (tempBB.bottom > 0))
+				vertsegstouched[numvertsegstouched++] = NINESLICE_TOP;
+
+			if ((tempBB.top < (this.height - this.nineslicedata.GetBottom())) && (tempBB.bottom > this.nineslicedata.GetTop()))
+				vertsegstouched[numvertsegstouched++] = NINESLICE_CENTRE;
+
+			if ((tempBB.top < this.height) && (tempBB.bottom > (this.height - this.nineslicedata.GetBottom())))
+				vertsegstouched[numvertsegstouched++] = NINESLICE_BOTTOM;
+
+			var allhorizstretch = true;
+			for (i = 0; i < numhorizsegstouched; i++)
+			{
+				if (this.nineslicedata.GetTilemode(horizsegstouched[i]) != NINESLICE_TILE_STRETCH)
+				{
+					allhorizstretch = false;
+					break;
+				}
+			}
+
+			var allvertstretch = true;
+			for (i = 0; i < numvertsegstouched; i++)
+			{
+				if (this.nineslicedata.GetTilemode(vertsegstouched[i]) != NINESLICE_TILE_STRETCH)
+				{
+					allvertstretch = false;
+					break;
+				}
+			}
 			
 			// Work out what segments the bounding box straddles
 			if (tempBB.left <= this.nineslicedata.GetLeft())
@@ -496,9 +540,44 @@ yySprite.prototype.GetScaledBoundingBox = function(_xscale, _yscale)
 				scaledBB.left = sliceLeftWidth + sliceMidWidth + (tempBB.left - (this.width - this.nineslicedata.GetRight()));	// if we're in the right segment the value has the same position relative to the right edge
 			else
 			{
-				// If we're in the middle segment we've got a bit more work to do
-				var ratio = (tempBB.left - this.nineslicedata.GetLeft()) / origSliceMidWidth;
-				scaledBB.left = sliceLeftWidth + (sliceMidWidth * ratio);
+				// If we're in the middle column we've got a bit more work to do
+				// We need to see which of the top, middle and bottom segments are touched by the bounding box
+				// then look at the tile modes of those touched segments and figure out the minimum x value
+				// that satisfies each tile mode
+															
+				if (allvertstretch)	// Fast path
+				{
+					var ratio = (tempBB.left - this.nineslicedata.GetLeft()) / origSliceMidWidth;
+					scaledBB.left = sliceLeftWidth + (sliceMidWidth * ratio);
+				}
+				else
+				{					
+					var minX = Number.MAX_SAFE_INTEGER;
+
+					for (i = 0; i < numvertsegstouched; i++)
+					{
+						var tilemode = this.nineslicedata.GetTilemode(vertsegstouched[i]);
+						switch (tilemode)
+						{
+							case NINESLICE_TILE_STRETCH:
+							case NINESLICE_TILE_HIDE:
+							{
+								var ratio = (tempBB.left - this.nineslicedata.GetLeft()) / origSliceMidWidth;
+								minX = yymin(minX, sliceLeftWidth + (sliceMidWidth * ratio));
+							} break;
+
+							case NINESLICE_TILE_REPEAT:
+							case NINESLICE_TILE_MIRROR:
+							case NINESLICE_TILE_BLANKREPEAT:
+							{
+								var bbleft = yymin(tempBB.left, sliceLeftWidth + sliceMidWidth);
+								minX = yymin(minX, bbleft);
+							} break;
+						}
+					}
+
+					scaledBB.left = minX;
+				}				
 			}
 
 			if (tempBB.right <= this.nineslicedata.GetLeft())
@@ -507,9 +586,87 @@ yySprite.prototype.GetScaledBoundingBox = function(_xscale, _yscale)
 				scaledBB.right = sliceLeftWidth + sliceMidWidth + (tempBB.right - (this.width - this.nineslicedata.GetRight()));	// if we're in the right segment the value has the same position relative to the right edge
 			else
 			{
-				// If we're in the middle segment we've got a bit more work to do
-				var ratio = (tempBB.right - this.nineslicedata.GetLeft()) / origSliceMidWidth;
-				scaledBB.right = sliceLeftWidth + (sliceMidWidth * ratio);
+				// If we're in the middle column we've got a bit more work to do
+				// We need to see which of the top, middle and bottom segments are touched by the bounding box
+				// then look at the tile modes of those touched segments and figure out the maximum x value
+				// that satisfies each tile mode
+
+				if (allvertstretch)	// Fast path
+				{
+					var ratio = (tempBB.right - this.nineslicedata.GetLeft()) / origSliceMidWidth;
+					scaledBB.right = sliceLeftWidth + (sliceMidWidth * ratio);
+				}
+				else
+				{					
+					var maxX = Number.MIN_SAFE_INTEGER;// yymin(tempBB.right, sliceLeftWidth + sliceMidWidth);
+
+					for (i = 0; i < numvertsegstouched; i++)
+					{
+						var tilemode = this.nineslicedata.GetTilemode(vertsegstouched[i]);
+						switch (tilemode)
+						{
+							case NINESLICE_TILE_STRETCH:
+							case NINESLICE_TILE_HIDE:
+							{
+								var ratio = (tempBB.right - this.nineslicedata.GetLeft()) / origSliceMidWidth;
+								maxX = yymax(maxX, sliceLeftWidth + (sliceMidWidth * ratio));
+							} break;
+
+							case NINESLICE_TILE_REPEAT:
+							case NINESLICE_TILE_MIRROR:
+							case NINESLICE_TILE_BLANKREPEAT:
+							{
+								// Work out how many repeats we have				
+								var numRepeats = 0.0;
+								if (origSliceMidWidth > 0)
+								{
+									numRepeats = sliceMidWidth / origSliceMidWidth;
+								}
+
+								if ((numRepeats > 1.0) && (tilemode != NINESLICE_TILE_BLANKREPEAT))
+								{
+									var numfullrepeats = ceil(numRepeats);
+
+									var maxright = sliceLeftWidth + sliceMidWidth;
+									var leftmargin = tempBB.left - sliceLeftWidth;
+									var rightmargin = (sliceLeftWidth + origSliceMidWidth) - tempBB.right;
+
+									var repeatbase = sliceLeftWidth + (origSliceMidWidth * (numfullrepeats - 1));
+
+									var bbright;
+									if ((tilemode == NINESLICE_TILE_REPEAT) || (((~~numfullrepeats) & 1) == 0))
+									{											
+										bbright = repeatbase - rightmargin;
+										if ((repeatbase + leftmargin) < maxright)
+										{											
+											bbright += origSliceMidWidth;
+										}										
+									}
+									else
+									{
+										// mirrored repeat										
+										bbright = repeatbase - leftmargin;
+										if ((repeatbase + rightmargin) < maxright)
+										{
+											bbright += origSliceMidWidth;
+										}										
+									}
+
+									bbright = yymin(bbright, maxright);
+
+									maxX = yymax(maxX, bbright);
+								}
+								else
+								{
+									var bbright = yymin(tempBB.right, sliceLeftWidth + sliceMidWidth);
+									maxX = yymax(maxX, bbright);
+								}
+							} break;
+						}
+					}
+
+					scaledBB.right = maxX;
+				}
 			}
 
 			if (tempBB.top <= this.nineslicedata.GetTop())
@@ -518,9 +675,43 @@ yySprite.prototype.GetScaledBoundingBox = function(_xscale, _yscale)
 				scaledBB.top = sliceTopHeight + sliceMidHeight + (tempBB.top - (this.height - this.nineslicedata.GetBottom()));	// if we're in the bottom segment the value has the same position relative to the bottom edge
 			else
 			{
-				// If we're in the middle segment we've got a bit more work to do
-				var ratio = (tempBB.top - this.nineslicedata.GetTop()) / origSliceMidHeight;
-				scaledBB.top = sliceTopHeight + (sliceMidHeight * ratio);
+				// If we're in the middle row we've got a bit more work to do
+				// We need to see which of the left, middle and right segments are touched by the bounding box
+				// then look at the tile modes of those touched segments and figure out the minimum y value
+				// that satisfies each tile mode
+				if (allhorizstretch)	// Fast path
+				{
+					var ratio = (tempBB.top - this.nineslicedata.GetTop()) / origSliceMidHeight;
+					scaledBB.top = sliceTopHeight + (sliceMidHeight * ratio);
+				}
+				else
+				{
+					var minY = Number.MAX_SAFE_INTEGER;
+
+					for (i = 0; i < numhorizsegstouched; i++)
+					{
+						var tilemode = this.nineslicedata.GetTilemode(horizsegstouched[i]);
+						switch (tilemode)
+						{
+							case NINESLICE_TILE_STRETCH:
+							case NINESLICE_TILE_HIDE:
+							{
+								var ratio = (tempBB.top - this.nineslicedata.GetTop()) / origSliceMidHeight;
+								minY = yymin(minY, sliceTopHeight + (sliceMidHeight * ratio));
+							} break;
+
+							case NINESLICE_TILE_REPEAT:
+							case NINESLICE_TILE_MIRROR:
+							case NINESLICE_TILE_BLANKREPEAT:
+							{
+								var bbtop = yymin(tempBB.top, sliceTopHeight + sliceMidHeight);
+								minY = yymin(minY, bbtop);
+							} break;
+						}
+					}
+
+					scaledBB.top = minY;
+				}
 			}
 
 			if (tempBB.bottom <= this.nineslicedata.GetTop())
@@ -529,9 +720,87 @@ yySprite.prototype.GetScaledBoundingBox = function(_xscale, _yscale)
 				scaledBB.bottom = sliceTopHeight + sliceMidHeight + (tempBB.bottom - (this.height - this.nineslicedata.GetBottom()));	// if we're in the bottom segment the value has the same position relative to the bottom edge
 			else
 			{
-				// If we're in the middle segment we've got a bit more work to do
-				var ratio = (tempBB.bottom - this.nineslicedata.GetTop()) / origSliceMidHeight;
-				scaledBB.bottom = sliceTopHeight + (sliceMidHeight * ratio);
+				// If we're in the middle row we've got a bit more work to do
+				// We need to see which of the left, middle and right segments are touched by the bounding box
+				// then look at the tile modes of those touched segments and figure out the maximum y value
+				// that satisfies each tile mode
+
+				if (allhorizstretch)	// Fast path
+				{
+					var ratio = (tempBB.bottom - this.nineslicedata.GetTop()) / origSliceMidHeight;
+					scaledBB.bottom = sliceTopHeight + (sliceMidHeight * ratio);
+				}
+				else
+				{
+					var maxY = Number.MIN_SAFE_INTEGER;// yymin(tempBB.bottom, sliceTopHeight + sliceMidHeight);
+
+					for (i = 0; i < numhorizsegstouched; i++)
+					{
+						var tilemode = this.nineslicedata.GetTilemode(horizsegstouched[i]);
+						switch (tilemode)
+						{
+							case NINESLICE_TILE_STRETCH:
+							case NINESLICE_TILE_HIDE:
+							{
+								var ratio = (tempBB.bottom - this.nineslicedata.GetTop()) / origSliceMidHeight;
+								maxY = yymax(maxY, sliceTopHeight + (sliceMidHeight * ratio));
+							} break;
+
+							case NINESLICE_TILE_REPEAT:
+							case NINESLICE_TILE_MIRROR:
+							case NINESLICE_TILE_BLANKREPEAT:
+							{
+								// Work out how many repeats we have				
+								var numRepeats = 0.0;
+								if (origSliceMidHeight > 0)
+								{
+									numRepeats = sliceMidHeight / origSliceMidHeight;
+								}
+
+								if ((numRepeats > 1.0) && (tilemode != NINESLICE_TILE_BLANKREPEAT))	
+								{
+									var numfullrepeats = ceil(numRepeats);
+
+									var maxbottom = sliceTopHeight + sliceMidHeight;
+									var topmargin = tempBB.top - sliceTopHeight;
+									var bottommargin = (sliceTopHeight + origSliceMidHeight) - tempBB.bottom;
+
+									var repeatbase = sliceTopHeight + (origSliceMidHeight * (numfullrepeats - 1));
+
+									var bbbottom;
+									if ((tilemode == NINESLICE_TILE_REPEAT) || ((~~numfullrepeats & 1) == 0))
+									{																				
+										bbbottom = repeatbase - bottommargin;
+										if ((repeatbase + topmargin) < maxbottom)
+										{
+											bbbottom += origSliceMidHeight;
+										}
+									}
+									else
+									{
+										// mirrored repeat																				
+										bbbottom = repeatbase - topmargin;
+										if ((repeatbase + bottommargin) < maxbottom)
+										{
+											bbbottom += origSliceMidHeight;
+										}
+									}
+
+									bbbottom = yymin(bbbottom, maxbottom);
+
+									maxY = yymax(maxY, bbbottom);
+								}
+								else
+								{
+									var bbbottom = yymin(tempBB.bottom, sliceTopHeight + sliceMidHeight);
+									maxY = yymax(maxY, bbbottom);
+								}
+							} break;
+						}
+					}
+
+					scaledBB.bottom = maxY;
+				}
 			}
 
 			// Clamp
