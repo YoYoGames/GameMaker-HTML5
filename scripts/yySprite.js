@@ -635,7 +635,7 @@ yySprite.prototype.GetScaledBoundingBox = function(_xscale, _yscale)
 									var repeatbase = sliceLeftWidth + (origSliceMidWidth * (numfullrepeats - 1));
 
 									var bbright;
-									if ((tilemode == NINESLICE_TILE_REPEAT) || (((~~numfullrepeats) & 1) == 0))
+									if (tilemode == NINESLICE_TILE_REPEAT)
 									{											
 										bbright = repeatbase - rightmargin;
 										if ((repeatbase + leftmargin) < maxright)
@@ -645,12 +645,27 @@ yySprite.prototype.GetScaledBoundingBox = function(_xscale, _yscale)
 									}
 									else
 									{
-										// mirrored repeat										
-										bbright = repeatbase - leftmargin;
-										if ((repeatbase + rightmargin) < maxright)
+										// mirrored repeat	
+										var margin1, margin2;
+										if ((~~numfullrepeats & 1) == 0)
 										{
-											bbright += origSliceMidWidth;
+											margin1 = rightmargin;
+											margin2 = leftmargin;											
+										}
+										else
+										{
+											margin1 = leftmargin;
+											margin2 = rightmargin;											
+										}							
+										
+										if ((repeatbase + margin1) < maxright)
+										{
+											bbright = (repeatbase + origSliceMidWidth) - margin2;
 										}										
+										else
+										{
+											bbright = repeatbase - margin1;
+										}																		
 									}
 
 									bbright = yymin(bbright, maxright);
@@ -769,7 +784,7 @@ yySprite.prototype.GetScaledBoundingBox = function(_xscale, _yscale)
 									var repeatbase = sliceTopHeight + (origSliceMidHeight * (numfullrepeats - 1));
 
 									var bbbottom;
-									if ((tilemode == NINESLICE_TILE_REPEAT) || ((~~numfullrepeats & 1) == 0))
+									if (tilemode == NINESLICE_TILE_REPEAT)
 									{																				
 										bbbottom = repeatbase - bottommargin;
 										if ((repeatbase + topmargin) < maxbottom)
@@ -779,11 +794,26 @@ yySprite.prototype.GetScaledBoundingBox = function(_xscale, _yscale)
 									}
 									else
 									{
-										// mirrored repeat																				
-										bbbottom = repeatbase - topmargin;
-										if ((repeatbase + bottommargin) < maxbottom)
+										// mirrored repeat
+										var margin1, margin2;
+										if ((~~numfullrepeats & 1) == 0)
 										{
-											bbbottom += origSliceMidHeight;
+											margin1 = bottommargin;
+											margin2 = topmargin;
+										}
+										else
+										{
+											margin1 = topmargin;
+											margin2 = bottommargin;
+										}
+
+										if ((repeatbase + margin1) < maxbottom)
+										{
+											bbbottom = (repeatbase + origSliceMidHeight) - margin2;
+										}
+										else
+										{
+											bbbottom = repeatbase - margin1;
 										}
 									}
 
