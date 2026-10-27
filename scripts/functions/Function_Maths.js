@@ -1943,6 +1943,11 @@ function yyftime(_val1, _val2) {
         _val2 = _val2.toNumber();
     }
 
+    // string * anything is illegal, only number * string repeats the string (GameMaker-Bugs#16192)
+    if (typeof _val1 === "string") {
+        yyError( "unable to multiply string by " + typeof _val2);
+    } // end if
+
     if ((typeof _val1 === "number") && (typeof _val2 === "string")) {
         var ret = "";
         for( var n=yyGetReal(_val1)-1; n>=0 ; --n ) {
