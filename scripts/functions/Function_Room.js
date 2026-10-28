@@ -156,6 +156,14 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                     variable_struct_set(inst, "colour", sourceInstance.image_blend ? sourceInstance.image_blend : 0x00ffffff);
                     variable_struct_set(inst, "creation_code", sourceInstance.pCode ? sourceInstance.pCode : -1);
                     variable_struct_set(inst, "pre_creation_code", sourceInstance.pPreCreateCode ? sourceInstance.pPreCreateCode : -1);
+
+                    // variables - run the object pre create event then the instance pre creation code with a blank struct as self
+                    // so it ends up with the variable definitions this instance will be created with
+                    var variables = {};
+                    variables.__yyIsGMLObject = true;
+                    Perform_PreCreate_Struct(pObj, variables);
+                    if (sourceInstance.pPreCreateCode) sourceInstance.pPreCreateCode(variables, variables);
+                    variable_struct_set(inst, "variables", variables);
                     instances[i] = inst;
                 } // end if
             } // end for     
