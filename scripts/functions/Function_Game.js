@@ -497,6 +497,33 @@ function event_user(_pInst, _pOther, _subevent) {
 
 // #############################################################################################
 /// Function:<summary>
+///          	Performs the pre create event of the object (or the nearest parent that has one) 
+///             using a struct as self, this gathers the variable definitions into the struct.
+///          </summary>
+///
+/// In:		<param name="_pObj">object to start from</param>
+///			<param name="_struct">struct to use as self</param>
+// #############################################################################################
+function Perform_PreCreate_Struct(_pObj, _struct) {
+    var oldobj = Current_Object;
+    var oldtype = Current_Event_Type;
+    var oldnumb = Current_Event_Number;
+    for (var pObj = _pObj; pObj != null; pObj = pObj.pParent) {
+        if (pObj.Event[EVENT_PRE_CREATE]) {
+            Current_Object = pObj;
+            Current_Event_Type = EVENT_PRE_CREATE;
+            Current_Event_Number = 0;
+            pObj.PerformEvent(EVENT_PRE_CREATE, 0, _struct, _struct, true);
+            break;
+        }
+    }
+    Current_Object = oldobj;
+    Current_Event_Type = oldtype;
+    Current_Event_Number = oldnumb;
+}
+
+// #############################################################################################
+/// Function:<summary>
 ///          	Performs the inherited event. This only works if the instance has a parent object.
 ///          </summary>
 ///
@@ -508,6 +535,11 @@ function event_user(_pInst, _pOther, _subevent) {
 function event_inherited(_pInst, _pOther) {
     if(YYInstanceof(_pInst) != "instance")
     {
+        // room_get_info runs the pre create event on a struct to gather the variable definitions
+        if ((g_LastEvent == EVENT_PRE_CREATE) && (Current_Object != null)) {
+            Perform_PreCreate_Struct(Current_Object.pParent, _pInst);
+            return;
+        }
         yyError("Attempt to dispatch event on non-instance object");
     }
     _pInst.PerformEventInherited(g_LastEvent, g_LastEventArrayIndex, _pOther);
