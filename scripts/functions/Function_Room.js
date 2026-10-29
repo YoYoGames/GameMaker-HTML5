@@ -158,11 +158,15 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                     variable_struct_set(inst, "pre_creation_code", sourceInstance.pPreCreateCode ? sourceInstance.pPreCreateCode : -1);
 
                     // variables - run the object pre create event then the instance pre creation code with a blank struct as self
-                    // so it ends up with the variable definitions this instance will be created with
-                    var variables = {};
-                    variables.__yyIsGMLObject = true;
-                    Perform_PreCreate_Struct(pObj, variables);
-                    if (sourceInstance.pPreCreateCode) sourceInstance.pPreCreateCode(variables, variables);
+                    // so it ends up with the variable definitions this instance will be created with, undefined if there are none
+                    var variables = undefined;
+                    var hasPreCreate = pObj.REvent[EVENT_PRE_CREATE];
+                    if (hasPreCreate || sourceInstance.pPreCreateCode) {
+                        variables = {};
+                        variables.__yyIsGMLObject = true;
+                        if (hasPreCreate) Perform_PreCreate_Struct(pObj, variables);
+                        if (sourceInstance.pPreCreateCode) sourceInstance.pPreCreateCode(variables, variables);
+                    }
                     variable_struct_set(inst, "variables", variables);
                     instances[i] = inst;
                 } // end if
