@@ -61,7 +61,8 @@ function room_get_name(_ind)
 function room_name(_ind){ return room_get_name(_ind); }
 
 
-function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tilemap_data)
+// _live (the live data for the current room) is not supported on HTML5, it is there so _variables is in the same place as the other runners
+function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tilemap_data, _live, _variables)
 {
     var pRoom = g_pRoomManager.Get(yyGetInt32(_ind));
     var ret = {};
@@ -73,6 +74,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
         _layers = _layers ?? true;
         _layer_elements = _layer_elements ?? true;
         _tilemap_data = _tilemap_data ?? true;
+        _variables = _variables ?? false;
 
         var pStorage = pRoom.m_pStorage;
         variable_struct_set(ret, "width", pStorage.width ? pStorage.width : 1024);
@@ -158,14 +160,16 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                     variable_struct_set(inst, "pre_creation_code", sourceInstance.pPreCreateCode ? sourceInstance.pPreCreateCode : -1);
 
                     // variables - run the object pre create event then the instance pre creation code with a blank struct as self
-                    // so it ends up with the variable definitions this instance will be created with, undefined if there are none
+                    // so it ends up with the variable definitions this instance will be created with, undefined if they were not
+                    // asked for or there are none
                     var variables = undefined;
-                    var hasPreCreate = pObj.REvent[EVENT_PRE_CREATE];
-                    if (hasPreCreate || sourceInstance.pPreCreateCode) {
+                    var hasPreCreate = _variables && pObj.REvent[EVENT_PRE_CREATE];
+                    var hasPreCreationCode = _variables && sourceInstance.pPreCreateCode;
+                    if (hasPreCreate || hasPreCreationCode) {
                         variables = {};
                         variables.__yyIsGMLObject = true;
                         if (hasPreCreate) Perform_PreCreate_Struct(pObj, variables);
-                        if (sourceInstance.pPreCreateCode) sourceInstance.pPreCreateCode(variables, variables);
+                        if (hasPreCreationCode) sourceInstance.pPreCreateCode(variables, variables);
                     }
                     variable_struct_set(inst, "variables", variables);
                     instances[i] = inst;
