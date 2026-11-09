@@ -4376,22 +4376,22 @@ function tilemap_set( arg1,arg2,arg3,arg4)
         if(arg3<0)
         {
             debug("tilemap_set_tile called with negative x coord, fails");
-            return;
+            return false;
         }
         if(arg4<0)
         {
             debug("tilemap_set_tile called with negative y coord, fails");
-            return;
+            return false;
         }
         if(arg3>=el.m_mapWidth)
         {
             debug("tilemap_set_tile called with x coord greater than map width, fails");
-            return;
+            return false;
         }
         if(arg4>=el.m_mapHeight)
         {
             debug("tilemap_set_tile called with y coord greater than map height, fails");
-            return;
+            return false;
         }
         
         var x = arg3;
@@ -4403,13 +4403,15 @@ function tilemap_set( arg1,arg2,arg3,arg4)
 		if (back != null && tileindex >= back.tilecount)
 		{
 			debug("layer_tilemap_set_tile() - tile index outside tile set count");
-			return;
+			return false;
 		}
 
 		// Replace the tile data at this location
 		var index = (y * el.m_mapWidth) + x;
-		el.m_pTiles[index] = tileindexdata;		
-    } 
+		el.m_pTiles[index] = tileindexdata;
+		return true;
+    }
+    return false;
 
 };
 
@@ -4426,7 +4428,7 @@ function tilemap_set_at_pixel( arg1,arg2,arg3,arg4)
     var room = g_pLayerManager.GetTargetRoomObj();
     var ret = g_pLayerManager.GetElementAndLayerFromID(room, yyGetInt32(arg1));
 
-    if (ret == null) return -1;
+    if (ret == null) return false;
     
     
     var el = ret.element;
@@ -4456,15 +4458,15 @@ function tilemap_set_at_pixel( arg1,arg2,arg3,arg4)
         y-= tmapoffy;
         
         if(x<0)
-            return -1;
+            return false;
             
         if(y<0)
-            return -1;
+            return false;
             
         if(x>=tmpw)
-            return -1;
-        if(y>tmph)
-            return -1;
+            return false;
+        if(y>=tmph)
+            return false;
 
         var indexX = Math.floor(x*rcptw);
         var indexY = Math.floor(y*rcpth);
@@ -4480,10 +4482,12 @@ function tilemap_set_at_pixel( arg1,arg2,arg3,arg4)
 		if (back != null && tileindex >= back.tilecount)
 		{
 			debug("tilemap_set_tile_at_pixel() - tile index outside tile set count");
-			return;
+			return false;
 		}
-		el.m_pTiles[index] = tileindexdata;		
-    } 
+		el.m_pTiles[index] = tileindexdata;
+		return true;
+    }
+    return false;
 
 };
 
@@ -4738,7 +4742,7 @@ function tilemap_get( arg1,arg2,arg3)
     var room = g_pLayerManager.GetTargetRoomObj();
 
     if (room == null) {
-        return 0;
+        return -1;
     }
 
     var el = g_pLayerManager.GetElementFromID(room, yyGetInt32(arg1));
@@ -4747,22 +4751,22 @@ function tilemap_get( arg1,arg2,arg3)
         if(arg2<0)
         {
             debug("tilemap_get_tile called with negative x coord, fails");
-            return;
+            return -1;
         }
         if(arg3<0)
         {
             debug("tilemap_get_tile called with negative y coord, fails");
-            return;
+            return -1;
         }
         if(arg2>=el.m_mapWidth)
         {
             debug("tilemap_get_tile called with x coord greater than map width, fails");
-            return;
+            return -1;
         }
         if(arg3>=el.m_mapHeight)
         {
             debug("tilemap_get_tile called with y coord greater than map height, fails");
-            return;
+            return -1;
         }
                 
 		// Replace the tile data at this location
@@ -4815,7 +4819,7 @@ function tilemap_get_at_pixel( arg1,arg2,arg3)
             
         if(x>=tmpw)
             return -1;
-        if(y>tmph)
+        if(y>=tmph)
             return -1;
 
         var indexX = Math.floor(x*rcptw);
