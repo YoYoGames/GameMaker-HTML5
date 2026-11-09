@@ -5662,7 +5662,15 @@ function layer_sequence_get_instance(sequence_element_id)
 
 function layer_sequence_create(layer_id, posx, posy, sequence_id)
 {
-    sequence_id = yyGetInt32(sequence_id);
+    // A sequence from sequence_create() is a struct, so look up its index
+    if (sequence_id instanceof yySequence)
+    {
+        sequence_id = g_pSequenceManager.Sequences.indexOf(sequence_id);
+    }
+    else
+    {
+        sequence_id = yyGetInt32(sequence_id);
+    }
 
     var room = g_pLayerManager.GetTargetRoomObj();
 
