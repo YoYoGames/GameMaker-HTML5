@@ -1187,8 +1187,8 @@ yyInstance.prototype.Compute_Speed1 = function () {
 ///			 </returns>
 // #############################################################################################
 yyInstance.prototype.Compute_Speed2 = function () {
-	this.__hspeed = this.speed * ClampFloat(Math.cos(this.direction * 0.0174532925));   //* Pi / 180.0);
-	this.__vspeed = -this.speed * ClampFloat(Math.sin(this.direction * 0.0174532925)); // * Pi / 180.0);
+	this.__hspeed = this.speed * ClampFloat(Math.cos(this.direction * Pi / 180.0));
+	this.__vspeed = -this.speed * ClampFloat(Math.sin(this.direction * Pi / 180.0));
 
 	// Round a bit
 	if (Math.abs(this.__hspeed - Round(this.__hspeed)) < 0.0001) { this.__hspeed = Round(this.__hspeed); }
@@ -1209,8 +1209,8 @@ function ClampFloat(_f) { return  (~~(_f * 1000000)) / 1000000.0; }
 ///			 </returns>
 // #############################################################################################
 yyInstance.prototype.AddTo_Speed = function (_dir, _amount) {
-	this.hspeed += _amount * ClampFloat( Math.cos(_dir * 0.0174532925)); // * Math.PI / 180.0);
-	this.vspeed -= _amount * ClampFloat( Math.sin( _dir * 0.0174532925)); //* Math.PI / 180.0);
+	this.hspeed += _amount * ClampFloat( Math.cos(_dir * Pi / 180.0));
+	this.vspeed -= _amount * ClampFloat( Math.sin( _dir * Pi / 180.0));
 
 	this.Compute_Speed1();
 };
