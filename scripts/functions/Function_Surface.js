@@ -973,7 +973,7 @@ function draw_surface_ext(_id,_x,_y,_xscale,_yscale,_rot,_color,_alpha)
     if (!pSurf) return;
 
     var c = ConvertGMColour(yyGetInt32(_color));
-	Graphics_TextureDraw(pSurf.m_pTPE, 0, 0, yyGetReal(_x), yyGetReal(_y), yyGetReal(_xscale), yyGetReal(_yscale), (yyGetReal(_rot) * 0.0174532925), c,c,c,c, yyGetReal(_alpha));
+	Graphics_TextureDraw(pSurf.m_pTPE, 0, 0, yyGetReal(_x), yyGetReal(_y), yyGetReal(_xscale), yyGetReal(_yscale), (yyGetReal(_rot) * Pi / 180.0), c,c,c,c, yyGetReal(_alpha));
 }
 
 // #############################################################################################
@@ -1165,12 +1165,12 @@ function draw_surface_general(_id,_left,_top,_width,_height,_x,_y,_xscale,_yscal
         {
         	pTPE.singleimage = pSurf;
         	pTPE.texture = pSurf;
-        	Graphics_TextureDraw(pTPE, 0, 0, _x, _y, _xscale, _yscale, (_rot * 0.0174532925), _c1,_c2,_c3,_c4, _alpha);
+        	Graphics_TextureDraw(pTPE, 0, 0, _x, _y, _xscale, _yscale, (_rot * Pi / 180.0), _c1,_c2,_c3,_c4, _alpha);
         } else
         {
         	pTPE.singleimage = pSurf.texture;
         	pTPE.texture = pSurf.texture;
-        	Graphics_TextureDraw(pTPE, 0, 0, _x, _y, _xscale, _yscale, (_rot * 0.0174532925), _c1, _c2, _c3, _c4, _alpha);
+        	Graphics_TextureDraw(pTPE, 0, 0, _x, _y, _xscale, _yscale, (_rot * Pi / 180.0), _c1, _c2, _c3, _c4, _alpha);
         }
     }     
 }

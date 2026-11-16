@@ -3420,7 +3420,7 @@ function	DrawParticle(_pPartSys, _pParticle, _xoff, _yoff, _color, _alpha)
 		} else
 		{
 			//debug("X=" + _X + ",Y=" + _Y + ",  xsc=" + xsc + ",ysc=" + ysc + ",  rot=" + rot + ",  col=" + mulColor + ",  a=" + mulAlpha);
-			Graphics_TextureDraw(pTexture, 0, 0, _X, _Y, xsc, ysc, rot * 0.017453293, mulColor, mulColor, mulColor, mulColor, mulAlpha);
+			Graphics_TextureDraw(pTexture, 0, 0, _X, _Y, xsc, ysc, rot * Pi / 180.0, mulColor, mulColor, mulColor, mulColor, mulAlpha);
 		}
 	}else{
 		// If a user supplied particle, call via sprite handler to draw it.
