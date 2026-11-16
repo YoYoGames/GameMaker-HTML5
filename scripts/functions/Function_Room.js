@@ -61,10 +61,307 @@ function room_get_name(_ind)
 function room_name(_ind){ return room_get_name(_ind); }
 
 
-// _live (the live data for the current room) is not supported on HTML5, it is there so _variables is in the same place as the other runners
+// #############################################################################################
+/// Function:<summary>
+///             The variable definitions an instance is created with - run the object pre create
+///             event then the instance pre creation code with a blank struct as self, undefined
+///             if there are none
+///          </summary>
+// #############################################################################################
+function room_get_info_variables(_pObj, _pPreCreateCode)
+{
+    var hasPreCreate = _pObj && _pObj.REvent[EVENT_PRE_CREATE];
+    if (!hasPreCreate && !_pPreCreateCode) return undefined;
+    var variables = {};
+    variables.__yyIsGMLObject = true;
+    if (hasPreCreate) Perform_PreCreate_Struct(_pObj, variables);
+    if (_pPreCreateCode) _pPreCreateCode(variables, variables);
+    return variables;
+}
+
+// #############################################################################################
+/// Function:<summary>
+///             room_get_info for a running room (the current room, or a persistent room that has
+///             been visited) - reports the room as it is now rather than as it was laid out in the
+///             room editor, same layout as the C++ runner
+///          </summary>
+// #############################################################################################
+function room_get_info_live(pRoom, _views, _instances, _layers, _layer_elements, _tilemap_data, _variables)
+{
+    var ret = {};
+    ret.__yyIsGMLObject = true;
+    var pStorage = pRoom.m_pStorage || {};
+
+    variable_struct_set(ret, "width", pRoom.m_width);
+    variable_struct_set(ret, "height", pRoom.m_height);
+    variable_struct_set(ret, "persistent", pRoom.m_persistent);
+    variable_struct_set(ret, "colour", pRoom.m_color);
+    variable_struct_set(ret, "creationCode", pRoom.m_code ? pRoom.m_code : -1);
+    // @if feature("physics")
+    variable_struct_set(ret, "physicsWorld", pRoom.m_pPhysicsWorld ? true : false);
+    variable_struct_set(ret, "physicsGravityX", pStorage.physicsGravityX ? pStorage.physicsGravityX : 0);
+    variable_struct_set(ret, "physicsGravityY", pStorage.physicsGravityY ? pStorage.physicsGravityY : 0);
+    variable_struct_set(ret, "physicsPixToMeters", pStorage.physicsPixToMeters ? pStorage.physicsPixToMeters : 0);
+    // @endif physics
+    variable_struct_set(ret, "enableViews", pRoom.m_enableviews);
+    variable_struct_set(ret, "clearDisplayBuffer", pRoom.m_ClearDisplayBuffer);
+    variable_struct_set(ret, "clearViewportBackground", pRoom.m_ViewClearScreen);
+
+    if (_views) {
+        var views = [];
+        for (var i = 0; i < pRoom.m_Views.length; i++) {
+            var pView = pRoom.m_Views[i];
+            if (!pView) continue;
+            var v = {};
+            v.__yyIsGMLObject = true;
+            variable_struct_set(v, "visible", pView.visible);
+            variable_struct_set(v, "xview", pView.worldx);
+            variable_struct_set(v, "yview", pView.worldy);
+            variable_struct_set(v, "wview", pView.worldw);
+            variable_struct_set(v, "hview", pView.worldh);
+            variable_struct_set(v, "xport", pView.portx);
+            variable_struct_set(v, "yport", pView.porty);
+            variable_struct_set(v, "wport", pView.portw);
+            variable_struct_set(v, "hport", pView.porth);
+            variable_struct_set(v, "hborder", pView.hborder);
+            variable_struct_set(v, "vborder", pView.vborder);
+            variable_struct_set(v, "hspeed", pView.hspeed);
+            variable_struct_set(v, "vspeed", pView.vspeed);
+            var objid = pView.objid;
+            variable_struct_set(v, "object", (objid >= 0) ? ((objid >= 100000) ? MAKE_REF(REFID_INSTANCE, objid) : MAKE_REF(REFID_OBJECT, objid)) : -1);
+            variable_struct_set(v, "cameraID", pView.cameraID);
+            views[i] = v;
+        } // end for
+        variable_struct_set(ret, "views", views);
+    } // end if
+
+    if (_layers) {
+        var layers = [];
+        var layerPool = pRoom.m_Layers.pool;
+        for (var l = 0; l < layerPool.length; l++) {
+            var pLayer = layerPool[l];
+            if (!pLayer) continue;
+            var newLayer = {};
+            newLayer.__yyIsGMLObject = true;
+            variable_struct_set(newLayer, "id", pLayer.m_id);
+            variable_struct_set(newLayer, "name", pLayer.m_pName);
+            variable_struct_set(newLayer, "depth", pLayer.depth);
+            variable_struct_set(newLayer, "xoffset", pLayer.m_xoffset);
+            variable_struct_set(newLayer, "yoffset", pLayer.m_yoffset);
+            variable_struct_set(newLayer, "hspeed", pLayer.m_hspeed);
+            variable_struct_set(newLayer, "vspeed", pLayer.m_vspeed);
+            variable_struct_set(newLayer, "visible", pLayer.m_visible);
+            variable_struct_set(newLayer, "beginScript", pLayer.m_beginScript ? pLayer.m_beginScript : -1);
+            variable_struct_set(newLayer, "endScript", pLayer.m_endScript ? pLayer.m_endScript : -1);
+            variable_struct_set(newLayer, "effectEnabled", pLayer.m_effectEnabled);
+            variable_struct_set(newLayer, "effectToBeEnabled", pLayer.m_effectToBeEnabled);
+            variable_struct_set(newLayer, "shaderID", MAKE_REF(REFID_SHADER, pLayer.m_shaderId));
+
+            var pEffectInfo = pLayer.m_pInitialEffectInfo;
+            if (pEffectInfo) {
+                var effectInfo = {};
+                effectInfo.__yyIsGMLObject = true;
+                variable_struct_set(effectInfo, "name", pEffectInfo.pName);
+                variable_struct_set(effectInfo, "singleLayerOnly", pEffectInfo.bAffectsSingleLayerOnly);
+                var effectParams = [];
+                for (var p = 0; p < pEffectInfo.pParams.length; p++) {
+                    var pParam = pEffectInfo.pParams[p];
+                    var param = {};
+                    param.__yyIsGMLObject = true;
+                    variable_struct_set(param, "name", pParam.pName);
+                    variable_struct_set(param, "values", pParam.defaults_data ? pParam.defaults_data.slice() : []);
+                    effectParams[p] = param;
+                } // end for
+                variable_struct_set(effectInfo, "effectParams", effectParams);
+                variable_struct_set(newLayer, "effectInfo", effectInfo);
+            } // end if
+
+            if (_layer_elements) {
+                var elements = [];
+                var elPool = pLayer.m_elements.pool;
+                for (var e = 0; e < elPool.length; e++) {
+                    var pEl = elPool[e];
+                    if (!pEl) continue;
+                    var element = {};
+                    element.__yyIsGMLObject = true;
+                    if (pEl.m_name) variable_struct_set(element, "name", pEl.m_name);
+                    variable_struct_set(element, "id", pEl.m_id);
+                    variable_struct_set(element, "type", pEl.m_type);
+                    switch (pEl.m_type) {
+                        case eLayerElementType_Background:
+                            var pB = pEl.m_pBackground;
+                            if (pB) {
+                                variable_struct_set(element, "visible", pB.visible);
+                                variable_struct_set(element, "sprite_index", MAKE_REF(REFID_SPRITE, pB.index));
+                                variable_struct_set(element, "htiled", pB.htiled);
+                                variable_struct_set(element, "vtiled", pB.vtiled);
+                                variable_struct_set(element, "xscale", pB.xscale);
+                                variable_struct_set(element, "yscale", pB.yscale);
+                                variable_struct_set(element, "stretch", pB.stretch);
+                                variable_struct_set(element, "blendColour", pB.blend & 0xffffff);
+                                variable_struct_set(element, "blendAlpha", pB.alpha);
+                                variable_struct_set(element, "image_index", pB.image_index);
+                                variable_struct_set(element, "image_speed", pB.image_speed);
+                                variable_struct_set(element, "speed_type", pB.playbackspeedtype);
+                            } // end if
+                            break;
+                        case eLayerElementType_Instance:
+                            variable_struct_set(element, "inst_id", MAKE_REF(REFID_INSTANCE, pEl.m_instanceID));
+                            break;
+                        case eLayerElementType_Sprite:
+                            variable_struct_set(element, "sprite_index", MAKE_REF(REFID_SPRITE, pEl.m_spriteIndex));
+                            variable_struct_set(element, "image_index", pEl.m_imageIndex);
+                            variable_struct_set(element, "image_speed", pEl.m_imageSpeed);
+                            variable_struct_set(element, "speed_type", pEl.m_playbackspeedtype);
+                            variable_struct_set(element, "image_xscale", pEl.m_imageScaleX);
+                            variable_struct_set(element, "image_yscale", pEl.m_imageScaleY);
+                            variable_struct_set(element, "image_angle", pEl.m_imageAngle);
+                            variable_struct_set(element, "image_blend", pEl.m_imageBlend & 0xffffff);
+                            variable_struct_set(element, "image_alpha", pEl.m_imageAlpha);
+                            variable_struct_set(element, "x", pEl.m_x);
+                            variable_struct_set(element, "y", pEl.m_y);
+                            break;
+                        case eLayerElementType_Tilemap:
+                            variable_struct_set(element, "x", pEl.m_x);
+                            variable_struct_set(element, "y", pEl.m_y);
+                            variable_struct_set(element, "width", pEl.m_mapWidth);
+                            variable_struct_set(element, "height", pEl.m_mapHeight);
+                            variable_struct_set(element, "data_mask", pEl.m_tiledataMask);
+                            variable_struct_set(element, "tileset_index", MAKE_REF(REFID_TILESET, pEl.m_backgroundIndex));
+                            if (_tilemap_data) {
+                                var count = pEl.m_mapWidth * pEl.m_mapHeight;
+                                var tiles = new Array(count);
+                                for (var t = 0; t < count; t++) {
+                                    var tv = pEl.m_pTiles[t];
+                                    tiles[t] = (tv === undefined) ? 0 : (tv >>> 0);
+                                } // end for
+                                variable_struct_set(element, "tiles", tiles);
+                            } // end if
+                            break;
+                        case eLayerElementType_ParticleSystem:
+                            variable_struct_set(element, "x", pEl.m_x);
+                            variable_struct_set(element, "y", pEl.m_y);
+                            variable_struct_set(element, "ps", MAKE_REF(REFID_PARTICLESYSTEM, pEl.m_ps));
+                            variable_struct_set(element, "xscale", pEl.m_imageScaleX);
+                            variable_struct_set(element, "yscale", pEl.m_imageScaleY);
+                            variable_struct_set(element, "angle", pEl.m_imageAngle);
+                            variable_struct_set(element, "blend", pEl.m_imageBlend & 0xffffff);
+                            variable_struct_set(element, "alpha", pEl.m_imageAlpha);
+                            break;
+                        case eLayerElementType_Tile:
+                            variable_struct_set(element, "visible", pEl.m_visible);
+                            variable_struct_set(element, "sprite_index", MAKE_REF(REFID_SPRITE, pEl.m_index));
+                            variable_struct_set(element, "x", pEl.m_x);
+                            variable_struct_set(element, "y", pEl.m_y);
+                            variable_struct_set(element, "width", pEl.m_w);
+                            variable_struct_set(element, "height", pEl.m_h);
+                            variable_struct_set(element, "image_xscale", pEl.m_imageScaleX);
+                            variable_struct_set(element, "image_yscale", pEl.m_imageScaleY);
+                            variable_struct_set(element, "image_angle", pEl.m_imageAngle);
+                            variable_struct_set(element, "image_blend", pEl.m_imageBlend & 0xffffff);
+                            variable_struct_set(element, "image_alpha", pEl.m_imageAlpha);
+                            variable_struct_set(element, "xo", pEl.m_xo);
+                            variable_struct_set(element, "yo", pEl.m_yo);
+                            break;
+                        case eLayerElementType_Sequence:
+                            variable_struct_set(element, "seq_id", MAKE_REF(REFID_SEQUENCE, pEl.m_sequenceIndex));
+                            variable_struct_set(element, "image_speed", pEl.m_imageSpeed);
+                            variable_struct_set(element, "image_xscale", pEl.m_scaleX);
+                            variable_struct_set(element, "image_yscale", pEl.m_scaleY);
+                            variable_struct_set(element, "image_angle", pEl.m_angle);
+                            variable_struct_set(element, "image_blend", pEl.m_imageBlend & 0xffffff);
+                            variable_struct_set(element, "image_alpha", pEl.m_imageAlpha);
+                            variable_struct_set(element, "x", pEl.m_x);
+                            variable_struct_set(element, "y", pEl.m_y);
+                            variable_struct_set(element, "head_position", pEl.m_headPosition);
+                            break;
+                        case eLayerElementType_Text:
+                            variable_struct_set(element, "x", pEl.m_x);
+                            variable_struct_set(element, "y", pEl.m_y);
+                            variable_struct_set(element, "font_index", MAKE_REF(REFID_FONT, pEl.m_fontIndex));
+                            variable_struct_set(element, "xscale", pEl.m_scaleX);
+                            variable_struct_set(element, "yscale", pEl.m_scaleY);
+                            variable_struct_set(element, "angle", pEl.m_angle);
+                            variable_struct_set(element, "blend", pEl.m_blend & 0xffffff);
+                            variable_struct_set(element, "alpha", pEl.m_alpha);
+                            variable_struct_set(element, "xorigin", pEl.m_originX);
+                            variable_struct_set(element, "yorigin", pEl.m_originY);
+                            variable_struct_set(element, "origin", pEl.m_origin);
+                            variable_struct_set(element, "text", pEl.m_text);
+                            variable_struct_set(element, "h_align", pEl.m_alignment & 0xff);
+                            variable_struct_set(element, "v_align", (pEl.m_alignment >> 8) & 0xff);
+                            variable_struct_set(element, "char_spacing", pEl.m_charSpacing);
+                            variable_struct_set(element, "line_spacing", pEl.m_lineSpacing);
+                            variable_struct_set(element, "paragraph_spacing", pEl.m_paragraphSpacing);
+                            variable_struct_set(element, "frame_width", pEl.m_frameW);
+                            variable_struct_set(element, "frame_height", pEl.m_frameH);
+                            variable_struct_set(element, "wrap", pEl.m_wrap);
+                            variable_struct_set(element, "wrap_mode", pEl.m_wrapMode);
+                            break;
+                    } // end switch
+                    elements.push(element);
+                } // end for
+                variable_struct_set(newLayer, "elements", elements);
+            } // end if
+            layers.push(newLayer);
+        } // end for
+        variable_struct_set(ret, "layers", layers);
+    } // end if
+
+    if (_instances) {
+        // the room editor placements, so instances that came from the room keep their creation code
+        var records = {};
+        if (pStorage.pInstances) {
+            for (var r = 0; r < pStorage.pInstances.length; r++) {
+                var rec = pStorage.pInstances[r];
+                if (rec) records[rec.id] = rec;
+            } // end for
+        } // end if
+
+        // the instances as they are now, active and deactivated, including ones created at runtime
+        var instances = [];
+        var lists = [pRoom.m_Active.pool, pRoom.m_Deactive.pool];
+        for (var li = 0; li < lists.length; li++) {
+            var pool = lists[li];
+            for (var n = 0; n < pool.length; n++) {
+                var pInst = pool[n];
+                if (!pInst || pInst.marked) continue;
+                var record = records[pInst.id];
+                var alpha = Math.round(pInst.image_alpha * 255);
+                alpha = (alpha < 0) ? 0 : ((alpha > 255) ? 255 : alpha);
+
+                var inst = {};
+                inst.__yyIsGMLObject = true;
+                variable_struct_set(inst, "x", pInst.x);
+                variable_struct_set(inst, "y", pInst.y);
+                // object_index/id cannot go through variable_struct_set (see g_instance_names)
+                inst.object_index = pInst.pObject ? pInst.pObject.Name : "";
+                inst.id = MAKE_REF(REFID_INSTANCE, pInst.id);
+                variable_struct_set(inst, "creation_code", (record && record.pCode) ? record.pCode : -1);
+                variable_struct_set(inst, "pre_creation_code", (record && record.pPreCreateCode) ? record.pPreCreateCode : -1);
+                variable_struct_set(inst, "xscale", pInst.image_xscale);
+                variable_struct_set(inst, "yscale", pInst.image_yscale);
+                variable_struct_set(inst, "image_speed", pInst.image_speed);
+                variable_struct_set(inst, "image_index", pInst.image_index);
+                variable_struct_set(inst, "colour", ((alpha << 24) | (pInst.image_blend & 0xffffff)) >>> 0);
+                variable_struct_set(inst, "angle", pInst.image_angle);
+                variable_struct_set(inst, "variables", _variables ? room_get_info_variables(pInst.pObject, record ? record.pPreCreateCode : null) : undefined);
+                instances.push(inst);
+            } // end for
+        } // end for
+        variable_struct_set(ret, "instances", instances);
+    } // end if
+
+    return ret;
+}
+
+// _live reports the room as it is now for the current room, or a persistent room that has been visited, otherwise the room as laid out in the room editor
 function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tilemap_data, _live, _variables)
 {
     var pRoom = g_pRoomManager.Get(yyGetInt32(_ind));
+    if ((pRoom !== null) && (_live ?? false) && ((pRoom === g_RunRoom) || (pRoom.m_persistent && pRoom.m_Initialised))) {
+        return room_get_info_live(pRoom, _views ?? true, _instances ?? true, _layers ?? true, _layer_elements ?? true, _tilemap_data ?? true, _variables ?? false);
+    } // end if
     var ret = {};
     ret.__yyIsGMLObject = true;
     if ((pRoom !== null) && (pRoom.m_pStorage !== undefined) && (pRoom.m_pStorage !== null)) {
@@ -204,7 +501,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
 
                     // Copy effect properties
                     // @if feature("layerEffects")
-                    effectParams = new Array( sourceLayer.effectProperties.length );
+                    var effectParams = new Array( sourceLayer.effectProperties.length );
 
                     var effectPropIdx;
                     for (effectPropIdx = 0; effectPropIdx < sourceLayer.effectProperties.length; effectPropIdx++) 
@@ -337,7 +634,7 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                                 } // end for                                
 
                                 // Particles
-                                for (assetIdx = 0; i < sourceLayer.particles.length; assetIdx++)
+                                for (assetIdx = 0; assetIdx < sourceLayer.particles.length; assetIdx++)
                                 {
                                     var srcParticle = sourceLayer.particles[assetIdx];
                                     var element = {};
