@@ -3512,7 +3512,8 @@ function layer_particle_get_blend(_paricle_element_id)
     var el = layerParticleGetElement(_paricle_element_id);
     if (el != null)
     {
-        return el.m_imageBlend;
+        // stored converted (layer_particle_blend and room loading), so convert it back as the other layer_*_get_blend do
+        return ConvertGMColour(el.m_imageBlend);
     }
     return 0;
 }
