@@ -198,7 +198,7 @@ function room_get_info_live(pRoom, _views, _instances, _layers, _layer_elements,
                                 variable_struct_set(element, "xscale", pB.xscale);
                                 variable_struct_set(element, "yscale", pB.yscale);
                                 variable_struct_set(element, "stretch", pB.stretch);
-                                variable_struct_set(element, "blendColour", pB.blend & 0xffffff);
+                                variable_struct_set(element, "blendColour", ConvertGMColour(pB.blend) & 0xffffff);
                                 variable_struct_set(element, "blendAlpha", pB.alpha);
                                 variable_struct_set(element, "image_index", pB.image_index);
                                 variable_struct_set(element, "image_speed", pB.image_speed);
@@ -216,7 +216,7 @@ function room_get_info_live(pRoom, _views, _instances, _layers, _layer_elements,
                             variable_struct_set(element, "image_xscale", pEl.m_imageScaleX);
                             variable_struct_set(element, "image_yscale", pEl.m_imageScaleY);
                             variable_struct_set(element, "image_angle", pEl.m_imageAngle);
-                            variable_struct_set(element, "image_blend", pEl.m_imageBlend & 0xffffff);
+                            variable_struct_set(element, "image_blend", ConvertGMColour(pEl.m_imageBlend) & 0xffffff);
                             variable_struct_set(element, "image_alpha", pEl.m_imageAlpha);
                             variable_struct_set(element, "x", pEl.m_x);
                             variable_struct_set(element, "y", pEl.m_y);
@@ -245,7 +245,7 @@ function room_get_info_live(pRoom, _views, _instances, _layers, _layer_elements,
                             variable_struct_set(element, "xscale", pEl.m_imageScaleX);
                             variable_struct_set(element, "yscale", pEl.m_imageScaleY);
                             variable_struct_set(element, "angle", pEl.m_imageAngle);
-                            variable_struct_set(element, "blend", pEl.m_imageBlend & 0xffffff);
+                            variable_struct_set(element, "blend", ConvertGMColour(pEl.m_imageBlend) & 0xffffff);
                             variable_struct_set(element, "alpha", pEl.m_imageAlpha);
                             break;
                         case eLayerElementType_Tile:
@@ -258,6 +258,7 @@ function room_get_info_live(pRoom, _views, _instances, _layers, _layer_elements,
                             variable_struct_set(element, "image_xscale", pEl.m_imageScaleX);
                             variable_struct_set(element, "image_yscale", pEl.m_imageScaleY);
                             variable_struct_set(element, "image_angle", pEl.m_imageAngle);
+                            // tile element blends are stored as they are, the other element blends are stored converted (ConvertGMColour)
                             variable_struct_set(element, "image_blend", pEl.m_imageBlend & 0xffffff);
                             variable_struct_set(element, "image_alpha", pEl.m_imageAlpha);
                             variable_struct_set(element, "xo", pEl.m_xo);
@@ -269,7 +270,7 @@ function room_get_info_live(pRoom, _views, _instances, _layers, _layer_elements,
                             variable_struct_set(element, "image_xscale", pEl.m_scaleX);
                             variable_struct_set(element, "image_yscale", pEl.m_scaleY);
                             variable_struct_set(element, "image_angle", pEl.m_angle);
-                            variable_struct_set(element, "image_blend", pEl.m_imageBlend & 0xffffff);
+                            variable_struct_set(element, "image_blend", ConvertGMColour(pEl.m_imageBlend) & 0xffffff);
                             variable_struct_set(element, "image_alpha", pEl.m_imageAlpha);
                             variable_struct_set(element, "x", pEl.m_x);
                             variable_struct_set(element, "y", pEl.m_y);
@@ -282,7 +283,7 @@ function room_get_info_live(pRoom, _views, _instances, _layers, _layer_elements,
                             variable_struct_set(element, "xscale", pEl.m_scaleX);
                             variable_struct_set(element, "yscale", pEl.m_scaleY);
                             variable_struct_set(element, "angle", pEl.m_angle);
-                            variable_struct_set(element, "blend", pEl.m_blend & 0xffffff);
+                            variable_struct_set(element, "blend", ConvertGMColour(pEl.m_blend) & 0xffffff);
                             variable_struct_set(element, "alpha", pEl.m_alpha);
                             variable_struct_set(element, "xorigin", pEl.m_originX);
                             variable_struct_set(element, "yorigin", pEl.m_originY);
@@ -343,7 +344,8 @@ function room_get_info_live(pRoom, _views, _instances, _layers, _layer_elements,
                 variable_struct_set(inst, "yscale", pInst.image_yscale);
                 variable_struct_set(inst, "image_speed", pInst.image_speed);
                 variable_struct_set(inst, "image_index", pInst.image_index);
-                variable_struct_set(inst, "colour", ((alpha << 24) | (pInst.image_blend & 0xffffff)) >>> 0);
+                // __image_blend is the colour as it was set, the image_blend getter converts it (swaps red and blue on the canvas renderer)
+                variable_struct_set(inst, "colour", ((alpha << 24) | (pInst.__image_blend & 0xffffff)) >>> 0);
                 variable_struct_set(inst, "angle", pInst.image_angle);
                 variable_struct_set(inst, "variables", _variables ? room_get_info_variables(pInst.pObject, record ? record.pPreCreateCode : null) : undefined);
                 instances.push(inst);
@@ -456,19 +458,8 @@ function room_get_info(_ind, _views, _instances, _layers, _layer_elements, _tile
                     variable_struct_set(inst, "creation_code", sourceInstance.pCode ? sourceInstance.pCode : -1);
                     variable_struct_set(inst, "pre_creation_code", sourceInstance.pPreCreateCode ? sourceInstance.pPreCreateCode : -1);
 
-                    // variables - run the object pre create event then the instance pre creation code with a blank struct as self
-                    // so it ends up with the variable definitions this instance will be created with, undefined if they were not
-                    // asked for or there are none
-                    var variables = undefined;
-                    var hasPreCreate = _variables && pObj.REvent[EVENT_PRE_CREATE];
-                    var hasPreCreationCode = _variables && sourceInstance.pPreCreateCode;
-                    if (hasPreCreate || hasPreCreationCode) {
-                        variables = {};
-                        variables.__yyIsGMLObject = true;
-                        if (hasPreCreate) Perform_PreCreate_Struct(pObj, variables);
-                        if (hasPreCreationCode) sourceInstance.pPreCreateCode(variables, variables);
-                    }
-                    variable_struct_set(inst, "variables", variables);
+                    // the variable definitions this instance will be created with, undefined if they were not asked for or there are none
+                    variable_struct_set(inst, "variables", _variables ? room_get_info_variables(pObj, sourceInstance.pPreCreateCode) : undefined);
                     instances[i] = inst;
                 } // end if
             } // end for     
