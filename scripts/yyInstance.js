@@ -590,8 +590,8 @@ yyInstance.prototype = {
 		this.bbox_dirty = true; 
 	},
 
-	// image_blend property
-	get image_blend() { return ConvertGMColour(this.__image_blend); },
+	// image_blend property - the colour as GML set it, the drawing code converts it with ConvertGMColour
+	get image_blend() { return this.__image_blend; },
 	set image_blend(_col) { this.__image_blend = yyGetInt32(_col); },
 
 	// image_alpha property

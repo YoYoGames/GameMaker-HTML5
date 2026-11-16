@@ -50,7 +50,7 @@ function draw_self( _inst )
 
     	    spr.Draw(image_index,
 				_inst.x,_inst.y,_inst.image_xscale, _inst.image_yscale,
-				_inst.image_angle, _inst.image_blend, _inst.image_alpha);
+				_inst.image_angle, ConvertGMColour(_inst.image_blend), _inst.image_alpha);
     	}
     }
     g_skeletonDrawInstance = null;
