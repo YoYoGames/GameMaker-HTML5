@@ -2188,7 +2188,7 @@ UILayerInstanceElement.prototype.create_element = function(target_layer, run_ins
 	instance.image_speed = this.instanceImageSpeed;
 	instance.image_index = this.instanceImageIndex;
 	instance.sequence_pos = instance.last_sequence_pos = this.instanceImageIndex;
-	instance.image_blend = ConvertGMColour(this.instanceColour & 0xffffff);
+	instance.image_blend = this.instanceColour & 0xffffff;
 	instance.image_alpha = ((this.instanceColour >> 24) & 0xff) / 255.0;
 	instance.image_angle = this.instanceAngle;
 
