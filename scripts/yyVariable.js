@@ -2286,6 +2286,11 @@ function variable_instance_set(_id, _var, _val) {
     } // end else
 
     _var = yyGetString(_var);
+    // GML can't set a variable with an empty name, as in the C++ runner. A struct from json_parse can still hold one,
+    // and it can be read, checked and removed (GameMaker-Bugs#16400)
+    if (_var === "") {
+        yyError("variable_struct_set: illegal to use empty names");
+    } // end if
 
     if (pObj != null && pObj.length > 0)
     {    	
@@ -2356,6 +2361,11 @@ function variable_instance_set_post(_id, _var, _val) {
     } // end else
 
     _var = yyGetString(_var);
+    // GML can't set a variable with an empty name, as in the C++ runner. A struct from json_parse can still hold one,
+    // and it can be read, checked and removed (GameMaker-Bugs#16400)
+    if (_var === "") {
+        yyError("variable_struct_set: illegal to use empty names");
+    } // end if
 
     var ret = false;
     if (pObj != null && pObj.length > 0)
