@@ -559,7 +559,7 @@ audioSound.prototype.endReplacedSource = function() {
     if (this.replacedSources === undefined)
         return;
     this.replacedSources.forEach(_source => _source.stop(0));
-    this.replacedSources.clear();
+    this.replacedSources.length = 0;
 };
 
 audioSound.prototype.stop = function() {
@@ -899,16 +899,18 @@ audioSound.prototype.setPlaybackPosition = function(_offset) {
         const oldSource = this.pbuffersource;
         const when = Audio_GetStepStartTime();
         if (this.replacedSources === undefined)
-            this.replacedSources = new Set();
+            this.replacedSources = [];
         const replaced = this.replacedSources;
         oldSource.onended = () => {
             oldSource.disconnect();
-            replaced.delete(oldSource);
+            const index = replaced.indexOf(oldSource);
+            if (index !== -1)
+                replaced.splice(index, 1);
         };
         oldSource.stop(when);
         // stop() and pause() end every source still playing out like this (seeks in consecutive steps can leave more
         // than one)
-        replaced.add(oldSource);
+        replaced.push(oldSource);
         this.scheduledStartTime = when;
         this.start(oldSource.buffer);
     }
