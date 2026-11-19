@@ -554,6 +554,14 @@ audioSound.prototype.play = function() {
     }
 };
 
+// Ends at once a source a seek in this step is replacing, which would otherwise play until the new one starts
+audioSound.prototype.endReplacedSource = function() {
+    if (this.replacedSource !== undefined && this.replacedSource !== null) {
+        this.replacedSource.stop(0);
+        this.replacedSource = null;
+    }
+};
+
 audioSound.prototype.stop = function() {
     if (this.bActive === false)
         return;
@@ -580,11 +588,7 @@ audioSound.prototype.stop = function() {
     }
     this.scheduledStartTime = null;
 
-    // A source a seek in this step is replacing, still playing until the new one starts
-    if (this.replacedSource !== undefined && this.replacedSource !== null) {
-        this.replacedSource.stop(0);
-        this.replacedSource = null;
-    }
+    this.endReplacedSource();
 
     this.pemitter = null;
     this.bActive = false;
@@ -607,6 +611,7 @@ audioSound.prototype.pause = function() {
         this.pbuffersource.onended = null;
         this.pbuffersource.stop(0);
         this.pbuffersource.disconnect();
+        this.endReplacedSource();
         this.setPlaybackCheckpoint();
     }
 
@@ -899,7 +904,10 @@ audioSound.prototype.setPlaybackPosition = function(_offset) {
                 this.replacedSource = null;
         };
         oldSource.stop(when);
-        this.replacedSource = oldSource; // stop() ends it at once
+        // stop() and pause() end it at once. A second seek in the step replaces a source that hasn't started (it stops
+        // when it would start), so the one to end early is still the first.
+        if (this.replacedSource === undefined || this.replacedSource === null)
+            this.replacedSource = oldSource;
         this.scheduledStartTime = when;
         this.start(oldSource.buffer);
     }
