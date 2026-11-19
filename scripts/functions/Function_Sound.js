@@ -102,10 +102,29 @@ var g_MP3VolumeNumSteps = 0;
 var g_MP3UpdateVolume = 1.0;
 var g_MP3VolumeStep = 0;
 
+// Sounds started in the same step share one start time, so they begin on the same sample (GameMaker-HTML5#803).
+// start(0) begins a voice at whichever 128-sample render block the audio thread is on when it gets the request, so
+// voices started one after another could land one or more blocks apart. The time is a little ahead of the context's
+// current time, enough to cover the rest of the step; it's reset at the end of each frame.
+const AUDIO_STEP_START_LEAD_BLOCKS = 4; // render blocks of 128 frames: ~11.6 ms at 44.1 kHz
+var g_AudioStepStartTime = null;
+
+function Audio_GetStepStartTime()
+{
+    if (g_AudioStepStartTime === null) {
+        const lead = (AUDIO_STEP_START_LEAD_BLOCKS * 128) / g_WebAudioContext.sampleRate;
+        g_AudioStepStartTime = g_WebAudioContext.currentTime + lead;
+    }
+    return g_AudioStepStartTime;
+}
+
 function audio_update()
 {
     if (g_AudioModel != Audio_WebAudio)
         return;
+
+    // The next step's sounds get a start time of their own
+    g_AudioStepStartTime = null;
 
     // Update and apply gains
     audio_emitters.forEach(_emitter => _emitter.updateGain());
@@ -399,6 +418,12 @@ audioSound.prototype.Init = function(_props)
 
 audioSound.prototype.start = function(_buffer) {
     const startOffset = AudioPropsCalc.CalcOffset(this);
+    // The step's shared start time, or for a streamed sound the one from the step it was played in (if its decode has
+    // finished after that, start(when) begins it at once, as before)
+    const startTime = (this.scheduledStartTime !== undefined && this.scheduledStartTime !== null)
+        ? this.scheduledStartTime
+        : Audio_GetStepStartTime();
+    this.scheduledStartTime = null;
     const trueLoopEnd = (this.loopEnd > 0.0) ? this.loopEnd : _buffer.duration;
 
     const shouldLoop = (this.loop === true) && (startOffset < trueLoopEnd);
@@ -434,12 +459,13 @@ audioSound.prototype.start = function(_buffer) {
 
     this.pbuffersource.connect(this.pgainnode);
 
+    // The checkpoint is when the voice is heard from, so the track position matches what plays
     this.playbackCheckpoint = {
-        contextTime: g_WebAudioContext.currentTime,
+        contextTime: Math.max(startTime, g_WebAudioContext.currentTime),
         bufferTime: startOffset
     };
 
-    this.pbuffersource.start(0, startOffset);
+    this.pbuffersource.start(startTime, startOffset);
 
     // This is for the case where a streamed asset is paused while it was decoding.
     // Note that AudioBufferSourceNode requires 'start' to have been called before 
@@ -475,6 +501,8 @@ audioSound.prototype.play = function() {
         // Calc offset now so that asset-level changes while decoding
         // are not taken into account when trying to play
         this.startoffset = AudioPropsCalc.CalcOffset(this);
+        // and start with the rest of this step's sounds, if the decode is done by then
+        this.scheduledStartTime = Audio_GetStepStartTime();
 
         const srcUrl = getUrlForSound(this.soundid);
 
@@ -773,7 +801,11 @@ audioSound.prototype.setPlaybackCheckpoint = function() {
     if (g_WebAudioContext === null)
         return;
 
-    const contextTime = g_WebAudioContext.currentTime;
+    // A voice whose (shared) start time hasn't come yet is checkpointed at that time, so the wait isn't counted as play
+    const startTime = (this.playbackCheckpoint !== undefined && this.playbackCheckpoint !== null)
+        ? this.playbackCheckpoint.contextTime
+        : 0;
+    const contextTime = Math.max(g_WebAudioContext.currentTime, startTime);
 
     this.playbackCheckpoint = {
         contextTime: contextTime,
@@ -799,7 +831,8 @@ audioSound.prototype.getPlaybackPosition = function(_contextTime) {
     if (_contextTime === undefined)
         _contextTime = g_WebAudioContext.currentTime;
 
-    const timePassed = (_contextTime - checkpoint.contextTime) * pitch;
+    // Before a voice's (shared) start time it hasn't moved from where it starts
+    const timePassed = Math.max(0.0, _contextTime - checkpoint.contextTime) * pitch;
 
     const trueLoopEnd = this.getTrueLoopEnd();
     const wasBeyondLoopEnd = (checkpoint.bufferTime > trueLoopEnd);
