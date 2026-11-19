@@ -111,7 +111,9 @@ var g_AudioStepStartTime = null;
 
 function Audio_GetStepStartTime()
 {
-    if (g_AudioStepStartTime === null) {
+    // Also when it's already past: audio_update doesn't run on every frame (a room change returns before it) and
+    // decode callbacks can come between frames, and a time in the past would start each voice on its own block again
+    if ((g_AudioStepStartTime === null) || (g_AudioStepStartTime <= g_WebAudioContext.currentTime)) {
         const lead = (AUDIO_STEP_START_LEAD_BLOCKS * 128) / g_WebAudioContext.sampleRate;
         g_AudioStepStartTime = g_WebAudioContext.currentTime + lead;
     }
@@ -373,6 +375,7 @@ function audioSound(_props)
 audioSound.prototype.Init = function(_props)
 {
     this.bActive = false;
+    this.scheduledStartTime = null; // a reused voice mustn't keep a streamed sound's start time
     this.playbackCheckpoint = {
         contextTime: 0.0,
         bufferTime: 0.0
@@ -574,6 +577,13 @@ audioSound.prototype.stop = function() {
     if (this.request !== undefined) {
         this.request.abort();
         this.request = undefined;
+    }
+    this.scheduledStartTime = null;
+
+    // A source a seek in this step is replacing, still playing until the new one starts
+    if (this.replacedSource !== undefined && this.replacedSource !== null) {
+        this.replacedSource.stop(0);
+        this.replacedSource = null;
     }
 
     this.pemitter = null;
@@ -879,10 +889,19 @@ audioSound.prototype.setPlaybackPosition = function(_offset) {
         if (this.pbuffersource === null)
             return;
         
-        this.pbuffersource.onended = null;
-        this.pbuffersource.stop();
-        this.pbuffersource.disconnect();
-        this.start(this.pbuffersource.buffer);
+        // The old source plays on until the new one starts at the step's start time, so the seek has no gap; it's
+        // disconnected once it has stopped
+        const oldSource = this.pbuffersource;
+        const when = Audio_GetStepStartTime();
+        oldSource.onended = () => {
+            oldSource.disconnect();
+            if (this.replacedSource === oldSource)
+                this.replacedSource = null;
+        };
+        oldSource.stop(when);
+        this.replacedSource = oldSource; // stop() ends it at once
+        this.scheduledStartTime = when;
+        this.start(oldSource.buffer);
     }
 };
 
