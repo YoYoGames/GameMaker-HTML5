@@ -498,7 +498,9 @@ function randBigInt() {
     b = a^c^(a<<BigInt(16))^(c<<BigInt(15));
     c = state[(g_RndIndex + 9) & 15];
     c ^= (c>>BigInt(11));
-    a = state[g_RndIndex] = b ^ c;
+    // Both writes must wrap to a 32-bit word. A later tap shifts this word right,
+    // so masking only the output lets the state grow with each call.
+    a = state[g_RndIndex] = (b ^ c) & BigInt(0xffffffff);
     d = a ^ ((a << BigInt(5)) & BigInt(g_nRandomPoly));
     g_RndIndex = (g_RndIndex + 15) & 15;
     a = state[g_RndIndex];
