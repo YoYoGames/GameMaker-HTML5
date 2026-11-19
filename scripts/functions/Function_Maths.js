@@ -415,19 +415,27 @@ var g_nRandomPoly = 0xDA442D24;
 var rand = randReal;
 
 // BigInt versions of the constants the extended RNG uses, built once rather than on every call.
+// They're built on first use by InitRandomExt (the only way to reach randBigInt), not at load,
+// so browsers without BigInt can still load this file and use the default RNG.
 // BigInt() rather than 0x..n literals: the lint config targets ES6, which can't parse them.
-var g_bigRandMask32 = BigInt(0xffffffff);
-var g_bigRandMask31 = BigInt(0x7fffffff);
-var g_bigRandomPoly = BigInt(g_nRandomPoly);	// kept in step with g_nRandomPoly
-var g_bigRand2 = BigInt(2);
-var g_bigRand5 = BigInt(5);
-var g_bigRand11 = BigInt(11);
-var g_bigRand15 = BigInt(15);
-var g_bigRand16 = BigInt(16);
-var g_bigRand18 = BigInt(18);
-var g_bigRand28 = BigInt(28);
-var g_bigRandSeedMul = BigInt(214013);
-var g_bigRandSeedAdd = BigInt(2531011);
+var g_bigRandMask32, g_bigRandMask31, g_bigRandomPoly;
+var g_bigRand2, g_bigRand5, g_bigRand11, g_bigRand15, g_bigRand16, g_bigRand18, g_bigRand28;
+var g_bigRandSeedMul, g_bigRandSeedAdd;
+
+function initBigRandConstants() {
+    if (g_bigRandMask32 !== undefined) return;
+    g_bigRandMask32 = BigInt(0xffffffff);
+    g_bigRandMask31 = BigInt(0x7fffffff);
+    g_bigRand2 = BigInt(2);
+    g_bigRand5 = BigInt(5);
+    g_bigRand11 = BigInt(11);
+    g_bigRand15 = BigInt(15);
+    g_bigRand16 = BigInt(16);
+    g_bigRand18 = BigInt(18);
+    g_bigRand28 = BigInt(28);
+    g_bigRandSeedMul = BigInt(214013);
+    g_bigRandSeedAdd = BigInt(2531011);
+}
 
 // #############################################################################################
 /// Function:<summary>
@@ -452,6 +460,8 @@ function InitRandom( _seed ) {
 }
 
 function InitRandomExt( _seed ) {
+    initBigRandConstants();
+    g_bigRandomPoly = BigInt(g_nRandomPoly);
     var s = BigInt(_seed);
     for (var i = 0; i < 16; i++)
     {
@@ -475,7 +485,8 @@ function random_use_old_version(_true_false) {
         g_nRandomPoly = 0xDA442D20;
     else
         g_nRandomPoly = 0xDA442D24;
-    g_bigRandomPoly = BigInt(g_nRandomPoly);
+    if (g_bigRandMask32 !== undefined)		// the extended RNG's constants exist; keep its copy in step
+        g_bigRandomPoly = BigInt(g_nRandomPoly);
 }
 
 
