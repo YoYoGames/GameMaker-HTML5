@@ -47,7 +47,9 @@ var g_ButtonButton = 0,
 	g_MouseWheel = 0,
 	g_MouseLocked = false,
 	g_MouseDeltaX = 0,
-	g_MouseDeltaY = 0;
+	g_MouseDeltaY = 0,
+	g_LastMouseEventX = null,
+	g_LastMouseEventY = null;
 
 
 var g_KeyDown = [];
@@ -886,20 +888,40 @@ function onMouseMove(_evt) {
 
 	g_EventMouseX = _evt.clientX;
 	g_EventMouseY = _evt.clientY;
-	
-	g_MouseDeltaX = _evt.movementX
+
+	var movementX = _evt.movementX
 		|| _evt.mozMovementX
 		|| _evt.webkitMovementX
 		|| _evt.msMovementX
 		|| 0;
 
-	g_MouseDeltaY = _evt.movementY
+	var movementY = _evt.movementY
 		|| _evt.mozMovementY
 		|| _evt.webkitMovementY
 		|| _evt.msMovementY
 		|| 0;
 
-	// Keep the current input events updated        		
+	// Some browsers report zero movementX/Y while the mouse is dragged, so fall back to
+	// the last-known mouse position in those cases instead of returning a bogus 0 delta.
+	if (g_LastMouseEventX === null || g_LastMouseEventY === null) {
+		g_LastMouseEventX = g_EventMouseX;
+		g_LastMouseEventY = g_EventMouseY;
+		g_MouseDeltaX = 0;
+		g_MouseDeltaY = 0;
+	} else {
+		if (movementX === 0) {
+			movementX = g_EventMouseX - g_LastMouseEventX;
+		}
+		if (movementY === 0) {
+			movementY = g_EventMouseY - g_LastMouseEventY;
+		}
+		g_MouseDeltaX = movementX;
+		g_MouseDeltaY = movementY;
+		g_LastMouseEventX = g_EventMouseX;
+		g_LastMouseEventY = g_EventMouseY;
+	}
+
+	// Keep the current input events updated
 	g_CurrentInputEvents[_evt.button].x = g_EventMouseX;
 	g_CurrentInputEvents[_evt.button].y = g_EventMouseY;
 }
