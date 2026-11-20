@@ -312,8 +312,6 @@ function positionHandler(e)
     case 'MSPointerUp':
     case 'pointercancel':
     case 'MSPointerCancel':
-    case 'pointerout':
-    case 'MSPointerOut':
         mouseDevice = getExistingMouseDevice(e["pointerId"]);
         // RK :: Wallpaper Engine on Windows is not generating the "pointerdown" event it jumps straight to "pointerover", 
         // to work around this we pretend this is the "pointerdown" then everything starts to work.
@@ -430,8 +428,13 @@ function positionHandler(e)
         }
     } // end if
     
-    // Don't allow the user to move the page around
-    e.preventDefault();
+    // Don't prevent default on pointerdown events,
+    // otherwise pointerup events wont be triggered if the
+    // user releases the mouse outside the game canvas.
+    if (e.type != "pointerdown") {
+        // Don't allow the user to move the page around
+        e.preventDefault();
+    }
 }
 
 // #############################################################################################
@@ -447,17 +450,15 @@ function bindTouchEvents()
     if ((window.PointerEvent) || (window.navigator.pointerEnabled)||(window.navigator.msPointerEnabled)) {
 
         canvas.addEventListener( "pointerdown",     positionHandler, false );
-        canvas.addEventListener( "pointermove",     positionHandler, false );
+        window.addEventListener( "pointermove",     positionHandler, false );
         canvas.addEventListener( "pointerup",       positionHandler, false );
         canvas.addEventListener( "pointercancel",   positionHandler, false );
         canvas.addEventListener( "pointerover",     positionHandler, false );
-        canvas.addEventListener( "pointerout",      positionHandler, false );
         canvas.addEventListener( "MSPointerDown",   positionHandler, false );
         canvas.addEventListener( "MSPointerMove",   positionHandler, false );
-        canvas.addEventListener( "MSPointerUp",     positionHandler, false );
+        window.addEventListener( "MSPointerUp",     positionHandler, false );
         canvas.addEventListener( "MSPointerCancel", positionHandler, false );
         canvas.addEventListener( "MSPointerOver",   positionHandler, false );
-        canvas.addEventListener( "MSPointerOut",    positionHandler, false );
 
     } // end if
     else {
