@@ -1,0 +1,45 @@
+name: Automated Review
+
+# Asks for an Automated Review of a ready PR from a branch of this repo; PRs from forks are never reviewed. The review
+# runs elsewhere and posts as gm-auto-review[bot]. This job only starts it: it checks nothing out and runs no code from
+# the PR. The auto-review label asks for a review of a head that has been reviewed already.
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+
+permissions: {}
+
+jobs:
+  dispatch:
+    if: >-
+      !github.event.pull_request.draft
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && (github.event.action != 'labeled' || github.event.label.name == 'auto-review')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # the key's environment, but not a deployment on the PR
+    environment:
+      name: auto-review-dispatch
+      deployment: false
+    steps:
+      - name: Get a dispatch token
+        id: token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.DISPATCH_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DISPATCH_APP_KEY }}
+          owner: YoYoGames
+          repositories: auto-review-relay
+          permission-actions: write
+
+      - name: Start the review
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          FORCE: ${{ github.event.action == 'labeled' }}
+        run: |
+          gh workflow run review.yml -R YoYoGames/auto-review-relay --ref main \
+            -f repository="$REPO" -f pr="$PR" -f head-sha="$HEAD_SHA" -f force="$FORCE"
