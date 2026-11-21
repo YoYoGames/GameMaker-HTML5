@@ -259,10 +259,15 @@ function ViewPolygon_EarClip(_points)
 		return (v > 0) ? 1 : ((v < 0) ? -1 : 0);
 	};
 	var pointInTriangle = function (px, py, ax, ay, bx, by, cx, cy) {
+		// a point on one of the triangle's corners (a duplicate vertex) doesn't block it
+		if ((px == ax && py == ay) || (px == bx && py == by) || (px == cx && py == cy)) return false;
 		var s1 = crossSign(ax, ay, bx, by, px, py);
 		var s2 = crossSign(bx, by, cx, cy, px, py);
 		var s3 = crossSign(cx, cy, ax, ay, px, py);
-		return (s1 > 0 && s2 > 0 && s3 > 0) || (s1 < 0 && s2 < 0 && s3 < 0);
+		// inside or on an edge: a reflex corner lying on the candidate ear's edge must block it
+		var hasNeg = (s1 < 0) || (s2 < 0) || (s3 < 0);
+		var hasPos = (s1 > 0) || (s2 > 0) || (s3 > 0);
+		return !(hasNeg && hasPos);
 	};
 
 	var work = [];
