@@ -3042,13 +3042,15 @@ function view_set_viewport(_viewportData) {
 
         // Only the fields that are given are applied; the rest keep their current values
         var given = {};
-        var getField = function (_name, _positive) {
+        // the port is in whole pixels; the room rectangle keeps fractions (it is the camera's view, as
+        // camera_set_view_pos etc take it)
+        var getField = function (_name, _positive, _real) {
             if (!variable_struct_exists(entry, _name)) return undefined;
             var raw = variable_struct_get(entry, _name);
             if (!isFinite(yyGetReal(raw))) {
                 yyError("view_set_viewport() - " + _name + " in entry " + index + " is not a finite number");
             }
-            var v = yyGetInt32(raw);
+            var v = _real ? yyGetReal(raw) : yyGetInt32(raw);
             if (_positive && v <= 0) {
                 yyError("view_set_viewport() - " + _name + " in entry " + index + " must be greater than 0");
             }
@@ -3059,10 +3061,10 @@ function view_set_viewport(_viewportData) {
         var screenY = getField("screenY", false);
         var screenW = getField("screenW", true);
         var screenH = getField("screenH", true);
-        var roomRectX = getField("roomRectX", false);
-        var roomRectY = getField("roomRectY", false);
-        var roomRectW = getField("roomRectW", true);
-        var roomRectH = getField("roomRectH", true);
+        var roomRectX = getField("roomRectX", false, true);
+        var roomRectY = getField("roomRectY", false, true);
+        var roomRectW = getField("roomRectW", true, true);
+        var roomRectH = getField("roomRectH", true, true);
 
         var hasPolygons = variable_struct_exists(entry, "polygons");
         var polygons = hasPolygons ? variable_struct_get(entry, "polygons") : undefined;
