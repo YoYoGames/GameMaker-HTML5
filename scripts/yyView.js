@@ -55,6 +55,12 @@ function yyView()						// A view
     this.surface_id = -1;
 	this.cameraID = -1;
 	this.m_targetInstance = -1;
+
+	// view_set_viewport (GMS2-Runner-Main#1076): the view's surface is drawn through these triangles instead of as a rectangle
+	this.m_polygon = null;              // triangle list as x,y pairs in the view surface's pixels, or null
+	this.m_polygonSurface = -1;         // surface view_set_viewport created for the view (freed with the polygon), or -1
+	this.m_polygonStartFunc = null;     // called before the triangles are drawn (e.g. to set a shader)
+	this.m_polygonEndFunc = null;       // called after they are drawn
 }
 
 
@@ -232,3 +238,205 @@ function  CreateViewFromStorage( _pViewStorage )
 
     return view;
 }
+
+
+// @if function("view_set_viewport")
+// #############################################################################################
+/// Function:<summary>
+///             Ear clips a simple polygon (x,y pairs) into a triangle list of vertex indices
+///          </summary>
+// #############################################################################################
+function ViewPolygon_EarClip(_points)
+{
+	var indices = [];
+	var n = Math.floor(_points.length / 2);
+	if (n < 3) return indices;
+
+	var crossSign = function (ax, ay, bx, by, cx, cy) {
+		var v = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+		return (v > 0) ? 1 : ((v < 0) ? -1 : 0);
+	};
+	var pointInTriangle = function (px, py, ax, ay, bx, by, cx, cy) {
+		var s1 = crossSign(ax, ay, bx, by, px, py);
+		var s2 = crossSign(bx, by, cx, cy, px, py);
+		var s3 = crossSign(cx, cy, ax, ay, px, py);
+		return (s1 > 0 && s2 > 0 && s3 > 0) || (s1 < 0 && s2 < 0 && s3 < 0);
+	};
+
+	var work = [];
+	for (var i = 0; i < n; i++) work.push(i);
+
+	// the winding of the whole polygon tells convex corners from reflex ones
+	var area2 = 0;
+	for (var i = 0; i < n; i++) {
+		var j = (i + 1) % n;
+		area2 += _points[2 * i] * _points[2 * j + 1] - _points[2 * j] * _points[2 * i + 1];
+	}
+	var convexSign = (area2 > 0) ? 1 : -1;
+
+	var m = n;
+	var guard = n * n + 16;
+	var i = 0;
+	while (m > 3 && guard-- > 0) {
+		var ip = (i == 0) ? m - 1 : i - 1;
+		var inx = (i == m - 1) ? 0 : i + 1;
+		var a = work[ip], b = work[i], c = work[inx];
+		var ax = _points[2 * a], ay = _points[2 * a + 1];
+		var bx = _points[2 * b], by = _points[2 * b + 1];
+		var cx = _points[2 * c], cy = _points[2 * c + 1];
+
+		var isEar = crossSign(ax, ay, bx, by, cx, cy) == convexSign;
+		for (var k = 0; isEar && k < m; k++) {
+			if (k == ip || k == i || k == inx) continue;
+			var v = work[k];
+			if (pointInTriangle(_points[2 * v], _points[2 * v + 1], ax, ay, bx, by, cx, cy)) isEar = false;
+		}
+
+		if (isEar) {
+			indices.push(a, b, c);
+			work.splice(i, 1);
+			m--;
+		}
+		else {
+			i++;
+		}
+		if (i >= m) i = 0;
+	}
+
+	if (m == 3) indices.push(work[0], work[1], work[2]);
+	return indices;
+}
+
+// #############################################################################################
+/// Function:<summary>
+///             Drops the view's polygon, freeing the surface view_set_viewport created for it
+///          </summary>
+// #############################################################################################
+yyView.prototype.ResetPolygon = function () {
+	if (this.m_polygonSurface != -1) {
+		if (surface_exists(this.m_polygonSurface)) surface_free(this.m_polygonSurface);
+		if (this.surface_id == this.m_polygonSurface) this.surface_id = -1;
+	}
+	this.m_polygon = null;
+	this.m_polygonSurface = -1;
+	this.m_polygonStartFunc = null;
+	this.m_polygonEndFunc = null;
+};
+
+// #############################################################################################
+/// Function:<summary>
+///             Is (_x, _y), in view port units, inside the view's polygon? False if it has none.
+///          </summary>
+// #############################################################################################
+yyView.prototype.PolygonContains = function (_x, _y) {
+	var tris = this.m_polygon;
+	if (tris == null || this.surface_id == -1) return false;
+
+	// the triangles are in surface pixels, drawn at the view's port position
+	var px = _x - this.portx;
+	var py = _y - this.porty;
+	for (var n = 0; n + 5 < tris.length; n += 6) {
+		var d1 = (tris[n + 2] - tris[n]) * (py - tris[n + 1]) - (tris[n + 3] - tris[n + 1]) * (px - tris[n]);
+		var d2 = (tris[n + 4] - tris[n + 2]) * (py - tris[n + 3]) - (tris[n + 5] - tris[n + 3]) * (px - tris[n + 2]);
+		var d3 = (tris[n] - tris[n + 4]) * (py - tris[n + 5]) - (tris[n + 1] - tris[n + 5]) * (px - tris[n + 4]);
+		var hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+		var hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+		if (!(hasNeg && hasPos)) return true;
+	}
+	return false;
+};
+
+// #############################################################################################
+/// Function:<summary>
+///             Is the canvas position (_x, _y) inside the view? Hit tests a view_set_viewport polygon,
+///             or the scaled port rectangle.
+///          </summary>
+// #############################################################################################
+yyView.prototype.ContainsCanvasPoint = function (_x, _y) {
+	if (this.m_polygon != null && this.surface_id != -1) {
+		// canvas pixels back to view port units (see the scaledport* values set in DrawViews)
+		var scaleX = (this.portw != 0) ? (this.scaledportw / this.portw) : 1;
+		var scaleY = (this.porth != 0) ? (this.scaledporth / this.porth) : 1;
+		var px = this.portx + (_x - this.scaledportx) / scaleX;
+		var py = this.porty + (_y - this.scaledporty) / scaleY;
+		return this.PolygonContains(px, py);
+	}
+	return (_x >= this.scaledportx) && (_x < this.scaledportx2) && (_y >= this.scaledporty) && (_y < this.scaledporty2);
+};
+
+// #############################################################################################
+/// Function:<summary>
+///             Draws the view's surface through its polygon onto the current target (the application
+///             surface, or the canvas without one). Call it after the view has been drawn into its
+///             surface and that surface is no longer the target.
+///          </summary>
+// #############################################################################################
+yyView.prototype.DrawPolygon = function () {
+	var tris = this.m_polygon;
+	if (tris == null || this.surface_id == -1 || !surface_exists(this.surface_id)) return;
+	var pSurf = g_Surfaces.Get(this.surface_id);
+	if (!pSurf) return;
+
+	// The triangles are in view port units, which land on the target at port * display scale, as the
+	// rectangular views do (DrawViews sets their view ports the same way)
+	Graphics_Save();
+	Graphics_SetViewPort(0, 0, g_ApplicationWidth, g_ApplicationHeight);
+	Graphics_SetViewArea(0, 0, g_ApplicationWidth / g_DisplayScaleX, g_ApplicationHeight / g_DisplayScaleY, 0);
+
+	var callFunc = function (_func) {
+		if (typeof (_func) == "function") _func(global, global);
+	};
+
+	try {
+		callFunc(this.m_polygonStartFunc);
+
+		// startFunc can replace the polygon with view_set_viewport
+		tris = this.m_polygon;
+		if (tris != null && tris.length >= 6) {
+			var ox = this.portx;
+			var oy = this.porty;
+			if (g_webGL) {
+				var pTPE = pSurf.m_pTPE;
+				if (!pTPE.texture.webgl_textureid) WebGL_BindTexture(pTPE);
+				var numVerts = Math.floor(tris.length / 2);
+				var pBuff = g_webGL.AllocVerts(yyGL.PRIM_TRIANGLE, pTPE.texture.webgl_textureid, g_webGL.VERTEX_FORMAT_2D, numVerts);
+				var stride = pBuff.GetStride() >> 2; // built-in vbuffer arrays have 4 byte long types
+				var index = stride * pBuff.Current;
+				pBuff.Current += numVerts;
+				var texW = pTPE.texture.width, texH = pTPE.texture.height;
+				for (var n = 0; n < numVerts; n++, index += stride) {
+					var u = tris[2 * n], v = tris[2 * n + 1];
+					pBuff.Coords[index + 0] = ox + u;
+					pBuff.Coords[index + 1] = oy + v;
+					pBuff.Coords[index + 2] = GR_Depth;
+					pBuff.UVs[index + 0] = u / texW;
+					pBuff.UVs[index + 1] = v / texH;
+					pBuff.Colours[index] = 0xffffffff;
+				}
+				// draw the triangles now, while startFunc's shader is still set
+				g_webGL.Flush();
+			}
+			else {
+				// Canvas: clip to the triangles and draw the surface at the port position
+				graphics.save();
+				graphics.beginPath();
+				for (var n = 0; n + 5 < tris.length; n += 6) {
+					graphics.moveTo(ox + tris[n], oy + tris[n + 1]);
+					graphics.lineTo(ox + tris[n + 2], oy + tris[n + 3]);
+					graphics.lineTo(ox + tris[n + 4], oy + tris[n + 5]);
+					graphics.closePath();
+				}
+				graphics.clip();
+				graphics.globalAlpha = 1;
+				graphics._drawImage(pSurf, ox, oy);
+				graphics.restore();
+			}
+		}
+
+		callFunc(this.m_polygonEndFunc);
+	}
+	finally {
+		Graphics_Restore();
+	}
+};
+// @endif view_set_viewport

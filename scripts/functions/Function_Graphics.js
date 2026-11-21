@@ -2996,6 +2996,123 @@ function view_set_surface_id(view, surface_id) {
     g_pBuiltIn.view_surface_id[yyGetInt32(view)] = yyGetInt32(surface_id);
 };
 
+// @if function("view_set_viewport")
+// #############################################################################################
+/// Function:<summary>
+///             Experimental non-rectangular viewports (GMS2-Runner-Main#1076). Takes an array of
+///             viewport structs, one per view from view 0, or a JSON string of one. Each struct can set
+///             polygons (x,y pairs in the view surface's pixels; [] turns the polygon off),
+///             screenX/Y/W/H (the port), roomRectX/Y/W/H (the room rectangle) and startFunc/endFunc.
+///          </summary>
+// #############################################################################################
+function view_set_viewport(_viewportData) {
+
+    var data = _viewportData;
+    if (typeof (data) == "string") {
+        try {
+            data = json_parse(undefined, data);
+        } catch (e) {
+            yyError("view_set_viewport() - the string is not valid JSON");
+            return;
+        }
+    }
+    if (!(data instanceof Array)) {
+        yyError("view_set_viewport() - expected an array of viewport structs, or a JSON string that holds one");
+        return;
+    }
+    if (data.length > 8) {
+        yyError("view_set_viewport() - " + data.length + " viewports given, but there are only 8");
+        return;
+    }
+    if (!g_RunRoom) return;
+
+    for (var index = 0; index < data.length; index++) {
+        var entry = data[index];
+        if ((entry == null) || (typeof (entry) != "object") || (entry instanceof Array)) {
+            yyError("view_set_viewport() - entry " + index + " is not a struct");
+            return;
+        }
+
+        // A field that is left out keeps its current value
+        var getInt = function (_name, _fallback) {
+            var v = variable_struct_get(entry, _name);
+            return (v === undefined) ? _fallback : yyGetInt32(v);
+        };
+        var screenX = getInt("screenX", -1);
+        var screenY = getInt("screenY", -1);
+        var screenW = getInt("screenW", 0);
+        var screenH = getInt("screenH", 0);
+        var roomRectX = getInt("roomRectX", -1);
+        var roomRectY = getInt("roomRectY", -1);
+        var roomRectW = getInt("roomRectW", 0);
+        var roomRectH = getInt("roomRectH", 0);
+
+        var polygons = variable_struct_get(entry, "polygons");
+        if ((polygons !== undefined) && !(polygons instanceof Array)) {
+            yyError("view_set_viewport() - polygons in entry " + index + " is not an array");
+            return;
+        }
+
+        var startFunc = variable_struct_get(entry, "startFunc");
+        var endFunc = variable_struct_get(entry, "endFunc");
+
+        var pView = g_RunRoom.m_Views[index];
+        if (!pView) continue;
+
+        // a polygon needs at least 3 x,y pairs; fewer (e.g. []) turns it off, back to a rectangular viewport
+        if (polygons !== undefined) {
+            var points = [];
+            for (var n = 0; n < polygons.length; n++) points.push(yyGetReal(polygons[n]));
+            var indices = ViewPolygon_EarClip(points);
+
+            pView.surface_id = g_pBuiltIn.view_surface_id[index];
+            pView.ResetPolygon();
+            g_pBuiltIn.view_surface_id[index] = pView.surface_id;
+
+            if (indices.length > 0) {
+                var tris = [];
+                for (var n = 0; n < indices.length; n++) tris.push(points[2 * indices[n]], points[2 * indices[n] + 1]);
+                pView.m_polygon = tris;
+                g_pBuiltIn.view_visible[index] = true;
+                if ((g_pBuiltIn.view_surface_id[index] == -1) && (screenW > 0) && (screenH > 0)) {
+                    var surf = surface_create(screenW, screenH);
+                    pView.m_polygonSurface = surf;
+                    pView.surface_id = surf;
+                    g_pBuiltIn.view_surface_id[index] = surf;
+                }
+            }
+        }
+
+        if ((screenW > 0) && (screenH > 0)) {
+            g_pBuiltIn.view_wport[index] = screenW;
+            g_pBuiltIn.view_hport[index] = screenH;
+        }
+        if (screenX != -1) g_pBuiltIn.view_xport[index] = screenX;
+        if (screenY != -1) g_pBuiltIn.view_yport[index] = screenY;
+        if ((roomRectW > 0) && (roomRectH > 0)) {
+            g_pBuiltIn.view_wview[index] = roomRectW;
+            g_pBuiltIn.view_hview[index] = roomRectH;
+        }
+        if (roomRectX != -1) g_pBuiltIn.view_xview[index] = roomRectX;
+        if (roomRectY != -1) g_pBuiltIn.view_yview[index] = roomRectY;
+
+        // startFunc and endFunc are replaced by every call (left out means none), as in the C++ runner
+        pView.m_polygonStartFunc = (typeof (startFunc) == "function") ? startFunc : null;
+        pView.m_polygonEndFunc = (typeof (endFunc) == "function") ? endFunc : null;
+
+        // update the view's camera from the view
+        var camID = g_pBuiltIn.view_camera[index];
+        var pCam = (camID != -1) ? g_pCameraManager.GetCamera(camID) : null;
+        if (pCam) {
+            pCam.SetViewX(g_pBuiltIn.view_xview[index]);
+            pCam.SetViewY(g_pBuiltIn.view_yview[index]);
+            pCam.SetViewWidth(g_pBuiltIn.view_wview[index]);
+            pCam.SetViewHeight(g_pBuiltIn.view_hview[index]);
+        }
+    }
+};
+// @endif view_set_viewport
+
 // Stubs
 function display_get_windows_vertex_buffer_method() {
     return 0;
