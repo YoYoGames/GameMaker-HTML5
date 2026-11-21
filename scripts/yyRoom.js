@@ -973,6 +973,10 @@ yyRoom.prototype.CopyViewsFromArrays = function () {
 		pView.hspeed = g_pBuiltIn.view_hspeed[index];
 		pView.vspeed = g_pBuiltIn.view_vspeed[index];
 		pView.objid = g_pBuiltIn.view_object[index];
+		// @if function("view_set_viewport")
+		// view_surface_id[n] = s writes the array directly: free the surface view_set_viewport made if the game replaced it
+		pView.CheckPolygonSurface(index);
+		// @endif
 		pView.surface_id = g_pBuiltIn.view_surface_id[index];
 		pView.cameraID = g_pBuiltIn.view_camera[index];
 

@@ -2993,7 +2993,12 @@ function view_set_hport(view, hport) {
 };
 
 function view_set_surface_id(view, surface_id) {
-    g_pBuiltIn.view_surface_id[yyGetInt32(view)] = yyGetInt32(surface_id);
+    var index = yyGetInt32(view);
+    g_pBuiltIn.view_surface_id[index] = yyGetInt32(surface_id);
+    // @if function("view_set_viewport")
+    // the game's own surface replaces the one view_set_viewport made for the view, which is freed
+    if (g_RunRoom && g_RunRoom.m_Views[index]) g_RunRoom.m_Views[index].CheckPolygonSurface(index);
+    // @endif
 };
 
 // @if function("view_set_viewport")

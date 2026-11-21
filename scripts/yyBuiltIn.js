@@ -218,7 +218,13 @@ yyBuiltIn.prototype.set_view_vborder = function (_val) { g_pBuiltIn.view_vborder
 yyBuiltIn.prototype.set_view_hspeed = function (_val) { g_pBuiltIn.view_hspeed[0] = ~ ~_val; };
 yyBuiltIn.prototype.set_view_vspeed = function (_val) { g_pBuiltIn.view_vspeed[0] = ~ ~_val; };
 yyBuiltIn.prototype.set_view_object = function (_val) { g_pBuiltIn.view_object[0] = ~ ~_val; };
-yyBuiltIn.prototype.set_view_surface_id = function (_val) { g_pBuiltIn.view_surface_id[0] = ~ ~_val; };
+yyBuiltIn.prototype.set_view_surface_id = function (_val) {
+    g_pBuiltIn.view_surface_id[0] = ~ ~_val;
+    // @if function("view_set_viewport")
+    // the game's own surface replaces the one view_set_viewport made for the view, which is freed
+    if (g_RunRoom && g_RunRoom.m_Views[0]) g_RunRoom.m_Views[0].CheckPolygonSurface(0);
+    // @endif
+};
 
 
 yyBuiltIn.prototype.get_view_visible = function (_val) { return g_pBuiltIn.view_visible[0]; };

@@ -329,14 +329,19 @@ yyView.prototype.SetPolygonViewSurface = function (_index, _surface) {
 
 // #############################################################################################
 /// Function:<summary>
-///             Forgets the surface view_set_viewport made if it isn't the view's surface any more
-///             (the game set its own) or it has been freed. It is never freed here: once the game
-///             has replaced it, it isn't the runner's to free.
+///             Lets go of the surface view_set_viewport made once it isn't the view's surface any more.
+///             If the game has set its own surface for the view, ours isn't used, so it is freed (as
+///             in the C++ runner); the game's surface never is. If it has already been freed, it is
+///             just forgotten.
 ///          </summary>
 // #############################################################################################
 yyView.prototype.CheckPolygonSurface = function (_index) {
 	if (this.m_polygonSurface == -1) return;
-	if ((this.PolygonViewSurface(_index) != this.m_polygonSurface) || !surface_exists(this.m_polygonSurface)) {
+	if (!surface_exists(this.m_polygonSurface)) {
+		this.m_polygonSurface = -1;
+	}
+	else if (this.PolygonViewSurface(_index) != this.m_polygonSurface) {
+		surface_free(this.m_polygonSurface);
 		this.m_polygonSurface = -1;
 	}
 };
