@@ -3044,7 +3044,11 @@ function view_set_viewport(_viewportData) {
         var given = {};
         var getField = function (_name, _positive) {
             if (!variable_struct_exists(entry, _name)) return undefined;
-            var v = yyGetInt32(variable_struct_get(entry, _name));
+            var raw = variable_struct_get(entry, _name);
+            if (!isFinite(yyGetReal(raw))) {
+                yyError("view_set_viewport() - " + _name + " in entry " + index + " is not a finite number");
+            }
+            var v = yyGetInt32(raw);
             if (_positive && v <= 0) {
                 yyError("view_set_viewport() - " + _name + " in entry " + index + " must be greater than 0");
             }
@@ -3064,6 +3068,10 @@ function view_set_viewport(_viewportData) {
         var polygons = hasPolygons ? variable_struct_get(entry, "polygons") : undefined;
         if (hasPolygons && !(polygons instanceof Array)) {
             yyError("view_set_viewport() - polygons in entry " + index + " is not an array");
+            return;
+        }
+        if (hasPolygons && ((polygons.length % 2) != 0)) {
+            yyError("view_set_viewport() - polygons in entry " + index + " has an odd number of values; it needs x,y pairs");
             return;
         }
 
@@ -3099,7 +3107,13 @@ function view_set_viewport(_viewportData) {
         // the polygon: a polygon needs at least 3 x,y pairs; fewer (e.g. []) turns it off, back to a rectangular viewport
         if (hasPolygons) {
             var points = [];
-            for (var n = 0; n < polygons.length; n++) points.push(yyGetReal(polygons[n]));
+            for (var n = 0; n < polygons.length; n++) {
+                var value = yyGetReal(polygons[n]);
+                if (!isFinite(value)) {
+                    yyError("view_set_viewport() - polygons in entry " + index + " has a value that is not a finite number");
+                }
+                points.push(value);
+            }
             var indices = ViewPolygon_EarClip(points);
             if (indices == null) {
                 yyError("view_set_viewport(): polygon " + index + " couldn't be split into triangles; it may cross itself, or have all its points on one line");
@@ -3137,10 +3151,12 @@ function view_set_viewport(_viewportData) {
             var camID = g_pBuiltIn.view_camera[index];
             var pCam = (camID != -1) ? g_pCameraManager.GetCamera(camID) : null;
             if (pCam) {
-                pCam.SetViewX(g_pBuiltIn.view_xview[index]);
-                pCam.SetViewY(g_pBuiltIn.view_yview[index]);
-                pCam.SetViewWidth(g_pBuiltIn.view_wview[index]);
-                pCam.SetViewHeight(g_pBuiltIn.view_hview[index]);
+                // only the fields that are given: the camera keeps the rest (it may have been moved with
+                // camera_set_view_pos, say, which doesn't change the view_xview arrays)
+                if (given.roomRectX) pCam.SetViewX(roomRectX);
+                if (given.roomRectY) pCam.SetViewY(roomRectY);
+                if (given.roomRectW) pCam.SetViewWidth(roomRectW);
+                if (given.roomRectH) pCam.SetViewHeight(roomRectH);
                 // rebuild the matrices the camera draws with, as the camera_set_view_* functions do
                 var cx = pCam.GetViewX() + (pCam.GetViewWidth() * 0.5);
                 var cy = pCam.GetViewY() + (pCam.GetViewHeight() * 0.5);
