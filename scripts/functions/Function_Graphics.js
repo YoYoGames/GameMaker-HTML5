@@ -3067,6 +3067,22 @@ function view_set_viewport(_viewportData) {
             return;
         }
 
+        // startFunc and endFunc take a method or a script function (a script index in older projects);
+        // undefined clears them
+        var getCallable = function (_name) {
+            if (!variable_struct_exists(entry, _name)) return undefined;
+            var v = variable_struct_get(entry, _name);
+            if (v === undefined) return null;
+            if (typeof (v) == "function") return v;
+            if ((typeof (v) == "number") && (v >= 100000) && JSON_game && JSON_game.Scripts) {
+                var script = JSON_game.Scripts[v - 100000];
+                if (typeof (script) == "function") return script;
+            }
+            yyError("view_set_viewport() - " + _name + " in entry " + index + " is not a method or script function");
+        };
+        var startFunc = getCallable("startFunc");
+        var endFunc = getCallable("endFunc");
+
         var pView = g_RunRoom.m_Views[index];
         if (!pView) continue;
 
@@ -3108,14 +3124,8 @@ function view_set_viewport(_viewportData) {
         }
 
         // startFunc and endFunc are only replaced when they are given
-        if (variable_struct_exists(entry, "startFunc")) {
-            var startFunc = variable_struct_get(entry, "startFunc");
-            pView.m_polygonStartFunc = (typeof (startFunc) == "function") ? startFunc : null;
-        }
-        if (variable_struct_exists(entry, "endFunc")) {
-            var endFunc = variable_struct_get(entry, "endFunc");
-            pView.m_polygonEndFunc = (typeof (endFunc) == "function") ? endFunc : null;
-        }
+        if (startFunc !== undefined) pView.m_polygonStartFunc = startFunc;
+        if (endFunc !== undefined) pView.m_polygonEndFunc = endFunc;
 
         // the room rectangle, which is also the view's camera
         if (given.roomRectX || given.roomRectY || given.roomRectW || given.roomRectH) {

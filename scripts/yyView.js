@@ -514,8 +514,11 @@ yyView.prototype.DrawPolygon = function () {
 	Graphics_SetViewPort(0, 0, g_ApplicationWidth, g_ApplicationHeight);
 	Graphics_SetViewArea(0, 0, g_ApplicationWidth / g_DisplayScaleX, g_ApplicationHeight / g_DisplayScaleY, 0);
 
+	// a method runs on the struct or instance it is bound to; a script function on global
 	var callFunc = function (_func) {
-		if (typeof (_func) == "function") _func(global, global);
+		if (typeof (_func) != "function") return;
+		var self = _func.boundObject ?? global;
+		_func(self, self);
 	};
 
 	try {
