@@ -4025,6 +4025,11 @@ yyRoom.prototype.DrawViews = function (r) {
 			        if (g_pCurrentView.surface_id != -1) {
 			            surface_reset_target();
 			        }
+
+			        // @if function("view_set_viewport")
+			        // now the view's surface isn't the target, draw it through its view_set_viewport polygon (if it has one)
+			        g_pCurrentView.DrawPolygon();
+			        // @endif
 			        Current_View++;
     			    
     			  
