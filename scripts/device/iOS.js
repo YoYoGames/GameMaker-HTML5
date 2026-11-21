@@ -81,6 +81,10 @@ yyTouchEvent.prototype.SetTouchLocation = function(_x, _y) {
 				//else {
 				//	CalcCanvasLocation(g_Surfaces.Get(pView.surface_id), g_CanvasRect);
 				//}
+				// @if function("view_set_viewport")
+				// a view drawn through a view_set_viewport polygon only takes the points inside its triangles
+				if (pView.IsPolygonDrawn() && !pView.ContainsCanvasPoint(_x - g_CanvasRect.left, _y - g_CanvasRect.top)) continue;
+				// @endif
 				if (((_x - g_CanvasRect.left) >= pView.scaledportx) &&
 				    ((_x - g_CanvasRect.left) < pView.scaledportx2) &&
 				    ((_y - g_CanvasRect.top) >= pView.scaledporty) &&

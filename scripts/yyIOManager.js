@@ -2130,8 +2130,13 @@ function    IO_StartStep()
     		//{
     		//	CalcCanvasLocation(g_Surfaces.Get(pView.surface_id), g_CanvasRect);
     		//}
-    		if (((this.MouseX - g_CanvasRect.left) >= pView.scaledportx) && ((this.MouseX - g_CanvasRect.left) < pView.scaledportx2) &&
-                ((this.MouseY - g_CanvasRect.top) >= pView.scaledporty) && ((this.MouseY - g_CanvasRect.top) < pView.scaledporty2))
+    		var inView = ((this.MouseX - g_CanvasRect.left) >= pView.scaledportx) && ((this.MouseX - g_CanvasRect.left) < pView.scaledportx2) &&
+                ((this.MouseY - g_CanvasRect.top) >= pView.scaledporty) && ((this.MouseY - g_CanvasRect.top) < pView.scaledporty2);
+    		// @if function("view_set_viewport")
+    		// a view drawn through a view_set_viewport polygon is hit tested against its triangles instead
+    		if (pView.m_polygon != null) inView = pView.ContainsCanvasPoint(this.MouseX - g_CanvasRect.left, this.MouseY - g_CanvasRect.top);
+    		// @endif
+    		if (inView)
     		{
     		    g_pBuiltIn.mouse_x = pView.GetMouseX(g_pIOManager.MouseX,g_pIOManager.MouseY);
     		    g_pBuiltIn.mouse_y = pView.GetMouseY(g_pIOManager.MouseX,g_pIOManager.MouseY);  

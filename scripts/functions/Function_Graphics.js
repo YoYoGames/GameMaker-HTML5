@@ -2993,8 +2993,164 @@ function view_set_hport(view, hport) {
 };
 
 function view_set_surface_id(view, surface_id) {
-    g_pBuiltIn.view_surface_id[yyGetInt32(view)] = yyGetInt32(surface_id);
+    var index = yyGetInt32(view);
+    g_pBuiltIn.view_surface_id[index] = yyGetInt32(surface_id);
+    // @if function("view_set_viewport")
+    // the game's own surface replaces the one view_set_viewport made for the view, which is freed
+    if (g_RunRoom && g_RunRoom.m_Views[index]) g_RunRoom.m_Views[index].CheckPolygonSurface(index, true);
+    // @endif
 };
+
+// @if function("view_set_viewport")
+// #############################################################################################
+/// Function:<summary>
+///             Experimental non-rectangular viewports (GMS2-Runner-Main#1076). Takes an array of
+///             viewport structs, one per view from view 0, or a JSON string of one. Each struct can set
+///             polygons (x,y pairs in the view surface's pixels; [] turns the polygon off),
+///             screenX/Y/W/H (the port), roomRectX/Y/W/H (the room rectangle) and startFunc/endFunc.
+///             A field that is left out keeps its current value. Like view_set_visible, this doesn't
+///             turn views on: the room needs views enabled for the polygon to be drawn.
+///          </summary>
+// #############################################################################################
+function view_set_viewport(_viewportData) {
+
+    var data = _viewportData;
+    if (typeof (data) == "string") {
+        try {
+            data = json_parse(undefined, data);
+        } catch (e) {
+            yyError("view_set_viewport() - the string is not valid JSON");
+            return;
+        }
+    }
+    if (!(data instanceof Array)) {
+        yyError("view_set_viewport() - expected an array of viewport structs, or a JSON string that holds one");
+        return;
+    }
+    if (data.length > 8) {
+        yyError("view_set_viewport() - " + data.length + " viewports given, but there are only 8");
+        return;
+    }
+    if (!g_RunRoom) return;
+
+    for (var index = 0; index < data.length; index++) {
+        var entry = data[index];
+        if ((entry == null) || (typeof (entry) != "object") || (entry instanceof Array)) {
+            yyError("view_set_viewport() - entry " + index + " is not a struct");
+            return;
+        }
+
+        // Only the fields that are given are applied; the rest keep their current values
+        var given = {};
+        var getField = function (_name, _positive) {
+            if (!variable_struct_exists(entry, _name)) return undefined;
+            var v = yyGetInt32(variable_struct_get(entry, _name));
+            if (_positive && v <= 0) {
+                yyError("view_set_viewport() - " + _name + " in entry " + index + " must be greater than 0");
+            }
+            given[_name] = true;
+            return v;
+        };
+        var screenX = getField("screenX", false);
+        var screenY = getField("screenY", false);
+        var screenW = getField("screenW", true);
+        var screenH = getField("screenH", true);
+        var roomRectX = getField("roomRectX", false);
+        var roomRectY = getField("roomRectY", false);
+        var roomRectW = getField("roomRectW", true);
+        var roomRectH = getField("roomRectH", true);
+
+        var hasPolygons = variable_struct_exists(entry, "polygons");
+        var polygons = hasPolygons ? variable_struct_get(entry, "polygons") : undefined;
+        if (hasPolygons && !(polygons instanceof Array)) {
+            yyError("view_set_viewport() - polygons in entry " + index + " is not an array");
+            return;
+        }
+
+        // startFunc and endFunc take a method or a script function (a script index in older projects);
+        // undefined clears them
+        var getCallable = function (_name) {
+            if (!variable_struct_exists(entry, _name)) return undefined;
+            var v = variable_struct_get(entry, _name);
+            if (v === undefined) return null;
+            if (typeof (v) == "function") return v;
+            if ((typeof (v) == "number") && (v >= 100000) && JSON_game && JSON_game.Scripts) {
+                var script = JSON_game.Scripts[v - 100000];
+                if (typeof (script) == "function") return script;
+            }
+            yyError("view_set_viewport() - " + _name + " in entry " + index + " is not a method or script function");
+        };
+        var startFunc = getCallable("startFunc");
+        var endFunc = getCallable("endFunc");
+
+        var pView = g_RunRoom.m_Views[index];
+        if (!pView) continue;
+
+        // the port
+        if (given.screenX) g_pBuiltIn.view_xport[index] = screenX;
+        if (given.screenY) g_pBuiltIn.view_yport[index] = screenY;
+        if (given.screenW) g_pBuiltIn.view_wport[index] = screenW;
+        if (given.screenH) g_pBuiltIn.view_hport[index] = screenH;
+        pView.portx = g_pBuiltIn.view_xport[index];
+        pView.porty = g_pBuiltIn.view_yport[index];
+        pView.portw = g_pBuiltIn.view_wport[index];
+        pView.porth = g_pBuiltIn.view_hport[index];
+
+        // the polygon: a polygon needs at least 3 x,y pairs; fewer (e.g. []) turns it off, back to a rectangular viewport
+        if (hasPolygons) {
+            var points = [];
+            for (var n = 0; n < polygons.length; n++) points.push(yyGetReal(polygons[n]));
+            var indices = ViewPolygon_EarClip(points);
+            if (indices == null) {
+                yyError("view_set_viewport(): polygon " + index + " couldn't be split into triangles; it may cross itself, or have all its points on one line");
+                return;
+            }
+            if (indices.length > 0) {
+                var tris = [];
+                for (var n = 0; n < indices.length; n++) tris.push(points[2 * indices[n]], points[2 * indices[n] + 1]);
+                pView.m_polygon = tris;
+                g_pBuiltIn.view_visible[index] = true;
+                pView.visible = true;
+            }
+            else {
+                pView.ResetPolygon(index);
+            }
+        }
+
+        // the polygon is drawn from the view's surface: keep the one view_set_viewport made while it is
+        // still the right size, otherwise make one the size of the port
+        if ((pView.m_polygon != null) && (hasPolygons || given.screenW || given.screenH)) {
+            pView.EnsurePolygonSurface(index);
+        }
+
+        // startFunc and endFunc are only replaced when they are given
+        if (startFunc !== undefined) pView.m_polygonStartFunc = startFunc;
+        if (endFunc !== undefined) pView.m_polygonEndFunc = endFunc;
+
+        // the room rectangle, which is also the view's camera
+        if (given.roomRectX || given.roomRectY || given.roomRectW || given.roomRectH) {
+            if (given.roomRectX) g_pBuiltIn.view_xview[index] = roomRectX;
+            if (given.roomRectY) g_pBuiltIn.view_yview[index] = roomRectY;
+            if (given.roomRectW) g_pBuiltIn.view_wview[index] = roomRectW;
+            if (given.roomRectH) g_pBuiltIn.view_hview[index] = roomRectH;
+
+            var camID = g_pBuiltIn.view_camera[index];
+            var pCam = (camID != -1) ? g_pCameraManager.GetCamera(camID) : null;
+            if (pCam) {
+                pCam.SetViewX(g_pBuiltIn.view_xview[index]);
+                pCam.SetViewY(g_pBuiltIn.view_yview[index]);
+                pCam.SetViewWidth(g_pBuiltIn.view_wview[index]);
+                pCam.SetViewHeight(g_pBuiltIn.view_hview[index]);
+                // rebuild the matrices the camera draws with, as the camera_set_view_* functions do
+                var cx = pCam.GetViewX() + (pCam.GetViewWidth() * 0.5);
+                var cy = pCam.GetViewY() + (pCam.GetViewHeight() * 0.5);
+                if (pCam.IsOrthoProj()) pCam.Build2DView(cx, cy);
+                else pCam.Build3DView(cx, cy);
+            }
+        }
+    }
+};
+// @endif view_set_viewport
 
 // Stubs
 function display_get_windows_vertex_buffer_method() {

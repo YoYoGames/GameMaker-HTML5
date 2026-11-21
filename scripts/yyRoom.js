@@ -973,6 +973,10 @@ yyRoom.prototype.CopyViewsFromArrays = function () {
 		pView.hspeed = g_pBuiltIn.view_hspeed[index];
 		pView.vspeed = g_pBuiltIn.view_vspeed[index];
 		pView.objid = g_pBuiltIn.view_object[index];
+		// @if function("view_set_viewport")
+		// view_surface_id[n] = s writes the array directly: free the surface view_set_viewport made if the game replaced it
+		pView.CheckPolygonSurface(index);
+		// @endif
 		pView.surface_id = g_pBuiltIn.view_surface_id[index];
 		pView.cameraID = g_pBuiltIn.view_camera[index];
 
@@ -3968,6 +3972,12 @@ yyRoom.prototype.DrawViews = function (r) {
 			    var graph = GlobalGraphicsHandle;
 			    Graphics_Save();
 			    {
+			        // @if function("view_set_viewport")
+			        // make the surface view_set_viewport made again if it has been lost, or the port's size has changed
+			        if (g_pCurrentView.m_polygon != null && this.m_enableviews) {
+			            g_pCurrentView.RefreshPolygonSurface(i);
+			        }
+			        // @endif
 			        if (g_pCurrentView.surface_id != -1)
 			        {
 			    	    surface_set_target_system(g_pCurrentView.surface_id);
@@ -4025,6 +4035,11 @@ yyRoom.prototype.DrawViews = function (r) {
 			        if (g_pCurrentView.surface_id != -1) {
 			            surface_reset_target();
 			        }
+
+			        // @if function("view_set_viewport")
+			        // now the view's surface isn't the target, draw it through its view_set_viewport polygon (if it has one)
+			        g_pCurrentView.DrawPolygon();
+			        // @endif
 			        Current_View++;
     			    
     			  
