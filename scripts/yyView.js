@@ -244,7 +244,8 @@ function  CreateViewFromStorage( _pViewStorage )
 // #############################################################################################
 /// Function:<summary>
 ///             Ear clips a simple polygon (x,y pairs) into a triangle list of vertex indices. Returns
-///             [] for fewer than 3 points, or null if it can't be clipped (e.g. it intersects itself).
+///             [] for fewer than 3 points, or null if it can't be split into triangles: no ear is found,
+///             all the points are on one line, or the triangles don't cover the polygon's area (it crosses itself).
 ///          </summary>
 // #############################################################################################
 function ViewPolygon_EarClip(_points)
@@ -314,6 +315,20 @@ function ViewPolygon_EarClip(_points)
 		_points[2 * work[2]], _points[2 * work[2] + 1]) != 0)) {
 		indices.push(work[0], work[1], work[2]);
 	}
+
+	// 3 or more points that give no triangle at all (all on one line) aren't a polygon either
+	if (indices.length == 0) return null;
+
+	// The triangles of a simple polygon cover exactly its area. A polygon that crosses itself (a bow tie, say) can
+	// still be clipped, into triangles that overlap or spill outside it, and then the areas differ (as in GMRT).
+	var triangleArea2 = 0;
+	for (var t = 0; t + 2 < indices.length; t += 3) {
+		var ta = indices[t], tb = indices[t + 1], tc = indices[t + 2];
+		triangleArea2 += Math.abs((_points[2 * tb] - _points[2 * ta]) * (_points[2 * tc + 1] - _points[2 * ta + 1]) -
+			(_points[2 * tb + 1] - _points[2 * ta + 1]) * (_points[2 * tc] - _points[2 * ta]));
+	}
+	var polygonArea2 = Math.abs(area2);
+	if (Math.abs(triangleArea2 - polygonArea2) > 1e-3 * Math.max(1, polygonArea2)) return null;
 	return indices;
 }
 

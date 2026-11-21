@@ -3086,7 +3086,7 @@ function view_set_viewport(_viewportData) {
             for (var n = 0; n < polygons.length; n++) points.push(yyGetReal(polygons[n]));
             var indices = ViewPolygon_EarClip(points);
             if (indices == null) {
-                yyError("view_set_viewport(): polygon " + index + " couldn't be triangulated, is it self-intersecting?");
+                yyError("view_set_viewport(): polygon " + index + " couldn't be split into triangles; it may cross itself, or have all its points on one line");
                 return;
             }
             if (indices.length > 0) {
