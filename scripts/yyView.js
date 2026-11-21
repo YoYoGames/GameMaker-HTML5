@@ -287,15 +287,18 @@ function ViewPolygon_EarClip(_points)
 		var bx = _points[2 * b], by = _points[2 * b + 1];
 		var cx = _points[2 * c], cy = _points[2 * c + 1];
 
-		var isEar = crossSign(ax, ay, bx, by, cx, cy) == convexSign;
+		var turn = crossSign(ax, ay, bx, by, cx, cy);
+		var isEar = (turn == convexSign);
 		for (var k = 0; isEar && k < m; k++) {
 			if (k == ip || k == i || k == inx) continue;
 			var v = work[k];
 			if (pointInTriangle(_points[2 * v], _points[2 * v + 1], ax, ay, bx, by, cx, cy)) isEar = false;
 		}
 
-		if (isEar) {
-			indices.push(a, b, c);
+		// an ear is clipped off; a vertex on a straight line between its neighbours is dropped (it adds no area),
+		// as in the C++ runner
+		if (isEar || (turn == 0)) {
+			if (isEar) indices.push(a, b, c);
 			work.splice(i, 1);
 			m--;
 			misses = 0;
@@ -307,7 +310,10 @@ function ViewPolygon_EarClip(_points)
 		if (i >= m) i = 0;
 	}
 
-	if (m == 3) indices.push(work[0], work[1], work[2]);
+	if ((m == 3) && (crossSign(_points[2 * work[0]], _points[2 * work[0] + 1], _points[2 * work[1]], _points[2 * work[1] + 1],
+		_points[2 * work[2]], _points[2 * work[2] + 1]) != 0)) {
+		indices.push(work[0], work[1], work[2]);
+	}
 	return indices;
 }
 
