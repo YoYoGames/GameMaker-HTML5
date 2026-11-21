@@ -357,6 +357,45 @@ yyView.prototype.SetPolygonViewSurface = function (_index, _surface) {
 	if (_index !== undefined) g_pBuiltIn.view_surface_id[_index] = _surface;
 };
 
+// Surfaces view_set_viewport made that were still a render target when they were let go (e.g. the
+// polygon was turned off from a Draw event while the view was being drawn into its surface):
+// { id, surface } pairs, freed by ViewPolygon_FlushSurfaceFrees once they're off the surface stack
+var g_ViewPolygonSurfacesToFree = [];
+
+// #############################################################################################
+/// Function:<summary>
+///             Frees a surface view_set_viewport made, or, if it is still a render target, frees it
+///             once it isn't (surface_free won't free a surface on the surface stack)
+///          </summary>
+// #############################################################################################
+function ViewPolygon_FreeSurface(_id)
+{
+	if (CheckForSurface(_id)) {
+		g_ViewPolygonSurfacesToFree.push({ id: _id, surface: g_Surfaces.Get(_id) });
+		return;
+	}
+	surface_free(_id);
+}
+
+// #############################################################################################
+/// Function:<summary>
+///             Frees the surfaces ViewPolygon_FreeSurface had to leave, once they're off the surface
+///             stack. One that has been freed already (its ID may now hold another surface) is dropped.
+///          </summary>
+// #############################################################################################
+function ViewPolygon_FlushSurfaceFrees()
+{
+	if (g_ViewPolygonSurfacesToFree.length == 0) return;
+	var keep = [];
+	for (var n = 0; n < g_ViewPolygonSurfacesToFree.length; n++) {
+		var entry = g_ViewPolygonSurfacesToFree[n];
+		if (g_Surfaces.Get(entry.id) !== entry.surface) continue;
+		if (CheckForSurface(entry.id)) keep.push(entry);
+		else surface_free(entry.id);
+	}
+	g_ViewPolygonSurfacesToFree = keep;
+}
+
 // #############################################################################################
 /// Function:<summary>
 ///             Is the surface view_set_viewport made still there, and still ours? Surface IDs are reused
@@ -395,7 +434,7 @@ yyView.prototype.CheckPolygonSurface = function (_index, _setByGame) {
 	if (this.m_polygonSurface == -1) return;
 	var owns = this.OwnsPolygonSurface();
 	if (this.PolygonViewSurface(_index) != this.m_polygonSurface) {
-		if (owns) surface_free(this.m_polygonSurface);
+		if (owns) ViewPolygon_FreeSurface(this.m_polygonSurface);
 		this.ForgetPolygonSurface();
 	}
 	else if (_setByGame && !owns) {
@@ -422,7 +461,7 @@ yyView.prototype.EnsurePolygonSurface = function (_index) {
 		// which is left alone) or the port's size has changed
 		if (this.OwnsPolygonSurface()) {
 			if ((surface_get_width(this.m_polygonSurface) == w) && (surface_get_height(this.m_polygonSurface) == h)) return;
-			surface_free(this.m_polygonSurface);
+			ViewPolygon_FreeSurface(this.m_polygonSurface);
 		}
 		this.ForgetPolygonSurface();
 	}
@@ -467,7 +506,7 @@ yyView.prototype.RefreshPolygonSurface = function (_index) {
 yyView.prototype.ResetPolygon = function (_index) {
 	this.CheckPolygonSurface(_index, false);
 	if (this.m_polygonSurface != -1) {
-		if (this.OwnsPolygonSurface()) surface_free(this.m_polygonSurface);
+		if (this.OwnsPolygonSurface()) ViewPolygon_FreeSurface(this.m_polygonSurface);
 		this.SetPolygonViewSurface(_index, -1);
 	}
 	this.m_polygon = null;

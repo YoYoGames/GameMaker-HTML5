@@ -3978,9 +3978,15 @@ yyRoom.prototype.DrawViews = function (r) {
 			            g_pCurrentView.RefreshPolygonSurface(i);
 			        }
 			        // @endif
+			        // reset the target below only if it was set here: the Draw event can change the view's surface
+			        // (e.g. view_set_viewport turning its polygon off)
+			        // (surface_set_target_system pushes nothing for a surface that no longer exists)
+			        var viewSurfaceTargetSet = false;
 			        if (g_pCurrentView.surface_id != -1)
 			        {
+			    	    var surfaceStackDepth = g_SurfaceStack.length;
 			    	    surface_set_target_system(g_pCurrentView.surface_id);
+			    	    viewSurfaceTargetSet = (g_SurfaceStack.length > surfaceStackDepth);
 			        } 
     		
 			        //scaled port SHOULD BE port coords in final canvas space ( for canvas mouse -> view/world mouse coords )
@@ -4032,13 +4038,15 @@ yyRoom.prototype.DrawViews = function (r) {
 					this.DrawTheRoom(g_roomExtents, view_width, view_height);
 
 
-			        if (g_pCurrentView.surface_id != -1) {
+			        if (viewSurfaceTargetSet) {
 			            surface_reset_target();
 			        }
 
 			        // @if function("view_set_viewport")
-			        // now the view's surface isn't the target, draw it through its view_set_viewport polygon (if it has one)
+			        // now the view's surface isn't the target, draw it through its view_set_viewport polygon (if it has one),
+			        // and free any view_set_viewport surface that was let go while it was the target
 			        g_pCurrentView.DrawPolygon();
+			        ViewPolygon_FlushSurfaceFrees();
 			        // @endif
 			        Current_View++;
     			    
@@ -4054,6 +4062,11 @@ yyRoom.prototype.DrawViews = function (r) {
 			    Graphics_Restore();
 		    }		
 	    }
+	    // @if function("view_set_viewport")
+	    // also free any view_set_viewport surface let go while it was a target outside the views above
+	    // (e.g. the game set it as the target itself in a Step event), even if no view is visible
+	    ViewPolygon_FlushSurfaceFrees();
+	    // @endif
 	//}
 	//else
 	//{
