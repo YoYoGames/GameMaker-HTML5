@@ -1308,7 +1308,7 @@ function StartRoom( _numb, _starting )
 	    // @if function("view_set_viewport")
 	    // free the surfaces view_set_viewport created for the room's views
 	    for (var v = 0; v < g_RunRoom.m_Views.length; v++) {
-	        if (g_RunRoom.m_Views[v]) g_RunRoom.m_Views[v].ResetPolygon();
+	        if (g_RunRoom.m_Views[v]) g_RunRoom.m_Views[v].ResetPolygon(v);
 	    }
 	    // @endif
 	    //var int_size = roughSizeOfObject_debug(g_RunRoom);

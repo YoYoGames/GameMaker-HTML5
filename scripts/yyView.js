@@ -309,13 +309,84 @@ function ViewPolygon_EarClip(_points)
 
 // #############################################################################################
 /// Function:<summary>
-///             Drops the view's polygon, freeing the surface view_set_viewport created for it
+///             The view's surface: the view_surface_id array when the view's index is given
+///             (it is the newest value), otherwise the copy on the view
 ///          </summary>
 // #############################################################################################
-yyView.prototype.ResetPolygon = function () {
+yyView.prototype.PolygonViewSurface = function (_index) {
+	return (_index !== undefined) ? g_pBuiltIn.view_surface_id[_index] : this.surface_id;
+};
+
+// #############################################################################################
+/// Function:<summary>
+///             Sets the view's surface, in the view_surface_id array too when the view's index is given
+///          </summary>
+// #############################################################################################
+yyView.prototype.SetPolygonViewSurface = function (_index, _surface) {
+	this.surface_id = _surface;
+	if (_index !== undefined) g_pBuiltIn.view_surface_id[_index] = _surface;
+};
+
+// #############################################################################################
+/// Function:<summary>
+///             Forgets the surface view_set_viewport made if it isn't the view's surface any more
+///             (the game set its own) or it has been freed. It is never freed here: once the game
+///             has replaced it, it isn't the runner's to free.
+///          </summary>
+// #############################################################################################
+yyView.prototype.CheckPolygonSurface = function (_index) {
+	if (this.m_polygonSurface == -1) return;
+	if ((this.PolygonViewSurface(_index) != this.m_polygonSurface) || !surface_exists(this.m_polygonSurface)) {
+		this.m_polygonSurface = -1;
+	}
+};
+
+// #############################################################################################
+/// Function:<summary>
+///             Makes sure a view with a polygon has a surface to draw it from. A surface the game
+///             set is used as it is. Otherwise the one view_set_viewport made is kept while it is
+///             the port's size, and made again (port sized) when it isn't or there isn't one.
+///          </summary>
+// #############################################################################################
+yyView.prototype.EnsurePolygonSurface = function (_index) {
+	this.CheckPolygonSurface(_index);
+
+	var current = this.PolygonViewSurface(_index);
+	var w = (_index !== undefined) ? g_pBuiltIn.view_wport[_index] : this.portw;
+	var h = (_index !== undefined) ? g_pBuiltIn.view_hport[_index] : this.porth;
+
 	if (this.m_polygonSurface != -1) {
-		if (surface_exists(this.m_polygonSurface)) surface_free(this.m_polygonSurface);
-		if (this.surface_id == this.m_polygonSurface) this.surface_id = -1;
+		// ours: keep it unless the port's size has changed
+		if ((surface_get_width(this.m_polygonSurface) == w) && (surface_get_height(this.m_polygonSurface) == h)) return;
+		surface_free(this.m_polygonSurface);
+		this.m_polygonSurface = -1;
+		current = -1;
+	}
+	else if ((current != -1) && surface_exists(current)) {
+		// the game's own surface
+		return;
+	}
+
+	if ((w <= 0) || (h <= 0)) {
+		this.SetPolygonViewSurface(_index, -1);
+		return;
+	}
+	var surf = surface_create(w, h);
+	this.m_polygonSurface = surf;
+	this.SetPolygonViewSurface(_index, surf);
+};
+
+// #############################################################################################
+/// Function:<summary>
+///             Drops the view's polygon and its callbacks, freeing the surface view_set_viewport made
+///             for it if that is still the view's surface
+///          </summary>
+// #############################################################################################
+yyView.prototype.ResetPolygon = function (_index) {
+	this.CheckPolygonSurface(_index);
+	if (this.m_polygonSurface != -1) {
+		surface_free(this.m_polygonSurface);
+		this.SetPolygonViewSurface(_index, -1);
 	}
 	this.m_polygon = null;
 	this.m_polygonSurface = -1;
@@ -325,12 +396,21 @@ yyView.prototype.ResetPolygon = function () {
 
 // #############################################################################################
 /// Function:<summary>
+///             Is the polygon drawn? It needs triangles and a surface to draw them from.
+///          </summary>
+// #############################################################################################
+yyView.prototype.IsPolygonDrawn = function () {
+	return (this.m_polygon != null) && (this.m_polygon.length >= 6) && (this.surface_id != -1) && surface_exists(this.surface_id);
+};
+
+// #############################################################################################
+/// Function:<summary>
 ///             Is (_x, _y), in view port units, inside the view's polygon? False if it has none.
 ///          </summary>
 // #############################################################################################
 yyView.prototype.PolygonContains = function (_x, _y) {
+	if (!this.IsPolygonDrawn()) return false;
 	var tris = this.m_polygon;
-	if (tris == null || this.surface_id == -1) return false;
 
 	// the triangles are in surface pixels, drawn at the view's port position
 	var px = _x - this.portx;
@@ -353,7 +433,7 @@ yyView.prototype.PolygonContains = function (_x, _y) {
 ///          </summary>
 // #############################################################################################
 yyView.prototype.ContainsCanvasPoint = function (_x, _y) {
-	if (this.m_polygon != null && this.surface_id != -1) {
+	if (this.IsPolygonDrawn()) {
 		// canvas pixels back to view port units (see the scaledport* values set in DrawViews)
 		var scaleX = (this.portw != 0) ? (this.scaledportw / this.portw) : 1;
 		var scaleY = (this.porth != 0) ? (this.scaledporth / this.porth) : 1;
@@ -372,10 +452,12 @@ yyView.prototype.ContainsCanvasPoint = function (_x, _y) {
 ///          </summary>
 // #############################################################################################
 yyView.prototype.DrawPolygon = function () {
-	var tris = this.m_polygon;
-	if (tris == null || this.surface_id == -1 || !surface_exists(this.surface_id)) return;
-	var pSurf = g_Surfaces.Get(this.surface_id);
-	if (!pSurf) return;
+	if (!this.IsPolygonDrawn()) return;
+
+	// startFunc can change the view (even call view_set_viewport), so run the callbacks that are set
+	// now, and look the polygon and surface up again after startFunc
+	var startFunc = this.m_polygonStartFunc;
+	var endFunc = this.m_polygonEndFunc;
 
 	// The triangles are in view port units, which land on the target at port * display scale, as the
 	// rectangular views do (DrawViews sets their view ports the same way)
@@ -388,11 +470,11 @@ yyView.prototype.DrawPolygon = function () {
 	};
 
 	try {
-		callFunc(this.m_polygonStartFunc);
+		callFunc(startFunc);
 
-		// startFunc can replace the polygon with view_set_viewport
-		tris = this.m_polygon;
-		if (tris != null && tris.length >= 6) {
+		var pSurf = this.IsPolygonDrawn() ? g_Surfaces.Get(this.surface_id) : null;
+		if (pSurf) {
+			var tris = this.m_polygon;
 			var ox = this.portx;
 			var oy = this.porty;
 			if (g_webGL) {
@@ -433,7 +515,7 @@ yyView.prototype.DrawPolygon = function () {
 			}
 		}
 
-		callFunc(this.m_polygonEndFunc);
+		callFunc(endFunc);
 	}
 	finally {
 		Graphics_Restore();

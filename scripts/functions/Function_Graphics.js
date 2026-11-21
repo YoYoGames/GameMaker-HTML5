@@ -3003,6 +3003,8 @@ function view_set_surface_id(view, surface_id) {
 ///             viewport structs, one per view from view 0, or a JSON string of one. Each struct can set
 ///             polygons (x,y pairs in the view surface's pixels; [] turns the polygon off),
 ///             screenX/Y/W/H (the port), roomRectX/Y/W/H (the room rectangle) and startFunc/endFunc.
+///             A field that is left out keeps its current value. Like view_set_visible, this doesn't
+///             turn views on: the room needs views enabled for the polygon to be drawn.
 ///          </summary>
 // #############################################################################################
 function view_set_viewport(_viewportData) {
@@ -3033,81 +3035,99 @@ function view_set_viewport(_viewportData) {
             return;
         }
 
-        // A field that is left out keeps its current value
-        var getInt = function (_name, _fallback) {
-            var v = variable_struct_get(entry, _name);
-            return (v === undefined) ? _fallback : yyGetInt32(v);
+        // Only the fields that are given are applied; the rest keep their current values
+        var given = {};
+        var getField = function (_name, _positive) {
+            if (!variable_struct_exists(entry, _name)) return undefined;
+            var v = yyGetInt32(variable_struct_get(entry, _name));
+            if (_positive && v <= 0) {
+                yyError("view_set_viewport() - " + _name + " in entry " + index + " must be greater than 0");
+            }
+            given[_name] = true;
+            return v;
         };
-        var screenX = getInt("screenX", -1);
-        var screenY = getInt("screenY", -1);
-        var screenW = getInt("screenW", 0);
-        var screenH = getInt("screenH", 0);
-        var roomRectX = getInt("roomRectX", -1);
-        var roomRectY = getInt("roomRectY", -1);
-        var roomRectW = getInt("roomRectW", 0);
-        var roomRectH = getInt("roomRectH", 0);
+        var screenX = getField("screenX", false);
+        var screenY = getField("screenY", false);
+        var screenW = getField("screenW", true);
+        var screenH = getField("screenH", true);
+        var roomRectX = getField("roomRectX", false);
+        var roomRectY = getField("roomRectY", false);
+        var roomRectW = getField("roomRectW", true);
+        var roomRectH = getField("roomRectH", true);
 
-        var polygons = variable_struct_get(entry, "polygons");
-        if ((polygons !== undefined) && !(polygons instanceof Array)) {
+        var hasPolygons = variable_struct_exists(entry, "polygons");
+        var polygons = hasPolygons ? variable_struct_get(entry, "polygons") : undefined;
+        if (hasPolygons && !(polygons instanceof Array)) {
             yyError("view_set_viewport() - polygons in entry " + index + " is not an array");
             return;
         }
 
-        var startFunc = variable_struct_get(entry, "startFunc");
-        var endFunc = variable_struct_get(entry, "endFunc");
-
         var pView = g_RunRoom.m_Views[index];
         if (!pView) continue;
 
-        // a polygon needs at least 3 x,y pairs; fewer (e.g. []) turns it off, back to a rectangular viewport
-        if (polygons !== undefined) {
+        // the port
+        if (given.screenX) g_pBuiltIn.view_xport[index] = screenX;
+        if (given.screenY) g_pBuiltIn.view_yport[index] = screenY;
+        if (given.screenW) g_pBuiltIn.view_wport[index] = screenW;
+        if (given.screenH) g_pBuiltIn.view_hport[index] = screenH;
+        pView.portx = g_pBuiltIn.view_xport[index];
+        pView.porty = g_pBuiltIn.view_yport[index];
+        pView.portw = g_pBuiltIn.view_wport[index];
+        pView.porth = g_pBuiltIn.view_hport[index];
+
+        // the polygon: a polygon needs at least 3 x,y pairs; fewer (e.g. []) turns it off, back to a rectangular viewport
+        if (hasPolygons) {
             var points = [];
             for (var n = 0; n < polygons.length; n++) points.push(yyGetReal(polygons[n]));
             var indices = ViewPolygon_EarClip(points);
-
-            pView.surface_id = g_pBuiltIn.view_surface_id[index];
-            pView.ResetPolygon();
-            g_pBuiltIn.view_surface_id[index] = pView.surface_id;
-
             if (indices.length > 0) {
                 var tris = [];
                 for (var n = 0; n < indices.length; n++) tris.push(points[2 * indices[n]], points[2 * indices[n] + 1]);
                 pView.m_polygon = tris;
                 g_pBuiltIn.view_visible[index] = true;
-                if ((g_pBuiltIn.view_surface_id[index] == -1) && (screenW > 0) && (screenH > 0)) {
-                    var surf = surface_create(screenW, screenH);
-                    pView.m_polygonSurface = surf;
-                    pView.surface_id = surf;
-                    g_pBuiltIn.view_surface_id[index] = surf;
-                }
+                pView.visible = true;
+            }
+            else {
+                pView.ResetPolygon(index);
             }
         }
 
-        if ((screenW > 0) && (screenH > 0)) {
-            g_pBuiltIn.view_wport[index] = screenW;
-            g_pBuiltIn.view_hport[index] = screenH;
+        // the polygon is drawn from the view's surface: keep the one view_set_viewport made while it is
+        // still the right size, otherwise make one the size of the port
+        if ((pView.m_polygon != null) && (hasPolygons || given.screenW || given.screenH)) {
+            pView.EnsurePolygonSurface(index);
         }
-        if (screenX != -1) g_pBuiltIn.view_xport[index] = screenX;
-        if (screenY != -1) g_pBuiltIn.view_yport[index] = screenY;
-        if ((roomRectW > 0) && (roomRectH > 0)) {
-            g_pBuiltIn.view_wview[index] = roomRectW;
-            g_pBuiltIn.view_hview[index] = roomRectH;
+
+        // startFunc and endFunc are only replaced when they are given
+        if (variable_struct_exists(entry, "startFunc")) {
+            var startFunc = variable_struct_get(entry, "startFunc");
+            pView.m_polygonStartFunc = (typeof (startFunc) == "function") ? startFunc : null;
         }
-        if (roomRectX != -1) g_pBuiltIn.view_xview[index] = roomRectX;
-        if (roomRectY != -1) g_pBuiltIn.view_yview[index] = roomRectY;
+        if (variable_struct_exists(entry, "endFunc")) {
+            var endFunc = variable_struct_get(entry, "endFunc");
+            pView.m_polygonEndFunc = (typeof (endFunc) == "function") ? endFunc : null;
+        }
 
-        // startFunc and endFunc are replaced by every call (left out means none), as in the C++ runner
-        pView.m_polygonStartFunc = (typeof (startFunc) == "function") ? startFunc : null;
-        pView.m_polygonEndFunc = (typeof (endFunc) == "function") ? endFunc : null;
+        // the room rectangle, which is also the view's camera
+        if (given.roomRectX || given.roomRectY || given.roomRectW || given.roomRectH) {
+            if (given.roomRectX) g_pBuiltIn.view_xview[index] = roomRectX;
+            if (given.roomRectY) g_pBuiltIn.view_yview[index] = roomRectY;
+            if (given.roomRectW) g_pBuiltIn.view_wview[index] = roomRectW;
+            if (given.roomRectH) g_pBuiltIn.view_hview[index] = roomRectH;
 
-        // update the view's camera from the view
-        var camID = g_pBuiltIn.view_camera[index];
-        var pCam = (camID != -1) ? g_pCameraManager.GetCamera(camID) : null;
-        if (pCam) {
-            pCam.SetViewX(g_pBuiltIn.view_xview[index]);
-            pCam.SetViewY(g_pBuiltIn.view_yview[index]);
-            pCam.SetViewWidth(g_pBuiltIn.view_wview[index]);
-            pCam.SetViewHeight(g_pBuiltIn.view_hview[index]);
+            var camID = g_pBuiltIn.view_camera[index];
+            var pCam = (camID != -1) ? g_pCameraManager.GetCamera(camID) : null;
+            if (pCam) {
+                pCam.SetViewX(g_pBuiltIn.view_xview[index]);
+                pCam.SetViewY(g_pBuiltIn.view_yview[index]);
+                pCam.SetViewWidth(g_pBuiltIn.view_wview[index]);
+                pCam.SetViewHeight(g_pBuiltIn.view_hview[index]);
+                // rebuild the matrices the camera draws with, as the camera_set_view_* functions do
+                var cx = pCam.GetViewX() + (pCam.GetViewWidth() * 0.5);
+                var cy = pCam.GetViewY() + (pCam.GetViewHeight() * 0.5);
+                if (pCam.IsOrthoProj()) pCam.Build2DView(cx, cy);
+                else pCam.Build3DView(cx, cy);
+            }
         }
     }
 };

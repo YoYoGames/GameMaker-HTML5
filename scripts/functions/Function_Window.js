@@ -858,6 +858,10 @@ function GR_Window_Views_Convert(_x, _y, applyCamera = true) {
 	        continue;
 	    }
 	    
+	    // @if function("view_set_viewport")
+	    // a view drawn through a view_set_viewport polygon only takes the points inside its triangles
+	    if (pView.IsPolygonDrawn() && !pView.ContainsCanvasPoint(_x - g_CanvasRect.left, _y - g_CanvasRect.top)) continue;
+	    // @endif
 	    var m = pView.GetMouseCoords(_x, _y, applyCamera);
 	    // check that the results are within the view's region
 	    if (((m[0] >= pView.worldx) && (m[0] < pView.worldx + pView.worldw)) &&
@@ -887,6 +891,10 @@ function window_views_mouse_get_x() {
 	        continue;
 	    }
 	    
+	    // @if function("view_set_viewport")
+	    // a view drawn through a view_set_viewport polygon only takes the points inside its triangles
+	    if (pView.IsPolygonDrawn() && !pView.ContainsCanvasPoint(g_pIOManager.MouseX - g_CanvasRect.left, g_pIOManager.MouseY - g_CanvasRect.top)) continue;
+	    // @endif
 	    var mx = pView.GetMouseX(g_pIOManager.MouseX,g_pIOManager.MouseY);
 	    var my = pView.GetMouseY(g_pIOManager.MouseX,g_pIOManager.MouseY);
 	    // check that the results are within the view's region
@@ -919,6 +927,10 @@ function window_views_mouse_get_y() {
 	        continue;
 	    }
 	    
+	    // @if function("view_set_viewport")
+	    // a view drawn through a view_set_viewport polygon only takes the points inside its triangles
+	    if (pView.IsPolygonDrawn() && !pView.ContainsCanvasPoint(g_pIOManager.MouseX - g_CanvasRect.left, g_pIOManager.MouseY - g_CanvasRect.top)) continue;
+	    // @endif
 	    var mx = pView.GetMouseX(g_pIOManager.MouseX,g_pIOManager.MouseY);
 	    var my = pView.GetMouseY(g_pIOManager.MouseX,g_pIOManager.MouseY);
 	    // check that the results are within the view's region
