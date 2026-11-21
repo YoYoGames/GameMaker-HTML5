@@ -243,7 +243,8 @@ function  CreateViewFromStorage( _pViewStorage )
 // @if function("view_set_viewport")
 // #############################################################################################
 /// Function:<summary>
-///             Ear clips a simple polygon (x,y pairs) into a triangle list of vertex indices
+///             Ear clips a simple polygon (x,y pairs) into a triangle list of vertex indices. Returns
+///             [] for fewer than 3 points, or null if it can't be clipped (e.g. it intersects itself).
 ///          </summary>
 // #############################################################################################
 function ViewPolygon_EarClip(_points)
@@ -275,9 +276,10 @@ function ViewPolygon_EarClip(_points)
 	var convexSign = (area2 > 0) ? 1 : -1;
 
 	var m = n;
-	var guard = n * n + 16;
+	var misses = 0;     // vertices tried since the last ear: a full pass without one means it can't be clipped
 	var i = 0;
-	while (m > 3 && guard-- > 0) {
+	while (m > 3) {
+		if (misses >= m) return null;
 		var ip = (i == 0) ? m - 1 : i - 1;
 		var inx = (i == m - 1) ? 0 : i + 1;
 		var a = work[ip], b = work[i], c = work[inx];
@@ -296,9 +298,11 @@ function ViewPolygon_EarClip(_points)
 			indices.push(a, b, c);
 			work.splice(i, 1);
 			m--;
+			misses = 0;
 		}
 		else {
 			i++;
+			misses++;
 		}
 		if (i >= m) i = 0;
 	}
@@ -329,19 +333,16 @@ yyView.prototype.SetPolygonViewSurface = function (_index, _surface) {
 
 // #############################################################################################
 /// Function:<summary>
-///             Lets go of the surface view_set_viewport made once it isn't the view's surface any more.
-///             If the game has set its own surface for the view, ours isn't used, so it is freed (as
-///             in the C++ runner); the game's surface never is. If it has already been freed, it is
-///             just forgotten.
+///             Lets go of the surface view_set_viewport made once the game has set its own surface for
+///             the view: ours isn't used any more, so it is freed (as in the C++ runner). The game's
+///             surface never is. While ours is still the view's surface it is kept, even if it has
+///             been lost, so that RefreshPolygonSurface can make it again.
 ///          </summary>
 // #############################################################################################
 yyView.prototype.CheckPolygonSurface = function (_index) {
 	if (this.m_polygonSurface == -1) return;
-	if (!surface_exists(this.m_polygonSurface)) {
-		this.m_polygonSurface = -1;
-	}
-	else if (this.PolygonViewSurface(_index) != this.m_polygonSurface) {
-		surface_free(this.m_polygonSurface);
+	if (this.PolygonViewSurface(_index) != this.m_polygonSurface) {
+		if (surface_exists(this.m_polygonSurface)) surface_free(this.m_polygonSurface);
 		this.m_polygonSurface = -1;
 	}
 };
@@ -349,8 +350,8 @@ yyView.prototype.CheckPolygonSurface = function (_index) {
 // #############################################################################################
 /// Function:<summary>
 ///             Makes sure a view with a polygon has a surface to draw it from. A surface the game
-///             set is used as it is. Otherwise the one view_set_viewport made is kept while it is
-///             the port's size, and made again (port sized) when it isn't or there isn't one.
+///             set is used as it is. Otherwise the one view_set_viewport made is kept while it exists
+///             and is the port's size, and made again (port sized) when it isn't or there isn't one.
 ///          </summary>
 // #############################################################################################
 yyView.prototype.EnsurePolygonSurface = function (_index) {
@@ -361,11 +362,12 @@ yyView.prototype.EnsurePolygonSurface = function (_index) {
 	var h = (_index !== undefined) ? g_pBuiltIn.view_hport[_index] : this.porth;
 
 	if (this.m_polygonSurface != -1) {
-		// ours: keep it unless the port's size has changed
-		if ((surface_get_width(this.m_polygonSurface) == w) && (surface_get_height(this.m_polygonSurface) == h)) return;
-		surface_free(this.m_polygonSurface);
+		// ours: keep it unless it has been lost or the port's size has changed
+		if (surface_exists(this.m_polygonSurface)) {
+			if ((surface_get_width(this.m_polygonSurface) == w) && (surface_get_height(this.m_polygonSurface) == h)) return;
+			surface_free(this.m_polygonSurface);
+		}
 		this.m_polygonSurface = -1;
-		current = -1;
 	}
 	else if ((current != -1) && surface_exists(current)) {
 		// the game's own surface
@@ -383,6 +385,22 @@ yyView.prototype.EnsurePolygonSurface = function (_index) {
 
 // #############################################################################################
 /// Function:<summary>
+///             Called each frame before a view with a polygon is drawn: makes the surface
+///             view_set_viewport made again if it has been lost, or the port's size has changed
+///             (view_wport[n] = ..., view_set_wport). A surface the game set isn't touched.
+///          </summary>
+// #############################################################################################
+yyView.prototype.RefreshPolygonSurface = function (_index) {
+	if ((this.m_polygon == null) || (this.m_polygonSurface == -1)) return;
+	if (this.PolygonViewSurface(_index) != this.m_polygonSurface) {
+		this.CheckPolygonSurface(_index);
+		return;
+	}
+	this.EnsurePolygonSurface(_index);
+};
+
+// #############################################################################################
+/// Function:<summary>
 ///             Drops the view's polygon and its callbacks, freeing the surface view_set_viewport made
 ///             for it if that is still the view's surface
 ///          </summary>
@@ -390,7 +408,7 @@ yyView.prototype.EnsurePolygonSurface = function (_index) {
 yyView.prototype.ResetPolygon = function (_index) {
 	this.CheckPolygonSurface(_index);
 	if (this.m_polygonSurface != -1) {
-		surface_free(this.m_polygonSurface);
+		if (surface_exists(this.m_polygonSurface)) surface_free(this.m_polygonSurface);
 		this.SetPolygonViewSurface(_index, -1);
 	}
 	this.m_polygon = null;

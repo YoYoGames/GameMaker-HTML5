@@ -3972,6 +3972,12 @@ yyRoom.prototype.DrawViews = function (r) {
 			    var graph = GlobalGraphicsHandle;
 			    Graphics_Save();
 			    {
+			        // @if function("view_set_viewport")
+			        // make the surface view_set_viewport made again if it has been lost, or the port's size has changed
+			        if (g_pCurrentView.m_polygon != null && this.m_enableviews) {
+			            g_pCurrentView.RefreshPolygonSurface(i);
+			        }
+			        // @endif
 			        if (g_pCurrentView.surface_id != -1)
 			        {
 			    	    surface_set_target_system(g_pCurrentView.surface_id);
