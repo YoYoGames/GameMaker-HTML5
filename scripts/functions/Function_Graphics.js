@@ -2997,7 +2997,7 @@ function view_set_surface_id(view, surface_id) {
     g_pBuiltIn.view_surface_id[index] = yyGetInt32(surface_id);
     // @if function("view_set_viewport")
     // the game's own surface replaces the one view_set_viewport made for the view, which is freed
-    if (g_RunRoom && g_RunRoom.m_Views[index]) g_RunRoom.m_Views[index].CheckPolygonSurface(index);
+    if (g_RunRoom && g_RunRoom.m_Views[index]) g_RunRoom.m_Views[index].CheckPolygonSurface(index, true);
     // @endif
 };
 
