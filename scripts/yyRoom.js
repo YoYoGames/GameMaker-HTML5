@@ -3980,11 +3980,13 @@ yyRoom.prototype.DrawViews = function (r) {
 			        // @endif
 			        // reset the target below only if it was set here: the Draw event can change the view's surface
 			        // (e.g. view_set_viewport turning its polygon off)
+			        // (surface_set_target_system pushes nothing for a surface that no longer exists)
 			        var viewSurfaceTargetSet = false;
 			        if (g_pCurrentView.surface_id != -1)
 			        {
+			    	    var surfaceStackDepth = g_SurfaceStack.length;
 			    	    surface_set_target_system(g_pCurrentView.surface_id);
-			    	    viewSurfaceTargetSet = true;
+			    	    viewSurfaceTargetSet = (g_SurfaceStack.length > surfaceStackDepth);
 			        } 
     		
 			        //scaled port SHOULD BE port coords in final canvas space ( for canvas mouse -> view/world mouse coords )
@@ -4060,6 +4062,11 @@ yyRoom.prototype.DrawViews = function (r) {
 			    Graphics_Restore();
 		    }		
 	    }
+	    // @if function("view_set_viewport")
+	    // also free any view_set_viewport surface let go while it was a target outside the views above
+	    // (e.g. the game set it as the target itself in a Step event), even if no view is visible
+	    ViewPolygon_FlushSurfaceFrees();
+	    // @endif
 	//}
 	//else
 	//{

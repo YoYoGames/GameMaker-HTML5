@@ -3074,6 +3074,23 @@ function view_set_viewport(_viewportData) {
             yyError("view_set_viewport() - polygons in entry " + index + " has an odd number of values; it needs x,y pairs");
             return;
         }
+        // check and triangulate the polygon before anything is changed, so a call that is rejected changes nothing
+        var points = null, indices = null;
+        if (hasPolygons) {
+            points = [];
+            for (var n = 0; n < polygons.length; n++) {
+                var value = yyGetReal(polygons[n]);
+                if (!isFinite(value)) {
+                    yyError("view_set_viewport() - polygons in entry " + index + " has a value that is not a finite number");
+                }
+                points.push(value);
+            }
+            indices = ViewPolygon_EarClip(points);
+            if (indices == null) {
+                yyError("view_set_viewport(): polygon " + index + " couldn't be split into triangles; it may cross itself, or have all its points on one line");
+                return;
+            }
+        }
 
         // startFunc and endFunc take a method or a script function (a script index in older projects);
         // undefined clears them
@@ -3106,19 +3123,6 @@ function view_set_viewport(_viewportData) {
 
         // the polygon: a polygon needs at least 3 x,y pairs; fewer (e.g. []) turns it off, back to a rectangular viewport
         if (hasPolygons) {
-            var points = [];
-            for (var n = 0; n < polygons.length; n++) {
-                var value = yyGetReal(polygons[n]);
-                if (!isFinite(value)) {
-                    yyError("view_set_viewport() - polygons in entry " + index + " has a value that is not a finite number");
-                }
-                points.push(value);
-            }
-            var indices = ViewPolygon_EarClip(points);
-            if (indices == null) {
-                yyError("view_set_viewport(): polygon " + index + " couldn't be split into triangles; it may cross itself, or have all its points on one line");
-                return;
-            }
             if (indices.length > 0) {
                 var tris = [];
                 for (var n = 0; n < indices.length; n++) tris.push(points[2 * indices[n]], points[2 * indices[n] + 1]);
