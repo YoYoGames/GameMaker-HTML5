@@ -59,7 +59,6 @@ function yyView()						// A view
 	// view_set_viewport (GMS2-Runner-Main#1076): the view's surface is drawn through these triangles instead of as a rectangle
 	this.m_polygon = null;              // triangle list as x,y pairs in the view surface's pixels, or null
 	this.m_polygonSurface = -1;         // surface view_set_viewport created for the view (freed with the polygon), or -1
-	this.m_polygonSurfaceObj = null;    // ...and its surface object, to tell it from a later surface that reuses its ID
 	this.m_polygonStartFunc = null;     // called before the triangles are drawn (e.g. to set a shader)
 	this.m_polygonEndFunc = null;       // called after they are drawn
 }
@@ -362,13 +361,15 @@ yyView.prototype.SetPolygonViewSurface = function (_index, _surface) {
 /// Function:<summary>
 ///             Is the surface view_set_viewport made still there, and still ours? Surface IDs are reused
 ///             as soon as they are freed, so the ID alone isn't enough: once ours has been freed, the next
-///             surface_create anywhere in the game can get the same ID. It is ours only while that ID
-///             still holds the surface object it was created with.
+///             surface_create anywhere in the game can get the same ID. Our surface object is tagged with
+///             the view that made it (m_viewPolygonOwner), and surface_resize carries the tag over to the
+///             object that replaces it, so a resized surface is still ours.
 ///          </summary>
 // #############################################################################################
 yyView.prototype.OwnsPolygonSurface = function () {
-	return (this.m_polygonSurface != -1) && (this.m_polygonSurfaceObj != null) &&
-		(g_Surfaces.Get(this.m_polygonSurface) === this.m_polygonSurfaceObj);
+	if (this.m_polygonSurface == -1) return false;
+	var pSurf = g_Surfaces.Get(this.m_polygonSurface);
+	return (pSurf != null) && (pSurf.m_viewPolygonOwner === this);
 };
 
 // #############################################################################################
@@ -378,7 +379,6 @@ yyView.prototype.OwnsPolygonSurface = function () {
 // #############################################################################################
 yyView.prototype.ForgetPolygonSurface = function () {
 	this.m_polygonSurface = -1;
-	this.m_polygonSurfaceObj = null;
 };
 
 // #############################################################################################
@@ -437,7 +437,8 @@ yyView.prototype.EnsurePolygonSurface = function (_index) {
 	}
 	var surf = surface_create(w, h);
 	this.m_polygonSurface = surf;
-	this.m_polygonSurfaceObj = g_Surfaces.Get(surf);
+	var pSurf = g_Surfaces.Get(surf);
+	if (pSurf) pSurf.m_viewPolygonOwner = this;
 	this.SetPolygonViewSurface(_index, surf);
 };
 

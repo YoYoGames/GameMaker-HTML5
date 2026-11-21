@@ -169,6 +169,11 @@ function surface_create_RELEASE(_w, _h, _format, _forceid)
 	if( _forceid != undefined )
 	{
 	    //replace existing surface at index _forceid
+	    // @if function("view_set_viewport")
+	    // a surface view_set_viewport made stays the view's when it is resized
+	    var pOldSurf = g_Surfaces.Get( _forceid );
+	    if (pOldSurf && pOldSurf.m_viewPolygonOwner) pSurf.m_viewPolygonOwner = pOldSurf.m_viewPolygonOwner;
+	    // @endif
 	    g_Surfaces.Set( _forceid, pSurf);    
 	    pTPE.tp = _forceid;
 	}
