@@ -40,7 +40,8 @@ var eBuffer_None = 0,
 	eBuffer_Bool = 10,
 	eBuffer_String = 11,
 	eBuffer_U64 = 12,
-    eBuffer_Text = 13;
+    eBuffer_Text = 13,
+    eBuffer_UTF8 = 14;
 
 
 var eBuffer_Start = 0,
@@ -501,6 +502,71 @@ function UnicodeToUTF8(_str) {
 
 
 // #############################################################################################
+/// UTF-8 helpers for buffer_utf8 and the buffer_text / buffer_string reads (GameMaker-Bugs#16485)
+// #############################################################################################
+var g_UTF8DecodeLength = 1;     // bytes taken by the last yyDecodeUTF8
+var g_UTF8DecodeStop = 0;       // where the last yyb_decodestring stopped (after its zero byte, or the end)
+
+// Decodes one UTF-8 character at _offset without reading at or past _end. Returns the code point, or U+FFFD
+// for a malformed sequence (a continuation byte or a byte that can't start a character, a missing or bad
+// continuation byte, an overlong encoding, a surrogate, a value above U+10FFFF, or a sequence cut off by
+// _end). g_UTF8DecodeLength is set to the bytes the character takes, which is 1 for a malformed sequence.
+function yyDecodeUTF8(_dataView, _offset, _end) {
+    var b0 = _dataView.getUint8(_offset);
+    g_UTF8DecodeLength = 1;
+    if (b0 < 0x80) return b0;
+
+    var len, cp, min;
+    if ((b0 >= 0xC2) && (b0 <= 0xDF)) { len = 2; cp = b0 & 0x1F; min = 0x80; }
+    else if ((b0 >= 0xE0) && (b0 <= 0xEF)) { len = 3; cp = b0 & 0x0F; min = 0x800; }
+    else if ((b0 >= 0xF0) && (b0 <= 0xF4)) { len = 4; cp = b0 & 0x07; min = 0x10000; }
+    else return 0xFFFD;
+
+    if ((_offset + len) > _end) return 0xFFFD;
+    for (var i = 1; i < len; i++) {
+        var b = _dataView.getUint8(_offset + i);
+        if ((b & 0xC0) != 0x80) return 0xFFFD;
+        cp = (cp << 6) | (b & 0x3F);
+    }
+    if ((cp < min) || (cp > 0x10FFFF) || ((cp >= 0xD800) && (cp <= 0xDFFF))) return 0xFFFD;
+
+    g_UTF8DecodeLength = len;
+    return cp;
+}
+
+// The UTF-8 bytes of a code point; a value that isn't a code point (negative, a surrogate or above
+// U+10FFFF) gives the bytes of U+FFFD
+function yyEncodeUTF8(_value) {
+    var cp = Math.trunc(yyGetReal(_value));
+    if (!(cp >= 0) || (cp > 0x10FFFF) || ((cp >= 0xD800) && (cp <= 0xDFFF))) cp = 0xFFFD;
+
+    if (cp < 0x80) return [cp];
+    if (cp < 0x800) return [0xC0 | (cp >> 6), 0x80 | (cp & 0x3F)];
+    if (cp < 0x10000) return [0xE0 | (cp >> 12), 0x80 | ((cp >> 6) & 0x3F), 0x80 | (cp & 0x3F)];
+    return [0xF0 | (cp >> 18), 0x80 | ((cp >> 12) & 0x3F), 0x80 | ((cp >> 6) & 0x3F), 0x80 | (cp & 0x3F)];
+}
+
+// Decodes the UTF-8 bytes from _start up to the first zero byte or _end into a string;
+// g_UTF8DecodeStop is set to the index after the zero byte, or _end
+yyBuffer.prototype.yyb_decodestring = function(_start, _end) {
+    var res = "";
+    var idx = _start;
+    while (idx < _end) {
+        var cp = yyDecodeUTF8(this.m_DataView, idx, _end);
+        idx += g_UTF8DecodeLength;
+        if (cp == 0) break;
+        if (cp >= 0x10000) {
+            res += String.fromCharCode((cp >> 10) + 0xD7C0) + String.fromCharCode((cp & 0x3FF) | 0xDC00);
+        } else {
+            res += String.fromCharCode(cp);
+        }
+    }
+    g_UTF8DecodeStop = idx;
+    return res;
+};
+
+
+// #############################################################################################
 /// Function:<summary>
 ///          	Return the size of a "type"
 ///          </summary>
@@ -510,7 +576,7 @@ function UnicodeToUTF8(_str) {
 ///				size or -1 for error 
 ///			</returns>
 // #############################################################################################
-yyBuffer.prototype.yyb_read = function(_type) {
+yyBuffer.prototype.yyb_read = function(_type, _size) {
 
 
     // Deal with basic alignment first
@@ -524,11 +590,18 @@ yyBuffer.prototype.yyb_read = function(_type) {
         }
     }
 
+    // A size reads that many bytes of a buffer_text / buffer_string (GameMaker-Bugs#16485)
+    var sized = ((_type == eBuffer_String) || (_type == eBuffer_Text)) && (_size !== undefined) && (_size >= 0);
+
     // Out of space?
     if (this.m_BufferIndex >= this.m_Size) return (_type==eBuffer_String) ? "" : eBuffer_OutOfBounds;
 
     var res;
     switch (_type) {
+        case eBuffer_UTF8:
+            res = yyDecodeUTF8(this.m_DataView, this.m_BufferIndex, this.m_Size);
+            this.m_BufferIndex += g_UTF8DecodeLength;
+            break;
         case eBuffer_Bool:
             res = this.m_DataView.getUint8(this.m_BufferIndex++);
             if (res == 1) {
@@ -544,45 +617,14 @@ yyBuffer.prototype.yyb_read = function(_type) {
             break;
         case eBuffer_String:
         case eBuffer_Text:
-            {
-                res = "";
-                var chr;
-                var chrCode = 0;
-
-                while(this.m_BufferIndex<this.m_UsedSize)
-                {
-                    var v = 0;
-                    chr = -1;
-                    chrCode = this.m_DataView.getUint8(this.m_BufferIndex++, true);
-
-                    if ((chrCode & 0x80) == 0) {
-                        v = chrCode;
-                    } else if ((chrCode & 0xe0) == 0xc0) {
-                        v = (chrCode&0x1f)<<6;
-                        chrCode = this.m_DataView.getUint8(this.m_BufferIndex++, true);
-                        v |= (chrCode & 0x3f);
-
-                    } else if ((chrCode & 0xf0) == 0xe0) {
-                        v = (chrCode & 0x0f)<<12;
-                        chrCode = this.m_DataView.getUint8(this.m_BufferIndex++, true);
-                        v |= (chrCode & 0x3f) << 6;
-                        chrCode = this.m_DataView.getUint8(this.m_BufferIndex++, true);
-                        v |= (chrCode & 0x3f);
-
-                    } else {
-                        v = (chrCode & 0x07)<<18;
-                        chrCode = this.m_DataView.getUint8(this.m_BufferIndex++, true);
-                        v |= (chrCode & 0x3f) << 12;
-                        chrCode = this.m_DataView.getUint8(this.m_BufferIndex++, true);
-                        v |= (chrCode & 0x3f) << 6;
-                        chrCode = this.m_DataView.getUint8(this.m_BufferIndex++, true);
-                        v |= (chrCode & 0x3f);
-                        chr = String.fromCharCode((v >> 10) + 0xD7C0) + String.fromCharCode((v & 0x3FF) | 0xDC00);
-                    }
-                    if (v == 0x00) break;
-                    if(chr < 0) chr = String.fromCharCode(v);
-                    res += chr;
-                }
+            if (sized) {
+                // exactly _size bytes (up to the end of the buffer), the string stopping at a zero byte
+                var spanEnd = Math.min(this.m_BufferIndex + _size, this.m_Size);
+                res = this.yyb_decodestring(this.m_BufferIndex, spanEnd);
+                this.m_BufferIndex = spanEnd;
+            } else {
+                res = this.yyb_decodestring(this.m_BufferIndex, this.m_UsedSize);
+                this.m_BufferIndex = g_UTF8DecodeStop;
             }
             break;
         case eBuffer_S8:
@@ -1333,6 +1375,15 @@ yyBuffer.prototype.yyb_write = function(_type, _value) {
         sizeneeded = UTF8_String.length;
         if( _type === eBuffer_String )  sizeneeded++;  // null at the end of a string (not text)
     }
+    var UTF8_Bytes;
+    if (_type === eBuffer_UTF8) {
+        UTF8_Bytes = yyEncodeUTF8(_value);
+        sizeneeded = UTF8_Bytes.length;
+        // a character isn't written across the end of a wrap buffer
+        if ((this.m_Type == eBuffer_Format_Wrap) && ((this.m_BufferIndex + sizeneeded) > this.m_Size)) {
+            return eBuffer_OutOfSpace;
+        }
+    }
 
     if ((this.m_BufferIndex + sizeneeded) > this.m_Size) {
         // Resize buffer...
@@ -1368,6 +1419,12 @@ yyBuffer.prototype.yyb_write = function(_type, _value) {
             {
                 this.m_DataView.setUint8(this.m_BufferIndex, _value);
                 this.m_BufferIndex++;
+            }
+            break;
+
+        case eBuffer_UTF8:
+            for (var u = 0; u < UTF8_Bytes.length; u++) {
+                this.m_DataView.setUint8(this.m_BufferIndex++, UTF8_Bytes[u]);
             }
             break;
 
@@ -1439,7 +1496,7 @@ yyBuffer.prototype.yyb_write = function(_type, _value) {
 /// Function:<summary>
 ///          </summary>
 // #############################################################################################
-yyBuffer.prototype.yyb_peek = function(_type, _offset) {
+yyBuffer.prototype.yyb_peek = function(_type, _offset, _size) {
 
     var size = BufferSizeOf(_type);
 
@@ -1458,6 +1515,11 @@ yyBuffer.prototype.yyb_peek = function(_type, _offset) {
 
     var res;
     switch (_type) {
+        case eBuffer_UTF8:
+            if (_offset >= this.m_Size)
+                return undefined; // can't read off the end of the buffer
+            res = yyDecodeUTF8(this.m_DataView, _offset, this.m_Size);
+            break;
         case eBuffer_Bool:
             res = this.m_DataView.getUint8(_offset);
             if (res == 1) {
@@ -1506,47 +1568,11 @@ yyBuffer.prototype.yyb_peek = function(_type, _offset) {
             break;
         case eBuffer_String:
         case eBuffer_Text:
-            {
-                res = "";
-                var chr;
-                var chrCode = 0;
-
-                var currOffset = _offset;
-
-                while(currOffset<this.m_UsedSize)
-                {
-                    var v = 0;
-                    chr = -1;
-                    chrCode = this.m_DataView.getUint8(currOffset++, true);
-
-                    if ((chrCode & 0x80) == 0) {
-                        v = chrCode;
-                    } else if ((chrCode & 0xe0) == 0xc0) {
-                        v = (chrCode&0x1f)<<6;
-                        chrCode = this.m_DataView.getUint8(currOffset++, true);
-                        v |= (chrCode & 0x3f);
-
-                    } else if ((chrCode & 0xf0) == 0xe0) {
-                        v = (chrCode & 0x0f)<<12;
-                        chrCode = this.m_DataView.getUint8(currOffset++, true);
-                        v |= (chrCode & 0x3f) << 6;
-                        chrCode = this.m_DataView.getUint8(currOffset++, true);
-                        v |= (chrCode & 0x3f);
-
-                    } else {
-                        v = (chrCode & 0x07)<<18;
-                        chrCode = this.m_DataView.getUint8(currOffset++, true);
-                        v |= (chrCode & 0x3f) << 12;
-                        chrCode = this.m_DataView.getUint8(currOffset++, true);
-                        v |= (chrCode & 0x3f) << 6;
-                        chrCode = this.m_DataView.getUint8(currOffset++, true);
-                        v |= (chrCode & 0x3f);
-                        chr = String.fromCharCode((v >> 10) + 0xD7C0) + String.fromCharCode((v & 0x3FF) | 0xDC00);
-                    }
-                    if (v == 0x00) break;
-                    if(chr < 0) chr = String.fromCharCode(v);
-                    res += chr;
-                }
+            if ((_size !== undefined) && (_size >= 0)) {
+                // exactly _size bytes (up to the end of the buffer), the string stopping at a zero byte (GameMaker-Bugs#16485)
+                res = this.yyb_decodestring(_offset, Math.min(_offset + _size, this.m_Size));
+            } else {
+                res = this.yyb_decodestring(_offset, this.m_UsedSize);
             }
             break;
 
@@ -1744,6 +1770,18 @@ yyBuffer.prototype.yyb_poke = function(_type, _offset, _value) {
 
     switch (_type) {
 
+        case eBuffer_UTF8:
+            {
+                var UTF8_Bytes = yyEncodeUTF8(_value);
+                if ((_offset + UTF8_Bytes.length) > this.m_Size)
+                    return 0; // can't write off the end of the buffer
+                for (var u = 0; u < UTF8_Bytes.length; u++) {
+                    this.m_DataView.setUint8(_offset + u, UTF8_Bytes[u]);
+                }
+                this.yyb_UpdateUsedSize(_offset + UTF8_Bytes.length);
+            }
+            return;
+
         case eBuffer_Bool:
             if (_value == true) {
                 _value = 1;
@@ -1852,22 +1890,22 @@ function buffer_seek(buffer, base, offset) {
 /// Function:<summary>
 ///          </summary>
 // #############################################################################################
-function buffer_read(buffer, type) {
+function buffer_read(buffer, type, size) {
 
     var pBuff = g_BufferStorage.Get(yyGetInt32(buffer));
     if (!pBuff) return 0;
-    return pBuff.yyb_read(yyGetInt32(type));
+    return pBuff.yyb_read(yyGetInt32(type), (size === undefined) ? undefined : yyGetInt32(size));
 }
 
 // #############################################################################################
 /// Function:<summary>
 ///          </summary>
 // #############################################################################################
-function buffer_peek(buffer, offset, type) {
+function buffer_peek(buffer, offset, type, size) {
 
     var pBuff = g_BufferStorage.Get(yyGetInt32(buffer));
     if (!pBuff) return 0;
-    return pBuff.yyb_peek(yyGetInt32(type), yyGetInt32(offset));
+    return pBuff.yyb_peek(yyGetInt32(type), yyGetInt32(offset), (size === undefined) ? undefined : yyGetInt32(size));
 }
 
 // #############################################################################################
