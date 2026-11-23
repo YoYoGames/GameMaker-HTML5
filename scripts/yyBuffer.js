@@ -578,6 +578,10 @@ yyBuffer.prototype.yyb_decodestring = function(_start, _end) {
 // #############################################################################################
 yyBuffer.prototype.yyb_read = function(_type, _size) {
 
+    // A size reads that many bytes of a buffer_text / buffer_string (GameMaker-Bugs#16485)
+    var sized = ((_type == eBuffer_String) || (_type == eBuffer_Text)) && (_size !== undefined) && (_size >= 0);
+    // a size of 0 reads an empty string without moving, even at the end of the buffer
+    if (sized && (_size == 0)) return "";
 
     // Deal with basic alignment first
     //m_BufferIndex = (m_BufferIndex + (m_Alignment-1)) & ~(m_Alignment-1);		// align
@@ -589,9 +593,6 @@ yyBuffer.prototype.yyb_read = function(_type, _size) {
             this.m_BufferIndex -= this.m_Size;
         }
     }
-
-    // A size reads that many bytes of a buffer_text / buffer_string (GameMaker-Bugs#16485)
-    var sized = ((_type == eBuffer_String) || (_type == eBuffer_Text)) && (_size !== undefined) && (_size >= 0);
 
     // Out of space?
     if (this.m_BufferIndex >= this.m_Size) return (_type==eBuffer_String) ? "" : eBuffer_OutOfBounds;
@@ -1379,10 +1380,6 @@ yyBuffer.prototype.yyb_write = function(_type, _value) {
     if (_type === eBuffer_UTF8) {
         UTF8_Bytes = yyEncodeUTF8(_value);
         sizeneeded = UTF8_Bytes.length;
-        // a character isn't written across the end of a wrap buffer
-        if ((this.m_Type == eBuffer_Format_Wrap) && ((this.m_BufferIndex + sizeneeded) > this.m_Size)) {
-            return eBuffer_OutOfSpace;
-        }
     }
 
     if ((this.m_BufferIndex + sizeneeded) > this.m_Size) {
@@ -1423,8 +1420,13 @@ yyBuffer.prototype.yyb_write = function(_type, _value) {
             break;
 
         case eBuffer_UTF8:
+            // in a wrap buffer the bytes carry on from the start, as for the other runners (reads never decode across the end)
             for (var u = 0; u < UTF8_Bytes.length; u++) {
                 this.m_DataView.setUint8(this.m_BufferIndex++, UTF8_Bytes[u]);
+                if ((this.m_Type == eBuffer_Format_Wrap) && (this.m_BufferIndex >= this.m_Size)) {
+                    this.yyb_calcnextalignmentoffset();
+                    this.m_BufferIndex = 0;
+                }
             }
             break;
 
@@ -1626,7 +1628,10 @@ yyBuffer.prototype.yyb_fill = function(_offset, _size, _type, _value, _stride, _
         if( _type === eBuffer_String )  typesize++;  // null at the end of a string (not text)
     }
 
-
+    // buffer_utf8 isn't filled (as on the other runners), and a type with no size (e.g. an empty buffer_text)
+    // would never advance the loop below (GameMaker-Bugs#16485)
+    if ((_type === eBuffer_UTF8) || (typesize <= 0))
+        return;
 
     var bAlign;
     if (_stride <= 0)
@@ -1892,6 +1897,10 @@ function buffer_seek(buffer, base, offset) {
 // #############################################################################################
 function buffer_read(buffer, type, size) {
 
+    if ((arguments.length < 2) || (arguments.length > 3)) {
+        yyError("buffer_read: expected 2 or 3 arguments, got " + arguments.length);
+        return 0;
+    }
     var pBuff = g_BufferStorage.Get(yyGetInt32(buffer));
     if (!pBuff) return 0;
     return pBuff.yyb_read(yyGetInt32(type), (size === undefined) ? undefined : yyGetInt32(size));
@@ -1903,6 +1912,10 @@ function buffer_read(buffer, type, size) {
 // #############################################################################################
 function buffer_peek(buffer, offset, type, size) {
 
+    if ((arguments.length < 3) || (arguments.length > 4)) {
+        yyError("buffer_peek: expected 3 or 4 arguments, got " + arguments.length);
+        return undefined;
+    }
     var pBuff = g_BufferStorage.Get(yyGetInt32(buffer));
     if (!pBuff) return 0;
     return pBuff.yyb_peek(yyGetInt32(type), yyGetInt32(offset), (size === undefined) ? undefined : yyGetInt32(size));
