@@ -580,8 +580,8 @@ yyBuffer.prototype.yyb_read = function(_type, _size) {
 
     // A size reads that many bytes of a buffer_text / buffer_string (GameMaker-Bugs#16485)
     var sized = ((_type == eBuffer_String) || (_type == eBuffer_Text)) && (_size !== undefined) && (_size >= 0);
-    // a size of 0 reads an empty string without moving, even at the end of the buffer
-    if (sized && (_size == 0)) return "";
+    // a size of 0 reads an empty string without moving, at or before the end of the buffer (past it, it's out of bounds like any other read)
+    if (sized && (_size == 0) && ((this.m_Type == eBuffer_Format_Wrap) || (this.m_BufferIndex <= this.m_Size))) return "";
 
     // Deal with basic alignment first
     //m_BufferIndex = (m_BufferIndex + (m_Alignment-1)) & ~(m_Alignment-1);		// align
@@ -1423,7 +1423,10 @@ yyBuffer.prototype.yyb_write = function(_type, _value) {
             // in a wrap buffer the bytes carry on from the start, as for the other runners (reads never decode across the end)
             for (var u = 0; u < UTF8_Bytes.length; u++) {
                 this.m_DataView.setUint8(this.m_BufferIndex++, UTF8_Bytes[u]);
-                if ((this.m_Type == eBuffer_Format_Wrap) && (this.m_BufferIndex >= this.m_Size)) {
+                // only wrap here when more bytes follow; a character that ends exactly at the end leaves the position
+                // there, as the other types do, and the next write wraps it
+                if ((this.m_Type == eBuffer_Format_Wrap) && (this.m_BufferIndex >= this.m_Size) && ((u + 1) < UTF8_Bytes.length)) {
+                    this.yyb_UpdateUsedSize(this.m_Size);   // the bytes at the tail count before the position goes back to 0
                     this.yyb_calcnextalignmentoffset();
                     this.m_BufferIndex = 0;
                 }
