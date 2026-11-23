@@ -1778,12 +1778,18 @@ yyBuffer.prototype.yyb_poke = function(_type, _offset, _value) {
         case eBuffer_UTF8:
             {
                 var UTF8_Bytes = yyEncodeUTF8(_value);
-                if ((_offset + UTF8_Bytes.length) > this.m_Size)
+                if ((this.m_Type != eBuffer_Format_Wrap) && ((_offset + UTF8_Bytes.length) > this.m_Size))
                     return 0; // can't write off the end of the buffer
+                // in a wrap buffer the bytes carry on at offset 0, as for the other runners
+                var pokeOffset = _offset;
                 for (var u = 0; u < UTF8_Bytes.length; u++) {
-                    this.m_DataView.setUint8(_offset + u, UTF8_Bytes[u]);
+                    this.m_DataView.setUint8(pokeOffset++, UTF8_Bytes[u]);
+                    if (pokeOffset >= this.m_Size) {
+                        this.yyb_UpdateUsedSize(pokeOffset);
+                        pokeOffset = 0;
+                    }
                 }
-                this.yyb_UpdateUsedSize(_offset + UTF8_Bytes.length);
+                this.yyb_UpdateUsedSize(pokeOffset);
             }
             return;
 
