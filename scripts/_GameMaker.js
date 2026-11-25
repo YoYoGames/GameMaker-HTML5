@@ -827,10 +827,14 @@ function GameMaker_Init()
 	});
 
     /* ...this helps with eliminating stutter on mobile */
-    document.addEventListener('touchstart', e => {
-        e.preventDefault();
-    }, {
-        passive: false
+    canvas.addEventListener("touchstart", (e) => e.preventDefault(), {
+    passive: false,
+    });
+    canvas.addEventListener("touchmove", (e) => e.preventDefault(), {
+    passive: false,
+    });
+    canvas.addEventListener("touchend", (e) => e.preventDefault(), {
+    passive: false,
     });
     
     g_FrameStartTime = Date.now();
